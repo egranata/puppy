@@ -1,0 +1,94 @@
+/*
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef LIBUSERSPACE_SYSCALLS
+#define LIBUSERSPACE_SYSCALLS
+
+#include <sys/stdint.h>
+typedef uint32_t syscall_response_t;
+
+syscall_response_t yield_syscall();
+constexpr uint8_t yield_syscall_id = 0x1;
+syscall_response_t sleep_syscall(uint32_t arg1);
+constexpr uint8_t sleep_syscall_id = 0x3;
+syscall_response_t msgsend_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
+constexpr uint8_t msgsend_syscall_id = 0x4;
+syscall_response_t msgrecv_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t msgrecv_syscall_id = 0x5;
+syscall_response_t exit_syscall(uint32_t arg1);
+constexpr uint8_t exit_syscall_id = 0x6;
+syscall_response_t reboot_syscall();
+constexpr uint8_t reboot_syscall_id = 0x7;
+syscall_response_t semwait_syscall(uint32_t arg1);
+constexpr uint8_t semwait_syscall_id = 0xa;
+syscall_response_t semsignal_syscall(uint32_t arg1);
+constexpr uint8_t semsignal_syscall_id = 0xb;
+syscall_response_t getpid_syscall();
+constexpr uint8_t getpid_syscall_id = 0xc;
+syscall_response_t fopen_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t fopen_syscall_id = 0xd;
+syscall_response_t fclose_syscall(uint32_t arg1);
+constexpr uint8_t fclose_syscall_id = 0xe;
+syscall_response_t fread_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
+constexpr uint8_t fread_syscall_id = 0xf;
+syscall_response_t exec_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
+constexpr uint8_t exec_syscall_id = 0x10;
+syscall_response_t uptime_syscall(uint32_t arg1);
+constexpr uint8_t uptime_syscall_id = 0x11;
+syscall_response_t kill_syscall(uint32_t arg1);
+constexpr uint8_t kill_syscall_id = 0x12;
+syscall_response_t now_syscall(uint32_t arg1);
+constexpr uint8_t now_syscall_id = 0x13;
+syscall_response_t fstat_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t fstat_syscall_id = 0x14;
+syscall_response_t fseek_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t fseek_syscall_id = 0x15;
+syscall_response_t fopendir_syscall(uint32_t arg1);
+constexpr uint8_t fopendir_syscall_id = 0x16;
+syscall_response_t freaddir_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t freaddir_syscall_id = 0x17;
+syscall_response_t getppid_syscall();
+constexpr uint8_t getppid_syscall_id = 0x18;
+syscall_response_t collect_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t collect_syscall_id = 0x19;
+syscall_response_t semget_syscall(uint32_t arg1);
+constexpr uint8_t semget_syscall_id = 0x1a;
+syscall_response_t fioctl_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
+constexpr uint8_t fioctl_syscall_id = 0x1b;
+syscall_response_t fwrite_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
+constexpr uint8_t fwrite_syscall_id = 0x1c;
+syscall_response_t prioritize_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t prioritize_syscall_id = 0x1d;
+syscall_response_t mutexget_syscall(uint32_t arg1);
+constexpr uint8_t mutexget_syscall_id = 0x1e;
+syscall_response_t mutexlock_syscall(uint32_t arg1);
+constexpr uint8_t mutexlock_syscall_id = 0x1f;
+syscall_response_t mutexunlock_syscall(uint32_t arg1);
+constexpr uint8_t mutexunlock_syscall_id = 0x20;
+syscall_response_t mapregion_syscall(uint32_t arg1);
+constexpr uint8_t mapregion_syscall_id = 0x21;
+syscall_response_t getcontroller_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t getcontroller_syscall_id = 0xc8;
+syscall_response_t discoverdisk_syscall(uint32_t arg1,uint32_t arg2);
+constexpr uint8_t discoverdisk_syscall_id = 0xc9;
+syscall_response_t writesector_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3,uint32_t arg4);
+constexpr uint8_t writesector_syscall_id = 0xca;
+syscall_response_t readsector_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3,uint32_t arg4);
+constexpr uint8_t readsector_syscall_id = 0xcb;
+syscall_response_t getmeminfo_syscall(uint32_t arg1);
+constexpr uint8_t getmeminfo_syscall_id = 0xcd;
+
+#endif

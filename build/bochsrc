@@ -1,0 +1,16 @@
+megs: 768
+display_library: sdl2
+ata1-master: type=cdrom, path=out/os.iso, status=inserted
+ata0-master: type=disk, path=rootfs.dmg, mode=flat, translation=lba
+boot: cdrom
+log: out/bochslog.txt
+clock: sync=realtime, time0=local, rtc_sync=1
+cpu: count=1, ips=1000000
+com1: enabled=1, mode=file, dev=kernel.log
+keyboard: type=mf, serial_delay=200, paste_delay=100000
+keyboard: user_shortcut=ctrl-alt-del
+mouse: type=ps2, enabled=0, toggle=ctrl+f10
+romimage: file=$BXSHARE/BIOS-bochs-latest
+vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
+vga: extension=vbe
+pci: enabled=1, chipset=i440fx
