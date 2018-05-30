@@ -15,12 +15,13 @@
 #include <process/manager.h>
 #include <mm/virt.h>
 #include <log/log.h>
+#include <syscalls/types.h>
 
 extern "C"
-void reaper(uint32_t exitcode) {
+void reaper(uint32_t exitword) {
     LOG_DEBUG("in reaper - releasing VM space");
     VirtualPageManager::get().release();
 
     LOG_DEBUG("in reaper - exiting process");
-    ProcessManager::get().exit(exitcode);
+    ProcessManager::get().exit(process_exit_status_t(exitword));
 }

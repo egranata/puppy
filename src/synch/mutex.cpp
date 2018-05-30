@@ -14,7 +14,6 @@
 
 #include <synch/mutex.h>
 #include <process/manager.h>
-#include <process/process.h>
 #include <libc/string.h>
 #include <libc/hash.h>
 #include <log/log.h>
@@ -34,17 +33,16 @@ const char* Mutex::key() {
 
 void Mutex::lock() {
     auto&& pm(ProcessManager::get());
-    auto self = pm.getcurprocess();
 
     while(true) {
         if (mLocked) {
             LOG_DEBUG("yielding as this mutex is locked");
-            mWaiters.push(self);
-            pm.deschedule(self, process_t::State::WAITSYNC);
-            ProcessManager::get().yield();
+            mWaiters.push(gCurrentProcess);
+            pm.deschedule(gCurrentProcess, process_t::State::WAITSYNC);
+            pm.yield();
         } else {
             mLocked = true;
-            mPid = self->pid;
+            mPid = gCurrentProcess->pid;
             LOG_DEBUG("letting process %u lock this mutex", mPid);
             return;
         }
@@ -52,23 +50,18 @@ void Mutex::lock() {
 }
 
 bool Mutex::trylock() {
-    auto&& pm(ProcessManager::get());
-    auto self = pm.getcurprocess();
-
     if (mLocked) {
         return false;
     } else {
         mLocked = true;
-        mPid = self->pid;
+        mPid = gCurrentProcess->pid;
+        LOG_DEBUG("letting process %u lock this mutex", mPid);
         return true;
     }
 }
 
 void Mutex::unlock() {
-    auto&& pm(ProcessManager::get());
-    auto self = pm.getcurprocess();
-
-    if (mLocked && (mPid == self->pid)) {
+    if (mLocked && (mPid == gCurrentProcess->pid)) {
         mLocked = false;
         LOG_DEBUG("process %u unlocked this mutex", mPid);
         mWaiters.foreach([] (process_t* &next) -> bool {

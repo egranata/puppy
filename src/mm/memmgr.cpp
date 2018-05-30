@@ -14,11 +14,22 @@
 
 #include <mm/memmgr.h>
 #include <log/log.h>
+#include <process/process.h>
 
 static constexpr uintptr_t gKernelInitial = 0xC0000000;
 static constexpr uintptr_t gKernelFinal =   0xFFFFFFFF;
 
-MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions() {
+MemoryManager::region_t::region_t (uintptr_t f, uintptr_t t, permission_t p) {
+    from = f;
+    to = t;
+    permission = p;
+}
+
+bool MemoryManager::region_t::operator==(const region_t& other) const {
+    return (from == other.from) && (to == other.to);
+}
+
+MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions(), mAllRegionsSize(0), mMappedRegionsSize(0) {
     // do not allow the zero page to be mapped
     mRegions.add({0x0, 0xFFF});
 
@@ -36,8 +47,10 @@ static constexpr size_t toPage(size_t size) {
     return size - m + VirtualPageManager::gPageSize;
 }
 
-bool MemoryManager::isWithinRegion(uintptr_t addr) {
-    return mRegions.contains(addr);
+bool MemoryManager::isWithinRegion(uintptr_t addr, region_t *rgn) {
+    // hacky but effective - page 0 is never permitted to be mapped
+    if (VirtualPageManager::page(addr) == 0) return false;
+    return mRegions.contains(addr, rgn);
 }
 
 bool MemoryManager::findRegionImpl(size_t size, MemoryManager::region_t& region) {
@@ -63,46 +76,72 @@ MemoryManager::region_t MemoryManager::findRegion(size_t size) {
 MemoryManager::region_t MemoryManager::findAndMapRegion(size_t size, const VirtualPageManager::map_options_t& opts) {
     region_t region;
     if (findRegionImpl(size, region)) {
+        region.permission = opts;
         LOG_DEBUG("mapping all pages from %p to %p", region.from, region.to);
         auto&& vmm(VirtualPageManager::get());
         for(auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.newmap(base, opts);
         }
-        return addMapping(region);
+        mMappedRegionsSize += region.size();
+        return addRegion(region);
     } else {
         return {0,0};
     }
 }
 
-MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size) {
+MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size, const VirtualPageManager::map_options_t& opts) {
     region_t region;
     if (findRegionImpl(size, region)) {
+        region.permission = opts;
         LOG_DEBUG("zeropage mapping all pages from %p to %p", region.from, region.to);        
         auto&& vmm(VirtualPageManager::get());
-        for(auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
-            vmm.mapZeroPage(base);
-        }
-        return addMapping(region);
+        vmm.mapZeroPage(region.from, region.to);
+        return addRegion(region);
     } else {
         return {0,0};
     }
 }
 
-MemoryManager::region_t MemoryManager::findAndAllocateRegion(size_t size) {
-    region_t region;
-    if (findRegionImpl(size, region)) {
-        LOG_DEBUG("adding a known region from %p to %p", region.from, region.to);
-        return addMapping(region);
+MemoryManager::region_t MemoryManager::addMappedRegion(uintptr_t f, uintptr_t t) {
+    auto rgn = addRegion({f, t});
+    mMappedRegionsSize += rgn.size();
+    return rgn;
+}
+
+MemoryManager::region_t MemoryManager::addUnmappedRegion(uintptr_t f, uintptr_t t) {
+    return addRegion({f, t});
+}
+
+void MemoryManager::removeRegion(region_t region) {
+    auto&& vmm(VirtualPageManager::get());
+
+    if (mRegions.del(region)) {
+        LOG_DEBUG("region [%p - %p] deleted, unmapping all pages", region.from, region.to);
+        mAllRegionsSize -= region.size();
+        mMappedRegionsSize -= region.size();
+        for (auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
+            vmm.unmap(base);
+        }
     } else {
-        return {0,0};
-    }        
+        LOG_DEBUG("attempted to remove region [%p - %p] but was not found", region.from, region.to);
+    }
 }
 
-MemoryManager::region_t MemoryManager::addMapping(uintptr_t from, uintptr_t to) {
-    return addMapping({from, to});
-}
-
-MemoryManager::region_t MemoryManager::addMapping(const MemoryManager::region_t& region) {
-    LOG_DEBUG("adding a mapping region [%x - %x]", region.from, region.to);
+MemoryManager::region_t MemoryManager::addRegion(const MemoryManager::region_t& region) {
+    LOG_DEBUG("adding a memory region [%x - %x]", region.from, region.to);
+    mProcess->memstats.allocated += region.size();
+    mAllRegionsSize += region.size();
     return mRegions.add(region), region;
+}
+
+void MemoryManager::mapOneMorePage() {
+    mMappedRegionsSize += VirtualPageManager::gPageSize;
+}
+
+uintptr_t MemoryManager::getTotalRegionsSize() const {
+    return mAllRegionsSize;
+}
+
+uintptr_t MemoryManager::getMappedSize() const {
+    return mMappedRegionsSize;
 }

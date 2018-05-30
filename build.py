@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # Copyright 2018 Google LLC
 #
@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python3
 import glob
+from multiprocessing import Pool
 import os
 import os.path
 import shutil
@@ -25,47 +25,22 @@ import time
 
 BUILD_START = time.time()
 
-BASIC_CFLAGS = "-O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Wno-main -Werror -funsigned-char -fno-exceptions -fdiagnostics-color=always -c"
+BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Wno-main -Werror -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
 BASIC_CPPFLAGS = " -std=c++14 -fno-exceptions -fno-rtti "
+BASIC_ASFLAGS = "-f elf"
+BASIC_LDFLAGS = ""
 
-FATFS_CFLAGS = BASIC_CFLAGS + " -Ithird_party/fatfs/include"
-FATFS_LDFLAGS = "-ffreestanding -nostdlib"
-
-MUZZLE_CFLAGS = BASIC_CFLAGS + " -Ithird_party/muzzle/include"
-MUZZLE_CPPFLAGS = BASIC_CPPFLAGS + " -Ithird_party/muzzle/include"
-MUZZLE_LDFLAGS = "-ffreestanding -nostdlib"
-MUZZLE_ASFLAGS = "-nostartfiles -nodefaultlibs -Wall -Wextra -fdiagnostics-color=always -nostdlib -c"
-
-CFLAGS = BASIC_CFLAGS + " -mgeneral-regs-only -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/libmuzzle -Ithird_party"
-CPPFLAGS = BASIC_CPPFLAGS + CFLAGS
-ASFLAGS = "-f elf"
-LDFLAGS = "-T build/linker.ld -ffreestanding -nostdlib"
-
-LIBUSERSPACE_CFLAGS = BASIC_CFLAGS + " -Ilibuserspace/include -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/include"
-LIBUSERSPACE_ASFLAGS = "-f binary"
-
-APP_CFLAGS = BASIC_CFLAGS + " -Ilibuserspace/include -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/include"
-APP_ASFLAGS = "-f binary"
-APP_LDFLAGS = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry"
-
-def error(msg):
-    print("error: %s" % msg)
-    sys.exit(1)
-
-def findSubdirectories(dir):
+def findSubdirectories(dir, self=True):
+    if self:
+        yield dir
     for subdir in os.listdir(dir):
         candidate = os.path.join(dir, subdir)
         if os.path.isdir(candidate):
             yield candidate
 
-def find(dir, extension=None):
-    if extension:
-        if extension[0] != '.':
-            extension = '.%s' % extension
-    for root, dirs, files in os.walk(dir):
-        for file in files:
-            if extension is None or file.endswith(extension):
-                yield os.path.join(root, file)
+def error(msg):
+    print("error: %s" % msg)
+    raise SystemError # force the subprocesses to exit as brutally as possible
 
 def shell(command, shell=True):
     # print("$ %s" % command)
@@ -79,18 +54,24 @@ def shell(command, shell=True):
         error("shell command failed")
 
 def findAll(base, extension):
-    L = []
+    def _find(dir, extension=None):
+        if extension:
+            if extension[0] != '.':
+                extension = '.%s' % extension
+        for root, dirs, files in os.walk(dir):
+            for file in files:
+                if extension is None or file.endswith(extension):
+                    yield os.path.join(root, file)
+
+    L = set()
     for subdir in findSubdirectories(base):
-        for f in find(subdir, extension):
-            L.append(f)
+        for f in _find(subdir, extension):
+            L.add(f)
     return L
 
-def makeOutputFilename(src, extension, prefix=None):
-    if extension[0] != '.':
-        extension = '.%s' % extension
-    outextension = "_%s.o" % extension[1:]
+def makeOutputFilename(src, prefix=None):
     if prefix is not None: src = "%s_%s" % (prefix, src)
-    return os.path.join("out", src.replace("src/","").replace("/","_").replace(extension,outextension))
+    return os.path.join("out", src.replace("src/","").replace("/","_").replace(".","_")) + ".o"
 
 def copy(src, dst):
     cmdline = 'cp "%s" "%s"' % (src, dst)
@@ -105,22 +86,25 @@ def write(dst, txt):
     with open(dst, 'w') as f:
         f.write(txt)
 
-def buildAsm(inp, out, flags=ASFLAGS, assembler='nasm'):
+def buildAsm(inp, flags=BASIC_ASFLAGS, assembler='nasm'):
+    out = makeOutputFilename(inp)
     cmdline = '%s %s %s -o %s' % (assembler, flags, inp, out)
     shell(cmdline)
     return out
 
-def buildCpp(inp, out, flags=CPPFLAGS, compiler="i686-elf-gcc"):
+def buildCpp(inp, flags=BASIC_CPPFLAGS, compiler="i686-elf-gcc"):
+    out = makeOutputFilename(inp)
     cmdline = "%s %s %s -o %s" % (compiler, flags, inp, out)
     shell(cmdline)
     return out
 
-def buildC(inp, out, flags=CFLAGS, compiler="i686-elf-gcc"):
+def buildC(inp, flags=BASIC_CFLAGS, compiler="i686-elf-gcc"):
+    out = makeOutputFilename(inp)
     cmdline = "%s %s %s -o %s" % (compiler, flags, inp, out)
     shell(cmdline)
     return out
 
-def linkGcc(files, out, flags=LDFLAGS, linker="i686-elf-gcc"):
+def linkGcc(files, out, flags=BASIC_LDFLAGS, linker="i686-elf-gcc"):
     CMDLINE = "%s %s %s -o %s -lgcc" % (linker, flags, ' '.join(files), out)
     shell(CMDLINE)
     return out
@@ -131,110 +115,149 @@ def clearDir(path):
     os.makedirs(path)
 
 clearDir("out")
-
-print("Building FatFS")
-
-FATFS_C_FILES = findAll("third_party/fatfs", "c")
-
-FATFS_OUT_FILES = []
-
-for inp in FATFS_C_FILES:
-    out = makeOutputFilename(inp, "c")
-    FATFS_OUT_FILES.append(buildC(inp, out, flags=FATFS_CFLAGS))
-
-cmdline = "i686-elf-ar rcs out/libfatfs.a %s" % (' '.join(FATFS_OUT_FILES))
-shell(cmdline)
-
-print("Building muzzle - a port of MUSL libc")
-
-MUZZLE_CPP_FILES = findAll("third_party/muzzle/src", "cpp")
-MUZZLE_C_FILES = findAll("third_party/muzzle/src", "c")
-MUZZLE_ASM_FILES = findAll("third_party/muzzle/src", "s")
-
-MUZZLE_OUT_FILES = []
-
-for inp in MUZZLE_CPP_FILES:
-    out = makeOutputFilename(inp, "cpp")
-    MUZZLE_OUT_FILES.append(buildCpp(inp, out, flags=MUZZLE_CPPFLAGS))
-
-for inp in MUZZLE_C_FILES:
-    out = makeOutputFilename(inp, "c")
-    MUZZLE_OUT_FILES.append(buildC(inp, out, flags=MUZZLE_CFLAGS))
-
-for inp in MUZZLE_ASM_FILES:
-    out = makeOutputFilename(inp, "s")
-    MUZZLE_OUT_FILES.append(buildAsm(inp, out, assembler="i686-elf-gcc", flags=MUZZLE_ASFLAGS))
-
-cmdline = "i686-elf-ar rcs out/libmuzzle.a %s" % (' '.join(MUZZLE_OUT_FILES))
-shell(cmdline)
-
-print("Building kernel.elf")
-
-CPP_FILES = findAll("src", "cpp")
-C_FILES = findAll("src", "c")
-ASM_FILES = findAll("src", "s")
-
-OUT_FILES = []
-
-for inp in CPP_FILES:
-    out = makeOutputFilename(inp, "cpp")
-    OUT_FILES.append(buildCpp(inp, out))
-
-for inp in C_FILES:
-    out = makeOutputFilename(inp, "c")
-    OUT_FILES.append(buildC(inp, out))
-
-for inp in ASM_FILES:
-    out = makeOutputFilename(inp, "s")
-    OUT_FILES.append(buildAsm(inp, out))
-
-OUT_FILES.append("out/libmuzzle.a")
-OUT_FILES.append("out/libfatfs.a")
-
-linkGcc(files=OUT_FILES, out="out/kernel.elf")
-
-print("Size of kernel binary: %d bytes" % os.stat("out/kernel.elf").st_size)
-
-print("Building libuserspace")
-
-clearDir("out/modules")
-
-LIBUSERSPACE_OUT_FILES = []
-LIBUSERSPACE_CPP_FILES = find("libuserspace/src", "cpp")
-LIBUSERSPACE_ASM_FILES = find("libuserspace/src", "s")
-
-for inp in LIBUSERSPACE_CPP_FILES:
-    out = makeOutputFilename(inp, "cpp")
-    LIBUSERSPACE_OUT_FILES.append(buildCpp(inp, out, flags=LIBUSERSPACE_CFLAGS))
-
-for inp in LIBUSERSPACE_ASM_FILES:
-    out = makeOutputFilename(inp, "s")
-    LIBUSERSPACE_OUT_FILES.append(buildAsm(inp, out))
-
-LIBUSERSPACE_OUT_FILES.append("out/libmuzzle.a")
-
-cmdline = "i686-elf-ar rcs out/libuserspace.a %s" % (' '.join(LIBUSERSPACE_OUT_FILES))
-shell(cmdline)
-
-print("Building userspace apps")
-
 clearDir("out/apps")
 clearDir("out/iso/boot/grub")
 
-APP_DIRS = findSubdirectories("apps")
+class _BuildC(object):
+    def __init__(self, flags):
+        self.flags = flags
+    
+    def __call__(self, x):
+        return buildC(x, flags=self.flags)
+
+class _BuildCpp(object):
+    def __init__(self, flags):
+        self.flags = flags
+    
+    def __call__(self, x):
+        return buildCpp(x, flags=self.flags)
+
+# do not move the definition of the THE_POOL above here; because of how multiprocessing works
+# all the things that we want the pooled processes to see and use must be defined before the
+# pool itself is defined..
+THE_POOL = Pool(10)
+
+class Project(object):
+    def __init__(self, name, srcdir, cflags, cppflags, asmflags, ldflags, assembler="nasm", linkerdeps=None, outwhere="out"):
+        self.name = name
+        self.srcdir = srcdir
+        self.cflags = cflags
+        self.cppflags = cppflags
+        self.asmflags = asmflags
+        self.assembler = assembler
+        self.ldflags = ldflags
+        self.linkerdeps = linkerdeps if linkerdeps else []
+        self.outwhere = outwhere
+
+    def findCFiles(self):
+        return findAll(self.srcdir, "c")
+
+    def findCPPFiles(self):
+        return findAll(self.srcdir, "cpp")
+
+    def findSFiles(self):
+        return findAll(self.srcdir, "s")
+
+    def buildCFiles(self):
+        return THE_POOL.map(_BuildC(self.cflags), self.findCFiles())
+
+    def buildCPPFiles(self):
+        return THE_POOL.map(_BuildCpp(self.cppflags), self.findCPPFiles())
+
+    def buildSFiles(self):
+        S_OUTPUT = []
+        for inp in self.findSFiles():
+            S_OUTPUT.append(buildAsm(inp, flags=self.asmflags, assembler=self.assembler))
+        return S_OUTPUT
+
+    def compile(self):
+        return self.buildCFiles() + self.buildCPPFiles() + self.buildSFiles()
+
+    def linkAr(self, out):
+        destfile = "%s/lib%s.a" % (self.outwhere, self.name.lower())
+        shell("i686-elf-ar rcs %s %s" % (destfile, ' '.join(out)))
+        return destfile
+
+    def linkGcc(self, out):
+        destfile = "%s/%s" % (self.outwhere, self.name.lower())
+        out = out + self.linkerdeps
+        linkGcc(files=out, flags=self.ldflags, out=destfile)
+        return destfile
+
+    def link(self, out):
+        pass
+    
+    def build(self):
+        print("Building %s" % self.name)
+        BEGIN = time.time()
+        DEST = self.link(self.compile())
+        END = time.time()
+        DURATION = int(END - BEGIN)
+        if DURATION > 0:
+            print("Duration: %s seconds" % DURATION)
+        print("Output size: %s bytes" % (os.stat(DEST).st_size))
+        return DEST
+
+FatFS = Project(name="FatFS",
+    srcdir="third_party/fatfs",
+    cflags=BASIC_CFLAGS + " -Ithird_party/fatfs/include", 
+    cppflags=BASIC_CPPFLAGS,
+    asmflags=BASIC_ASFLAGS,
+    ldflags="-ffreestanding -nostdlib",
+    assembler="nasm")
+FatFS.link = FatFS.linkAr
+
+Muzzle = Project(name="Muzzle",
+    srcdir="third_party/muzzle/src",
+    cflags=BASIC_CFLAGS + " -Ithird_party/muzzle/include",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ithird_party/muzzle/include",
+    asmflags="-nostartfiles -nodefaultlibs -Wall -Wextra -fdiagnostics-color=always -nostdlib -c",
+    ldflags="-ffreestanding -nostdlib",
+    assembler="i686-elf-gcc")
+Muzzle.link = Muzzle.linkAr
+
+Kernel = Project(name="Kernel",
+    srcdir="src",
+    cflags=BASIC_CFLAGS + " -mgeneral-regs-only -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/libmuzzle -Ithird_party",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -mgeneral-regs-only -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/libmuzzle -Ithird_party",
+    asmflags="-f elf",
+    ldflags="-T build/linker.ld -ffreestanding -nostdlib",
+    assembler="nasm",
+    linkerdeps=["out/libmuzzle.a", "out/libfatfs.a"])
+Kernel.link = Kernel.linkGcc
+
+Userspace = Project(name="Userspace",
+    srcdir="libuserspace/src",
+    cflags=BASIC_CFLAGS + " -Ilibuserspace/include -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/include",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ilibuserspace/include -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/include",
+    asmflags="-f elf",
+    ldflags="-ffreestanding -nostdlib",
+    assembler="nasm",
+    linkerdeps=["out/libmuzzle.a"])
+Userspace.link = Userspace.linkAr
+
+FatFS.build()
+Muzzle.build()
+Kernel.build()
+Userspace.build()
+
 APPS = []
 APP_REFS = []
+APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
-    name = os.path.basename(app)
-    cpp = find(app, "cpp")
-    outs = []
-    for inp in cpp:
-        out = makeOutputFilename(inp, "cpp")
-        outs.append(buildCpp(inp, out, flags=APP_CFLAGS))
-    outs.append("out/libuserspace.a")
-    outs.append("out/libmuzzle.a")
-    APPS.append(linkGcc(outs, "out/apps/%s" % name, APP_LDFLAGS))
-    APP_REFS.append("--file out/apps/%s" % name)
+    app_p = Project(name = os.path.basename(app),
+                    srcdir = app,
+                    cflags = BASIC_CFLAGS + " -Ilibuserspace/include -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/include",
+                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ilibuserspace/include -Iinclude -Ithird_party/muzzle -Ithird_party/muzzle/include",
+                    asmflags = "-f elf",
+                    ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry",
+                    assembler="nasm",
+                    linkerdeps = ["out/libuserspace.a", "out/libmuzzle.a"],
+                    outwhere="out/apps")
+    app_p.link = app_p.linkGcc
+    app_o = app_p.build()
+    APPS.append(app_o)
+    APP_REFS.append("--file %s" % app_o)
 
 shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(APP_REFS))
 MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
@@ -245,7 +268,7 @@ menulst = read('build/grub.cfg')
 menulst = menulst.replace("${MODULES}", '\n'.join(MENU_MODULE_REFS))
 write("out/iso/boot/grub/grub.cfg", menulst)
 
-copy("out/kernel.elf", "out/iso/boot/puppy")
+copy("out/kernel", "out/iso/boot/puppy")
 
 print("Generating os.iso")
 

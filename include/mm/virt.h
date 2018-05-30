@@ -22,8 +22,10 @@
 #include <libc/bytesizes.h>
 #include <mm/heap.h>
 #include <sys/nocopy.h>
+#include <libc/intervals.h>
 
 class PhysicalPageManager;
+struct process_t;
 
 #define DECLARE_FIELD(name, type) type name (); void name ( type )
 
@@ -36,13 +38,15 @@ public:
 		DECLARE_OPTION(bool, user);
 		DECLARE_OPTION(bool, clear);
 		DECLARE_OPTION(bool, frompmm);
+		DECLARE_OPTION(bool, cached);
+		DECLARE_OPTION(bool, global);
 
 		#undef DECLARE_OPTION
 
 		map_options_t();
 
-		static const map_options_t& kernel();
-		static const map_options_t& userspace();
+		static map_options_t kernel();
+		static map_options_t userspace();
 
 	private:
 		map_options_t(bool rw, bool user, bool clear, bool frompmm);
@@ -82,6 +86,9 @@ public:
 #undef DECLARE_FIELD
 	
 	static constexpr size_t gKernelHeapSize = 128_MB;
+	static constexpr size_t gScratchPagesSize = 8_MB;
+
+	static constexpr uintptr_t gZeroPagePhysical = 0x0;
 
 	static constexpr uintptr_t gPageDirectoryAddress = 0xffbff000;
 	static constexpr uintptr_t gPageTableAddress = gPageDirectoryAddress + PhysicalPageManager::gPageSize;
@@ -98,10 +105,9 @@ public:
 	
 	static VirtualPageManager& get();
 
-	uintptr_t gZeroPageVirtual();
-	uintptr_t gZeroPagePhysical();
-
 	uintptr_t mapZeroPage(uintptr_t virt);
+	uintptr_t mapZeroPage(uintptr_t from, uintptr_t to);
+	bool isZeroPageAccess(uintptr_t virt);
 
 	uintptr_t map(uintptr_t phys, uintptr_t virt, const map_options_t&);
 
@@ -120,17 +126,49 @@ public:
 
 	uintptr_t ksbrk(size_t amount);
 	
-	uintptr_t newmap();
+	uintptr_t createAddressSpace();
 	void release();
+
+	void addKernelRegion(uintptr_t low, uintptr_t high);
+	bool findKernelRegion(size_t size, interval_t& rgn);
 
 	void setheap(uintptr_t heap, size_t size);
 	uintptr_t getheap() const;
 	uintptr_t getheapbegin() const;
 	uintptr_t getheapend() const;
+
+	/**
+	 * A scratch page is a short-term storage area - the idea is for the kernel to grab one, do something with it
+	 * and then let go ASAP for the next guy to come over and grab it. Unlike the heap, scratch pages only come
+	 * in page-size, so they are fairly suitable for things that naturally map to a page (e.g. peeking at another
+	 * process's VM space)
+	 */
+	class scratch_page_t {
+		public:
+			scratch_page_t(uintptr_t);
+
+			explicit operator bool();
+			explicit operator uintptr_t();
+
+			template<typename T>
+			T* get() {
+				return (T*)this->operator uintptr_t();
+			}
+
+			~scratch_page_t(); // unmaps the page
+		private:
+			uintptr_t address;	
+	};
+
+	scratch_page_t getScratchPage(const map_options_t& = map_options_t());
+
+	// maps a page of memory "stolen" from another process into the current process' address space
+	uintptr_t mapOtherProcessPage(process_t* other, uintptr_t otherVirt, uintptr_t selfVirt, const map_options_t& = map_options_t());
 private:
 	class KernelHeap : public Heap {
 		public:
 			KernelHeap(uintptr_t, uintptr_t);
+			virtual ~KernelHeap() = default;
 		protected:
 			uintptr_t oneblock() override;
 
@@ -146,7 +184,13 @@ private:
 	// so make that a static allocation
 	uint8_t mKernelHeapMemory[sizeof(KernelHeap)];
 
-	uintptr_t mZeroPagePhysical;
+	// the kernel exists in a 1GB region from 0xC0000000 to 0xFFFFFFFF
+	IntervalList<interval_t, 1_GB> mKernelRegions;
+
+	struct {
+		uintptr_t low;
+		uintptr_t high;
+	} mScratchPageInfo;
 };
 
 #endif

@@ -20,6 +20,6 @@
 #include <stdint.h>
 
 extern "C"
-void exit(uint32_t);
+void exit(uint8_t);
 
 #endif

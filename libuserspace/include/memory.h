@@ -37,6 +37,10 @@ struct meminfo_t {
 extern "C"
 meminfo_t meminfo();
 
-void* mapregion(size_t size);
+void* mapregion(size_t size, bool rw);
+
+bool readable(void*);
+
+bool writable(void*);
 
 #endif

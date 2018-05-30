@@ -17,31 +17,33 @@
 #include <drivers/rtc/rtc.h>
 #include <drivers/pit/pit.h>
 #include <mm/phys.h>
+#include <process/current.h>
+#include <syscalls/types.h>
 
 HANDLER0(reboot) {
     reboot();
     return OK; // we should never return from here
 }
 
-HANDLER1(uptime,dst) {
-    uint64_t *dest = (uint64_t*)dst;
-    *dest = PIT::getUptime();
-
-    return OK;
-}
-
-HANDLER1(now,dst) {
-    uint64_t *dest = (uint64_t*)dst;
+syscall_response_t now_syscall_handler(uint64_t *dest) {
     *dest = RTC::get().timestamp();
 
     return OK;
 }
 
-HANDLER1(getmeminfo,dst) {
-    auto&& pm(PhysicalPageManager::get());
+syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
+    if (fill & INCLUDE_GLOBAL_INFO) {
+        dest->global.uptime = PIT::getUptime();
+        dest->global.totalmem = PhysicalPageManager::get().gettotalmem();
+        dest->global.freemem = PhysicalPageManager::get().getfreemem();
+    }
 
-    uint64_t *dest = (uint64_t*)dst;
-    *dest = ((uint64_t)pm.gettotalmem() << 32) | (pm.getfreemem());
-
+    if (fill & INCLUDE_LOCAL_INFO) {
+        dest->local.runtime = gCurrentProcess->runtimestats.runtime;
+        dest->local.allocated = gCurrentProcess->memstats.allocated;
+        dest->local.pagefaults = gCurrentProcess->memstats.pagefaults;
+        dest->local.committed = gCurrentProcess->getMemoryManager()->getMappedSize();
+    }
+    
     return OK;
 }

@@ -14,33 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef LIBC_MAPPING
-#define LIBC_MAPPING
+#ifndef APIC_APIC
+#define APIC_APIC
 
 #include <sys/stdint.h>
 #include <sys/nocopy.h>
 
-/**
- * Establishes an identity mapping between a region of virtual and physical memory, e.g.
- * given 8KB at 0x5000
- * virtual(0x5000) -> physical(0x5000)
- * virtual(0x6000) -> physical(0x6000)
- * 
- * RAII - lets go of the mapping on destruction
- */ 
-class Mapping : NOCOPY {
+class APIC : NOCOPY {
     public:
-        Mapping(uintptr_t, size_t);
-        ~Mapping();
+        static constexpr uint32_t gIA32_APIC_BASE = 0x1B;
 
-        template<typename T>
-        T* get() {
-            return (T*)mBase;
-        }
+        static APIC& get();
     private:
-        uintptr_t mBase;
-        uintptr_t mPageFirst;
-        uintptr_t mPageLast;
+        uint32_t apicRegisterPage();
+
+        APIC();
 };
 
 #endif

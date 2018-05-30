@@ -27,6 +27,10 @@ void Mutex::unlock() {
     mutexunlock_syscall(mHandle);
 }
 
+bool Mutex::trylock() {
+    return 0 == mutextrylock_syscall(mHandle);
+}
+
 uintptr_t Mutex::handle() {
     return mHandle;
 }

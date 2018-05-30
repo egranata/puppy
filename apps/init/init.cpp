@@ -33,6 +33,30 @@ T* zero(T* thing, size_t size) {
     return thing;
 }
 
+void handleExitStatus(uint16_t pid, process_exit_status_t es) {
+    switch (es.reason) {
+        case process_exit_status_t::reason_t::cleanExit:
+            // do not write anything for a clean exit with status 0
+            if(es.status) {
+                printf("[child %u] exited - status %u\n", pid, es.status);
+            }
+            break;
+        case process_exit_status_t::reason_t::exception:
+            printf("[child %u] killed due to exception %u\n", pid, es.status);
+            break;
+        case process_exit_status_t::reason_t::kernelError:
+            printf("[child %u] terminated due to kernel error %u\n", pid, es.status);
+            break;
+        case process_exit_status_t::reason_t::killed:
+            printf("[child %u] killed\n", pid);
+            break;
+        case process_exit_status_t::reason_t::alive:
+        default:
+            printf("[child %u] termination reason unknown %x %x\n", pid, es.reason, es.status);
+            break;
+    }
+}
+
 int main(int, const char**) {
     printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
     char buffer[512];
@@ -51,7 +75,7 @@ int main(int, const char**) {
         auto chld = exec(program, args, !letgo);
         if (!letgo) {
             auto exitcode = collect(chld);
-            if (exitcode) { printf("\n\nChild %u exited with code %u\n", chld, exitcode); }
+            handleExitStatus(chld, exitcode);
         }
     }
 }

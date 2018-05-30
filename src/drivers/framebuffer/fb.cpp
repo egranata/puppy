@@ -181,7 +181,7 @@ uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	auto b = 0u;
 	auto e = size();
 	VirtualPageManager::map_options_t opts;
-	opts.rw(true).frompmm(false).user(false).clear(true);
+	opts.rw(true).frompmm(false).user(false).clear(true).global(true);
 	for (; b <= e; b += VirtualPageManager::gPageSize) {
 		vm.map(mPhysicalAddress + b, vmbase + b, opts);
 	}

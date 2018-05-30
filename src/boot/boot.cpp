@@ -44,6 +44,10 @@ namespace boot {
     namespace acpi {
         uint32_t init();
     }
+    namespace apic {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
     namespace task {
         uint32_t init();
         bool fail(uint32_t);
@@ -133,6 +137,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "ACPI discovery",
         visible : false,
         operation : boot::acpi::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "APIC discovery",
+        visible : false,
+        operation : boot::apic::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });

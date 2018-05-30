@@ -14,6 +14,7 @@
 
 #include <memory.h>
 #include <syscalls.h>
+#include <sysinfo.h>
 
 void* memset(void *b, int c, unsigned long int len) {
     char* ptr = (char*)b;
@@ -34,17 +35,26 @@ void* memcpy(void* dst, const void* src, unsigned long int n) {
 
 extern "C"
 meminfo_t meminfo() {
-    uint64_t info;
-    getmeminfo_syscall((uint32_t)&info);
     meminfo_t result;
-    result.free = info & 0xFFFFFFFF;
-    result.total = (info & 0xFFFFFFFF00000000ULL) >> 32;
+
+    auto si = sysinfo(true, false);
+
+    result.free = si.global.freemem;
+    result.total = si.global.totalmem;
+
     return result;
 }
 
-void* mapregion(size_t size) {
-    auto result = mapregion_syscall(size);
+void* mapregion(size_t size, bool rw) {
+    auto result = mapregion_syscall(size, rw ? REGION_ALLOW_WRITE : 0);
     if (result & 1) return nullptr;
     return (void*)result;
 }
 
+bool readable(void* p) {
+    return 0 == vmcheckreadable_syscall((uintptr_t)p);
+}
+
+bool writable(void* p)  {
+    return 0 == vmcheckwritable_syscall((uintptr_t)p);
+}

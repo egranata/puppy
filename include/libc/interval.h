@@ -14,33 +14,22 @@
  * limitations under the License.
  */
 
-#ifndef LIBC_MAPPING
-#define LIBC_MAPPING
+#ifndef LIBC_INTERVAL
+#define LIBC_INTERVAL
 
 #include <sys/stdint.h>
-#include <sys/nocopy.h>
 
-/**
- * Establishes an identity mapping between a region of virtual and physical memory, e.g.
- * given 8KB at 0x5000
- * virtual(0x5000) -> physical(0x5000)
- * virtual(0x6000) -> physical(0x6000)
- * 
- * RAII - lets go of the mapping on destruction
- */ 
-class Mapping : NOCOPY {
-    public:
-        Mapping(uintptr_t, size_t);
-        ~Mapping();
-
-        template<typename T>
-        T* get() {
-            return (T*)mBase;
-        }
-    private:
-        uintptr_t mBase;
-        uintptr_t mPageFirst;
-        uintptr_t mPageLast;
+struct interval_t {
+    uint32_t from;
+    uint32_t to;
+    
+    uint32_t size() const;
+    bool thisBefore(const interval_t& other) const;
+    bool operator==(const interval_t& other) const;
+    bool contains(uint32_t num) const;
+    bool contains(const interval_t& other) const;
+    bool containsAny(const interval_t& other) const;
+    bool intersects(const interval_t& other) const;
 };
 
 #endif

@@ -31,6 +31,7 @@
 #include <libc/vec.h>
 #include <libc/slist.h>
 #include <mm/memmgr.h>
+#include <syscalls/types.h>
 
 struct process_t {
     enum class State : uint8_t {
@@ -81,7 +82,7 @@ struct process_t {
     uintptr_t esp0start;
     uintptr_t espstart;
 
-    uint32_t exitcode;
+    process_exit_status_t exitstatus;
 
     slist<process_t*> children;
 
@@ -89,6 +90,16 @@ struct process_t {
         uint16_t flags;
         bool system : 1;
     } flags;
+
+    struct memstats_t {
+        uint32_t allocated; /** size of all memory allocated by this process */
+        uint32_t pagefaults; /** number of page faults triggered by this process */
+    } memstats;
+
+    struct runtimestats_t {
+        uint64_t runbegin; /** tick value at which this process started running */
+        uint64_t runtime; /** total time that this process has been running */
+    } runtimestats;
 
     static_assert(sizeof(flags_t) == sizeof(uint16_t), "process_t::flags_t must fit in 2 bytes");
 

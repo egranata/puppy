@@ -20,6 +20,7 @@
 #include <drivers/acpi/tablehdr.h>
 #include <drivers/acpi/table.h>
 #include <drivers/acpi/fadt.h>
+#include <drivers/acpi/madt.h>
 
 #include <sys/nocopy.h>
 
@@ -28,6 +29,7 @@ class RSDT : NOCOPY {
         size_t numtables() const;
         bool table(size_t, acpi_table_t**) const;
         acpi_fadt_table_t* fadt();
+        acpi_madt_table_t* madt();
         const acpi_table_header_t& header();
 
     private:
@@ -37,6 +39,7 @@ class RSDT : NOCOPY {
         acpi_table_t *mTable;
 
         acpi_fadt_table_t* mFADT;
+        acpi_madt_table_t *mMADT;
         friend class RSDP;
 };
 

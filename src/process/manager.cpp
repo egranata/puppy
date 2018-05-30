@@ -31,13 +31,27 @@
 #include <synch/semaphoremanager.h>
 #include <synch/mutexmanager.h>
 
+// this is THE current process information
+process_t *gCurrentProcess;
+
 namespace boot::task {
     uint32_t init() {
         ProcessManager &proc(ProcessManager::get());
         VirtualPageManager &vm(VirtualPageManager::get());
     	
-        // put process table right after the heap
-        proc.setprocesspagerange(vm.getheapend() + VirtualPageManager::gPageSize);
+        // one page for esp, one for esp0 and one for the process_t entry
+        auto process_rgn_size = ProcessManager::gNumProcesses * VirtualPageManager::gPageSize * 3;
+        interval_t rgn;
+        if (false == vm.findKernelRegion(process_rgn_size, rgn)) {
+            PANIC("cannot allocate memory for process objects");
+        }
+        vm.addKernelRegion(rgn.from, rgn.to);
+        vm.mapZeroPage(rgn.from, rgn.to);
+
+        proc.mProcessPagesLow = rgn.from;
+        proc.mProcessPagesHigh = rgn.to;
+
+        LOG_DEBUG("process pages will live at [%p - %p]", rgn.from, rgn.to);
 
         // enable real fault handlers
     	proc.installexceptionhandlers();
@@ -158,7 +172,6 @@ static ProcessManager::pid_t gSchedulerPid;
 static ProcessManager::pid_t gInitPid;
 
 static process_t gDummyProcess;
-static process_t *gCurrentProcess;
 static process_t *gCollectorProcess;
 
 class processcomparator {
@@ -387,20 +400,11 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
-uintptr_t ProcessManager::setprocesspagerange(uintptr_t low) {
-    mProcessPagesLow = low;
-    mProcessPagesHigh = mProcessPagesLow + 3 * gNumProcesses * VirtualPageManager::gPageSize;
-
-    LOG_INFO("process info pages will exist from %p to %p", mProcessPagesLow, mProcessPagesHigh);
-
-    return mProcessPagesHigh;
-}
-
 process_t* ProcessManager::setup(const char* path, const char* args, uint8_t prio, uintptr_t argp) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
-        cr3 : vmm.newmap(),
+        cr3 : vmm.createAddressSpace(),
         eip : (uintptr_t)&fileloader,
         priority : prio,
         argument : argp,
@@ -418,8 +422,6 @@ process_t* ProcessManager::setup(const char* path, const char* args, uint8_t pri
 }
 
 process_t* ProcessManager::spawn(const spawninfo_t& si) {
-    auto self = getcurprocess();
-
     auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
         PANIC("set process table location before spawning");
@@ -438,8 +440,8 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     process->tss.cr3 = si.cr3;
     process->tss.eip = si.eip;
     process->pid = gPidBitmap().next();
-    process->ppid = self->pid;
-    process->ttyinfo = getcurprocess()->ttyinfo;
+    process->ppid = gCurrentProcess->pid;
+    process->ttyinfo = gCurrentProcess->ttyinfo;
     process->priority.prio = process->priority.prio0 = si.priority;
     process->flags.system = si.system;
 
@@ -499,7 +501,7 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         }
     }
 
-    self->children.add(process);
+    gCurrentProcess->children.add(process);
 
     return process;
 }
@@ -523,6 +525,9 @@ void ProcessManager::ctxswitch(process_t* task) {
         fpsave((uintptr_t)&gCurrentProcess->fpstate[0]);
     }
 
+    auto now = PIT::getUptime();
+    gCurrentProcess->runtimestats.runtime += (now - gCurrentProcess->runtimestats.runbegin);
+    task->runtimestats.runbegin = now;
     gCurrentProcess = task;
 
     auto dtbl = gdt<uint64_t*>();
@@ -554,10 +559,6 @@ void ProcessManager::ctxswitch(pid_t task) {
 
 #define GDT_ENTRY_TO_TSS_PTR(tssval) ((tssval & 0xFFFFFF0000ULL) >> 16) | ((tssval & 0xFF00000000000000ULL) >> 32)
 
-process_t* ProcessManager::getcurprocess() {
-    return gCurrentProcess;
-}
-
 process_t* ProcessManager::getprocess(ProcessManager::pid_t pid) {
     return gProcessTable().get(pid);
 }
@@ -565,15 +566,14 @@ process_t* ProcessManager::getprocess(ProcessManager::pid_t pid) {
 #undef GDT_ENTRY_TO_TSS_PTR
 
 ProcessManager::pid_t ProcessManager::getpid() {
-    return getcurprocess()->pid;
+    return gCurrentProcess->pid;
 }
 
 void ProcessManager::sleep(uint32_t durationMs) {
-    auto&& cur_task(getcurprocess());
-    cur_task->sleeptill = PIT::getUptime() + durationMs;
-    LOG_DEBUG("task %u scheduled to sleep till %llu", cur_task->pid, cur_task->sleeptill);
-    deschedule(cur_task, process_t::State::SLEEPING);
-    gSleepQueue().insert(cur_task);
+    gCurrentProcess->sleeptill = PIT::getUptime() + durationMs;
+    LOG_DEBUG("task %u scheduled to sleep till %llu", gCurrentProcess->pid, gCurrentProcess->sleeptill);
+    deschedule(gCurrentProcess, process_t::State::SLEEPING);
+    gSleepQueue().insert(gCurrentProcess);
     yield();
 }
 
@@ -590,22 +590,26 @@ void ProcessManager::resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uin
 }
 
 void ProcessManager::kill(pid_t pid) {
-    auto cur_task = getcurprocess();
+    process_exit_status_t es(process_exit_status_t::reason_t::killed, 0);
     auto task = getprocess(pid);
-    LOG_DEBUG("task %u %p killing task %u %p", cur_task->pid, cur_task, task->pid, task);
-    if (task == cur_task) {
-        exit(-1);
+    LOG_DEBUG("task %u %p killing task %u %p", gCurrentProcess->pid, gCurrentProcess, task->pid, task);
+    if (task == gCurrentProcess) {
+        exit(es);
     } else if (task != nullptr) {
-        resumeat(task, (uintptr_t)&reaper, task->esp0start, 0x08, 0x10);
+        // push the exit status
+        uint32_t *stack = (uint32_t*)task->esp0start;
+        *stack = es.toWord();
+        --stack;
+        resumeat(task, (uintptr_t)&reaper, (uint32_t)stack, 0x08, 0x10);
     }
 }
 
-void ProcessManager::exit(uint32_t exitcode) {    
-    exit(getcurprocess(), exitcode);
+void ProcessManager::exit(process_exit_status_t es) {    
+    exit(gCurrentProcess, es);
     yield();
 }
 
-void ProcessManager::exit(process_t* task, uint32_t exitcode) {
+void ProcessManager::exit(process_t* task, process_exit_status_t es) {
     if (task->flags.system) {
         PANIC("attempting to kill a system process");
     } else {
@@ -666,7 +670,7 @@ void ProcessManager::exit(process_t* task, uint32_t exitcode) {
 
     task->state = process_t::State::EXITED;
     task->ttyinfo.tty->popfg();
-    task->exitcode = exitcode;
+    task->exitstatus = es;
 
     auto parent = getprocess(task->ppid);
     if (parent == nullptr) {
@@ -681,10 +685,9 @@ void ProcessManager::exit(process_t* task, uint32_t exitcode) {
 }
 
 void ProcessManager::tick() {
-    auto cur_task = getcurprocess();
-    auto allowedticks = __atomic_load_n(&cur_task->priority.prio, __ATOMIC_SEQ_CST);
+    auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.prio, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
-        auto usedticks = __atomic_add_fetch(&cur_task->usedticks, 1, __ATOMIC_SEQ_CST);
+        auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
         if (usedticks >= allowedticks) {
             yield();
         }
@@ -733,12 +736,11 @@ void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
     LOG_DEBUG("process %u moved to state %u", task->pid, (uint8_t)newstate);
 }
 
-uint32_t ProcessManager::collect(pid_t pid) {
+process_exit_status_t ProcessManager::collect(pid_t pid) {
 begin:
     auto task = getprocess(pid);
-    auto self = getcurprocess();
 
-    LOG_DEBUG("process %u (%p) trying to collect process %u (%p)", self->pid, self, pid, task);
+    LOG_DEBUG("process %u (%p) trying to collect process %u (%p)", gCurrentProcess->pid, gCurrentProcess, pid, task);
 
     if (task == nullptr) {
         // TODO: make this a fatal process error
@@ -747,26 +749,26 @@ begin:
 
     auto parent = getprocess(task->ppid);
 
-    if (parent != self) {
+    if (parent != gCurrentProcess) {
         // TODO: make this a fatal process error
         PANIC("cannot collect another process' child - that's creepy");
     }
 
     if (task->state != process_t::State::EXITED) {
         // cannot collect a non-EXITED process
-        LOG_DEBUG("attempting to collect task %u, not dead yet - parent %u must wait", task->pid, self->pid);
-        deschedule(self, process_t::State::COLLECTING);
+        LOG_DEBUG("attempting to collect task %u, not dead yet - parent %u must wait", task->pid, gCurrentProcess->pid);
+        deschedule(gCurrentProcess, process_t::State::COLLECTING);
         yield();
         goto begin;
     }
 
-    LOG_DEBUG("task %u collecting dead task %u", self->pid, task->pid);
+    LOG_DEBUG("task %u collecting dead task %u", gCurrentProcess->pid, task->pid);
 
     bool found = false;
     auto c0 = parent->children.begin();
     auto ce = parent->children.end();
     for (; c0 != ce; ++c0) {
-        LOG_DEBUG("scanning children of parent %u, found %p %u", self->pid, *c0, (*c0)->pid);
+        LOG_DEBUG("scanning children of parent %u, found %p %u", gCurrentProcess->pid, *c0, (*c0)->pid);
         if ((*c0) == task) {
             parent->children.remove(c0);
             found = true;
@@ -778,7 +780,7 @@ begin:
         PANIC("process not listed in children of parent");
     }
 
-    uint32_t result = task->exitcode;
+    auto result = task->exitstatus;
 
     gExitedProcesses().free(task);
 

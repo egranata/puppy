@@ -21,13 +21,12 @@
 
 HANDLER3(msgsend, destpid, msg1, msg2) {
     auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     auto dest = pmm.getprocess(destpid);
     if (dest == nullptr) {
         return ERR(NO_SUCH_PROCESS);
     }
 
-    auto msg = message_t{PIT::getUptime(), self->pid, msg1, msg2};
+    auto msg = message_t{PIT::getUptime(), gCurrentProcess->pid, msg1, msg2};
 
     dest->msg.q.push_back(msg);
     if (dest->state == process_t::State::WAITMSG) {
@@ -39,11 +38,10 @@ HANDLER3(msgsend, destpid, msg1, msg2) {
 
 HANDLER2(msgrecv,msgptr,wait) {
     auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
 
-    while (self->msg.q.empty()) {
+    while (gCurrentProcess->msg.q.empty()) {
         if (wait) {
-            pmm.deschedule(self, process_t::State::WAITMSG);
+            pmm.deschedule(gCurrentProcess, process_t::State::WAITMSG);
             pmm.yield();
         } else {
             return ERR(MSG_QUEUE_EMPTY);
@@ -51,6 +49,7 @@ HANDLER2(msgrecv,msgptr,wait) {
     }
     
     message_t *dest = (message_t*)msgptr;
-    *dest = self->msg.q.back(); self->msg.q.pop_back();
+    *dest = gCurrentProcess->msg.q.back();
+    gCurrentProcess->msg.q.pop_back();
     return OK;
 }

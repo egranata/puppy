@@ -18,6 +18,7 @@
 #include <process/manager.h>
 #include <process/process.h>
 #include <boot/phase.h>
+#include <process/current.h>
 
 #define LOG_NODEBUG
 #include <log/log.h>
@@ -40,7 +41,32 @@ SyscallManager& SyscallManager::get() {
     return gManager;
 }
 
-static SyscallManager::Handler gHandlers[256];
+namespace {
+    struct syscall_handler_info_t {
+        SyscallManager::Handler impl;
+        // TODO: long-term, the idea is for processes to have capability flags and tie system calls to those
+        // (e.g. reboot would be tied to having a CAN_REBOOT_SYSTEM flag); for now keep this simple and just allow
+        // making certain system-calls reserved to system processes
+        bool system;
+
+        uint64_t numCalls; /** number of times this system call was invoked */
+        uint64_t numInsecureCalls; /** number of times this system call was invoked, but the call failed for security reasons */
+
+        syscall_handler_info_t() : impl(nullptr), system(false), numCalls(0), numInsecureCalls(0) {}
+        void reset(SyscallManager::Handler i, bool s) {
+            impl = i;
+            system = s;
+            numCalls = numInsecureCalls = 0;
+        }
+
+        explicit operator bool() { return impl != nullptr; }
+        private:
+            syscall_handler_info_t(const syscall_handler_info_t&) = delete;
+            syscall_handler_info_t& operator=(const syscall_handler_info_t&) = delete;
+    };
+}
+
+static syscall_handler_info_t gHandlers[256];
 
 #define ERR(name) SyscallManager::SYSCALL_ERR_ ## name
 
@@ -53,15 +79,22 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack) {
         .arg4 = gpr.edi,
         .eip = stack.eip
     };
-    if (auto handler = gHandlers[req.code]) {
+    if (auto& handler = gHandlers[req.code]) {
+        ++handler.numCalls;
 #ifndef LOG_NODEBUG
         auto pid = ProcessManager::get().getpid();
         LOG_DEBUG("syscall from pid %u; eax = %x, handler = %p", pid, gpr.eax, handler);
 #endif
 
-        auto res = handler(req);
-        gpr.eax = res;
-        stack.eip = req.eip;
+        if (handler.system && !gCurrentProcess->flags.system) {
+            LOG_ERROR("process %u attempted to exec system call %u which is reserved to the system", gCurrentProcess->pid, req.code);
+            gpr.eax = ERR(NOT_ALLOWED);
+            ++handler.numInsecureCalls;
+        } else {
+            auto res = handler.impl(req);
+            gpr.eax = res;
+            stack.eip = req.eip;
+        }
     } else {
         gpr.eax = ERR(NO_SUCH_SYSCALL);
     }
@@ -75,7 +108,7 @@ SyscallManager::SyscallManager() {
     Interrupts::get().sethandler(gSyscallIRQ, syscall_irq_handler);
 }
 
-void SyscallManager::handle(uint8_t code, SyscallManager::Handler handler) {
-    gHandlers[code] = handler;
+void SyscallManager::handle(uint8_t code, SyscallManager::Handler handler, bool systemOnly) {
+    gHandlers[code].reset(handler, systemOnly);
 }
 

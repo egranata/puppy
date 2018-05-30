@@ -286,3 +286,17 @@ undefined:
 	ud2
 	leave
 	ret ; should never be executed
+
+global readmsr
+readmsr:
+	mov ecx, [esp + 4]
+	rdmsr
+	ret
+
+global writemsr
+writemsr:
+	mov edx, [esp + 12]
+	mov eax, [esp + 8]
+	mov ecx, [esp + 4]
+	wrmsr
+	ret

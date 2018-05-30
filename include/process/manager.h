@@ -22,8 +22,13 @@
 #include <synch/message.h>
 #include <synch/semaphore.h>
 #include <libc/queue.h>
+#include <process/current.h>
 #include <process/process.h>
 #include <sys/nocopy.h>
+
+namespace boot::task {
+    uint32_t init();
+}
 
 class ProcessManager : NOCOPY {
     public:
@@ -31,8 +36,6 @@ class ProcessManager : NOCOPY {
         static constexpr size_t gNumProcesses = 2000;
 
         static ProcessManager& get();
-
-        uintptr_t setprocesspagerange(uintptr_t);
 
         // NB: implementation of this is in process/exceptions.h
         void installexceptionhandlers();
@@ -62,16 +65,15 @@ class ProcessManager : NOCOPY {
         pid_t getpid();
         void yield();
         void sleep(uint32_t durationMs);
-        void exit(uint32_t exitcode);
+        void exit(process_exit_status_t);
         void kill(pid_t);
 
         pid_t initpid();
         pid_t schedulerpid();
 
-        process_t* getcurprocess();
         process_t* getprocess(pid_t pid);
 
-        uint32_t collect(pid_t pid);
+        process_exit_status_t collect(pid_t pid);
 
         void ready(process_t*);
         void deschedule(process_t*, process_t::State);
@@ -80,10 +82,12 @@ class ProcessManager : NOCOPY {
         ProcessManager();
 
         void switchtoscheduler();
-        void exit(process_t*, uint32_t exitcode);
+        void exit(process_t*, process_exit_status_t);
         
         uintptr_t mProcessPagesLow;
         uintptr_t mProcessPagesHigh;
+
+        friend uint32_t boot::task::init();
 };
 
 #endif

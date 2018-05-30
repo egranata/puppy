@@ -19,7 +19,6 @@
 
 #include <sys/stdint.h>
 #include <libc/string.h>
-#include <log/log.h>
 
 template<typename T>
 static constexpr T incr(T n, T max, T wrap = 0) {

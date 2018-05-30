@@ -15,7 +15,7 @@
 #include <process/fileloader.h>
 #include <process/elf.h>
 #include <log/log.h>
-#include <process/manager.h>
+#include <process/current.h>
 #include <mm/virt.h>
 #include <fs/vfs.h>
 #include <fs/filesystem.h>
@@ -26,16 +26,17 @@
 #include <process/reaper.h>
 #include <libc/bytesizes.h>
 #include <libc/bytesizes.h>
+#include <syscalls/types.h>
 
 static constexpr uintptr_t gStackSize = 4_MB;
-static constexpr uintptr_t gHeapSize = 128_MB;
 
-#define UNHAPPY(cause) { \
+#define UNHAPPY(cause, N) { \
+    process_exit_status_t es(process_exit_status_t::reason_t::kernelError, N); \
     if (fhandle.first && file) { \
         fhandle.first->close(file); \
     } \
     LOG_ERROR(cause " - exiting"); \
-    reaper(-1); \
+    reaper(es.toWord()); \
 }
 
 static uint32_t roundup(uint32_t size) {
@@ -52,20 +53,18 @@ static constexpr uint32_t gInitialLoadAddress = 2_GB;
 extern "C"
 void fileloader(uintptr_t) {
     auto&& vm(VirtualPageManager::get());
-    auto&& pmm(ProcessManager::get());
-    auto&& self(pmm.getcurprocess());
     auto&& vfs(VFS::get());
 
-    LOG_DEBUG("launching process %u (%s)", self->pid, self->path);
-    auto fhandle = vfs.open(self->path, Filesystem::mode_t::read);
+    LOG_DEBUG("launching process %u (%s)", gCurrentProcess->pid, gCurrentProcess->path);
+    auto fhandle = vfs.open(gCurrentProcess->path, Filesystem::mode_t::read);
     auto file = (Filesystem::File*)fhandle.second;
-    if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file");
+    if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file", 1);
 
     Filesystem::File::stat_t fstat{
         size : 0
     };
-    if (file->stat(fstat) == false) UNHAPPY("unable to discover file size");
-    if (fstat.size == 0) UNHAPPY("file length == 0");
+    if (file->stat(fstat) == false) UNHAPPY("unable to discover file size", 2);
+    if (fstat.size == 0) UNHAPPY("file length == 0", 3);
 
     auto pages = roundup(fstat.size) / VirtualPageManager::gPageSize;
     auto bufferopts = VirtualPageManager::map_options_t().clear(true).rw(true).user(false);
@@ -75,9 +74,11 @@ void fileloader(uintptr_t) {
 
     LOG_DEBUG("file size: %u - mapped %u pages at %p for read", fstat.size, pages, gInitialLoadAddress);
 
-    if (file->read(fstat.size, (char*)gInitialLoadAddress) == false) UNHAPPY("unable to read file data");
+    if (file->read(fstat.size, (char*)gInitialLoadAddress) == false) UNHAPPY("unable to read file data", 4);
 
     fhandle.first->close(file);
+    fhandle.first = nullptr;
+    fhandle.second = nullptr;
 
     elf_header_t *header = (elf_header_t*)gInitialLoadAddress;
 
@@ -85,10 +86,10 @@ void fileloader(uintptr_t) {
 
     vm.unmaprange(gInitialLoadAddress, gInitialLoadAddress + pages * VirtualPageManager::gPageSize);
 
-    if (loadinfo.eip == 0) UNHAPPY("invalid ELF binary");
-    if (loadinfo.stack == 0) UNHAPPY("malformed stack");
+    if (loadinfo.eip == 0) UNHAPPY("invalid ELF binary", 5);
+    if (loadinfo.stack == 0) UNHAPPY("malformed stack", 6);
 
-    LOG_DEBUG("setting up FPU for process %u", self->pid);
+    LOG_DEBUG("setting up FPU for process %u", gCurrentProcess->pid);
     // don't trigger FPU exception on setup - there's no valid state to restore anyway
     cleartaskswitchflag();
     fpinit();
@@ -98,6 +99,6 @@ void fileloader(uintptr_t) {
     toring3(loadinfo.eip, loadinfo.stack);
 
     // we should never ever ever get back here...
-    reaper(-1);
+    UNHAPPY("how did we get back to the loader?", 7);
     while(true);
 }

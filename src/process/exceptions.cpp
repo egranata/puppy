@@ -27,8 +27,9 @@
 
 extern "C"
 void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
+    auto&& pmm(ProcessManager::get());
     char buffer[1024];
-    auto pid = ProcessManager::get().getpid();
+    auto pid = pmm.getpid();
     auto&& fb(Framebuffer::get());
     auto red(Framebuffer::color_t::red());
 
@@ -62,7 +63,10 @@ void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
 
     fb.write("Process killed.\n", red);
 
-    ProcessManager::get().exit(-1);
+    pmm.exit(process_exit_status_t{
+        reason : process_exit_status_t::reason_t::exception,
+        status : (uint8_t)stack.irqnumber
+    });
 }
 
 static bool iskernelbug(const InterruptStack& stack) {
@@ -79,10 +83,9 @@ static void name ## _handler (GPR& gpr, InterruptStack& stack) { \
 }
 
 static void fpuerror(GPR&, InterruptStack&) {
-    auto&& self = ProcessManager::get().getcurprocess();
     cleartaskswitchflag();
     // restore FPU state for this process
-    fprestore((uintptr_t)&self->fpstate[0]);
+    fprestore((uintptr_t)&gCurrentProcess->fpstate[0]);
 }
 
 #define HANDLERINSTALL(id, name) interrupts.sethandler( id, & name ## _handler )

@@ -18,7 +18,6 @@
 #define SYNCH_MANAGER
 
 #include <sys/nocopy.h>
-#include <log/log.h>
 
 template<typename Object, typename Store>
 class SynchManager : NOCOPY {
@@ -38,17 +37,14 @@ class SynchManager : NOCOPY {
 
         Object* getOrMake(const char* key) {
             auto obj = getStore().getOrMake(key);
-            LOG_DEBUG("for key %s, returning object %p", key, obj);
             return obj;
         }
         Object* getOrNull(const char* key) {
             auto obj = getStore().getOrNull(key);
-            LOG_DEBUG("for key %s, returning object %p", key, obj);
             return obj;
         }
-        void release(Object* obj) {
-            auto deleted = getStore().release(obj);
-            LOG_DEBUG("object %p was %s deleted", obj, deleted ? "" : "n't");
+        bool release(Object* obj) {
+            return getStore().release(obj);
         }
 };
 

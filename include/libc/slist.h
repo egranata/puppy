@@ -122,11 +122,16 @@ public:
 		}
 	}
 	
-	void remove(const T& item) {
+	bool remove(const T& item) {
 		auto b = begin(), e = end();
 		for(; b != e; ++b) {
-			if (*b == item) { remove(b); break; }
+			if (*b == item) { remove(b); return true; }
 		}
+		return false;
+	}
+
+	void removeAll(const T& item) {
+		while(remove(item));
 	}
 
 	T top() {

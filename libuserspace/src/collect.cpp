@@ -15,9 +15,9 @@
 #include <collect.h>
 #include <syscalls.h>
 
-uint32_t collect(uint16_t pid) {
-    uint32_t result = -1;
-    if (0 == collect_syscall(pid, (uint32_t)&result)) {
+process_exit_status_t collect(uint16_t pid) {
+    process_exit_status_t result(0);
+    if (0 == collect_syscall(pid, &result)) {
         return result;
     }
     return result;

@@ -14,7 +14,7 @@
 
 #include <process/process.h>
 
-process_t::process_t() : tss(), mmap(this), ttyinfo(), children() {
+process_t::process_t() : tss(), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;
     state = State::AVAILABLE;
     sleeptill = 0;

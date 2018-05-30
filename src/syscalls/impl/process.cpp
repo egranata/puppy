@@ -22,6 +22,7 @@
 #include <process/manager.h>
 #include <tty/tty.h>
 #include <libc/math.h>
+#include <syscalls/types.h>
 
 HANDLER0(yield) {
     ProcessManager::get().yield();
@@ -33,19 +34,18 @@ HANDLER1(sleep, interval) {
     return OK;
 }
 
-HANDLER1(exit,code) {
-    reaper(code);
+syscall_response_t exit_syscall_handler(uint8_t code) {
+    process_exit_status_t es(process_exit_status_t::reason_t::cleanExit, code);
+    reaper(es.toWord());
     return OK; // we should never return from here
 }
 
 HANDLER0(getpid) {
-    auto self = ProcessManager::get().getcurprocess();
-    return (self->pid << 1) | OK;
+    return (gCurrentProcess->pid << 1) | OK;
 }
 
 HANDLER0(getppid) {
-    auto self = ProcessManager::get().getcurprocess();
-    return (self->ppid << 1) | OK;
+    return (gCurrentProcess->ppid << 1) | OK;
 }
 
 HANDLER3(exec,pth,rgs,fg) {
@@ -65,10 +65,9 @@ HANDLER1(kill,pid) {
     return OK;
 }
 
-HANDLER2(collect,pid,rest) {
+syscall_response_t collect_syscall_handler(uint16_t pid, process_exit_status_t* result) {
     auto&& pmm = ProcessManager::get();
-    auto result = pmm.collect(pid);
-    *((uint32_t*)rest) = result;
+    *result = pmm.collect(pid);
     return OK;
 }
 

@@ -14,24 +14,20 @@
 
 #include <syscalls/handlers.h>
 #include <fs/vfs.h>
-#include <process/process.h>
-#include <process/manager.h>
+#include <process/current.h>
 #include <log/log.h>
+#include <syscalls/types.h>
 
-HANDLER2(fopen,pth,mod) {
+syscall_response_t fopen_syscall_handler(const char* path, filemode_t mode) {
     auto&& vfs(VFS::get());
-    const char* path = (const char*)pth;
-    auto mode = (Filesystem::mode_t)mod;
 
     auto&& file = vfs.open(path, mode);
     if (file.first == nullptr || file.second == nullptr) {
         return ERR(NO_SUCH_FILE);
     } else {
-        auto&& pmm(ProcessManager::get());
-        auto self = pmm.getcurprocess();
         size_t idx = 0;
-        if (self->fds.set(file, idx)) {
-            LOG_DEBUG("file %s opened as handle %u in process %u", path, idx, self->pid);
+        if (gCurrentProcess->fds.set(file, idx)) {
+            LOG_DEBUG("file %s opened as handle %u in process %u", path, idx, gCurrentProcess->pid);
             return OK | (idx << 1);
         }
         return ERR(UNIMPLEMENTED);
@@ -39,27 +35,23 @@ HANDLER2(fopen,pth,mod) {
 }
 
 HANDLER1(fclose,fid) {
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
-    LOG_DEBUG("closing file handle %u for process %u", fid, self->pid);
+    LOG_DEBUG("closing file handle %u for process %u", fid, gCurrentProcess->pid);
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         if (file.first && file.second) {
             file.first->close(file.second);
         } else {
             return ERR(NO_SUCH_FILE);
         }
     }
-    self->fds.clear(fid);
+    gCurrentProcess->fds.clear(fid);
     return OK;
 }
 
 HANDLER3(fread,fid,len,buf) {
     char* buffer = (char*)buf;
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
@@ -72,10 +64,8 @@ HANDLER3(fread,fid,len,buf) {
 
 HANDLER3(fwrite,fid,len,buf) {
     char* buffer = (char*)buf;
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
@@ -88,10 +78,8 @@ HANDLER3(fwrite,fid,len,buf) {
 
 HANDLER2(fstat,fid,dst) {
     auto stat = (Filesystem::File::stat_t*)dst;
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
@@ -103,10 +91,8 @@ HANDLER2(fstat,fid,dst) {
 }
 
 HANDLER2(fseek,fid,pos) {
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
@@ -118,10 +104,8 @@ HANDLER2(fseek,fid,pos) {
 }
 
 HANDLER3(fioctl,fid,a1,a2) {
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
@@ -141,11 +125,9 @@ HANDLER1(fopendir,pth) {
     if (file.first == nullptr || file.second == nullptr) {
         return ERR(NO_SUCH_FILE);
     } else {
-        auto&& pmm(ProcessManager::get());
-        auto self = pmm.getcurprocess();
         size_t idx = 0;
-        if (self->fds.set(file, idx)) {
-            LOG_DEBUG("directory %s opened as handle %u in process %u", path, idx, self->pid);
+        if (gCurrentProcess->fds.set(file, idx)) {
+            LOG_DEBUG("directory %s opened as handle %u in process %u", path, idx, gCurrentProcess->pid);
             return OK | (idx << 1);
         }
         return ERR(UNIMPLEMENTED);
@@ -153,12 +135,10 @@ HANDLER1(fopendir,pth) {
 }
 
 HANDLER2(freaddir,fid,fip) {
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
     Filesystem::Directory::fileinfo_t finfo;
     auto fi = (Filesystem::FilesystemObject::info_t*)fip;
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!self->fds.is(fid,&file)) {
+    if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {

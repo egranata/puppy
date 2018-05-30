@@ -16,6 +16,6 @@
 #include <syscalls.h>
 
 extern "C"
-void exit(uint32_t exitcode) {
+void exit(uint8_t exitcode) {
     exit_syscall(exitcode);
 }

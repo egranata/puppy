@@ -14,17 +14,18 @@
 
 #include <time.h>
 #include <syscalls.h>
+#include <sysinfo.h>
 
 extern "C"
 uint64_t uptime() {
-    uint64_t ret = 0;
-    uptime_syscall((uint32_t)&ret);
-    return ret;
+    sysinfo_t si = sysinfo(true, false);
+
+    return si.global.uptime;
 }
 
 extern "C"
 uint64_t now() {
     uint64_t ret = 0;
-    now_syscall((uint32_t)&ret);
+    now_syscall(&ret);
     return ret;
 }

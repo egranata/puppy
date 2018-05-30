@@ -83,16 +83,14 @@ static const char* pageflt_description(uint32_t err) {
     }
 }
 
-static bool pageflt_recover(uintptr_t vaddr) {
-    auto self = ProcessManager::get().getcurprocess();
-    auto memmgr = self->getMemoryManager();
-    if (memmgr->isWithinRegion(vaddr)) {
+static bool pageflt_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
+    auto memmgr = gCurrentProcess->getMemoryManager();
+    MemoryManager::region_t region;
+    if (memmgr->isWithinRegion(vaddr, &region)) {
         auto vpage = VirtualPageManager::page(vaddr);
         LOG_DEBUG("faulting address found within a memory region - mapping page %p", vpage);
-        auto&& vmm(VirtualPageManager::get());
-        vmm.unmap(vpage);
-        auto opts = VirtualPageManager::map_options_t(VirtualPageManager::map_options_t::userspace()).clear(true);
-        vmm.newmap(vpage, opts);
+        vmm.newmap(vpage, region.permission);
+        memmgr->mapOneMorePage();
         return true;
     } else {
         return false;
@@ -100,14 +98,13 @@ static bool pageflt_recover(uintptr_t vaddr) {
 }
 
 void pageflt_handler(GPR& gpr, InterruptStack& stack) {
+    if (gCurrentProcess) ++gCurrentProcess->memstats.pagefaults;
+
     auto&& vmm(VirtualPageManager::get());
     auto vaddr = gpr.cr2;
-    auto paddr = vmm.mapping(vaddr);
-    auto ppageaddr = VirtualPageManager::page(paddr);
-    if (ppageaddr == vmm.gZeroPagePhysical()) {
-        LOG_DEBUG("page fault due to zeropage access, cr2 = %p", vaddr);
-        if (pageflt_recover(vaddr)) return;
+    if (vmm.isZeroPageAccess(vaddr)) {
+        if (pageflt_recover(vmm, vaddr)) return;
     }
-    LOG_DEBUG("page fault, vaddr = %p, physical counterpart %p", vaddr, paddr);
+    LOG_DEBUG("page fault, vaddr = %p, physical counterpart %p", vaddr, vmm.mapping(vaddr));
     APP_PANIC(pageflt_description(stack.error), gpr, stack);
 }

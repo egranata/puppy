@@ -121,11 +121,60 @@ VFS::filehandle_t VFS::open(const char* path, Filesystem::mode_t mode) {
     return {nullptr, nullptr};
 }
 
+// TODO: VFS should be itself a filesystem; for now this is just used
+// to cleanup instances of RootDirectory
+class VFSFilesystem : public Filesystem {
+public:
+        File* open(const char*, mode_t) {
+            return nullptr;
+        }
+
+        Directory* opendir(const char*) {
+            return nullptr;
+        }
+
+        void close(FilesystemObject* obj) {
+            delete obj;
+        }
+};
+
+static VFSFilesystem gVFSFilesystem;
+
+class RootDirectory : public Filesystem::Directory {
+    public:
+        RootDirectory() : mIterator(VFS::get().mMounts.begin()), mEnd(VFS::get().mMounts.end()) {}
+
+        bool next(fileinfo_t& fi) {
+            if (mIterator == mEnd) return false;
+
+            auto&& mi = *mIterator;
+
+            fi.name = mi.path;
+            fi.kind = Filesystem::FilesystemObject::kind_t::directory;
+            fi.size = 0;
+            
+            ++mIterator;
+            
+            return true;
+        }
+    private:
+        decltype(VFS::mMounts)::iterator mIterator;
+        decltype(VFS::mMounts)::iterator mEnd;
+};
+
 VFS::filehandle_t VFS::opendir(const char* path) {
     if (path == nullptr) return {nullptr, nullptr};
 
-    LOG_DEBUG("asked to opendir %s", path);
-    if (path[0] == '/') ++path;
+    LOG_DEBUG("asked to opendir '%s'", path);
+    if (path[0] == '/') {
+        // asked to open the root directory
+        if (path[1] == 0) {
+            return {&gVFSFilesystem, new RootDirectory()};
+        } else {
+            // just look for the mountpoint and delegate
+            ++path;
+        }
+    }
     auto b = mMounts.begin(), e = mMounts.end();
     for(; b != e; ++b) {
         auto&& m = *b;

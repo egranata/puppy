@@ -127,4 +127,10 @@ void cleartaskswitchflag();
 extern "C"
 void undefined();
 
+extern "C"
+uint64_t readmsr(uint32_t reg);
+
+extern "C"
+void writemsr(uint32_t reg, uint64_t value);
+
 #endif

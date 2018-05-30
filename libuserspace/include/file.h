@@ -18,14 +18,15 @@
 #define LIBUSERSPACE_FILE
 
 #include <stdint.h>
+#include <syscalls/types.h>
 
-static constexpr uint32_t gModeRead = 0;
-static constexpr uint32_t gModeWrite = 1;
+static constexpr filemode_t gModeRead = filemode_t::read;
+static constexpr filemode_t gModeWrite = filemode_t::write;
 
 static constexpr uint32_t gInvalidFd = -1;
 
 extern "C"
-uint32_t open(const char* path, uint32_t mode);
+uint32_t open(const char* path, filemode_t mode);
 
 extern "C"
 void close(uint32_t fid);

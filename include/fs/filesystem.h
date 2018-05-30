@@ -19,13 +19,11 @@
 
 #include <sys/stdint.h>
 #include <libc/str.h>
+#include <syscalls/types.h>
 
 class Filesystem {
     public:
-        enum class mode_t {
-            read,
-            write
-        };
+        using mode_t = filemode_t;
         class FilesystemObject {
             public:
                 static constexpr size_t gFilenameSize = 32;

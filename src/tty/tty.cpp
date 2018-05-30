@@ -35,10 +35,9 @@ void TTY::pushfg(uint16_t pid) {
 
 uint16_t TTY::popfg() {
     auto&& pmm(ProcessManager::get());
-    auto&& self = pmm.getcurprocess()->pid;
 
     if (mForeground.empty()) return 0;
-    if (mForeground.peek() != self) return mForeground.peek();
+    if (mForeground.peek() != gCurrentProcess->pid) return mForeground.peek();
 
     while (!mForeground.empty()) {
         mForeground.pop();
@@ -60,14 +59,13 @@ int TTY::read() {
     // TODO: TTY spawns a kernel thread that reads and buffers keyboard events    
 
     auto&& pmm(ProcessManager::get());
-    auto&& self = pmm.getcurprocess()->pid;
     bool allow = false;
     
     do {
         if (mForeground.empty()) {
             allow = true;
         } else {
-            allow = (mForeground.peek() == self);
+            allow = (mForeground.peek() == gCurrentProcess->pid);
         }
 
         if (false == allow) {
@@ -75,6 +73,7 @@ int TTY::read() {
         }
     } while(false == allow);
 
+    // TODO: make a global input queue
     auto d1 = PS2Controller::get().getDevice1();
     if (d1 && d1->getType() == PS2Controller::Device::Type::KEYBOARD) {
         auto c = ((PS2Keyboard*)d1)->next();

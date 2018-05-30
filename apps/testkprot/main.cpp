@@ -14,9 +14,10 @@
 
 #include <libmuzzle/string.h>
 #include <libmuzzle/stdlib.h>
-#include <stdint.h>
-#include <printf.h>
 #include <exit.h>
+#include <memory.h>
+#include <printf.h>
+#include <stdint.h>
 
 int main(int argc, const char** argv) {
     if (argc < 2) {
@@ -31,10 +32,12 @@ int main(int argc, const char** argv) {
 
     if (0 == strcmp(argv[0], "r")) {
         // read
+        printf("Address %p is expected to be%sreadable\n", ptr, readable(ptr) ? " " : " not ");
         addr = *ptr;
         printf("At address %p, I read %llu\n", ptr, addr);
     } else {
         // write
+        printf("Address %p is expected to be%swritable\n", ptr, writable(ptr) ? " " : " not ");
         *ptr = addr;
         printf("To address %p, I wrote %llu\n", ptr, addr);
     }

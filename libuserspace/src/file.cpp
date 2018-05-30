@@ -16,8 +16,8 @@
 #include <file.h>
 
 extern "C"
-uint32_t open(const char* path, uint32_t mode) {
-    auto o = fopen_syscall((uint32_t)path, mode);
+uint32_t open(const char* path, filemode_t mode) {
+    auto o = fopen_syscall(path, mode);
     if (o & 1) return -1;
     return o >> 1;
 }

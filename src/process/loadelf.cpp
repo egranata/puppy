@@ -17,7 +17,7 @@
 #include <mm/virt.h>
 #include <libc/string.h>
 #include <libc/memory.h>
-#include <process/manager.h>
+#include <process/current.h>
 
 #define UNHAPPY(cause) { \
     LOG_ERROR("failed to load ELF image: " #cause); \
@@ -27,9 +27,7 @@
 extern "C"
 process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
     auto&& vmm(VirtualPageManager::get());
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
-    auto&& memmgr(self->getMemoryManager());
+    auto&& memmgr(gCurrentProcess->getMemoryManager());
 
     process_loadinfo_t loadinfo{
         eip : 0,
@@ -90,17 +88,20 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
             }
             LOG_DEBUG("len = %u flen = %u vaddr = %p src = %p", len, flen, vaddr, src);
         }
-        memmgr->addMapping(vaddr0, vaddr1-1);
+        memmgr->addMappedRegion(vaddr0, vaddr1-1);
     }
 
     maxprogaddr = VirtualPageManager::page(maxprogaddr);
     LOG_DEBUG("memory setup - max program address is %p", maxprogaddr);
-    memmgr->addMapping(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
+    memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
-    auto stackmapopts = VirtualPageManager::map_options_t().rw(true).user(true).clear(true);
-    auto stackregion = memmgr->findAndMapRegion(stacksize, stackmapopts);
+    auto stackpermission = VirtualPageManager::map_options_t::userspace().clear(true);
+    auto stackregion = memmgr->findAndZeroPageRegion(stacksize, stackpermission);
     LOG_DEBUG("stack is begin = %p, end = %p", stackregion.to, stackregion.from);
     const auto stackbegin = stackregion.to;
+
+    maxprogaddr = VirtualPageManager::page(stackbegin + 1);
+    memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
     // gcc tends to expect ESP+4 to be available; we could leave a 4-byte gap
     // but we're going to be pushing the args pointer below, so leave 12 now,
@@ -108,12 +109,12 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
     loadinfo.stack = stackbegin - 12;
 
     uint32_t *stack = (uint32_t*)loadinfo.stack;
-    if (self->args) {
+    if (gCurrentProcess->args) {
         auto mapopts = VirtualPageManager::map_options_t().rw(true).user(true).clear(true);
         auto cmdlinergn = memmgr->findAndMapRegion(VirtualPageManager::gPageSize, mapopts);
         uint8_t* cmdlines = (uint8_t*)cmdlinergn.from;
         LOG_DEBUG("cmdline pointer at %p", cmdlines);
-        memcopy((uint8_t*)self->args, cmdlines, strlen(self->args));
+        memcopy((uint8_t*)gCurrentProcess->args, cmdlines, strlen(gCurrentProcess->args));
         LOG_DEBUG("copied command line arguments (%s) to %p - pushing on stack at %p", cmdlines, cmdlines, stack);
         *stack = (uintptr_t)cmdlines;
     } else {

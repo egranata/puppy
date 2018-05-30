@@ -18,7 +18,8 @@
 #define LIBUSERSPACE_COLLECT
 
 #include <stdint.h>
+#include <syscalls/types.h>
 
-uint32_t collect(uint16_t pid);
+process_exit_status_t collect(uint16_t pid);
 
 #endif

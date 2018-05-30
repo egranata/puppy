@@ -13,25 +13,45 @@
 // limitations under the License.
 
 #include <syscalls/handlers.h>
-#include <process/manager.h>
-#include <process/process.h>
+#include <process/current.h>
 #include <mm/memmgr.h>
 #include <mm/virt.h>
 
-HANDLER1(mapregion,size) {
+syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {
     // only regions that are multiple of the page size can be mapped
     if (VirtualPageManager::offset(size)) {
         return ERR(UNIMPLEMENTED);
     }
 
-    auto&& pmm(ProcessManager::get());
-    auto self = pmm.getcurprocess();
-    auto&& memmgr = self->getMemoryManager();
+    auto opts = VirtualPageManager::map_options_t().user(true).clear(true).cached(true).rw(REGION_ALLOW_WRITE == (perm & REGION_ALLOW_WRITE));
 
-    VirtualPageManager::map_options_t opts;
-    auto rgn = memmgr->findAndZeroPageRegion(size);
+    auto&& memmgr = gCurrentProcess->getMemoryManager();
+
+    auto rgn = memmgr->findAndZeroPageRegion(size, opts);
     if (rgn.from != 0) {
         return OK | rgn.from;
     }
     return ERR(OUT_OF_MEMORY);
+}
+
+syscall_response_t vmcheckreadable_syscall_handler(uintptr_t address) {
+    auto&& vmm(VirtualPageManager::get());
+
+    VirtualPageManager::map_options_t options;
+    if (!vmm.mapped(address, &options)) {
+        return ERR(NOT_ALLOWED);
+    } else {
+        return (options.user()) ? OK : ERR(NOT_ALLOWED);
+    }
+}
+
+syscall_response_t vmcheckwritable_syscall_handler(uintptr_t address) {
+    auto&& vmm(VirtualPageManager::get());
+
+    VirtualPageManager::map_options_t options;
+    if (!vmm.mapped(address, &options)) {
+        return ERR(NOT_ALLOWED);
+    } else {
+        return (options.user() && options.rw()) ? OK : ERR(NOT_ALLOWED);
+    }
 }

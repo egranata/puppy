@@ -20,38 +20,58 @@
 #include <sys/stdint.h>
 #include <sys/nocopy.h>
 #include <libc/intervals.h>
+#include <libc/interval.h>
 #include <mm/virt.h>
 
 struct process_t;
 
 class MemoryManager : NOCOPY {
     public:
-        using region_t = IntervalList::interval_t;
+        struct region_t : public interval_t {
+            using permission_t = VirtualPageManager::map_options_t;
+
+            permission_t permission;
+
+            region_t (uintptr_t = 0, uintptr_t = 0, permission_t = permission_t::kernel());
+
+            bool operator==(const region_t&) const;
+        };
 
         MemoryManager(process_t*);
         // finds a region and returns it
         region_t findRegion(size_t size);
 
         // is the given address part of a region?
-        bool isWithinRegion(uintptr_t);
+        bool isWithinRegion(uintptr_t, region_t*);
 
         // finds a region and maps all pages of it in the address space
         region_t findAndMapRegion(size_t size, const VirtualPageManager::map_options_t&);
 
-        // finds a region and records it, but adds no mapping to the address space
-        region_t findAndAllocateRegion(size_t size);
-
         // finds a region and records it, all pages of the region are mapped to the zero page
-        region_t findAndZeroPageRegion(size_t size);
+        region_t findAndZeroPageRegion(size_t size, const VirtualPageManager::map_options_t&);
 
-        // this is a dangerous method - it does little to no checking that adding this mapping is sane (TODO: it should)
-        region_t addMapping(uintptr_t from, uintptr_t to);
+        // here lie dragons - these calls always assume that the mapping is sane and do no checking
+        region_t addMappedRegion(uintptr_t from, uintptr_t to);
+        region_t addUnmappedRegion(uintptr_t from, uintptr_t to);
+
+        // remove this region - and unmap all pages of it
+        void removeRegion(region_t region);
+
+        // useful for the page fault handler to inform the memory manager that one more page of actual RAM has
+        // been assigned to this process
+        void mapOneMorePage();
+
+        uintptr_t getTotalRegionsSize() const;
+        uintptr_t getMappedSize() const;
     private:
         bool findRegionImpl(size_t size, region_t&);
-        region_t addMapping(const region_t&);
+        region_t addRegion(const region_t&);
 
         process_t* mProcess;
-        IntervalList mRegions;
+        IntervalList<region_t> mRegions;
+
+        uintptr_t mAllRegionsSize; /** size of all allocated regions (excludes the kernel) */
+        uintptr_t mMappedRegionsSize; /** size of all memory actually mapped to this process */
     public:
 };
 

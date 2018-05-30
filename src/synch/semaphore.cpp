@@ -37,10 +37,9 @@ void Semaphore::wait() {
     while(true) {
         if(mValue == 0) {
             auto&& pm(ProcessManager::get());
-            auto self = pm.getcurprocess();
-            mWaiters.push(self);
-            pm.deschedule(self, process_t::State::WAITSYNC);
-            ProcessManager::get().yield();
+            mWaiters.push(gCurrentProcess);
+            pm.deschedule(gCurrentProcess, process_t::State::WAITSYNC);
+            pm.yield();
         }
         auto v = mValue;
         if (v > 0 && __sync_bool_compare_and_swap(&mValue, v, v-1)) {

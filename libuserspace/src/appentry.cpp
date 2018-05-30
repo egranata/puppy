@@ -20,7 +20,8 @@
 int main(int argc, char** argv);
 
 static void initheap() {
-    gSbrkPointer = (uint8_t*)mapregion(128 * 1024 * 1024);
+    static constexpr bool writable = true;
+    gSbrkPointer = (uint8_t*)mapregion(128 * 1024 * 1024, writable);
 }
 
 extern "C"

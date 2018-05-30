@@ -18,7 +18,6 @@ global __bootpagedir
 global __bootpagetbl
 global __gdt
 global __gdtinfo
-global __zeropage
 
 ; setting up the Multiboot header - see GRUB docs for details
 MODULEALIGN equ  1<<0             ; align loaded modules on page boundaries
@@ -117,7 +116,9 @@ loader:
     mov ecx, cr4
     or ecx,  0x00000010                          ; Set PSE bit in CR4 to enable 4MB pages.
     or ecx,  0x00000100                          ; Allow RDPMC at CPL=3
-    and ecx, 0xFFFFF7FB                          ; Disable RDTSC, SDGT, SIDT and a few more at CPL=3
+    or ecx,  0x00000080                          ; Allow global page mappings
+    or ecx,  0x00000800                          ; Disable SGDT, SIDT, SLDT, SMSW and STR at CPL=3
+    and ecx, 0xFFFFFFFB                          ; Allow RDTSC at CPL=3
     mov cr4, ecx
  
     mov ecx, cr0
@@ -161,12 +162,6 @@ StartSegmentation:
 kmainReturn:
         hlt
        jmp kmainReturn
-
-; Reserve one page for interim allocations
-section .zeropage
-align 0x1000
-__zeropage
-    times 1024 dd 0xcccccccc
 
 section .bss
 align 32

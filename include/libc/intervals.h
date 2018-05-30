@@ -19,28 +19,118 @@
 
 #include <sys/stdint.h>
 #include <libc/slist.h>
+#include <libc/interval.h>
 
+template <typename T /** : interval_t */, uint32_t max = 0xFFFFFFFF>
 class IntervalList {
 public:
-    struct interval_t {
-        uint32_t from;
-        uint32_t to;
-        
-        uint32_t size() const;
-        bool thisBefore(const interval_t& other) const;
-        bool operator==(const interval_t& other) const;
-        bool contains(uint32_t num) const;
-        bool contains(const interval_t& other) const;
-        bool containsAny(const interval_t& other) const;
-        bool intersects(const interval_t& other) const;
-    };
-    
-    void add(const interval_t& i);
-    bool contains(uint32_t addr);
-    bool findFree(uint32_t size, interval_t& range);
-    bool add(uint32_t size, interval_t& range);
+    void add(const T& i);
+    bool contains(uint32_t addr, T* where);
+    bool findFree(uint32_t size, T& range);
+    bool add(uint32_t size, T& range);
+    bool del(const T& i);
 private:
-    slist<interval_t> mIntervals;
+    slist<T> mIntervals;
 };
+
+template<typename T, uint32_t max>
+void IntervalList<T, max>::add(const T& i) {
+    if (mIntervals.empty()) {
+        mIntervals.add(i);
+        return;
+    }
+    if (mIntervals.count() == 1) {
+        auto&& other = mIntervals.top();
+        if (other.thisBefore(i)) {
+            mIntervals.add(i);
+        } else {
+            mIntervals.add_head(i);
+        }
+        return;
+    }
+    auto b = mIntervals.begin(), e = mIntervals.end();
+    while(b != e) {
+        auto& other = *b;
+        if (other.thisBefore(i)) {
+            ++b; continue;
+        }
+        mIntervals.insert(b, i);
+        return;
+    }
+    mIntervals.add(i);
+}
+
+template<typename T, uint32_t max>
+bool IntervalList<T, max>::contains(uint32_t addr, T* where) {
+    for (auto&& ival : mIntervals) {
+        if (ival.from > addr) return false;
+        if (ival.contains(addr)) {
+            if (where != nullptr) *where = ival;
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename T, uint32_t max>
+bool IntervalList<T, max>::findFree(uint32_t size, T& range) {
+    if (size == 0) return false;
+
+    if (mIntervals.empty()) {
+        range = {0,size-1};
+        return true;
+    }
+    
+    if (mIntervals.count() == 1) {
+        auto&& ival = mIntervals.top();
+        if (ival.from >= size) {
+            range = {0,size-1};
+            return true;
+        }
+        if (max - ival.to >= size) {
+            range = {ival.to + 1, size + ival.to};
+            return true;
+        }
+
+        return false;
+    }
+    
+    auto b = mIntervals.begin();
+    auto e = mIntervals.end();
+    
+    while(true) {
+        if (b == e) break;
+        auto& i0 = *b;
+        ++b;
+        if (b == e) break;
+        auto& i1 = *b;
+        if (i1.from > (size + i0.to)) {
+            range = {i0.to + 1, size + i0.to};
+            return true;
+        }
+    }
+    
+    auto&& ival = mIntervals.back();
+    if (max - ival.to >= size) {
+        range = {ival.to + 1, size + ival.to};
+        return true;
+    }
+    
+    return false;
+}
+
+template<typename T, uint32_t max>
+bool IntervalList<T, max>::add(uint32_t size, T& range) {
+    if (findFree(size, range)) {
+        add(range);
+        return true;
+    }
+    return false;
+}
+
+template<typename T, uint32_t max>
+bool IntervalList<T, max>::del(const T& i) {
+    return mIntervals.remove(i);
+}
 
 #endif

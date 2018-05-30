@@ -145,56 +145,73 @@ static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot
 	}
 
 	return multiboot_hdr;
-} 
+}
 
-static Framebuffer* setupFramebuffer(multiboot_info* multiboot) {
-	auto framebufferinfo = bootframbufinfo();
-	framebufferinfo = new (framebufferinfo) framebuf_info_t(*multiboot);
+static void setupKernelHeap() {
+	auto&& vmm(VirtualPageManager::get());
 
+	auto kernel_high = kernel_end();
+	// round up to the end of page - this is >= the actual end of the kernel image
+	kernel_high = VirtualPageManager::page(kernel_high) + VirtualPageManager::gPageSize - 1;
+
+	// and one page later, start the heap
+	auto heap_start = kernel_high + 1 + VirtualPageManager::gPageSize;
+	vmm.setheap(heap_start, VirtualPageManager::gKernelHeapSize);
+}
+
+static Framebuffer* setupFramebuffer(const framebuf_info_t& framebufferinfo) {
 	VirtualPageManager &vm(VirtualPageManager::get());
-	auto vrambase = vm.page(kernel_end()) + 2 * VirtualPageManager::gPageSize; // end of kernel image + 1 page buffer + aligned to next page
 	auto fb = Framebuffer::init(
-		framebufferinfo->width,
-		framebufferinfo->height,
-		framebufferinfo->pitch,
-		framebufferinfo->bpp,
-		framebufferinfo->videoram
+		framebufferinfo.width,
+		framebufferinfo.height,
+		framebufferinfo.pitch,
+		framebufferinfo.bpp,
+		framebufferinfo.videoram
 	);
-	auto heapbase = vm.page(fb->map(vrambase)) + 2 * VirtualPageManager::gPageSize; // same math as above for some cushion
-	// set the heap pointer as a way to keep track of it as modules bump it forward, but allocate a 0-byte heap so that
-	// any allocation causes a kernel panic
-	vm.setheap(heapbase, 0);
+
+	interval_t fb_region;
+	if (false == vm.findKernelRegion(fb->size(), fb_region)) {
+		LOG_ERROR("failed to obtain a memory region to map the framebuffer!");
+		PANIC("unable to map framebuffer in memory");
+	} else {
+		LOG_DEBUG("framebuffer region is [%p - %p]", fb_region.from, fb_region.to);
+		fb->map(fb_region.from);
+		vm.addKernelRegion(fb_region.from, fb_region.to);
+	}
 
 	return fb;
 }
 
 static void loadModules() {
 	VirtualPageManager &vm(VirtualPageManager::get());
-	auto heapbase = vm.getheap();
 
 	grub_modules_info_t* bootmodules = bootmodinfo();
 
 	LOG_DEBUG("%d modules being initialized", bootmodules->count);
 	for (auto mod_id = 0u; mod_id < bootmodules->count; ++mod_id) {
 		auto&& module = bootmodules->info[mod_id];
-		auto virtlow = vm.getheap();
-		auto virthigh = vm.maprange(module.start, module.end, virtlow, VirtualPageManager::map_options_t::kernel());
-		module.vmstart = virtlow;
-		LOG_DEBUG("module %u has ranges: phys=[%p - %p], virt=[%p - %p]",
-			mod_id, module.start, module.end, virtlow, virthigh);
-		vm.setheap(heapbase = virthigh, 0);
-	}
 
-	vm.setheap(heapbase, VirtualPageManager::gKernelHeapSize);
+		interval_t module_rgn;
+		if (false == vm.findKernelRegion(module.end - module.start, module_rgn)) {
+			PANIC("unable to find memory for module mapping");
+		}
+		vm.addKernelRegion(module_rgn.from, module_rgn.to);
+		vm.maprange(module.start, module.end, module_rgn.from, VirtualPageManager::map_options_t::kernel());
+		module.vmstart = module_rgn.from;
+		LOG_DEBUG("module %u has ranges: phys=[%p - %p], virt=[%p - %p]",
+			mod_id, module.start, module.end, module_rgn.from, module_rgn.to);
+	}
 }
 
 extern "C"
 void _earlyBoot(uintptr_t multiboot_data, uint32_t multiboot_magic) {
 	setupEarlyIRQs();
 	auto multiboot = getMultiboot(multiboot_data, multiboot_magic);
+	framebuf_info_t framebuf(*multiboot);
 	setupPhysicalMemory(multiboot);
 	reserveMemory(multiboot);
-	setupFramebuffer(multiboot);
+	setupKernelHeap();
+	setupFramebuffer(framebuf);
 	loadModules();
 
 	{

@@ -15,18 +15,24 @@
 #include <printf.h>
 #include <memory.h>
 #include <exit.h>
+#include <sysinfo.h>
 
 void test(uint32_t* ptr, uint32_t value) {
     *ptr = value;
     printf("At address %p, I wrote %x\n", ptr, *ptr);    
 }
 
+void stats() {
+    auto si = sysinfo(false, true);
+    printf("This process has allocated %u bytes (%u of which are real RAM) and caused %u pagefaults so far\n", si.local.allocated, si.local.committed, si.local.pagefaults);
+}
+
 void testCustomRegion() {
-    auto rgn = mapregion(8192);
+    auto rgn = mapregion(1024 * 1024, true);
     if (rgn) {
-        printf("Found and mapped a region of 8KB in size starting at %p\n", rgn);
+        printf("Found and mapped a region of 1MB in size starting at %p\n", rgn);
     } else {
-        printf("Failed to get 8KB of RAM.. that can't be good\n");
+        printf("Failed to get 1MB of RAM.. that can't be good\n");
         exit(1);
     }
 
@@ -34,7 +40,11 @@ void testCustomRegion() {
 
     test(mem + 0, 0xBEEFF00D);
     test(mem + 1025, 0xF00DDEAD);
-    test(mem + 2049, 0xB00BB00B);
+
+    stats();
+
+    test(mem + 1025 * 1024, 0xB00BB00B); // this will fail, so the following call will *not* happen
+    stats();
 }
 
 void testMalloc() {
@@ -48,6 +58,8 @@ void testMalloc() {
     test(p1, 0xBEEFF00D);
     test(p2, 0xF00DDEAD);
     test(p3, 0xB00BB00B);
+
+    stats();
 }
 
 int main(int, const char**) {

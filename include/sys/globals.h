@@ -33,6 +33,5 @@ GLOBAL_ITEM(__kernel_end,   kernel_end);
 GLOBAL_ITEM(__bootpagetbl,  bootpagetable);
 GLOBAL_ITEM(__bootpagedir,  bootpagedirectory);
 GLOBAL_ITEM(__gdt,          gdt);
-GLOBAL_ITEM(__zeropage,     zeropage);
 
 #endif

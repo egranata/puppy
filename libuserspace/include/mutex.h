@@ -26,6 +26,8 @@ class Mutex {
         void lock();
         void unlock();
 
+        bool trylock();
+
         uintptr_t handle();
     private:
         uintptr_t mHandle;

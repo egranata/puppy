@@ -42,6 +42,8 @@ class SyscallManager : NOCOPY {
         DEFINE_ERROR(UNIMPLEMENTED, 8);
         DEFINE_ERROR(OUT_OF_HANDLES, 9);
         DEFINE_ERROR(NO_SUCH_OBJECT, 10);
+        DEFINE_ERROR(NOT_ALLOWED, 11);
+        DEFINE_ERROR(ALREADY_LOCKED, 12);
 
         struct Request {
             uint8_t code;
@@ -61,7 +63,7 @@ class SyscallManager : NOCOPY {
 
         void sethandlers();
 
-        void handle(uint8_t code, Handler handler);
+        void handle(uint8_t code, Handler handler, bool systemOnly);
 };
 
 #undef DEFINE_ERROR

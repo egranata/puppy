@@ -38,6 +38,8 @@ class Heap : NOCOPY {
         size_t size() const;
         size_t maxsize() const;
 
+        virtual ~Heap() = default;
+
     protected:
         virtual size_t blocksize() const;
         virtual uintptr_t oneblock() = 0;

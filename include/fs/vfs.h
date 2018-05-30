@@ -43,6 +43,8 @@ class VFS : NOCOPY {
         };
         slist<mount_t> mMounts;
         VFS();
+
+        friend class RootDirectory;
 };
 
 #endif
