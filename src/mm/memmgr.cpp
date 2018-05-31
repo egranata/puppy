@@ -80,7 +80,7 @@ MemoryManager::region_t MemoryManager::findAndMapRegion(size_t size, const Virtu
         LOG_DEBUG("mapping all pages from %p to %p", region.from, region.to);
         auto&& vmm(VirtualPageManager::get());
         for(auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
-            vmm.newmap(base, opts);
+            vmm.mapAnyPhysicalPage(base, opts);
         }
         mMappedRegionsSize += region.size();
         return addRegion(region);

@@ -46,7 +46,7 @@ namespace boot::task {
             PANIC("cannot allocate memory for process objects");
         }
         vm.addKernelRegion(rgn.from, rgn.to);
-        vm.mapZeroPage(rgn.from, rgn.to);
+        // vm.mapZeroPage(rgn.from, rgn.to);
 
         proc.mProcessPagesLow = rgn.from;
         proc.mProcessPagesHigh = rgn.to;
@@ -427,9 +427,9 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         PANIC("set process table location before spawning");
     }
     auto&& vm(VirtualPageManager::get());
-    auto processpage = vm.findpage(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    auto esp0page = vm.findpage(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    auto esppage = vm.findpage(mProcessPagesLow, mProcessPagesHigh, mapopts);
+    auto processpage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
+    auto esp0page = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
+    auto esppage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
     if ((processpage & 0x1) || (esp0page & 0x1) | (esppage & 0x1)) {
         PANIC("cannot find memory for a new process");
     }

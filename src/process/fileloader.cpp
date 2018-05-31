@@ -69,7 +69,7 @@ void fileloader(uintptr_t) {
     auto pages = roundup(fstat.size) / VirtualPageManager::gPageSize;
     auto bufferopts = VirtualPageManager::map_options_t().clear(true).rw(true).user(false);
     for (auto i = 0u; i < pages; ++i) {
-        vm.newmap(gInitialLoadAddress + (i * VirtualPageManager::gPageSize), bufferopts);
+        vm.mapAnyPhysicalPage(gInitialLoadAddress + (i * VirtualPageManager::gPageSize), bufferopts);
     }
 
     LOG_DEBUG("file size: %u - mapped %u pages at %p for read", fstat.size, pages, gInitialLoadAddress);

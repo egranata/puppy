@@ -111,11 +111,12 @@ public:
 
 	uintptr_t map(uintptr_t phys, uintptr_t virt, const map_options_t&);
 
-	uintptr_t newmap(uintptr_t virt, const map_options_t& = map_options_t());
+	uintptr_t mapAnyPhysicalPage(uintptr_t virt, const map_options_t& = map_options_t());
 
 	uintptr_t maprange(uintptr_t physlow, uintptr_t physhigh, uintptr_t virt, const map_options_t& = map_options_t());
 
-	uintptr_t findpage(uintptr_t low, uintptr_t high, const map_options_t& = map_options_t());
+	uintptr_t mapPageWithinRange(uintptr_t low, uintptr_t high, const map_options_t& = map_options_t());
+	uintptr_t findPageWithinRange(uintptr_t low, uintptr_t high);
 
 	void unmap(uintptr_t virt);
 
@@ -145,7 +146,9 @@ public:
 	 */
 	class scratch_page_t {
 		public:
-			scratch_page_t(uintptr_t);
+			scratch_page_t(uintptr_t, bool);
+			scratch_page_t(scratch_page_t&&);
+			scratch_page_t(const scratch_page_t&) = delete;
 
 			explicit operator bool();
 			explicit operator uintptr_t();
@@ -158,9 +161,11 @@ public:
 			~scratch_page_t(); // unmaps the page
 		private:
 			uintptr_t address;	
+			bool owned;
 	};
 
 	scratch_page_t getScratchPage(const map_options_t& = map_options_t());
+	scratch_page_t getScratchPage(uintptr_t phys, const map_options_t& = map_options_t());
 
 	// maps a page of memory "stolen" from another process into the current process' address space
 	uintptr_t mapOtherProcessPage(process_t* other, uintptr_t otherVirt, uintptr_t selfVirt, const map_options_t& = map_options_t());
