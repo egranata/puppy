@@ -24,6 +24,7 @@
 #include <log/log.h>
 #include <i386/backtrace.h>
 #include <mm/pagefault.h>
+#include <process/reaper.h>
 
 extern "C"
 void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
@@ -63,10 +64,12 @@ void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
 
     fb.write("Process killed.\n", red);
 
-    pmm.exit(process_exit_status_t{
+    auto ew = process_exit_status_t{
         reason : process_exit_status_t::reason_t::exception,
         status : (uint8_t)stack.irqnumber
-    });
+    }.toWord();
+
+    reaper(ew);
 }
 
 static bool iskernelbug(const InterruptStack& stack) {

@@ -453,7 +453,7 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 // deallocate all memory that this process ever acquired
 // this leaves kernel memory in place, so that the rest of the exit()
 // can occur, and also because kernel memory is shared anyway
-void VirtualPageManager::release() {
+void VirtualPageManager::cleanAddressSpace() {
 	PhysicalPageManager &phys(PhysicalPageManager::get());
 
 	auto freepages = phys.getfreepages();

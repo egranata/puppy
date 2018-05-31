@@ -128,7 +128,7 @@ public:
 	uintptr_t ksbrk(size_t amount);
 	
 	uintptr_t createAddressSpace();
-	void release();
+	void cleanAddressSpace();
 
 	void addKernelRegion(uintptr_t low, uintptr_t high);
 	bool findKernelRegion(size_t size, interval_t& rgn);

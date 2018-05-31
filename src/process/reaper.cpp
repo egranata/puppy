@@ -20,7 +20,7 @@
 extern "C"
 void reaper(uint32_t exitword) {
     LOG_DEBUG("in reaper - releasing VM space");
-    VirtualPageManager::get().release();
+    VirtualPageManager::get().cleanAddressSpace();
 
     LOG_DEBUG("in reaper - exiting process");
     ProcessManager::get().exit(process_exit_status_t(exitword));
