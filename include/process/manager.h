@@ -21,14 +21,19 @@
 #include <i386/tss.h>
 #include <synch/message.h>
 #include <synch/semaphore.h>
+#include <libc/slist.h>
 #include <libc/queue.h>
 #include <process/current.h>
 #include <process/process.h>
 #include <sys/nocopy.h>
+#include <process/table.h>
+#include <process/bitmap.h>
 
 namespace boot::task {
     uint32_t init();
 }
+
+#define PM_GLOBAL(Type, Name) static Type& Name();
 
 class ProcessManager : NOCOPY {
     public:
@@ -78,6 +83,13 @@ class ProcessManager : NOCOPY {
         void ready(process_t*);
         void deschedule(process_t*, process_t::State);
 
+        PM_GLOBAL(ProcessBitmap<ProcessManager::gNumProcesses>, gPidBitmap);
+        PM_GLOBAL(ProcessBitmap<ProcessManager::gNumProcesses>, gGDTBitmap);
+        PM_GLOBAL(ProcessTable<ProcessManager::gNumProcesses>, gProcessTable);
+        PM_GLOBAL(ProcessTable<ProcessManager::gNumProcesses>, gExitedProcesses);
+        PM_GLOBAL(slist<process_t*>, gCollectedProcessList);
+        PM_GLOBAL(vector<process_t*>, gReadyQueue);
+
     private:
         ProcessManager();
 
@@ -89,5 +101,7 @@ class ProcessManager : NOCOPY {
 
         friend uint32_t boot::task::init();
 };
+
+#undef PM_GLOBAL
 
 #endif

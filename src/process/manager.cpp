@@ -71,88 +71,8 @@ ProcessManager& ProcessManager::get() {
     return gManager;
 }
 
-template<size_t NumProcesses, size_t NumBytes = NumProcesses / 8, typename PidType = ProcessManager::pid_t>
-class ProcessBitmap {
-    public:
-        ProcessBitmap() {
-            bzero(&mBitmap[0], sizeof(mBitmap));
-        }
-
-        PidType next() {
-            for (auto i = 0u; i < NumBytes; ++i) {
-                auto& entry = mBitmap[i];
-                if (0xFF == entry) continue;
-                for (auto j = 0u; j < 8; ++j) {
-                    if (0 == (entry & gBitmasks[j])) {
-                        entry |= gBitmasks[j];
-                        return 8*i + j;
-                    }
-                }
-            }
-
-            PANIC("out of process entries");
-        }
-
-        void free(PidType p) {
-            auto B = (p / 8);
-            auto b = (p % 8);
-            mBitmap[B] = mBitmap[B] & ~gBitmasks[b];
-        }
-
-        void reserve(PidType p) {
-            auto B = (p / 8);
-            auto b = (p % 8);
-            mBitmap[B] = mBitmap[B] | gBitmasks[b];            
-        }
-    private:
-        static_assert(8 * NumBytes == NumProcesses, "process count must be a multiple of 8");
-
-        static constexpr uint8_t gBitmasks[8] = {
-            1 << 0,
-            1 << 1,
-            1 << 2,
-            1 << 3,
-            1 << 4,
-            1 << 5,
-            1 << 6,
-            1 << 7
-        };
-        uint8_t mBitmap[NumBytes];
-};
-
-template<size_t A, size_t B, typename C>
-constexpr decltype(ProcessBitmap<A,B,C>::gBitmasks) ProcessBitmap<A,B,C>::gBitmasks;
-
-template<size_t NumProcesses, typename PidType = ProcessManager::pid_t>
-class ProcessTable {
-    public:
-        ProcessTable() {
-            bzero((uint8_t*)&mTable[0], sizeof(mTable));
-        }
-
-        void set(process_t* proc) {
-            if (proc == nullptr) {
-                PANIC("null process insertion in process table");
-            }
-            if (mTable[proc->pid]) {
-                PANIC("process slot already occupied");
-            }
-            mTable[proc->pid] = proc;
-        }
-
-        void free(process_t* proc) {
-            mTable[proc->pid] = nullptr;
-        }
-
-        process_t* get(PidType pid) {
-            return mTable[pid];
-        }
-    private:
-        process_t* mTable[NumProcesses];
-};
-
 #define PM_GLOBAL(Type, Name) \
-static Type & Name () { \
+Type & ProcessManager:: Name () { \
     static Type gRet; \
     return gRet; \
 }
@@ -193,7 +113,7 @@ static void enqueueForDeath(process_t* task) {
         PANIC("only EXITED processes can go on exited list");
     }
     LOG_DEBUG("process %u going on exited list", task->pid);
-    gExitedProcesses().set(task);
+    ProcessManager::gExitedProcesses().set(task);
 }
 
 static void enqueueForCollection(process_t* task) {
@@ -201,7 +121,7 @@ static void enqueueForCollection(process_t* task) {
         PANIC("only COLLECTED processes can go on collected list");
     }
     LOG_DEBUG("process %u going on collected list", task->pid);
-    gCollectedProcessList().add(task);
+    ProcessManager::gCollectedProcessList().add(task);
 }
 
 static void wakeup() {
@@ -225,7 +145,7 @@ static void wakeup() {
 }
 
 static void schedule() {
-    auto&& ready = gReadyQueue();
+    auto&& ready = ProcessManager::gReadyQueue();
 
     while(true) {
         wakeup();
@@ -329,8 +249,8 @@ void task0() {
     }
 
     while(true) {
-        if (!gCollectedProcessList().empty()) {
-            auto proc = gCollectedProcessList().pop();
+        if (!ProcessManager::gCollectedProcessList().empty()) {
+            auto proc = ProcessManager::gCollectedProcessList().pop();
             LOG_DEBUG("deleting process object for %u", proc->pid);
             if (proc->path) free((void*)proc->path);
             if (proc->args) free((void*)proc->args);
@@ -338,9 +258,9 @@ void task0() {
             auto dtbl = gdt<uint64_t*>();
             dtbl[proc->pid + 6] = 0;
 
-            gPidBitmap().free(proc->pid);
-            gGDTBitmap().free(proc->gdtidx);
-            gProcessTable().free(proc);
+            ProcessManager::gPidBitmap().free(proc->pid);
+            ProcessManager::gGDTBitmap().free(proc->gdtidx);
+            ProcessManager::gProcessTable().free(proc);
 
             pm.dealloc((uintptr_t)proc->tss.cr3);
             vm.unmap(proc->esp0start);
