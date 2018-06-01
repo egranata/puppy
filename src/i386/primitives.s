@@ -300,3 +300,8 @@ writemsr:
 	mov ecx, [esp + 4]
 	wrmsr
 	ret
+
+global haltforever
+haltforever:
+	hlt
+	jmp haltforever

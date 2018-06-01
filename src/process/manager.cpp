@@ -27,9 +27,12 @@
 #include <process/reaper.h>
 #include <boot/phase.h>
 #include <libc/vec.h>
-#include <libc/pqueue.h>
 #include <synch/semaphoremanager.h>
 #include <synch/mutexmanager.h>
+#include <tasks/scheduler.h>
+#include <tasks/awaker.h>
+#include <tasks/collector.h>
+#include <tasks/deleter.h>
 
 // this is THE current process information
 process_t *gCurrentProcess;
@@ -90,30 +93,20 @@ PM_GLOBAL(vector<process_t*>, gReadyQueue);
 
 static ProcessManager::pid_t gSchedulerPid;
 static ProcessManager::pid_t gInitPid;
+static ProcessManager::pid_t gAwakerPid;
+static ProcessManager::pid_t gDeleterPid;
 
 static process_t gDummyProcess;
 static process_t *gCollectorProcess;
 
-class processcomparator {
-    public:
-        static int compare(process_t* p1, process_t* p2) {
-            return p1->sleeptill >= p2->sleeptill ? -1 : +1;
-        }
-};
+int ProcessManager::processcomparator::compare(process_t* p1, process_t* p2) {
+    return p1->sleeptill >= p2->sleeptill ? -1 : +1;
+}
 
-// PM_GLOBAL would expand this as a three argument macro :(
-static pqueue<process_t*, processcomparator>& gSleepQueue() {
+pqueue<process_t*, ProcessManager::processcomparator>& ProcessManager::gSleepQueue() {
     static pqueue<process_t*, processcomparator> gRet;
 
     return gRet;
-}
-
-static void enqueueForDeath(process_t* task) {
-    if (task->state != process_t::State::EXITED) {
-        PANIC("only EXITED processes can go on exited list");
-    }
-    LOG_DEBUG("process %u going on exited list", task->pid);
-    ProcessManager::gExitedProcesses().set(task);
 }
 
 static void enqueueForCollection(process_t* task) {
@@ -124,100 +117,11 @@ static void enqueueForCollection(process_t* task) {
     ProcessManager::gCollectedProcessList().add(task);
 }
 
-static void wakeup() {
-    auto now = PIT::getUptime();
-    auto& sq(gSleepQueue());
-    auto& pmm(ProcessManager::get());
-    while(!sq.empty()) {
-        auto top = sq.top();
-        if (top->state == process_t::State::EXITED) {
-            enqueueForDeath(sq.pop());
-            continue;
-        }
-        if (top->sleeptill <= now) {
-            LOG_DEBUG("awakening process %u - it asked to sleep till %u", top->pid, top->sleeptill);
-            top = sq.pop();
-            pmm.ready(top);
-        } else {
-            break;
-        }
-    }
-}
-
-static void schedule() {
-    auto&& ready = ProcessManager::gReadyQueue();
-
-    while(true) {
-        wakeup();
-        auto cur_task = gCurrentProcess;
-        
-        auto next_task = ready.front();
-        #if LOG_SCHEDULER
-        LOG_DEBUG("front of ready queue is %p", next_task);
-        #endif
-        ready.erase(ready.begin());
-        #if LOG_SCHEDULER
-        LOG_DEBUG("erased front of ready queue");
-        #endif
-
-        switch(next_task->state) {
-            case process_t::State::AVAILABLE:
-                #if LOG_SCHEDULER
-                LOG_DEBUG("next_task = %p %u is available, scheduling", next_task, next_task->pid);
-                #endif
-                break;
-            case process_t::State::EXITED:
-                enqueueForDeath(next_task);
-                /* fallthrough */
-            default:
-                #if LOG_SCHEDULER
-                LOG_DEBUG("next_task = %p %u is not available, keep going", next_task, next_task->pid);
-                #endif
-                continue;
-        }
-
-        ready.push_back(next_task);
-
-        #if LOG_SCHEDULER
-        LOG_DEBUG("cur_task = %p %u - next_task = %p %u", cur_task, cur_task->pid, next_task, next_task->pid);
-        #endif
-
-        if (next_task == cur_task) {
-            #if LOG_SCHEDULER
-            LOG_DEBUG("task %u yielding to itself, so nothing to see here", cur_task->pid);        
-            #endif
-        } else {
-            #if LOG_SCHEDULER
-            LOG_DEBUG("task %u yielding to task %u", cur_task->pid, next_task->pid);
-            #endif
-            ProcessManager::ctxswitch(next_task);
-            #if LOG_SCHEDULER
-            LOG_DEBUG("back from yielding");
-            #endif
-        }
-    }
-}
-
-static void collector() {
-    auto&& pmm(ProcessManager::get());
-    while(true) {
-        auto&& children = gCollectorProcess->children;
-        if (!children.empty()) {
-            auto child = children.top();
-            pmm.collect(child->pid);
-        }
-        pmm.yield();
-    }
-}
-
 extern "C"
 void task0() {
-    auto&& vm(VirtualPageManager::get());
-    auto&& pm(PhysicalPageManager::get());
-
     const ProcessManager::spawninfo_t scheduler_task {
         cr3 : 0,
-        eip : (uintptr_t)&schedule,
+        eip : (uintptr_t)&tasks::scheduler::task,
         priority : 0,
         argument : 0,
         schedulable : false,
@@ -226,7 +130,25 @@ void task0() {
 
     const ProcessManager::spawninfo_t collector_task {
         cr3 : 0,
-        eip : (uintptr_t)&collector,
+        eip : (uintptr_t)&tasks::collector::task,
+        priority : 1,
+        argument : 0,
+        schedulable : true,
+        system : true
+    };
+
+    const ProcessManager::spawninfo_t awaker_task {
+        cr3 : 0,
+        eip : (uintptr_t)&tasks::awaker::task,
+        priority : 1,
+        argument : 0,
+        schedulable : true,
+        system : true
+    };
+
+    const ProcessManager::spawninfo_t deleter_task {
+        cr3 : 0,
+        eip : (uintptr_t)&tasks::deleter::task,
         priority : 1,
         argument : 0,
         schedulable : true,
@@ -241,6 +163,12 @@ void task0() {
         gCollectorProcess = pmm.kspawn(collector_task);
         LOG_DEBUG("collector task prepared as pid %u", gCollectorProcess->pid);
 
+        gAwakerPid = pmm.kspawn(awaker_task)->pid;
+        LOG_DEBUG("awaker task prepared as pid %u", gAwakerPid);
+
+        gDeleterPid = pmm.kspawn(deleter_task)->pid;
+        LOG_DEBUG("deleter task prepared as pid %u", gDeleterPid);
+
         auto init = pmm.setup("/initrd/init", nullptr);
         init->flags.system = true;
         gInitPid = init->pid;
@@ -249,29 +177,9 @@ void task0() {
     }
 
     while(true) {
-        if (!ProcessManager::gCollectedProcessList().empty()) {
-            auto proc = ProcessManager::gCollectedProcessList().pop();
-            LOG_DEBUG("deleting process object for %u", proc->pid);
-            if (proc->path) free((void*)proc->path);
-            if (proc->args) free((void*)proc->args);
-
-            auto dtbl = gdt<uint64_t*>();
-            dtbl[proc->pid + 6] = 0;
-
-            ProcessManager::gPidBitmap().free(proc->pid);
-            ProcessManager::gGDTBitmap().free(proc->gdtidx);
-            ProcessManager::gProcessTable().free(proc);
-
-            pm.dealloc((uintptr_t)proc->tss.cr3);
-            vm.unmap(proc->esp0start);
-            vm.unmap(proc->espstart);
-            proc->~process_t();
-            vm.unmap((uintptr_t)proc);
-        }
         ProcessManager::get().yield();
     }
 }
-
 
 ProcessManager::ProcessManager() {
     gGDTBitmap().reserve(0);
@@ -654,6 +562,14 @@ void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
     }
 
     LOG_DEBUG("process %u moved to state %u", task->pid, (uint8_t)newstate);
+}
+
+void ProcessManager::enqueueForDeath(process_t* task) {
+    if (task->state != process_t::State::EXITED) {
+        PANIC("only EXITED processes can go on exited list");
+    }
+    LOG_DEBUG("process %u going on exited list", task->pid);
+    gExitedProcesses().set(task);
 }
 
 process_exit_status_t ProcessManager::collect(pid_t pid) {

@@ -28,6 +28,7 @@
 #include <sys/nocopy.h>
 #include <process/table.h>
 #include <process/bitmap.h>
+#include <libc/pqueue.h>
 
 namespace boot::task {
     uint32_t init();
@@ -82,6 +83,7 @@ class ProcessManager : NOCOPY {
 
         void ready(process_t*);
         void deschedule(process_t*, process_t::State);
+        void enqueueForDeath(process_t*);
 
         PM_GLOBAL(ProcessBitmap<ProcessManager::gNumProcesses>, gPidBitmap);
         PM_GLOBAL(ProcessBitmap<ProcessManager::gNumProcesses>, gGDTBitmap);
@@ -89,6 +91,14 @@ class ProcessManager : NOCOPY {
         PM_GLOBAL(ProcessTable<ProcessManager::gNumProcesses>, gExitedProcesses);
         PM_GLOBAL(slist<process_t*>, gCollectedProcessList);
         PM_GLOBAL(vector<process_t*>, gReadyQueue);
+
+        class processcomparator {
+            public:
+                static int compare(process_t* p1, process_t* p2);
+        };
+
+        // cannot be defined via PM_GLOBAL because of macro expansion limitations (hint: would look like a 3-arg macro)
+        static pqueue<process_t*, processcomparator>& gSleepQueue();
 
     private:
         ProcessManager();

@@ -32,7 +32,7 @@ private:
 public:
 	slist() : size(0), head(nullptr), tail(nullptr) {}
 
-    bool empty() { return head == nullptr; }
+    bool empty() { return size == 0; }
 
 	size_t count() { return size; }
 
