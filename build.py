@@ -40,18 +40,23 @@ def findSubdirectories(dir, self=True):
 
 def error(msg):
     print("error: %s" % msg)
+    shell("umount out/mnt", onerrignore=True)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
-def shell(command, shell=True):
-    # print("$ %s" % command)
+def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
+    if printout: print("$ %s" % command)
     try:
-        stdout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=shell)
-        # print(stdout.decode('utf-8'))
-        return stdout
+        stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell)
+        o = stdout.decode('utf-8')
+        if printout: print(o)
+        return o
     except subprocess.CalledProcessError as e:
         print("$ %s" % command)        
         print(e.output.decode('utf-8'))
-        error("shell command failed")
+        if onerrignore:
+            print("shell command failed")
+        else:
+            error("shell command failed")
 
 def findAll(base, extension):
     def _find(dir, extension=None):
@@ -75,6 +80,11 @@ def makeOutputFilename(src, prefix=None):
 
 def copy(src, dst):
     cmdline = 'cp "%s" "%s"' % (src, dst)
+    shell(cmdline)
+    return dst
+
+def rcopy(src, dst):
+    cmdline = 'cp -r "%s" "%s"' % (src, dst)
     shell(cmdline)
     return dst
 
@@ -116,6 +126,7 @@ def clearDir(path):
 
 clearDir("out")
 clearDir("out/apps")
+clearDir("out/mnt")
 clearDir("out/iso/boot/grub")
 
 class _BuildC(object):
@@ -281,6 +292,37 @@ print("Size of OS iso image: %d bytes" % os.stat("out/os.iso").st_size)
 print("Generating kernel symbol table")
 
 CMDLINE = "nm out/kernel.elf | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
+shell(CMDLINE)
+
+print("Generating out.img")
+
+CMDLINE="losetup -D"
+shell(CMDLINE)
+
+CMDLINE="dd if=/dev/zero of=out/out.img bs=1MB count=256"
+shell(CMDLINE)
+CMDLINE="fdisk out/out.img"
+shell(CMDLINE, stdin=open('build/fdisk.in'), printout=True)
+
+CMDLINE="losetup -fP --show out/out.img"
+DISK_LO = shell(CMDLINE, printout=True).splitlines()[0]
+
+CMDLINE="losetup --offset $((2048*512)) --show --find out/out.img"
+PART_LO = shell(CMDLINE, printout=True).splitlines()[0]
+
+CMDLINE="mkfs.fat -F32 %s" % (PART_LO)
+shell(CMDLINE)
+
+CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
+shell(CMDLINE)
+
+rcopy("out/iso/", "out/mnt")
+rcopy("out/apps/", "out/mnt")
+
+CMDLINE="grub-install -v --target i386-pc --boot-directory out/mnt/boot/ %s" % (DISK_LO)
+shell(CMDLINE)
+
+CMDLINE="umount out/mnt"
 shell(CMDLINE)
 
 BUILD_END = time.time()
