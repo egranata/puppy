@@ -43,7 +43,7 @@ def error(msg):
     shell("umount out/mnt", onerrignore=True)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
-def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
+def shell(command, shell=True, stdin=None, printout=True, onerrignore=False):
     if printout: print("$ %s" % command)
     try:
         stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell)
@@ -291,7 +291,7 @@ print("Size of OS iso image: %d bytes" % os.stat("out/os.iso").st_size)
 
 print("Generating kernel symbol table")
 
-CMDLINE = "nm out/kernel.elf | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
+CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
 shell(CMDLINE)
 
 print("Generating out.img")
@@ -299,12 +299,12 @@ print("Generating out.img")
 CMDLINE="losetup -D"
 shell(CMDLINE)
 
-CMDLINE="dd if=/dev/zero of=out/out.img bs=1MB count=256"
+CMDLINE="dd if=/dev/zero of=out/out.img bs=1MB count=64"
 shell(CMDLINE)
 CMDLINE="fdisk out/out.img"
 shell(CMDLINE, stdin=open('build/fdisk.in'), printout=True)
 
-CMDLINE="losetup -fP --show out/out.img"
+CMDLINE="losetup --find --show out/out.img"
 DISK_LO = shell(CMDLINE, printout=True).splitlines()[0]
 
 CMDLINE="losetup --offset $((2048*512)) --show --find out/out.img"
@@ -316,10 +316,14 @@ shell(CMDLINE)
 CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
 shell(CMDLINE)
 
-rcopy("out/iso/", "out/mnt")
+rcopy("out/iso/boot", "out/mnt")
 rcopy("out/apps/", "out/mnt")
 
-CMDLINE="grub-install -v --target i386-pc --boot-directory out/mnt/boot/ %s" % (DISK_LO)
+with open('out/mnt/boot/grub/device.map', 'w') as f:
+    print("(hd0)   %s" % DISK_LO, file=f)
+    print("(hd0,1)   %s" % PART_LO, file=f)
+
+CMDLINE="grub-install -v --modules=\"part_msdos\" --grub-mkdevicemap=out/mnt/boot/grub/device.map --target i386-pc --boot-directory out/mnt/boot/ %s" % (DISK_LO)
 shell(CMDLINE)
 
 CMDLINE="umount out/mnt"
