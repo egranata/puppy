@@ -69,7 +69,7 @@ __bootpagedir:
     ; This page directory entry defines a 4MB page containing the kernel.
     dd 0x00000083
     times (1024 - KERNEL_PAGE_NUMBER - 2) dd 0
-	dd 0 ; we will replace this mapping in _loader
+	dd __bootpagedir - KERNEL_VIRTUAL_BASE ; we will replace this mapping in _loader
 
 ; change this value here if system entries are added to the GDT
 __numsysgdtentries:
@@ -120,10 +120,10 @@ loader:
  
     mov ecx, cr4
     or ecx,  0x00000010                          ; Set PSE bit in CR4 to enable 4MB pages.
-    or ecx,  0x00000100                          ; Allow RDPMC at CPL=3
-    or ecx,  0x00000080                          ; Allow global page mappings
-    or ecx,  0x00000800                          ; Disable SGDT, SIDT, SLDT, SMSW and STR at CPL=3
-    and ecx, 0xFFFFFFFB                          ; Allow RDTSC at CPL=3
+    ; or ecx,  0x00000100                          ; Allow RDPMC at CPL=3
+    ; or ecx,  0x00000080                          ; Allow global page mappings
+    ; or ecx,  0x00000800                          ; Disable SGDT, SIDT, SLDT, SMSW and STR at CPL=3
+    ; and ecx, 0xFFFFFFFB                          ; Allow RDTSC at CPL=3
     mov cr4, ecx
  
     mov ecx, cr0
