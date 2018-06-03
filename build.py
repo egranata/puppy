@@ -23,6 +23,10 @@ import subprocess
 import sys
 import time
 
+MYPATH = os.path.abspath(os.getcwd())
+
+print("Building OS image from %s" % MYPATH)
+
 BUILD_START = time.time()
 
 BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Wno-main -Werror -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
@@ -43,7 +47,7 @@ def error(msg):
     shell("umount out/mnt", onerrignore=True)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
-def shell(command, shell=True, stdin=None, printout=True, onerrignore=False):
+def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
     if printout: print("$ %s" % command)
     try:
         stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell)
@@ -146,7 +150,7 @@ class _BuildCpp(object):
 # do not move the definition of the THE_POOL above here; because of how multiprocessing works
 # all the things that we want the pooled processes to see and use must be defined before the
 # pool itself is defined..
-THE_POOL = Pool(10)
+THE_POOL = Pool(5)
 
 class Project(object):
     def __init__(self, name, srcdir, cflags, cppflags, asmflags, ldflags, assembler="nasm", linkerdeps=None, outwhere="out"):
@@ -294,21 +298,21 @@ print("Generating kernel symbol table")
 CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
 shell(CMDLINE)
 
-print("Generating out.img")
+print("Generating os.img")
 
 CMDLINE="losetup -D"
 shell(CMDLINE)
 
-CMDLINE="dd if=/dev/zero of=out/out.img bs=1MB count=64"
+CMDLINE="dd if=/dev/zero of=out/os.img bs=1MB count=64"
 shell(CMDLINE)
-CMDLINE="fdisk out/out.img"
-shell(CMDLINE, stdin=open('build/fdisk.in'), printout=True)
+CMDLINE="fdisk out/os.img"
+shell(CMDLINE, stdin=open('build/fdisk.in'))
 
-CMDLINE="losetup --find --show out/out.img"
-DISK_LO = shell(CMDLINE, printout=True).splitlines()[0]
+CMDLINE="losetup --find --show out/os.img"
+DISK_LO = shell(CMDLINE).splitlines()[0]
 
-CMDLINE="losetup --offset $((2048*512)) --show --find out/out.img"
-PART_LO = shell(CMDLINE, printout=True).splitlines()[0]
+CMDLINE="losetup --offset $((2048*512)) --show --find out/os.img"
+PART_LO = shell(CMDLINE).splitlines()[0]
 
 CMDLINE="mkfs.fat -F32 %s" % (PART_LO)
 shell(CMDLINE)
@@ -316,18 +320,19 @@ shell(CMDLINE)
 CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
 shell(CMDLINE)
 
-rcopy("out/iso/boot", "out/mnt")
 rcopy("out/apps/", "out/mnt")
 
-with open('out/mnt/boot/grub/device.map', 'w') as f:
-    print("(hd0)   %s" % DISK_LO, file=f)
-    print("(hd0,1)   %s" % PART_LO, file=f)
-
-CMDLINE="grub-install -v --modules=\"part_msdos\" --grub-mkdevicemap=out/mnt/boot/grub/device.map --target i386-pc --boot-directory out/mnt/boot/ %s" % (DISK_LO)
+CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
 shell(CMDLINE)
+
+copy("out/kernel", "out/mnt/boot/puppy")
+copy("out/iso/boot/initrd.img", "out/mnt/boot/initrd.img")
+copy("out/iso/boot/grub/grub.cfg", "out/mnt/boot/grub/grub.cfg")
 
 CMDLINE="umount out/mnt"
 shell(CMDLINE)
+
+print("Size of OS disk image: %d bytes" % os.stat("out/os.img").st_size)
 
 BUILD_END = time.time()
 print("Build took %s seconds" % int(BUILD_END - BUILD_START))
