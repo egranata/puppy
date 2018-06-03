@@ -120,16 +120,16 @@ loader:
  
     mov ecx, cr4
     or ecx,  0x00000010                          ; Set PSE bit in CR4 to enable 4MB pages.
-    ; or ecx,  0x00000100                          ; Allow RDPMC at CPL=3
-    ; or ecx,  0x00000080                          ; Allow global page mappings
-    ; or ecx,  0x00000800                          ; Disable SGDT, SIDT, SLDT, SMSW and STR at CPL=3
-    ; and ecx, 0xFFFFFFFB                          ; Allow RDTSC at CPL=3
     mov cr4, ecx
  
     mov ecx, cr0
     or ecx, 0x80000000                          ; Set PG bit in CR0 to enable paging.
     or ecx, 0x20                                ; Enable native floating point exceptions.
     mov cr0, ecx
+
+    mov ecx, cr4
+    or ecx,  0x00000080                          ; Allow global page mappings (must be done with PG=1)
+    mov cr4, ecx
  
     ; Start fetching instructions in kernel space.
     ; Since eip at this point holds the physical address of this command (approximately 0x00100000)
