@@ -18,6 +18,7 @@ global __bootpagedir
 global __bootpagetbl
 global __gdt
 global __gdtinfo
+global __numsysgdtentries
 
 ; setting up the Multiboot header - see GRUB docs for details
 MODULEALIGN equ  1<<0             ; align loaded modules on page boundaries
@@ -26,7 +27,7 @@ GRAPHICS    equ  1<<2             ; setup screen mode
 FLAGS       equ  MODULEALIGN | MEMINFO | GRAPHICS
 MAGIC       equ    0x1BADB002     ; 'magic number' lets bootloader find the header
 CHECKSUM    equ -(MAGIC + FLAGS)  ; checksum required
- 
+
 section .grub
 align 4 
 MultiBootHeader:
@@ -69,6 +70,10 @@ __bootpagedir:
     dd 0x00000083
     times (1024 - KERNEL_PAGE_NUMBER - 2) dd 0
 	dd 0 ; we will replace this mapping in _loader
+
+; change this value here if system entries are added to the GDT
+__numsysgdtentries:
+    dd 6
 align 0x1000
 __gdt: ; refer to tools/make_gdt_descriptor.cpp
     ; null descriptor [0]

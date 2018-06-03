@@ -26,12 +26,13 @@ static T apiname () { \
 	return (T)& varname; \
 }
 
-GLOBAL_ITEM(__kernel_start, kernel_start);
-GLOBAL_ITEM(__ctors_start,  ctors_start);
-GLOBAL_ITEM(__ctors_end,    ctors_end);
-GLOBAL_ITEM(__kernel_end,   kernel_end);
-GLOBAL_ITEM(__bootpagetbl,  bootpagetable);
-GLOBAL_ITEM(__bootpagedir,  bootpagedirectory);
-GLOBAL_ITEM(__gdt,          gdt);
+GLOBAL_ITEM(__kernel_start, 			 kernel_start);
+GLOBAL_ITEM(__ctors_start,  		     ctors_start);
+GLOBAL_ITEM(__ctors_end,    			 ctors_end);
+GLOBAL_ITEM(__kernel_end,   			 kernel_end);
+GLOBAL_ITEM(__bootpagetbl,  			 bootpagetable);
+GLOBAL_ITEM(__bootpagedir,  		     bootpagedirectory);
+GLOBAL_ITEM(__gdt,          			 gdt);
+GLOBAL_ITEM(__numsysgdtentries,          numsysgdtentries);
 
 #endif
