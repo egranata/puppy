@@ -17,19 +17,49 @@
 #include <libc/string.h>
 #include <libc/memory.h>
 
+#include <log/log.h>
+
 CPUID& CPUID::get() {
     static CPUID gID;
 
     return gID;
 }
 
+bool CPUID::getleaf(uint32_t leaf, uint32_t* eax, uint32_t *ebx, uint32_t* ecx, uint32_t* edx) {
+    if (leaf >= gLowExtendedLeaf) {
+        if (leaf > mMaxExtendedLeaf) {
+            LOG_INFO("tried to read CPUID leaf %u, max value is %u", leaf, mMaxExtendedLeaf);
+            return false;
+        }
+    } else {
+        if (leaf > mMaxBasicLeaf) {
+            LOG_INFO("tried to read CPUID leaf %u, max value is %u", leaf, mMaxBasicLeaf);
+            return false;
+        }
+    }
+
+    uint32_t _eax = 0, _ebx = 0, _ecx = 0, _edx = 0;
+    _eax = cpuinfo(leaf, &_ebx, &_ecx, &_edx);
+
+    LOG_DEBUG("acquired CPUID leaf %u - eax = %p, ebx = %p, ecx = %p, edx = %p", leaf, _eax, _ebx, _ecx, _edx);
+
+    if (eax) *eax = _eax;
+    if (ebx) *ebx = _ebx;
+    if (ecx) *ecx = _ecx;
+    if (edx) *edx = _edx;
+
+    return true;
+}
+
 CPUID::CPUID() {
+    uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
+    
     bzero((uint8_t*)&mVendorString[0], 13);
     bzero((uint8_t*)&mBrandString[0], 49);
 
-    cpuinfo(0, (uint32_t*)&mVendorString[0], (uint32_t*)&mVendorString[8], (uint32_t*)&mVendorString[4]);
+    mMaxBasicLeaf = cpuinfo(0, (uint32_t*)&mVendorString[0], (uint32_t*)&mVendorString[8], (uint32_t*)&mVendorString[4]);
+    mMaxExtendedLeaf = cpuinfo(gLowExtendedLeaf, nullptr, nullptr, nullptr);
 
-    uint32_t ecx = 0u, edx = 0u;
     auto sig = cpuinfo(1, nullptr, &ecx, &edx);
     mSignature.stepping = sig & 0xF;
     mSignature.model = (sig & 0xF0) >> 4;
@@ -37,29 +67,32 @@ CPUID::CPUID() {
     mSignature.type = (sig & 0x3000) >> 12;
     mSignature.extmodel = (sig & 0xF0000) >> 16;
     mSignature.extfamily = (sig & 0xFF00000) >> 20;
+
     #define CPU_FEATURE(name, reg, bit) mFeatures. name = (0 != (reg & (1 << bit)));
+
+    #define SELECT 1
     #include <i386/features.tbl>
+    #undef SELECT
+
     #undef CPU_FEATURE
 
-    if (cpuinfo(0x80000000, nullptr, nullptr, nullptr) >= 0x80000004) {
-        uint32_t eax, ebx, ecx, edx;
-        eax = cpuinfo(0x80000002, &ebx, &ecx, &edx);
-        memcopy((uint8_t*)&eax, (uint8_t*)&mBrandString[0], 4);
-        memcopy((uint8_t*)&ebx, (uint8_t*)&mBrandString[4], 4);
-        memcopy((uint8_t*)&ecx, (uint8_t*)&mBrandString[8], 4);
-        memcopy((uint8_t*)&edx, (uint8_t*)&mBrandString[12], 4);
+    if (getleaf(0x80000002, &eax, &ebx, &ecx, &edx)) {
+        memcpy(&mBrandString[0],  &eax, 4);
+        memcpy(&mBrandString[4],  &ebx, 4);
+        memcpy(&mBrandString[8],  &ecx, 4);
+        memcpy(&mBrandString[12], &edx, 4);
 
-        eax = cpuinfo(0x80000003, &ebx, &ecx, &edx);
-        memcopy((uint8_t*)&eax, (uint8_t*)&mBrandString[16], 4);
-        memcopy((uint8_t*)&ebx, (uint8_t*)&mBrandString[20], 4);
-        memcopy((uint8_t*)&ecx, (uint8_t*)&mBrandString[24], 4);
-        memcopy((uint8_t*)&edx, (uint8_t*)&mBrandString[28], 4);
+        getleaf(0x80000003, &eax, &ebx, &ecx, &edx);
+        memcpy(&mBrandString[16],  &eax, 4);
+        memcpy(&mBrandString[20],  &ebx, 4);
+        memcpy(&mBrandString[24],  &ecx, 4);
+        memcpy(&mBrandString[28],  &edx, 4);
 
-        eax = cpuinfo(0x80000004, &ebx, &ecx, &edx);
-        memcopy((uint8_t*)&eax, (uint8_t*)&mBrandString[32], 4);
-        memcopy((uint8_t*)&ebx, (uint8_t*)&mBrandString[36], 4);
-        memcopy((uint8_t*)&ecx, (uint8_t*)&mBrandString[40], 4);
-        memcopy((uint8_t*)&edx, (uint8_t*)&mBrandString[44], 4);
+        getleaf(0x80000004, &eax, &ebx, &ecx, &edx);
+        memcpy(&mBrandString[32],  &eax, 4);
+        memcpy(&mBrandString[36],  &ebx, 4);
+        memcpy(&mBrandString[40],  &ecx, 4);
+        memcpy(&mBrandString[44],  &edx, 4);
     }
 }
 
@@ -79,3 +112,6 @@ const CPUID::Features& CPUID::getFeatures() {
     return mFeatures;
 }
 
+uint32_t CPUID::getMaxBasicLeaf() {
+    return mMaxBasicLeaf;
+}

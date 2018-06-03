@@ -1,3 +1,4 @@
+#if !defined SELECT || SELECT == 1
 CPU_FEATURE(fpu, edx, 0)
 CPU_FEATURE(vme, edx, 1)
 CPU_FEATURE(de, edx, 2)
@@ -28,7 +29,6 @@ CPU_FEATURE(htt, edx, 28)
 CPU_FEATURE(tm, edx, 29)
 CPU_FEATURE(ia64emu, edx, 30)
 CPU_FEATURE(pbepin, edx, 31)
-
 CPU_FEATURE(sse3, ecx, 0)
 CPU_FEATURE(pclmulqdq, ecx, 1)
 CPU_FEATURE(dtes64, ecx, 2)
@@ -60,3 +60,5 @@ CPU_FEATURE(avx, ecx, 28)
 CPU_FEATURE(fp16c, ecx, 29)
 CPU_FEATURE(rdrand, ecx, 30)
 CPU_FEATURE(hvisor, ecx, 31)
+#endif
+

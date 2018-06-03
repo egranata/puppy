@@ -21,6 +21,8 @@
 
 class CPUID {
     public:
+        static constexpr uint32_t gLowExtendedLeaf = 0x80000000;
+
         struct Signature {
             uint8_t stepping;
             uint8_t model;
@@ -42,12 +44,18 @@ class CPUID {
         const char* getBrandString();
         const Signature& getSignature();
         const Features& getFeatures();
+
+        uint32_t getMaxBasicLeaf();
     private:
+        bool getleaf(uint32_t leaf, uint32_t* eax = nullptr, uint32_t *ebx = nullptr, uint32_t* ecx = nullptr, uint32_t* edx = nullptr);
+
         CPUID();
         char mVendorString[13];
         char mBrandString[49];
         Signature mSignature;
         Features mFeatures;
+        uint32_t mMaxBasicLeaf;
+        uint32_t mMaxExtendedLeaf;
 };
 
 #endif
