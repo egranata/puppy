@@ -135,6 +135,7 @@ uintptr_t PhysicalPageManager::alloc(uintptr_t base) {
 void PhysicalPageManager::dealloc(uintptr_t base) {
 	auto idx = index(base);
 	if (mPages[idx].free() || !mPages[idx].usable) {
+		LOG_ERROR("trying to free physical page %p (idx = %u free = %u usable = %u)", base, idx, mPages[idx].free(), mPages[idx].usable);
 		PANIC("trying to deallocate a free/unusable page");
 	}
 	auto rc = mPages[idx].decref();

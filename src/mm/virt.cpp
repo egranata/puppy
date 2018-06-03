@@ -404,6 +404,7 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 		auto pPageTbl = phys.alloc();
 		LOG_DEBUG("new page table %u will be at physical %p", i, pPageTbl);
 		pageDir[i] = pPageTbl | newPageDirBits;
+		auto pageTblScratch = getScratchPage(pPageTbl, new_table_options);
 	}
 
 	// kernel memory just points to our original allocation
@@ -417,6 +418,7 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 		auto pPageTbl = phys.alloc();
 		LOG_DEBUG("new page table %u will be at physical %p", i, pPageTbl);
 		pageDir[i] = pPageTbl | newPageDirBits;
+		auto pageTblScratch = getScratchPage(pPageTbl, new_table_options);		
 	}
 
 	{
