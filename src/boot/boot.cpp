@@ -38,6 +38,9 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace i386 {
+        uint32_t init();
+    }
     namespace smbios {
         uint32_t init();
     }
@@ -123,6 +126,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::irq::init,
         onSuccess : nullptr,
         onFailure : boot::irq::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Setup CPU state",
+        visible : false,
+        operation : boot::i386::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
     });
 
     registerBootPhase(bootphase_t{

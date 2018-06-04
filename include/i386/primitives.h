@@ -59,7 +59,19 @@ extern "C"
 uintptr_t readcr0();
 
 extern "C"
+void writecr0(uintptr_t);
+
+extern "C"
 uintptr_t readcr3();
+
+extern "C"
+void writecr3(uintptr_t);
+
+extern "C"
+uintptr_t readcr4();
+
+extern "C"
+void writecr4(uintptr_t);
 
 extern "C"
 uintptr_t readeip();

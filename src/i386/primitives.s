@@ -91,9 +91,32 @@ readcr0:
 	mov eax, cr0
 	ret
 
+global writecr0
+writecr0:
+	mov eax, [esp + 4]
+	mov cr0, eax
+	ret
+
 global readcr3
 readcr3:
 	mov eax, cr3
+	ret
+
+global writecr3
+writecr3:
+	mov eax, [esp + 4]
+	mov cr3, eax
+	ret
+
+global readcr4
+readcr4:
+	mov eax, cr4
+	ret
+
+global writecr4
+writecr4:
+	mov eax, [esp + 4]
+	mov cr4, eax
 	ret
 
 global readeip
