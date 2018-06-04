@@ -556,6 +556,11 @@ VirtualPageManager::scratch_page_t::operator uintptr_t() {
 	return address;
 }
 
+uintptr_t VirtualPageManager::scratch_page_t::reset() {
+	auto a = address;
+	return (address = 0), a;
+}
+
 VirtualPageManager::scratch_page_t::~scratch_page_t() {
 	if (operator bool()) {
 		VirtualPageManager::get().unmap(address);

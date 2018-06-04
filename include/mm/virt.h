@@ -86,7 +86,7 @@ public:
 #undef DECLARE_FIELD
 	
 	static constexpr size_t gKernelHeapSize = 128_MB;
-	static constexpr size_t gScratchPagesSize = 8_MB;
+	static constexpr size_t gScratchPagesSize = 8_MB + 4_KB;
 
 	static constexpr uintptr_t gZeroPagePhysical = 0x0;
 
@@ -152,6 +152,8 @@ public:
 
 			explicit operator bool();
 			explicit operator uintptr_t();
+
+			uintptr_t reset();
 
 			template<typename T>
 			T* get() {

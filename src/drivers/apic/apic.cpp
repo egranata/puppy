@@ -23,12 +23,6 @@
 #include <i386/primitives.h>
 #include <mm/virt.h>
 
-static uint8_t gAPICPage[4096] __attribute__ ((aligned (4096))) = {0};
-
-uint32_t APIC::apicRegisterPage() {
-    return (uint32_t)&gAPICPage[0];
-}
-
 namespace boot::apic {
         uint32_t init() {
             APIC::get();
@@ -56,10 +50,38 @@ APIC::APIC() {
 
     auto ia32apicbase = readmsr(gIA32_APIC_BASE);
     auto apicbase = (uint32_t)ia32apicbase & 0xFFFFF000;
-    LOG_DEBUG("IA32_APIC_BASE = %llx - base address is %p", ia32apicbase, apicbase);
+    const bool bootCPU = ia32apicbase & (1 << 8);
+    const bool apicON = ia32apicbase & (1 << 11);
+    LOG_DEBUG("IA32_APIC_BASE = %llx - base address is %p, boot CPU is %u, apicON is %u", ia32apicbase, apicbase, bootCPU, apicON);
+    if (apicON == false) {
+        ia32apicbase |= (1 << 11);
+        writemsr(gIA32_APIC_BASE, ia32apicbase);
+        LOG_DEBUG("enabled APIC");
+    }
 
     auto& vmm(VirtualPageManager::get());
-    vmm.map(apicbase, (uintptr_t)&gAPICPage[0], VirtualPageManager::map_options_t::kernel().cached(false));
+    mAPICRegisters = (uint32_t*)vmm.getScratchPage(apicbase, VirtualPageManager::map_options_t::kernel().cached(false)).reset();
+    LOG_DEBUG("APIC registers physically at %p, logically mapped at %p", apicbase, mAPICRegisters);
+
+    auto reg = &mAPICRegisters[gSpuriousInterruptRegister];
+    LOG_DEBUG("spurious interrupt register is %p - value is %p", reg, *reg);
+    *reg = 0x1FF;
+    LOG_DEBUG("spurious interrupt register is %p - value is %p", reg, *reg);
+
+    reg = &mAPICRegisters[gTimerDivideRegister];
+    LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
+    *reg = 0b111; // divide by 1
+    LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
+
+    reg = &mAPICRegisters[gTimerInitialCount];
+    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+    *reg = 0x1000;
+    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+
+    reg = &mAPICRegisters[gTimerRegister];
+    LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
+    *reg = 0x200A0; // deliver IRQ 0xA0 periodically
+    LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
 
     auto rsdp = RSDP::tryget();
     if (!rsdp) {

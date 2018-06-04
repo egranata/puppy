@@ -25,7 +25,9 @@ void interrupt_handler(GPR gpr, InterruptStack stack) {
     LOG_DEBUG("received IRQ %u", stack.irqnumber);
 	if (auto handler = Interrupts::get().mHandlers[stack.irqnumber]) {
 		handler(gpr, stack);
-	}
+	} else {
+        LOG_INFO("IRQ %u received - no handler", stack.irqnumber);
+    }
 }
 
 Interrupts& Interrupts::get() {

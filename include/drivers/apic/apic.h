@@ -26,7 +26,14 @@ class APIC : NOCOPY {
 
         static APIC& get();
     private:
-        uint32_t apicRegisterPage();
+        // Intel docs give offsets in bytes - but we use uint32_t* to enable proper access size, so divide accordingly
+        static constexpr uint32_t gSpuriousInterruptRegister = 0xF0 / sizeof(uint32_t);
+        static constexpr uint32_t gTimerRegister = 0x320 / sizeof(uint32_t);
+        static constexpr uint32_t gTimerDivideRegister = 0x3E0 / sizeof(uint32_t);
+        static constexpr uint32_t gTimerInitialCount = 0x380 / sizeof(uint32_t);
+        static constexpr uint32_t gTimerCurrentCount = 0x390 / sizeof(uint32_t);
+
+        uint32_t *mAPICRegisters;
 
         APIC();
 };
