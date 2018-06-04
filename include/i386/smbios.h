@@ -60,6 +60,20 @@ class SMBIOS : NOCOPY {
             char* serial;
         };
 
+        struct smbios_cpu_info_t {
+            char* socket;
+            uint8_t proctype;
+            uint8_t procfamily;
+            uint64_t procid;
+            char* vers;
+            uint8_t voltage;
+            uint16_t extclock;
+            uint16_t maxspeed;
+            uint16_t curspeed;
+            uint8_t status;
+            uint8_t upgrade;
+        };
+
         struct smbios_table_header_t {
             uint8_t type;
             uint8_t len;
@@ -68,6 +82,8 @@ class SMBIOS : NOCOPY {
             uint8_t byte(uint8_t idx);
             uint8_t *str();
             char *str(uint8_t idx);
+            uint16_t word(uint8_t idx);
+            uint64_t qword(uint8_t idx);
         } __attribute((packed));
         SMBIOS();
         bool valid() const;
@@ -75,6 +91,7 @@ class SMBIOS : NOCOPY {
         smbios_entrypoint_t mEntryTable;
         smbios_biosinfo_t mBiosInfo;
         smbios_systeminfo_t mSystemInfo;
+        smbios_cpu_info_t mCPUInfo;
         bool mValid;
 };
 

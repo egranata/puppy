@@ -114,6 +114,16 @@ uint8_t SMBIOS::smbios_table_header_t::byte(uint8_t idx) {
     return *((uint8_t*)this + idx);
 }
 
+uint16_t SMBIOS::smbios_table_header_t::word(uint8_t idx) {
+    if (idx >= len) return 0;
+    return *((uint16_t*)this + (idx/2));
+}
+
+uint64_t SMBIOS::smbios_table_header_t::qword(uint8_t idx) {
+    if (idx >= len) return 0;
+    return *((uint64_t*)this + (idx/8));
+}
+
 uint8_t* SMBIOS::smbios_table_header_t::str() {
     return (uint8_t*)this + this->len;
 }
@@ -165,6 +175,23 @@ SMBIOS::SMBIOS() {
                     mSystemInfo.name = tbl->str(name);
                     mSystemInfo.serial = tbl->str(serial);
                     LOG_INFO("System manufacturer: %s product name: %s serial: %s", mSystemInfo.manufacturer, mSystemInfo.name, mSystemInfo.serial);
+                }
+                    break;
+                case 4: { // CPU info
+                    uint8_t socket = tbl->byte(4);
+                    uint8_t vers = tbl->byte(0x10);
+                    mCPUInfo.socket = tbl->str(socket);
+                    mCPUInfo.vers = tbl->str(vers);
+                    mCPUInfo.proctype = tbl->byte(5);
+                    mCPUInfo.procfamily = tbl->byte(6);
+                    mCPUInfo.procid = tbl->qword(8);
+                    mCPUInfo.voltage = tbl->byte(0x11);
+                    mCPUInfo.extclock = tbl->word(0x12);
+                    mCPUInfo.maxspeed = tbl->word(0x14);
+                    mCPUInfo.curspeed = tbl->word(0x16);
+                    mCPUInfo.status = tbl->byte(0x18);
+                    mCPUInfo.upgrade = tbl->byte(0x19);
+                    LOG_INFO("CPU external clock: %u max speed: %u current speed: %u", mCPUInfo.extclock, mCPUInfo.maxspeed, mCPUInfo.curspeed);
                 }
                     break;
             }
