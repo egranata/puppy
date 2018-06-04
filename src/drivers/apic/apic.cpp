@@ -22,6 +22,7 @@
 #include <i386/cpuid.h>
 #include <i386/primitives.h>
 #include <mm/virt.h>
+#include <i386/idt.h>
 
 namespace boot::apic {
         uint32_t init() {
@@ -34,10 +35,19 @@ namespace boot::apic {
         }
 }
 
+static void apic_timer_handler(GPR&, InterruptStack&) {
+    APIC::get().EOI();
+}
+
 APIC& APIC::get() {
     static APIC gAPIC;
 
     return gAPIC;
+}
+
+void APIC::EOI() {
+    auto reg = &mAPICRegisters[gEOIRegister];
+    *reg = 0;
 }
 
 APIC::APIC() {
@@ -63,6 +73,8 @@ APIC::APIC() {
     mAPICRegisters = (uint32_t*)vmm.getScratchPage(apicbase, VirtualPageManager::map_options_t::kernel().cached(false)).reset();
     LOG_DEBUG("APIC registers physically at %p, logically mapped at %p", apicbase, mAPICRegisters);
 
+    Interrupts::get().sethandler(0xA0, apic_timer_handler);
+
     auto reg = &mAPICRegisters[gSpuriousInterruptRegister];
     LOG_DEBUG("spurious interrupt register is %p - value is %p", reg, *reg);
     *reg = 0x1FF;
@@ -73,15 +85,15 @@ APIC::APIC() {
     *reg = 0b111; // divide by 1
     LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
 
-    reg = &mAPICRegisters[gTimerInitialCount];
-    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
-    *reg = 0x1000;
-    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
-
     reg = &mAPICRegisters[gTimerRegister];
     LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
     *reg = 0x200A0; // deliver IRQ 0xA0 periodically
     LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
+
+    reg = &mAPICRegisters[gTimerInitialCount];
+    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+    *reg = 10000000; // TODO: calibrate and then set useful value here
+    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
 
     auto rsdp = RSDP::tryget();
     if (!rsdp) {
