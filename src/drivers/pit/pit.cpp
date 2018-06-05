@@ -38,6 +38,34 @@ PIT& PIT::get() {
     return gPIT;
 }
 
+namespace {
+    struct pit_functions_t {
+        static constexpr uint8_t gNumFunctions = 5;
+        PIT::pit_func_f mFunctions[gNumFunctions] = {nullptr};
+    };
+}
+
+static ::pit_functions_t gInterruptFunctions;
+
+bool PIT::addInterruptFunction(pit_func_f f) {
+    for(auto i = 0u; i < gInterruptFunctions.gNumFunctions; ++i) {
+        if (gInterruptFunctions.mFunctions[i] == nullptr) {
+            gInterruptFunctions.mFunctions[i] = f;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void PIT::removeInterruptFunction(pit_func_f f) {
+    for(auto i = 0u; i < gInterruptFunctions.gNumFunctions; ++i) {
+        if (gInterruptFunctions.mFunctions[i] == f) {
+            gInterruptFunctions.mFunctions[i] = nullptr;
+        }
+    }
+}
+
 static uint64_t gUptimeMs = 0;
 
 uint64_t PIT::getUptime() {
@@ -46,9 +74,17 @@ uint64_t PIT::getUptime() {
 
 static void timer(GPR&, InterruptStack& stack) {
     // TODO: do not hardcode frequency to 100Hz
-    __sync_fetch_and_add(&gUptimeMs, 10);
+    auto now = __sync_add_and_fetch(&gUptimeMs, 10);
 
     PIC::eoi(0);
+
+    for(auto i = 0u; i < gInterruptFunctions.gNumFunctions; ++i) {
+        if (auto f = gInterruptFunctions.mFunctions[i]) {
+            if (false == f(now)) {
+                gInterruptFunctions.mFunctions[i] = nullptr;
+            }
+        }
+    }
 
     if (!VirtualPageManager::iskernel(stack.eip)) {
         ProcessManager::get().tick();

@@ -21,6 +21,8 @@
 
 class PIT {
     public:
+        // return false to remove this function from the list
+        typedef bool(*pit_func_f)(uint64_t);
         static constexpr uint8_t gIRQNumber = 0;
 
         static constexpr uint8_t gDataPort = 0x40;
@@ -30,6 +32,13 @@ class PIT {
 
         static uint64_t getUptime();
         static uint64_t getBootTimestamp();
+
+        // in order to keep things expedient there is only a small number
+        // of allowed slots for interrupt functions - these functions also run
+        // as part of the PIT interrupt handler, so the goal is for them to be
+        // as quick as possible (e.g. no logging!)
+        bool addInterruptFunction(pit_func_f);
+        void removeInterruptFunction(pit_func_f);
 
     private:
         PIT();
