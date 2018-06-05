@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-#include <drivers/acpi/rsdp.h>
-#include <drivers/acpi/rsdt.h>
-#include <drivers/acpi/madt.h>
 #include <drivers/apic/apic.h>
 #include <log/log.h>
 #include <i386/cpuid.h>
 #include <i386/primitives.h>
 #include <mm/virt.h>
 #include <i386/idt.h>
+#include <panic/panic.h>
+#include <boot/phase.h>
 
 namespace boot::apic {
         uint32_t init() {
-            APIC::get();
+            auto& apic(APIC::get());
+            bootphase_t::printf("Calbrating APIC timer...");
+            auto ticks_per_ms = apic.calibrate();
+            bootphase_t::printf("%u ticks/ms\n", ticks_per_ms);
             return 0;
         }
 
         bool fail(uint32_t) {
             return false;
         }
-}
-
-static void apic_timer_handler(GPR&, InterruptStack&) {
-    APIC::get().EOI();
 }
 
 APIC& APIC::get() {
@@ -50,10 +48,30 @@ void APIC::EOI() {
     *reg = 0;
 }
 
-APIC::APIC() {
+uint32_t APIC::getTimerCurrent() const {
+    return mAPICRegisters[gTimerCurrentCount];
+}
+
+void APIC::configure(uint32_t ticks) {
+    auto reg = &mAPICRegisters[gTimerDivideRegister];
+    *reg = 0b111; // divide by 1
+    LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
+
+    reg = &mAPICRegisters[gTimerRegister];
+    *reg = 0x20000 | gAPICTimerIRQ; // deliver IRQ periodically
+    LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
+
+    reg = &mAPICRegisters[gTimerInitialCount];
+    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+    *reg = ticks;
+    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+
+    // assume APIC is counting down and sending interrupts from here...
+}
+
+APIC::APIC() : mAPICRegisters(nullptr), mTicksPerMs(0) {
     if (CPUID::get().getFeatures().apic == false) {
-        LOG_WARNING("CPU does not have APIC bit set");
-        return;
+        PANIC("system does not support APIC");
     } else {
         LOG_DEBUG("APIC bit set in CPUID info");
     }
@@ -73,49 +91,7 @@ APIC::APIC() {
     mAPICRegisters = (uint32_t*)vmm.getScratchPage(apicbase, VirtualPageManager::map_options_t::kernel().cached(false)).reset();
     LOG_DEBUG("APIC registers physically at %p, logically mapped at %p", apicbase, mAPICRegisters);
 
-    Interrupts::get().sethandler(0xA0, apic_timer_handler);
-
     auto reg = &mAPICRegisters[gSpuriousInterruptRegister];
-    LOG_DEBUG("spurious interrupt register is %p - value is %p", reg, *reg);
     *reg = 0x1FF;
     LOG_DEBUG("spurious interrupt register is %p - value is %p", reg, *reg);
-
-    reg = &mAPICRegisters[gTimerDivideRegister];
-    LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
-    *reg = 0b111; // divide by 1
-    LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
-
-    reg = &mAPICRegisters[gTimerRegister];
-    LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
-    *reg = 0x200A0; // deliver IRQ 0xA0 periodically
-    LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
-
-    reg = &mAPICRegisters[gTimerInitialCount];
-    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
-    *reg = 10000000; // TODO: calibrate and then set useful value here
-    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
-
-    auto rsdp = RSDP::tryget();
-    if (!rsdp) {
-        LOG_WARNING("no ACPI found; cannot load APIC info");
-        return;
-    }
-    auto& rsdt = rsdp->rsdt();
-    auto madt = rsdt.madt();
-    if (madt == nullptr) {
-        LOG_WARNING("no APIC table found in ACPI; cannot read info");
-        return;
-    }
-    LOG_DEBUG("APIC address is %p, flags is %u", madt->madt->apicinfo.apic_address, madt->madt->apicinfo.flags);    
-
-    for(uint8_t i = 0; true; ++i) {
-        auto hdr = madt->madt_header(i);
-        if (!hdr) break;
-        auto procinfo = hdr->asProcessor();
-        if (procinfo) {
-            LOG_DEBUG("found a processor APIC - CPU id %u, APIC id %u, enabled = %s",
-                (uint32_t)procinfo->processorid, (uint32_t)procinfo->apicid,
-                procinfo->flags == 1 ? "yes" : "no");
-        }
-    }
 }

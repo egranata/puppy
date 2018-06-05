@@ -18,6 +18,7 @@
 #include <drivers/pic/pic.h>
 #include <process/manager.h>
 #include <mm/virt.h>
+#include <log/log.h>
 
 namespace boot::pit {
         uint32_t init() {
