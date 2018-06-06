@@ -272,6 +272,10 @@ uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_opti
 		bzero(pageptr, gPageSize);
 	}
 
+	if (gCurrentProcess) {
+		gCurrentProcess->memstats.allocated += gPageSize;
+	}
+
 	return virt;
 }
 
@@ -309,6 +313,9 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 	LOG_DEBUG("asked to unmap virt %p; that will be page dir entry %u, and page table entry %u", virt, indices.dir, indices.tbl);
 
 	TableEntry &tbl(indices.table());
+
+	const bool wasthere = tbl.present();
+
 	tbl.present(false);
 	invtlb(virt);
 
@@ -317,6 +324,10 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 		pmm.dealloc(tbl.page());
 	}
 	tbl.page(0);
+
+	if (gCurrentProcess && wasthere) {
+		gCurrentProcess->memstats.allocated -= gPageSize;
+	}	
 }
 
 void VirtualPageManager::unmaprange(uintptr_t low, uintptr_t high) {

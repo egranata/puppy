@@ -47,6 +47,20 @@ void testCustomRegion() {
     stats();
 }
 
+void testDealloc() {
+    uint8_t* rgn = (uint8_t*)mapregion(128 * 1024, true);
+    if (rgn) {
+        printf("Found 128KB of memory at %p\n", rgn);
+        unmapregion((uint32_t)(rgn + 1));
+        if (readable(rgn + 1)) {
+            printf("After unmapping, memory is expected readable - try...");
+            printf("%p = %d\n", rgn, *rgn);
+        } else {
+            printf("After unmapping, memory is not readable!\n");
+        }
+    }
+}
+
 void testMalloc() {
     malloc(3 * 1024 * 1024);
     uint32_t *p1 = (uint32_t*)malloc(4);
@@ -63,6 +77,6 @@ void testMalloc() {
 }
 
 int main(int, const char**) {
-    return testMalloc(), testCustomRegion(), 0;
+    return testMalloc(), testDealloc(), testCustomRegion(), 0;
 }
 

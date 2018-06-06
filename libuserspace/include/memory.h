@@ -39,6 +39,8 @@ meminfo_t meminfo();
 
 void* mapregion(size_t size, bool rw);
 
+bool unmapregion(uintptr_t address);
+
 bool readable(void*);
 
 bool writable(void*);

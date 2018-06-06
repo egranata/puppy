@@ -90,7 +90,6 @@ static bool pageflt_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
         auto vpage = VirtualPageManager::page(vaddr);
         LOG_DEBUG("faulting address found within a memory region - mapping page %p", vpage);
         vmm.mapAnyPhysicalPage(vpage, region.permission);
-        memmgr->mapOneMorePage();
         return true;
     } else {
         return false;

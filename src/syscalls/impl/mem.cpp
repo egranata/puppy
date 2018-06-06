@@ -34,6 +34,21 @@ syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {
     return ERR(OUT_OF_MEMORY);
 }
 
+syscall_response_t unmapregion_syscall_handler(uint32_t address) {
+    if (VirtualPageManager::iskernel(address)) { // that's cute...
+        return ERR(NOT_ALLOWED);
+    }
+
+    auto&& memmgr = gCurrentProcess->getMemoryManager();
+    MemoryManager::region_t rgn;
+    if (memmgr->isWithinRegion(address, &rgn)) {
+        memmgr->removeRegion(rgn);
+        return OK;
+    }
+
+    return ERR(NO_SUCH_OBJECT);
+}
+
 syscall_response_t vmcheckreadable_syscall_handler(uintptr_t address) {
     auto&& vmm(VirtualPageManager::get());
 

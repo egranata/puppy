@@ -40,9 +40,9 @@ syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
 
     if (fill & INCLUDE_LOCAL_INFO) {
         dest->local.runtime = gCurrentProcess->runtimestats.runtime;
-        dest->local.allocated = gCurrentProcess->memstats.allocated;
+        dest->local.committed = gCurrentProcess->memstats.allocated;
         dest->local.pagefaults = gCurrentProcess->memstats.pagefaults;
-        dest->local.committed = gCurrentProcess->getMemoryManager()->getMappedSize();
+        dest->local.allocated = gCurrentProcess->getMemoryManager()->getTotalRegionsSize();
     }
     
     return OK;

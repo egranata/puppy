@@ -29,7 +29,7 @@ bool MemoryManager::region_t::operator==(const region_t& other) const {
     return (from == other.from) && (to == other.to);
 }
 
-MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions(), mAllRegionsSize(0), mMappedRegionsSize(0) {
+MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions(), mAllRegionsSize(0) {
     // do not allow the zero page to be mapped
     mRegions.add({0x0, 0xFFF});
 
@@ -82,7 +82,6 @@ MemoryManager::region_t MemoryManager::findAndMapRegion(size_t size, const Virtu
         for(auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.mapAnyPhysicalPage(base, opts);
         }
-        mMappedRegionsSize += region.size();
         return addRegion(region);
     } else {
         return {0,0};
@@ -103,9 +102,7 @@ MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size, const 
 }
 
 MemoryManager::region_t MemoryManager::addMappedRegion(uintptr_t f, uintptr_t t) {
-    auto rgn = addRegion({f, t});
-    mMappedRegionsSize += rgn.size();
-    return rgn;
+    return addRegion({f, t});
 }
 
 MemoryManager::region_t MemoryManager::addUnmappedRegion(uintptr_t f, uintptr_t t) {
@@ -118,7 +115,6 @@ void MemoryManager::removeRegion(region_t region) {
     if (mRegions.del(region)) {
         LOG_DEBUG("region [%p - %p] deleted, unmapping all pages", region.from, region.to);
         mAllRegionsSize -= region.size();
-        mMappedRegionsSize -= region.size();
         for (auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.unmap(base);
         }
@@ -129,19 +125,10 @@ void MemoryManager::removeRegion(region_t region) {
 
 MemoryManager::region_t MemoryManager::addRegion(const MemoryManager::region_t& region) {
     LOG_DEBUG("adding a memory region [%x - %x]", region.from, region.to);
-    mProcess->memstats.allocated += region.size();
     mAllRegionsSize += region.size();
     return mRegions.add(region), region;
 }
 
-void MemoryManager::mapOneMorePage() {
-    mMappedRegionsSize += VirtualPageManager::gPageSize;
-}
-
 uintptr_t MemoryManager::getTotalRegionsSize() const {
     return mAllRegionsSize;
-}
-
-uintptr_t MemoryManager::getMappedSize() const {
-    return mMappedRegionsSize;
 }

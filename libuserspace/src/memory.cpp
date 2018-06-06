@@ -51,6 +51,10 @@ void* mapregion(size_t size, bool rw) {
     return (void*)result;
 }
 
+bool unmapregion(uintptr_t address) {
+    return 0 == unmapregion_syscall(address);
+}
+
 bool readable(void* p) {
     return 0 == vmcheckreadable_syscall((uintptr_t)p);
 }

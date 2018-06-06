@@ -57,12 +57,7 @@ class MemoryManager : NOCOPY {
         // remove this region - and unmap all pages of it
         void removeRegion(region_t region);
 
-        // useful for the page fault handler to inform the memory manager that one more page of actual RAM has
-        // been assigned to this process
-        void mapOneMorePage();
-
         uintptr_t getTotalRegionsSize() const;
-        uintptr_t getMappedSize() const;
     private:
         bool findRegionImpl(size_t size, region_t&);
         region_t addRegion(const region_t&);
@@ -71,7 +66,6 @@ class MemoryManager : NOCOPY {
         IntervalList<region_t> mRegions;
 
         uintptr_t mAllRegionsSize; /** size of all allocated regions (excludes the kernel) */
-        uintptr_t mMappedRegionsSize; /** size of all memory actually mapped to this process */
     public:
 };
 

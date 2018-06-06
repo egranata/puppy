@@ -79,6 +79,8 @@ syscall_response_t mutexunlock_syscall(uint32_t arg1);
 constexpr uint8_t mutexunlock_syscall_id = 0x20;
 syscall_response_t mapregion_syscall(uint32_t arg1,uint32_t arg2);
 constexpr uint8_t mapregion_syscall_id = 0x21;
+syscall_response_t unmapregion_syscall(uint32_t arg1);
+constexpr uint8_t unmapregion_syscall_id = 0x22;
 syscall_response_t mutextrylock_syscall(uint32_t arg1);
 constexpr uint8_t mutextrylock_syscall_id = 0x2c;
 syscall_response_t vmcheckreadable_syscall(uintptr_t arg1);
