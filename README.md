@@ -1,6 +1,6 @@
 # The Puppy Kernel
 
-Puppy is a simple-yet-functional x86 operating system kernel.
+Welcome to Puppy. This project aims to produce a simple-yet-functional operating system for x86 computers.
 
 Explicit goals of the project include providing:
 
@@ -16,15 +16,28 @@ Developing a graphical UI, or providing network connectivity, or ports to any ar
 Puppy currently runs on real hardware (assuming it has a *real* PS/2 keyboard), detects IDE hard disks, and can mount FAT filesystems off of them.
 It also supports booting QEMU and Bochs.
 
-GRUB is assumed to be the bootloader of choice for Puppy. Writing a bootloader is **not** a goal of Puppy.
+GRUB is assumed to be the bootloader of choice for Puppy. Writing a bootloader is not a goal of Puppy.
 
-Puppy is a C++ codebase, compilable using NASM and a GCC cross compiler set up as per [http://wiki.osdev.org/GCC_Cross-Compiler].
-To compile the project, just type
+## Getting Started
+
+Puppy is a C++ codebase. To build the OS into a bootable image, one needs:
+- an installation of Linux (or a Docker container thereof);
+- the NASM assembler;
+- a GCC cross compiler, as described at [http://wiki.osdev.org/GCC_Cross-Compiler];
+- Python 3;
+- GRUB 2;
+- Xorriso.
+
+Once the dependencies are satisfied, to compile the project, just type
 
 ```
 $ ./build.py
 ```
 
-in a shell. This will compile the system and produce a bootable ISO image at `out/os.iso`
+in a shell. This will compile the system and produce a:
+- a bootable ISO image `out/os.iso`;
+- a bootable HD image `out/os.img`.
+
+QEMU and Bochs can be used to test the deployed image. A sample bochs configuration and QEMU launcher script are provided in the `build` directory.
 
 Please be aware that **this is not an officially supported Google product**.
