@@ -257,6 +257,8 @@ uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_opti
 		LOG_WARNING("page mapping virt=%p phys=%p shall be visible to userspace, but is not being zeroed out", virt, phys);
 	}
 
+	const bool isuserspace = !iskernel(virt);
+
 	TableEntry &tbl(indices.table());
 	tbl.present(true);
 	tbl.rw(options.rw());
@@ -272,7 +274,7 @@ uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_opti
 		bzero(pageptr, gPageSize);
 	}
 
-	if (gCurrentProcess) {
+	if (gCurrentProcess && isuserspace) {
 		gCurrentProcess->memstats.allocated += gPageSize;
 	}
 
@@ -315,6 +317,7 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 	TableEntry &tbl(indices.table());
 
 	const bool wasthere = tbl.present();
+	const bool isuserspace = !iskernel(virt);
 
 	tbl.present(false);
 	invtlb(virt);
@@ -325,7 +328,7 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 	}
 	tbl.page(0);
 
-	if (gCurrentProcess && wasthere) {
+	if (gCurrentProcess && wasthere&& isuserspace) {
 		gCurrentProcess->memstats.allocated -= gPageSize;
 	}	
 }
@@ -598,6 +601,13 @@ bool VirtualPageManager::findKernelRegion(size_t size, interval_t& rgn) {
 	}
 
 	return false;
+}
+
+void VirtualPageManager::delKernelRegion(interval_t rgn) {
+	rgn.from -= gBootVirtualOffset;
+	rgn.to -= gBootVirtualOffset;
+
+	mKernelRegions.del(rgn);
 }
 
 uintptr_t VirtualPageManager::mapOtherProcessPage(process_t* other, uintptr_t otherVirt, uintptr_t selfVirt, const map_options_t& op) {
