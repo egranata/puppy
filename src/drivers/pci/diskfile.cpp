@@ -16,9 +16,9 @@
 #include <libc/sprint.h>
 #include <log/log.h>
 
-IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d) : RAMFile(), mController(ctrl), mDisk(d) {
+IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d, uint32_t ctrlid) : RAMFile(), mController(ctrl), mDisk(d) {
     char buf[64] = {0};
-    sprint(buf, 63, "idedisk%u%u", (uint32_t)mDisk.chan, (uint32_t)mDisk.bus);
+    sprint(buf, 63, "ide%udisk%u", ctrlid, 2 * (uint32_t)mDisk.chan + (uint32_t)mDisk.bus);
     name(&buf[0]);
 }
 

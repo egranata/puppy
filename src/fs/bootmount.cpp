@@ -32,7 +32,9 @@ namespace boot::mount {
             PANIC("cannot found /devices");
         }
 
-        for (auto b = pci.begin(); b != pci.end(); ++b) {
+        auto ctrlid = 0u;
+
+        for (auto b = pci.begin(); b != pci.end(); ++b, ++ctrlid) {
             auto&& pcidev(*b);
             if (pcidev && pcidev->getkind() == PCIBus::PCIDevice::kind::IDEDiskController) {
                 DiskScanner scanner((IDEController*)pcidev);
@@ -46,7 +48,7 @@ namespace boot::mount {
                                 pcidev, dsk.bus, dsk.chan, part.sector, part.sysid, part.size, mountinfo.second);
                             bootphase_t::printf("Mounted %s. Disk: %s, Type: %u, Size: %u\n", mountinfo.second, dsk.model, part.sysid, part.size);
                         }
-                        devfs->add(new IDEDiskFile(scanner.controller(), vol->disk()));
+                        devfs->add(new IDEDiskFile(scanner.controller(), vol->disk(), ctrlid));
                     }
                 }
             }

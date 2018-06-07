@@ -22,7 +22,7 @@
 
 class IDEDiskFile : public RAMFile, RAMFileData {
     public:
-        IDEDiskFile(IDEController*, const IDEController::disk_t&);
+        IDEDiskFile(IDEController*, const IDEController::disk_t&, uint32_t ctrlid);
         RAMFileData* buffer() override;
 
         size_t size() const;
