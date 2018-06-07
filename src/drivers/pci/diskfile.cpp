@@ -14,6 +14,7 @@
 
 #include <drivers/pci/diskfile.h>
 #include <libc/sprint.h>
+#include <log/log.h>
 
 IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d) : RAMFile(), mController(ctrl), mDisk(d) {
     char buf[64] = {0};
@@ -21,7 +22,24 @@ IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d) : 
     name(&buf[0]);
 }
 
-RAMFileBuffer* IDEDiskFile::buffer() {
-    return nullptr;
+RAMFileData* IDEDiskFile::buffer() {
+    return this;
 }
 
+size_t IDEDiskFile::size() const {
+    return mDisk.sectors * 512;
+}
+
+bool IDEDiskFile::read(size_t position, size_t length, uint8_t *dest) {
+    if (position % 512) {
+        LOG_ERROR("cannot read at position %lu, it is not a multiple of sector size", position);
+        return false;
+    }
+
+    if (length % 512) {
+        LOG_ERROR("cannot read %u bytes, it is not a multiple of sector size", length);
+        return false;
+    }
+
+    return mController->read(mDisk, position / 512, length / 512, dest);
+}

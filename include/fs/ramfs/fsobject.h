@@ -46,7 +46,14 @@ class RAMDirectory : public RAMObject {
         friend class OpenDirectory;
 };
 
-class RAMFileBuffer {
+class RAMFileData {
+    public:
+        virtual size_t size() const = 0;
+        virtual bool read(size_t position, size_t length, uint8_t *dest) = 0;
+        virtual ~RAMFileData() = default;
+};
+
+class RAMFileBuffer : public RAMFileData {
     public:
         RAMFileBuffer(uint8_t*, size_t);
         RAMFileBuffer(const RAMFileBuffer&);
@@ -54,6 +61,7 @@ class RAMFileBuffer {
         size_t size() const;
         uint8_t* buffer();
         const uint8_t* buffer() const;
+        bool read(size_t position, size_t length, uint8_t *dest);
     private:
         delete_ptr<uint8_t> mBuffer;
         size_t mLength;
@@ -62,7 +70,7 @@ class RAMFileBuffer {
 class RAMFile : public RAMObject {
     public:
         RAMFile(const char* name = nullptr);
-        virtual RAMFileBuffer* buffer() = 0;
+        virtual RAMFileData* buffer() = 0;
         virtual ~RAMFile() = default;
     private:
 };

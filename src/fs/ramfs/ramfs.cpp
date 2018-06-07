@@ -35,10 +35,10 @@ class OpenFile : public Filesystem::File {
         bool write(size_t, char*) override;
         bool stat(stat_t&) override;
 
-        OpenFile(RAMFileBuffer*);
+        OpenFile(RAMFileData*);
         ~OpenFile();
     private:
-        RAMFileBuffer* mBuffer;
+        RAMFileData* mBuffer;
         size_t mPosition;
 };
 
@@ -57,7 +57,7 @@ bool OpenDirectory::next(Filesystem::Directory::fileinfo_t& fi) {
     return true;
 }
 
-OpenFile::OpenFile(RAMFileBuffer* buffer) {
+OpenFile::OpenFile(RAMFileData* buffer) {
     mBuffer = buffer;
     mPosition = 0;
 }
@@ -73,9 +73,9 @@ bool OpenFile::seek(size_t s) {
 
 bool OpenFile::read(size_t s, char* dest) {
     if (mPosition + s > mBuffer->size()) return false;
-    memcpy(dest, (mBuffer->buffer() + mPosition), s);
-    mPosition += s;
-    return true;
+    auto ok = mBuffer->read(mPosition, s, (uint8_t*)dest);
+    if (ok) mPosition += s;
+    return ok;
 }
 
 bool OpenFile::write(size_t, char*) {

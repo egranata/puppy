@@ -64,6 +64,13 @@ void RAMDirectory::add(RAMObject* file) {
     mEntries.push_back(file);
 }
 
+bool RAMFileBuffer::read(size_t position, size_t length, uint8_t *dest) {
+    if (position + length >= size()) return false;
+
+    memcpy(dest, buffer() + position, length);
+    return true;
+}
+
 RAMObject* RAMDirectory::get(const char* nm) {
     LOG_DEBUG("at directory %s, trying to get entry %s", name(), nm);
     auto nl = strlen(nm);
