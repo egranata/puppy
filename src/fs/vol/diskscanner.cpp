@@ -46,6 +46,10 @@ void DiskScanner::parse(const IDEController::disk_t& dsk, unsigned char* sector0
     parse(dsk, p3);
 }
 
+IDEController* DiskScanner::controller() const {
+    return mDiskController;
+}
+
 void DiskScanner::parse(const IDEController::disk_t& dsk, diskpart_t *dp) {
     if (dp->sysid == 0 || dp->size == 0) {
         LOG_DEBUG("empty partition found - ignoring");

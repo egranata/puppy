@@ -34,6 +34,8 @@ class DiskScanner : NOCOPY {
         VolumesIterator begin();
         VolumesIterator end();
 
+        IDEController* controller() const;
+
     private:
         void parse(const IDEController::disk_t& dsk, unsigned char* sector0);
         void parse(const IDEController::disk_t& dsk, diskpart_t *dp);

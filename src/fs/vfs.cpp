@@ -21,6 +21,7 @@
 #include <fs/test/testfs.h>
 #include <fs/initrd/fs.h>
 #include <boot/bootinfo.h>
+#include <fs/devfs/devfs.h>
 
 namespace boot::vfs {
     uint32_t init() {
@@ -28,6 +29,7 @@ namespace boot::vfs {
         auto& vfs(VFS::get());
 
         vfs.mount("test", new TestFS());
+        vfs.mount("devices", new DevFS());
 
         bool anyfs = false;
 
@@ -63,6 +65,18 @@ bool VFS::mount(const char* path, Filesystem* fs) {
     LOG_DEBUG("mounting /%s as %p", path, fs);
     mMounts.add(mount_t{strdup(path), fs});
     return true;
+}
+
+Filesystem* VFS::findfs(const char* mnt) {
+    auto b = mMounts.begin(), e = mMounts.end();
+    for(; b != e; ++b) {
+        auto&& m = *b;
+        if (0 == strcmp(m.path, mnt)) {
+            return m.fs;
+        }
+    }
+
+    return nullptr;
 }
 
 bool VFS::unmount(const char* path) {

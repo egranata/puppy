@@ -29,6 +29,7 @@ class RAMObject : NOCOPY {
         Filesystem::FilesystemObject::kind_t kind() const;
     protected:
         RAMObject(const char*, Filesystem::FilesystemObject::kind_t);
+        void name(const char*);
     private:
         Filesystem::FilesystemObject::kind_t mKind;
         string mName;
@@ -60,7 +61,7 @@ class RAMFileBuffer {
 
 class RAMFile : public RAMObject {
     public:
-        RAMFile(const char* name);
+        RAMFile(const char* name = nullptr);
         virtual RAMFileBuffer* buffer() = 0;
         virtual ~RAMFile() = default;
     private:

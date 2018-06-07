@@ -26,6 +26,10 @@ const char* RAMObject::name() const {
     return mName.c_str();
 }
 
+void RAMObject::name(const char* name) {
+    mName = name;
+}
+
 Filesystem::FilesystemObject::kind_t RAMObject::kind() const {
     return mKind;
 }

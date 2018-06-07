@@ -32,6 +32,8 @@ class VFS : NOCOPY {
         bool mount(const char* path, Filesystem* fs);
         bool unmount(const char* path);
 
+        Filesystem* findfs(const char* mnt);
+
         fs_ident_t::mount_result_t mount(Volume* vol);
 
         filehandle_t open(const char* path, Filesystem::mode_t mode);

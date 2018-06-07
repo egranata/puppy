@@ -95,10 +95,10 @@ void RAMFS::add(RAMObject* obj) {
 
 RAMObject* RAMFS::get(char* path) {
     LOG_DEBUG("RAMFS trying to read path %s", path);
-    if (!path || path[0] != '/') return nullptr;
-    ++path;
     auto dir = mRoot.get();
     RAMObject* obj = dir;
+    if (!path || path[0] != '/') return obj;
+    ++path;
     char *next, *tok = strtok_r(path, "/", &next);
     while(true) {
         if (!tok) {

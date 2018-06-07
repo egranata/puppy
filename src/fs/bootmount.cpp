@@ -18,18 +18,26 @@
 #include <drivers/pci/ide.h>
 #include <fs/vfs.h>
 #include <fs/vol/diskscanner.h>
+#include <drivers/pci/diskfile.h>
+#include <fs/devfs/devfs.h>
+#include <panic/panic.h>
 
 namespace boot::mount {
     uint32_t init() {
     	auto& pci(PCIBus::get());
     	auto& vfs(VFS::get());
 
+        DevFS *devfs = (DevFS*)vfs.findfs("devices");
+        if (devfs == nullptr) {
+            PANIC("cannot found /devices");
+        }
+
         for (auto b = pci.begin(); b != pci.end(); ++b) {
             auto&& pcidev(*b);
             if (pcidev && pcidev->getkind() == PCIBus::PCIDevice::kind::IDEDiskController) {
                 DiskScanner scanner((IDEController*)pcidev);
                 for (auto&& vol : scanner) {
-                    if (vol && vol->numsectors() > 0) {
+                    if (vol && vol->disk().present && vol->numsectors() > 0) {
                         auto&& dsk(vol->disk());
                         auto&& part(vol->partition());
                         auto mountinfo = vfs.mount(vol);
@@ -38,6 +46,7 @@ namespace boot::mount {
                                 pcidev, dsk.bus, dsk.chan, part.sector, part.sysid, part.size, mountinfo.second);
                             bootphase_t::printf("Mounted %s. Disk: %s, Type: %u, Size: %u\n", mountinfo.second, dsk.model, part.sysid, part.size);
                         }
+                        devfs->add(new IDEDiskFile(scanner.controller(), vol->disk()));
                     }
                 }
             }
