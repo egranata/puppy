@@ -18,63 +18,70 @@
 
 DiskScanner::DiskScanner(IDEController* ide) : mDiskController(ide) {}
 
-void DiskScanner::parseDisk(uint8_t channel, uint8_t bus) {
+uint32_t DiskScanner::parseDisk(uint8_t channel, uint8_t bus) {
+    uint32_t cnt = 0;
+
     LOG_DEBUG("trying to find a disk on ch=%u bus=%u", channel, bus);
+
     IDEController::disk_t dsk((IDEController::channelid_t)channel, (IDEController::bus_t)bus);
     if (mDiskController->fill(dsk)) {
-        unsigned char buffer[512] = {0};
-        if (mDiskController->read(dsk, 0, 1, buffer)) {
-            parse(dsk, &buffer[0]);
+        x86_mbr_t mbr;
+        if (mDiskController->read(dsk, 0, 1, (uint8_t*)&mbr)) {
+            cnt += parse(dsk, mbr);
         }
     }
+
+    return cnt;
 }
 
-void DiskScanner::parseAllDisks() {
+uint32_t DiskScanner::parseAllDisks() {
+    uint32_t cnt = 0;
     for (auto channel = 0; channel < 2; ++channel) {
         for (auto bus = 0; bus < 2; ++bus) {
-            parseDisk(channel, bus);
+            cnt += parseDisk(channel, bus);
         }
     }
+
+    return cnt;
 }
 
-void DiskScanner::parse(const IDEController::disk_t& dsk, unsigned char* sector0) {
-    // TODO: extended partitions
-    diskpart_t* p0 = (diskpart_t*)&sector0[diskpart_t::gPartitionOffset(0)];
-    diskpart_t* p1 = (diskpart_t*)&sector0[diskpart_t::gPartitionOffset(1)];
-    diskpart_t* p2 = (diskpart_t*)&sector0[diskpart_t::gPartitionOffset(2)];
-    diskpart_t* p3 = (diskpart_t*)&sector0[diskpart_t::gPartitionOffset(3)];
+uint32_t DiskScanner::parse(const IDEController::disk_t& dsk, const x86_mbr_t& mbr) {
+    uint32_t cnt = 0;
 
-    parse(dsk, p0);
-    parse(dsk, p1);
-    parse(dsk, p2);
-    parse(dsk, p3);
+    // TODO: extended partitions
+    cnt += parse(dsk, mbr.partition0);
+    cnt += parse(dsk, mbr.partition1);
+    cnt += parse(dsk, mbr.partition2);
+    cnt += parse(dsk, mbr.partition3);
+
+    return cnt;
 }
 
 IDEController* DiskScanner::controller() const {
     return mDiskController;
 }
 
-void DiskScanner::parse(const IDEController::disk_t& dsk, diskpart_t *dp) {
-    if (dp->sysid == 0 || dp->size == 0) {
+uint32_t DiskScanner::parse(const IDEController::disk_t& dsk, const diskpart_t& dp) {
+    if (dp.sysid == 0 || dp.size == 0) {
         LOG_DEBUG("empty partition found - ignoring");
-        return;
+        return 0;
     }
     const char* parttype = "<unknown>";
     for (auto i = 0; true; ++i) {
         auto&& fsinfo = gKnownFilesystemTypes[i];
         if (fsinfo.sysid == 0 && fsinfo.type == nullptr) break;
-        if (fsinfo.sysid == dp->sysid) {
+        if (fsinfo.sysid == dp.sysid) {
             parttype = fsinfo.type;
             break;
         }
     }
 
-    Volume* vol = new Volume(mDiskController, dsk, *dp);
+    Volume* vol = new Volume(mDiskController, dsk, dp);
 
     LOG_DEBUG("found partition of type %s (%u) - starts at sector %u and spans %u sectors - storing as %p",
-        parttype, dp->sysid, dp->sector, dp->size, vol);
+        parttype, dp.sysid, dp.sector, dp.size, vol);
     
-    mVolumes.add(vol);
+    return mVolumes.add(vol), 1;
 }
 
 DiskScanner::VolumesIterator DiskScanner::begin() {
@@ -82,4 +89,8 @@ DiskScanner::VolumesIterator DiskScanner::begin() {
 }
 DiskScanner::VolumesIterator DiskScanner::end() {
     return mVolumes.end();
+}
+
+void DiskScanner::clear() {
+    return mVolumes.clear();
 }

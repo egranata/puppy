@@ -12,37 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pci/diskfile.h>
+#include <drivers/pci/volumefile.h>
 #include <libc/sprint.h>
 #include <log/log.h>
 #include <syscalls/types.h>
 #include <sys/nocopy.h>
 
-IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d, uint32_t ctrlid) : RAMFile(nullptr, Filesystem::FilesystemObject::kind_t::blockdevice), mController(ctrl), mDisk(d) {
+IDEVolumeFile::IDEVolumeFile(Volume* vol, uint32_t ctrlid) : RAMFile(nullptr, Filesystem::FilesystemObject::kind_t::blockdevice), mVolume(vol) {
+    auto& dsk(vol->disk());
+    auto& part(vol->partition());
     char buf[64] = {0};
-    sprint(buf, 63, "ide%udisk%u", ctrlid, 2 * (uint32_t)mDisk.chan + (uint32_t)mDisk.bus);
+    sprint(buf, 63, "ide%udisk%upart%u", ctrlid, 2 * (uint32_t)dsk.chan + (uint32_t)dsk.bus, part.sector);
     name(&buf[0]);
 }
 
-class IDEDiskFileData : public RAMFileData, NOCOPY {
+class IDEVolumeFileData : public RAMFileData, NOCOPY {
     public:
-        IDEDiskFileData(IDEDiskFile* file) : mFile(file) {}
+        IDEVolumeFileData(IDEVolumeFile* file) : mFile(file) {}
         size_t size() const;
         bool read(size_t position, size_t length, uint8_t *dest);
         uintptr_t ioctl(uintptr_t, uintptr_t);
     private:
-        IDEDiskFile *mFile;
+        IDEVolumeFile *mFile;
 };
 
-RAMFileData* IDEDiskFile::buffer() {
-    return new IDEDiskFileData(this);
+RAMFileData* IDEVolumeFile::buffer() {
+    return new IDEVolumeFileData(this);
 }
 
-size_t IDEDiskFileData::size() const {
-    return mFile->mDisk.sectors * 512;
+size_t IDEVolumeFileData::size() const {
+    return mFile->mVolume->partition().size * 512;
 }
 
-bool IDEDiskFileData::read(size_t position, size_t length, uint8_t *dest) {
+bool IDEVolumeFileData::read(size_t position, size_t length, uint8_t *dest) {
     if (position % 512) {
         LOG_ERROR("cannot read at position %lu, it is not a multiple of sector size", position);
         return false;
@@ -53,18 +55,18 @@ bool IDEDiskFileData::read(size_t position, size_t length, uint8_t *dest) {
         return false;
     }
 
-    return mFile->mController->read(mFile->mDisk, position / 512, length / 512, dest);
+    return mFile->mVolume->controller()->read(mFile->mVolume->disk(), mFile->mVolume->partition().sector + position / 512, length / 512, dest);
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
 
-uintptr_t IDEDiskFileData::ioctl(uintptr_t a, uintptr_t) {
+uintptr_t IDEVolumeFileData::ioctl(uintptr_t a, uintptr_t) {
     switch (a) {
         IS(IOCTL_GET_SECTOR_SIZE): return 512;
-        IS(IOCTL_GET_NUM_SECTORS): return mFile->mDisk.sectors;
-        IS(IOCTL_GET_CONTROLLER): return (uint32_t)mFile->mController;
-        IS(IOCTL_GET_ROUTING): return ((uint32_t)mFile->mDisk.chan << 8) | (uint32_t)mFile->mDisk.bus;
-        IS(IOCTL_GET_VOLUME): return 0;
+        IS(IOCTL_GET_NUM_SECTORS): return mFile->mVolume->partition().size;
+        IS(IOCTL_GET_CONTROLLER): return (uint32_t)mFile->mVolume->controller();
+        IS(IOCTL_GET_ROUTING): return ((uint32_t)mFile->mVolume->disk().chan << 8) | (uint32_t)mFile->mVolume->disk().bus;
+        IS(IOCTL_GET_VOLUME): return (uintptr_t)mFile->mVolume;
     }
     return 0;
 }

@@ -73,7 +73,7 @@ HANDLER4(readsector,dif,sec0,count,buffer) {
     return disk->ide->read(*disk->disk, sec0, (uint8_t)(count & 0xFF), (unsigned char*)buffer) ? OK : ERR(DISK_IO_ERROR);
 }
 
-syscall_response_t trymount_syscall_handler(uint32_t fileid, const char*) {
+syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
     auto& vfs(VFS::get());
 
     VFS::filehandle_t fh = {nullptr, nullptr};
@@ -94,35 +94,18 @@ syscall_response_t trymount_syscall_handler(uint32_t fileid, const char*) {
 
     Filesystem::File* file = (Filesystem::File*)fh.second;
 
-    // TODO: clean this up with some kind of "disk controller table"
-    IDEController *controller = (IDEController*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_CONTROLLER, 0);
-    if (controller == nullptr) {
-        LOG_ERROR("no disk controller found %p", controller);
+    Volume* volume = (Volume*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_VOLUME, 0);
+    if (volume == nullptr) {
+        LOG_ERROR("no volume found %p", volume);
         return ERR(NO_SUCH_DEVICE);
     }
 
-    uint32_t routing = file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_ROUTING, 0);
-    uint8_t ch = (routing & 0xFF00) >> 8;
-    uint8_t bs = (routing & 0xFF);
-
-    LOG_DEBUG("mounting volumes off file handle %u on devfs, routing is %p, controller is %p", fileid, routing, controller);
-
-    DiskScanner dsk(controller);
-    dsk.parseDisk(ch, bs);
-
-    for (auto b = dsk.begin(), e = dsk.end(); b != e; ++b) {
-        auto& vol = *b;
-        if (vol->disk().present && vol->partition().size > 0) {
-            LOG_DEBUG("found a partition off of disk - offset is %u size is %u type is %u",
-                vol->partition().sector, vol->partition().size, vol->partition().sysid);
-            auto mounted = vfs.mount(vol);
-            if (mounted.first) {
-                LOG_DEBUG("disk mounted at %s ", mounted.second);
-            } else {
-                LOG_DEBUG("disk could not be mounted");
-            }
-        }
+    auto mounted = vfs.mount(volume, path);
+    if (mounted.first) {
+        LOG_DEBUG("disk mounted at %s ", mounted.second);
+        return OK;
+    } else {
+        LOG_DEBUG("disk could not be mounted");
+        return ERR(NO_SUCH_DEVICE);
     }
-
-    return ERR(UNIMPLEMENTED);
 }

@@ -31,17 +31,19 @@ class DiskScanner : NOCOPY {
     public:
         DiskScanner(IDEController* ide);
 
-        void parseAllDisks();
-        void parseDisk(uint8_t ch, uint8_t bs);
+        uint32_t parseAllDisks();
+        uint32_t parseDisk(uint8_t ch, uint8_t bs);
 
         VolumesIterator begin();
         VolumesIterator end();
 
+        void clear();
+
         IDEController* controller() const;
 
     private:
-        void parse(const IDEController::disk_t& dsk, unsigned char* sector0);
-        void parse(const IDEController::disk_t& dsk, diskpart_t *dp);
+        uint32_t parse(const IDEController::disk_t& dsk, const x86_mbr_t& mbr);
+        uint32_t parse(const IDEController::disk_t& dsk, const diskpart_t& dp);
 
         IDEController* mDiskController;
         slist<Volume*> mVolumes;

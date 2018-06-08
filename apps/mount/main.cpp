@@ -26,5 +26,5 @@ int main(int, const char** argv) {
         exit(1);
     }
 
-    trymount_syscall(fd, nullptr);
+    trymount_syscall(fd, argv[1]);
 }

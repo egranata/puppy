@@ -63,6 +63,7 @@ OpenFile::OpenFile(RAMFile* file, RAMFileData* buffer) {
     mBuffer = buffer;
     mPosition = 0;
     kind(file->kind());
+    LOG_DEBUG("set OpenFile kind to %u", kind());
 }
 
 OpenFile::~OpenFile() {

@@ -41,6 +41,17 @@ struct diskpart_t {
 } __attribute__((packed));
 static_assert(sizeof(diskpart_t) == 16);
 
+struct x86_mbr_t {
+    uint8_t bootcode[436];
+    uint8_t diskid[10];
+    diskpart_t partition0;
+    diskpart_t partition1;
+    diskpart_t partition2;
+    diskpart_t partition3;
+    uint16_t bootsignature;
+} __attribute__((packed));
+static_assert(sizeof(x86_mbr_t) == 512);
+
 class Volume;
 
 struct fs_ident_t {

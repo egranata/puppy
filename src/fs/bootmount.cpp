@@ -19,6 +19,7 @@
 #include <fs/vfs.h>
 #include <fs/vol/diskscanner.h>
 #include <drivers/pci/diskfile.h>
+#include <drivers/pci/volumefile.h>
 #include <fs/devfs/devfs.h>
 #include <panic/panic.h>
 
@@ -38,22 +39,27 @@ namespace boot::mount {
             auto&& pcidev(*b);
             if (pcidev && pcidev->getkind() == PCIBus::PCIDevice::kind::IDEDiskController) {
                 DiskScanner scanner((IDEController*)pcidev);
-                scanner.parseAllDisks();
-                for (auto&& vol : scanner) {
-                    if (vol && vol->disk().present && vol->numsectors() > 0) {
-                        auto&& dsk(vol->disk());
-#if 0
-                        auto&& part(vol->partition());
-// TODO: remove automounting at boot ? split DevFS into its own phase
-                        auto mountinfo = vfs.mount(vol);
-                        if (mountinfo.first) {
-                            LOG_INFO("device %p disk %u:%u - initial sector %u, type %u, size %u - mounted as %s",
-                                pcidev, dsk.bus, dsk.chan, part.sector, part.sysid, part.size, mountinfo.second);
-                            bootphase_t::printf("Mounted %s. Disk: %s, Type: %u, Size: %u\n", mountinfo.second, dsk.model, part.sysid, part.size);
+                for (uint8_t ch = 0u; ch < 2; ++ch) {
+                    for (uint8_t bs = 0u; bs < 2; ++bs) {
+                        LOG_DEBUG("running disk scanning on controller %p ch=%u bs=%u", scanner.controller(), ch, bs);
+                        auto num = scanner.parseDisk(ch, bs);
+                        if (num == 0) {
+                            LOG_DEBUG("no volumes found");
+                            continue;
                         }
-#endif
-                        LOG_DEBUG("detected new disk on controller %p %u - bus = %u, channel = %u", pcidev, ctrlid, dsk.bus, dsk.chan);
-                        devfs->add(new IDEDiskFile(scanner.controller(), dsk, ctrlid));
+                        bool addedDisk = false;
+                        for(auto&& vol : scanner) {
+                            if (!addedDisk) {
+                                auto diskFile = new IDEDiskFile(scanner.controller(), vol->disk(), ctrlid);
+                                LOG_DEBUG("adding disk block file %s", diskFile->name());
+                                devfs->add(diskFile);
+                                addedDisk = true;
+                            }
+                            auto volumeFile = new IDEVolumeFile(vol, ctrlid);
+                            LOG_DEBUG("adding partition block file %s", volumeFile->name());
+                            devfs->add(volumeFile);
+                        }
+                        scanner.clear();
                     }
                 }
             }

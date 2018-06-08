@@ -17,6 +17,10 @@
 Volume::Volume(IDEController* ctrl, IDEController::disk_t dsk, diskpart_t part) :
     mController(ctrl), mDisk(dsk), mPartition(part) {}
 
+IDEController* Volume::controller() const {
+    return mController;
+}
+
 bool Volume::read(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;

@@ -78,6 +78,7 @@ enum class blockdevice_ioctl_t {
     IOCTL_GET_NUM_SECTORS,   // (a=IOCTL_, b=0), returns number of sectors
     IOCTL_GET_CONTROLLER,    // (a=IOCTL_, b=0), returns an opaque disk controller descriptor
     IOCTL_GET_ROUTING,       // (a=IOCTL_, b=0), returns an opaque routing descriptor
+    IOCTL_GET_VOLUME,        // (a=IOCTL_, b=0), returns a Volume* suitable for mounting
 };
 
 #endif

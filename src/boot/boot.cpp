@@ -169,7 +169,7 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "Mount disks",
+        description : "Volume discovery",
         visible : false,
         operation : boot::mount::init,
         onSuccess : nullptr,

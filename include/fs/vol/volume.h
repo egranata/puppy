@@ -29,6 +29,7 @@ class Volume : NOCOPY {
         bool read(uint32_t sector, uint16_t count, unsigned char* buffer);
         bool write(uint32_t sector, uint16_t count, unsigned char* buffer);
 
+        IDEController* controller() const;
         size_t numsectors() const;
         IDEController::disk_t& disk();
         diskpart_t& partition();
