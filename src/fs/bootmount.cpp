@@ -38,17 +38,22 @@ namespace boot::mount {
             auto&& pcidev(*b);
             if (pcidev && pcidev->getkind() == PCIBus::PCIDevice::kind::IDEDiskController) {
                 DiskScanner scanner((IDEController*)pcidev);
+                scanner.parseAllDisks();
                 for (auto&& vol : scanner) {
                     if (vol && vol->disk().present && vol->numsectors() > 0) {
                         auto&& dsk(vol->disk());
+#if 0
                         auto&& part(vol->partition());
+// TODO: remove automounting at boot ? split DevFS into its own phase
                         auto mountinfo = vfs.mount(vol);
                         if (mountinfo.first) {
                             LOG_INFO("device %p disk %u:%u - initial sector %u, type %u, size %u - mounted as %s",
                                 pcidev, dsk.bus, dsk.chan, part.sector, part.sysid, part.size, mountinfo.second);
                             bootphase_t::printf("Mounted %s. Disk: %s, Type: %u, Size: %u\n", mountinfo.second, dsk.model, part.sysid, part.size);
                         }
-                        devfs->add(new IDEDiskFile(scanner.controller(), vol->disk(), ctrlid));
+#endif
+                        LOG_DEBUG("detected new disk on controller %p %u - bus = %u, channel = %u", pcidev, ctrlid, dsk.bus, dsk.chan);
+                        devfs->add(new IDEDiskFile(scanner.controller(), dsk, ctrlid));
                     }
                 }
             }

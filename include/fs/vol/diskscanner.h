@@ -31,6 +31,9 @@ class DiskScanner : NOCOPY {
     public:
         DiskScanner(IDEController* ide);
 
+        void parseAllDisks();
+        void parseDisk(uint8_t ch, uint8_t bs);
+
         VolumesIterator begin();
         VolumesIterator end();
 

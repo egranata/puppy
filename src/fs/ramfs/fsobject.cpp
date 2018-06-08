@@ -17,17 +17,28 @@
 #include <libc/string.h>
 #include <log/log.h>
 
-RAMObject::RAMObject(const char* name, Filesystem::FilesystemObject::kind_t kind) {
-    mName = string(name);
-    mKind = kind;
+RAMObject::RAMObject(const char* n, Filesystem::FilesystemObject::kind_t kind) : mKind(kind), mName(nullptr) {
+    name(n);
 }
 
 const char* RAMObject::name() const {
-    return mName.c_str();
+    return mName;
 }
 
 void RAMObject::name(const char* name) {
-    mName = name;
+    if (mName == nullptr) {
+        if (name != nullptr) {
+            auto l = strlen(name);
+            auto newname = allocate<char>(l + 1);
+            newname[l] = 0;
+            strcpy(newname, name);
+            mName = newname;
+        } else {
+            mName = nullptr;
+        }
+    } else {
+        LOG_WARNING("attempting to change name of file from %p from %s to %s", this, mName, name);
+    }
 }
 
 Filesystem::FilesystemObject::kind_t RAMObject::kind() const {
@@ -36,7 +47,7 @@ Filesystem::FilesystemObject::kind_t RAMObject::kind() const {
 
 RAMDirectory::RAMDirectory(const char* name) : RAMObject(name, Filesystem::FilesystemObject::kind_t::directory) {}
 
-RAMFile::RAMFile(const char* name) : RAMObject(name, Filesystem::FilesystemObject::kind_t::file) {}
+RAMFile::RAMFile(const char* name, Filesystem::FilesystemObject::kind_t kind) : RAMObject(name, kind) {}
 
 RAMFileBuffer::RAMFileBuffer(uint8_t* buf, size_t len) : mBuffer(allocate(len)) {
     mLength = len;
@@ -60,6 +71,10 @@ const uint8_t* RAMFileBuffer::buffer() const {
     return mBuffer.get();
 }
 
+uintptr_t RAMFileBuffer::ioctl(uintptr_t, uintptr_t) {
+    return 0;
+}
+
 void RAMDirectory::add(RAMObject* file) {
     mEntries.push_back(file);
 }
@@ -79,7 +94,7 @@ RAMObject* RAMDirectory::get(const char* nm) {
         if (*b == nullptr) continue;
         auto bname = (*b)->name();
         auto bl = strlen(bname);
-        LOG_DEBUG("comparing %s (len = %u) to %s (len = %u)", nm, nl, bname, bl);
+        LOG_DEBUG("comparing argument %p %s (len = %u) to fs %p %s (len = %u)", nm, nm, nl, bname, bname, bl);
         if ((nl == bl) && (0 == strncmp(nm, bname, nl))) return *b;
     }
     return nullptr;

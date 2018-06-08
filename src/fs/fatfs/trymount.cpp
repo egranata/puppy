@@ -48,11 +48,11 @@ namespace {
 
 static const char* mountpoint(Volume* vol, char* buffer, size_t bufsize) {
     auto&& dsk(vol->disk());
-    sprint(&buffer[0], bufsize, "pci%u%u", (uint8_t)dsk.bus, (uint8_t)dsk.chan);
+    sprint(&buffer[0], bufsize, "fatfs%u%u", (uint8_t)dsk.bus, (uint8_t)dsk.chan);
     return buffer;
 }
 
-pair<bool, const char*> fatfs_trymount(Volume* vol) {
+pair<bool, const char*> fatfs_trymount(Volume* vol, const char* where) {
     unsigned char buffer[512] = {0};
     if (!vol->read(0, 1, &buffer[0])) {
         LOG_ERROR("failed to read sector 0, cannot mount");
@@ -62,14 +62,17 @@ pair<bool, const char*> fatfs_trymount(Volume* vol) {
     ebr16_t *ebr16 = (ebr16_t*)&buffer[36];
     ebr32_t *ebr32 = (ebr32_t*)&buffer[36];
 
+    if (where == nullptr) {
+        mountpoint(vol, (char*)&buffer[0], 32);
+        where = (const char*)&buffer[0];
+    }
+
     if ((ebr16->signature == 0x28 || ebr16->signature == 0x29) || (ebr32->signature == 0x28 || ebr32->signature == 0x29)) {
         FATFileSystem* fatfs = new FATFileSystem(vol);
-        char mntpt[20] = {0};
-        mountpoint(vol, &mntpt[0], sizeof(mntpt));
         auto&& vfs(VFS::get());
-        vfs.mount(mntpt, fatfs);
+        vfs.mount(where, fatfs);
         // TODO: LEAK
-        return {true,strdup(mntpt)};
+        return {true,strdup(where)};
     }
 
     return {false, nullptr};

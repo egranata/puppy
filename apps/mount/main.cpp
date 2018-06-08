@@ -12,21 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/filesystem.h>
+#include <stdint.h>
+#include <printf.h>
+#include <file.h>
+#include <exit.h>
+#include <memory.h>
+#include <syscalls.h>
 
-Filesystem::FilesystemObject::FilesystemObject(kind_t kind) : mKind(kind) {}
+int main(int, const char** argv) {
+    auto fd = open(argv[0], filemode_t::read);
+    if (fd == gInvalidFd) {
+        printf("Could not open %s\n", argv[0]);
+        exit(1);
+    }
 
-Filesystem::FilesystemObject::kind_t Filesystem::FilesystemObject::kind() const {
-    return mKind;
-}
-
-void Filesystem::FilesystemObject::kind(kind_t k) {
-    mKind = k;
-}
-
-Filesystem::File::File() : FilesystemObject(Filesystem::FilesystemObject::kind_t::file) {}
-Filesystem::Directory::Directory() : FilesystemObject(Filesystem::FilesystemObject::kind_t::directory) {}
-
-uintptr_t Filesystem::File::ioctl(uintptr_t, uintptr_t) {
-    return 0;
+    trymount_syscall(fd, nullptr);
 }

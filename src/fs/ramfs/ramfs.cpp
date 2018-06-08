@@ -34,8 +34,9 @@ class OpenFile : public Filesystem::File {
         bool read(size_t, char*) override;
         bool write(size_t, char*) override;
         bool stat(stat_t&) override;
+        uintptr_t ioctl(uintptr_t, uintptr_t) override;
 
-        OpenFile(RAMFileData*);
+        OpenFile(RAMFile*, RAMFileData*);
         ~OpenFile();
     private:
         RAMFileData* mBuffer;
@@ -50,16 +51,18 @@ OpenDirectory::OpenDirectory(RAMDirectory* dir) {
 
 bool OpenDirectory::next(Filesystem::Directory::fileinfo_t& fi) {
     if (mIterator == mEnd) return false;
+    LOG_DEBUG("sending new entry %p - kind = %u name = %p %s", *mIterator, (*mIterator)->kind(), (*mIterator)->name(), (*mIterator)->name());
     fi.kind = (*mIterator)->kind();
-    fi.name = (*mIterator)->name();
+    fi.name.reset((*mIterator)->name());
     fi.size = 0; // TODO: what's the size??
     ++mIterator;
     return true;
 }
 
-OpenFile::OpenFile(RAMFileData* buffer) {
+OpenFile::OpenFile(RAMFile* file, RAMFileData* buffer) {
     mBuffer = buffer;
     mPosition = 0;
+    kind(file->kind());
 }
 
 OpenFile::~OpenFile() {
@@ -85,6 +88,10 @@ bool OpenFile::write(size_t, char*) {
 bool OpenFile::stat(stat_t& s) {
     s.size = mBuffer->size();
     return true;
+}
+
+uintptr_t OpenFile::ioctl(uintptr_t a, uintptr_t b) {
+    return mBuffer->ioctl(a, b);
 }
 
 RAMFS::RAMFS() : mRoot(new RAMDirectory("/")) {}
@@ -132,10 +139,11 @@ Filesystem::File* RAMFS::open(const char* path, mode_t) {
         return nullptr;
     }
     switch (file->kind()) {
+        case Filesystem::FilesystemObject::kind_t::blockdevice:
         case Filesystem::FilesystemObject::kind_t::file: {
             RAMFile* ramfile = (RAMFile*)file;
             auto buffer = ramfile->buffer();
-            return new OpenFile(buffer);
+            return new OpenFile(ramfile, buffer);
         }
         default:
             LOG_ERROR("trying to get file %s, %p %s came back which is not a file", path, file, file->name());

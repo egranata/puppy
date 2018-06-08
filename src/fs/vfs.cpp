@@ -96,7 +96,7 @@ bool VFS::unmount(const char* path) {
     return false;
 }
 
-fs_ident_t::mount_result_t VFS::mount(Volume* vol) {
+fs_ident_t::mount_result_t VFS::mount(Volume* vol, const char* where) {
     auto sysid = vol->partition().sysid;
     
     for (auto i = 0u; true; ++i) {
@@ -107,7 +107,7 @@ fs_ident_t::mount_result_t VFS::mount(Volume* vol) {
                 LOG_DEBUG("found a match for volume %p but no mounting helper", vol);
             } else {
                 LOG_DEBUG("volume %p matched mounter %p for type %u", vol, fsinfo.fmount, sysid);
-                auto mountinfo = fsinfo.fmount(vol);
+                auto mountinfo = fsinfo.fmount(vol, where);
                 return mountinfo;
             }
         }

@@ -17,6 +17,7 @@
 #include <libc/string.h>
 
 void string::reset(const char* buffer) {
+    free(mBuffer);
     if (buffer) {
         auto l = strlen(buffer);
         mBuffer = allocate<char>(l + 1);
@@ -38,7 +39,7 @@ string::string(char c, size_t n) {
     }
 }
 
-string::string(const char* buffer) {
+string::string(const char* buffer) : mBuffer(nullptr) {
     reset(buffer);
 }
 
@@ -49,8 +50,7 @@ string::string(string&& str) {
 }
 
 string::~string() {
-    free(mBuffer);
-    mBuffer = nullptr;
+    reset(nullptr);
 }
 
 const char* string::c_str() const {
@@ -81,13 +81,11 @@ char& string::operator[](size_t idx) {
 }
 
 string& string::operator=(const char* buffer) {
-    free(mBuffer);
     reset(buffer);
     return *this;
 }
 
 string& string::operator=(const string& str) {
-    free(mBuffer);
     reset(str.mBuffer);
     return *this;
 }

@@ -30,7 +30,8 @@ class Filesystem {
                 typedef unsigned char filename_t[gFilenameSize];
                 enum class kind_t {
                     directory,
-                    file
+                    file,
+                    blockdevice, /** see blockdevice_ioctl */
                 };
                 virtual ~FilesystemObject() = default;
 
@@ -41,6 +42,7 @@ class Filesystem {
                 };
 
                 kind_t kind() const;
+                void kind(kind_t);
             protected:
                 FilesystemObject(kind_t);
             private:

@@ -30,6 +30,7 @@
     {"number":32,    "name":"mutexunlock",      "argc":1},
     {"number":33,    "name":"mapregion",        "argtypes":["uint32_t", "uint32_t"]},
     {"number":34,    "name":"unmapregion",      "argtypes":["uint32_t"]},
+    {"number":35,    "name":"trymount",         "argtypes":["uint32_t", "const char*"]},
     {"number":44,    "name":"mutextrylock",     "argtypes":["uint32_t"]},
     {"number":45,    "name":"vmcheckreadable",  "argtypes":["uintptr_t"]},
     {"number":46,    "name":"vmcheckwritable",  "argtypes":["uintptr_t"]},

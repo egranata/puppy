@@ -20,16 +20,15 @@
 #include <drivers/pci/ide.h>
 #include <fs/ramfs/fsobject.h>
 
-class IDEDiskFile : public RAMFile, RAMFileData {
+class IDEDiskFile : public RAMFile {
     public:
         IDEDiskFile(IDEController*, const IDEController::disk_t&, uint32_t ctrlid);
         RAMFileData* buffer() override;
-
-        size_t size() const;
-        bool read(size_t position, size_t length, uint8_t *dest);
     private:
         IDEController *mController;
         IDEController::disk_t mDisk;
+
+        friend class IDEDiskFileData;
 };
 
 #endif

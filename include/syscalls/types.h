@@ -72,4 +72,12 @@ struct process_exit_status_t {
     }
 };
 
+// IOCTL operations that one can run on a block device file
+enum class blockdevice_ioctl_t {
+    IOCTL_GET_SECTOR_SIZE,   // (a=IOCTL_, b=0), returns sector size
+    IOCTL_GET_NUM_SECTORS,   // (a=IOCTL_, b=0), returns number of sectors
+    IOCTL_GET_CONTROLLER,    // (a=IOCTL_, b=0), returns an opaque disk controller descriptor
+    IOCTL_GET_ROUTING,       // (a=IOCTL_, b=0), returns an opaque routing descriptor
+};
+
 #endif

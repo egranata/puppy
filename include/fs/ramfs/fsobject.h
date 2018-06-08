@@ -19,7 +19,6 @@
 
 #include <fs/filesystem.h>
 #include <libc/vec.h>
-#include <libc/str.h>
 #include <sys/nocopy.h>
 #include <libc/deleteptr.h>
 
@@ -32,7 +31,7 @@ class RAMObject : NOCOPY {
         void name(const char*);
     private:
         Filesystem::FilesystemObject::kind_t mKind;
-        string mName;
+        const char* mName;
 };
 
 class RAMDirectory : public RAMObject {
@@ -50,6 +49,7 @@ class RAMFileData {
     public:
         virtual size_t size() const = 0;
         virtual bool read(size_t position, size_t length, uint8_t *dest) = 0;
+        virtual uintptr_t ioctl(uintptr_t, uintptr_t) = 0;
         virtual ~RAMFileData() = default;
 };
 
@@ -62,6 +62,7 @@ class RAMFileBuffer : public RAMFileData {
         uint8_t* buffer();
         const uint8_t* buffer() const;
         bool read(size_t position, size_t length, uint8_t *dest);
+        uintptr_t ioctl(uintptr_t, uintptr_t);
     private:
         delete_ptr<uint8_t> mBuffer;
         size_t mLength;
@@ -69,7 +70,7 @@ class RAMFileBuffer : public RAMFileData {
 
 class RAMFile : public RAMObject {
     public:
-        RAMFile(const char* name = nullptr);
+        RAMFile(const char* name = nullptr, Filesystem::FilesystemObject::kind_t = Filesystem::FilesystemObject::kind_t::file);
         virtual RAMFileData* buffer() = 0;
         virtual ~RAMFile() = default;
     private:

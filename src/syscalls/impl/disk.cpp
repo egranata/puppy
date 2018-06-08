@@ -15,6 +15,12 @@
 #include <syscalls/handlers.h>
 #include <drivers/pci/bus.h>
 #include <drivers/pci/ide.h>
+#include <fs/vfs.h>
+#include <fs/devfs/devfs.h>
+#include <drivers/pci/diskfile.h>
+#include <process/current.h>
+#include <fs/vol/diskscanner.h>
+#include <log/log.h>
 
 HANDLER2(getcontroller,n,resp) {
     uint32_t *result = (uint32_t*)resp;
@@ -65,4 +71,58 @@ HANDLER4(writesector,dif,sec0,count,buffer) {
 HANDLER4(readsector,dif,sec0,count,buffer) {
     auto disk = (disksyscalls_disk_descriptor*)dif;
     return disk->ide->read(*disk->disk, sec0, (uint8_t)(count & 0xFF), (unsigned char*)buffer) ? OK : ERR(DISK_IO_ERROR);
+}
+
+syscall_response_t trymount_syscall_handler(uint32_t fileid, const char*) {
+    auto& vfs(VFS::get());
+
+    VFS::filehandle_t fh = {nullptr, nullptr};
+    if (!gCurrentProcess->fds.is(fileid, &fh)) {
+        LOG_ERROR("no file found with id %u", fileid);
+        return ERR(NO_SUCH_DEVICE);
+    }
+
+    Filesystem* devfs = VFS::get().findfs("devices");
+    if (devfs == nullptr || devfs != fh.first || fh.second == nullptr) {
+        LOG_ERROR("no devfs found %p, or invalid filesystem found %p or no file object found %p", devfs, fh.first, fh.second);
+        return ERR(NO_SUCH_DEVICE);
+    }
+    if (fh.second->kind() != Filesystem::FilesystemObject::kind_t::blockdevice) {
+        LOG_ERROR("no block file found %u", fh.second->kind());
+        return ERR(NO_SUCH_DEVICE);
+    }
+
+    Filesystem::File* file = (Filesystem::File*)fh.second;
+
+    // TODO: clean this up with some kind of "disk controller table"
+    IDEController *controller = (IDEController*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_CONTROLLER, 0);
+    if (controller == nullptr) {
+        LOG_ERROR("no disk controller found %p", controller);
+        return ERR(NO_SUCH_DEVICE);
+    }
+
+    uint32_t routing = file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_ROUTING, 0);
+    uint8_t ch = (routing & 0xFF00) >> 8;
+    uint8_t bs = (routing & 0xFF);
+
+    LOG_DEBUG("mounting volumes off file handle %u on devfs, routing is %p, controller is %p", fileid, routing, controller);
+
+    DiskScanner dsk(controller);
+    dsk.parseDisk(ch, bs);
+
+    for (auto b = dsk.begin(), e = dsk.end(); b != e; ++b) {
+        auto& vol = *b;
+        if (vol->disk().present && vol->partition().size > 0) {
+            LOG_DEBUG("found a partition off of disk - offset is %u size is %u type is %u",
+                vol->partition().sector, vol->partition().size, vol->partition().sysid);
+            auto mounted = vfs.mount(vol);
+            if (mounted.first) {
+                LOG_DEBUG("disk mounted at %s ", mounted.second);
+            } else {
+                LOG_DEBUG("disk could not be mounted");
+            }
+        }
+    }
+
+    return ERR(UNIMPLEMENTED);
 }

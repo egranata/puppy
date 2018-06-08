@@ -45,7 +45,7 @@ class Volume;
 
 struct fs_ident_t {
     typedef pair<bool, const char*> mount_result_t;
-    typedef mount_result_t(*trymount_t)(Volume*);
+    typedef mount_result_t(*trymount_t)(Volume*, const char*);
     uint8_t sysid;
     const char* type;
     trymount_t fmount;

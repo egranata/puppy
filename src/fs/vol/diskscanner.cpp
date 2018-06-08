@@ -16,19 +16,23 @@
 #include <log/log.h>
 #include <fs/vol/ptable.h>
 
-DiskScanner::DiskScanner(IDEController* ide) : mDiskController(ide) {
-    if (mDiskController) {
-        for (auto channel = 0; channel < 2; ++channel) {
-            for (auto bus = 0; bus < 2; ++bus) {
-                LOG_DEBUG("trying to find a disk on ch=%u bus=%u", channel, bus);
-                IDEController::disk_t dsk((IDEController::channelid_t)channel, (IDEController::bus_t)bus);
-                if (ide->fill(dsk)) {
-                    unsigned char buffer[512] = {0};
-                    if (ide->read(dsk, 0, 1, buffer)) {
-                        parse(dsk, &buffer[0]);
-                    }
-                }
-            }
+DiskScanner::DiskScanner(IDEController* ide) : mDiskController(ide) {}
+
+void DiskScanner::parseDisk(uint8_t channel, uint8_t bus) {
+    LOG_DEBUG("trying to find a disk on ch=%u bus=%u", channel, bus);
+    IDEController::disk_t dsk((IDEController::channelid_t)channel, (IDEController::bus_t)bus);
+    if (mDiskController->fill(dsk)) {
+        unsigned char buffer[512] = {0};
+        if (mDiskController->read(dsk, 0, 1, buffer)) {
+            parse(dsk, &buffer[0]);
+        }
+    }
+}
+
+void DiskScanner::parseAllDisks() {
+    for (auto channel = 0; channel < 2; ++channel) {
+        for (auto bus = 0; bus < 2; ++bus) {
+            parseDisk(channel, bus);
         }
     }
 }

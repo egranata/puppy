@@ -20,6 +20,6 @@
 #include <fs/vol/volume.h>
 #include <libc/pair.h>
 
-pair<bool, const char*> fatfs_trymount(Volume*);
+pair<bool, const char*> fatfs_trymount(Volume*, const char*);
 
 #endif

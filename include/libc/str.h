@@ -49,8 +49,8 @@ class string {
 
         string operator+(const string&);
 
-    private:
         void reset(const char* buf);
+    private:
         char* mBuffer;
 };
 
