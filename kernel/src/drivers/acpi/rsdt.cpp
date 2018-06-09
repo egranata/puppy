@@ -39,10 +39,15 @@ RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
     }
 
     for (auto i = 0u; i < nt; ++i) {
-        LOG_DEBUG("ACPI table %u available at %p", i, tbladdr[i]);
         {
             Mapping m(tbladdr[i], sizeof(acpi_table_header_t));
             memcopy((uint8_t*)tbladdr[i], (uint8_t*)&mTable[i], sizeof(acpi_table_header_t));
+            LOG_DEBUG("ACPI table %u (name=%c%c%c%c) available at %p", i,
+                mTable[i].header.sig[0],
+                mTable[i].header.sig[1],
+                mTable[i].header.sig[2],
+                mTable[i].header.sig[3],
+                tbladdr[i]);
         }
         {
             Mapping m(tbladdr[i], mTable[i].header.len);
