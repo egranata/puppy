@@ -128,6 +128,11 @@ def clearDir(path):
         shutil.rmtree(path)
     os.makedirs(path)
 
+def makeDir(path):
+    cmdline = 'mkdir "%s"' % path
+    shell(cmdline)
+    return path
+
 clearDir("out")
 clearDir("out/apps")
 clearDir("out/mnt")
@@ -256,8 +261,20 @@ Muzzle.build()
 Kernel.build()
 Userspace.build()
 
+# apps can end up in /initrd and/or /apps in the main filesystem
+# this table allows one to configure which apps land where (the default
+# being /apps in the main filesystem and not /initrd)
+APPS_CONFIG = {
+    "out/apps/init"  : {"initrd": True, "mainfs":False},
+    "out/apps/mount" : {"initrd": True, "mainfs":False},
+    "out/apps/ls"    : {"initrd": True, "mainfs":True},
+}
+
 APPS = []
-APP_REFS = []
+
+INITRD_REFS = [] # apps for initrd
+APP_REFS = [] # apps for main filesystem
+
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
     app_p = Project(name = os.path.basename(app),
@@ -272,9 +289,12 @@ for app in APP_DIRS:
     app_p.link = app_p.linkGcc
     app_o = app_p.build()
     APPS.append(app_o)
-    APP_REFS.append("--file %s" % app_o)
+    config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
+    if config["mainfs"]: APP_REFS.append(app_o)
+    if config["initrd"]: INITRD_REFS.append(app_o)
 
-shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(APP_REFS))
+INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
+shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
 MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
 
 print("Size of initrd image: %d bytes" % os.stat("out/iso/boot/initrd.img").st_size)
@@ -320,7 +340,10 @@ shell(CMDLINE)
 CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
 shell(CMDLINE)
 
-rcopy("out/apps/", "out/mnt")
+makeDir("out/mnt/apps")
+
+for app in APP_REFS:
+    copy(app, "out/mnt/apps/%s" % os.path.basename(app))
 
 CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
 shell(CMDLINE)
