@@ -136,15 +136,3 @@ syscall_response_t vmcheckreadable_syscall(uintptr_t arg1) {
 syscall_response_t vmcheckwritable_syscall(uintptr_t arg1) {
 	return syscall1(vmcheckwritable_syscall_id,(uint32_t)arg1);
 }
-syscall_response_t getcontroller_syscall(uint32_t arg1,uint32_t arg2) {
-	return syscall2(getcontroller_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
-}
-syscall_response_t discoverdisk_syscall(uint32_t arg1,uint32_t arg2) {
-	return syscall2(discoverdisk_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
-}
-syscall_response_t writesector_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3,uint32_t arg4) {
-	return syscall4(writesector_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3,(uint32_t)arg4);
-}
-syscall_response_t readsector_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3,uint32_t arg4) {
-	return syscall4(readsector_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3,(uint32_t)arg4);
-}

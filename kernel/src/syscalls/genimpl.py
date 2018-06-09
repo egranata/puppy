@@ -21,7 +21,7 @@ import sys
 SYSCALLS_DIR = os.path.split(os.path.abspath(__file__))[0]
 TABLE_FILE = os.path.join(SYSCALLS_DIR, "syscalls.tbl")
 
-LIBUSERSPACE_DIR = os.path.abspath(os.path.join(SYSCALLS_DIR, '..', '..', 'libuserspace'))
+LIBUSERSPACE_DIR = os.path.abspath(os.path.join(SYSCALLS_DIR, '..', '..', '..', 'libuserspace'))
 LIBUSERSPACE_SRC_DIR = os.path.join(LIBUSERSPACE_DIR, 'src')
 LIBUSERSPACE_INCLUDE_DIR = os.path.join(LIBUSERSPACE_DIR, 'include')
 

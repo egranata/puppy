@@ -33,9 +33,5 @@
     {"number":35,    "name":"trymount",         "argtypes":["uint32_t", "const char*"]},
     {"number":44,    "name":"mutextrylock",     "argtypes":["uint32_t"]},
     {"number":45,    "name":"vmcheckreadable",  "argtypes":["uintptr_t"]},
-    {"number":46,    "name":"vmcheckwritable",  "argtypes":["uintptr_t"]},
-    {"number":200,   "name":"getcontroller",    "argc":2, "system":"do not allow normal programs to do raw disk I/O"},
-    {"number":201,   "name":"discoverdisk",     "argc":2, "system":"do not allow normal programs to do raw disk I/O"},
-    {"number":202,   "name":"writesector",      "argc":4, "system":"do not allow normal programs to do raw disk I/O"},
-    {"number":203,   "name":"readsector",       "argc":4, "system":"do not allow normal programs to do raw disk I/O"}
+    {"number":46,    "name":"vmcheckwritable",  "argtypes":["uintptr_t"]}
 ]}
