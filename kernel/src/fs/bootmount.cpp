@@ -57,6 +57,7 @@ namespace boot::mount {
                             }
                             auto volumeFile = new IDEVolumeFile(vol, ctrlid);
                             LOG_DEBUG("adding partition block file %s", volumeFile->name());
+                            bootphase_t::printf("Found new volume /devices/%s\n", volumeFile->name());
                             devfs->add(volumeFile);
                         }
                         scanner.clear();
