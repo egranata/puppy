@@ -19,12 +19,22 @@
 #include <memory.h>
 #include <syscalls.h>
 
-int main(int, const char** argv) {
+static void usage() {
+    printf("mount: <device> <path>\n");
+    exit(1);
+}
+
+int main(int argc, const char** argv) {
+    if (argc != 2) {
+        usage();
+    }
     auto fd = open(argv[0], filemode_t::read);
     if (fd == gInvalidFd) {
         printf("Could not open %s\n", argv[0]);
         exit(1);
     }
+
+    if (argv[1][0] == '/') ++argv[1];
 
     trymount_syscall(fd, argv[1]);
 }
