@@ -23,6 +23,8 @@
 
 class IDEController : public PCIBus::PCIDevice, NOCOPY {
     public:
+        IDEController(const PCIBus::pci_hdr_0&);
+
         PCIBus::PCIDevice::kind getkind() override;
 
         enum class channelid_t : uint8_t {
@@ -96,8 +98,6 @@ class IDEController : public PCIBus::PCIDevice, NOCOPY {
         bool poll(channelid_t, bool = true);
 
         void wait400(channelid_t);
-
-        IDEController(const PCIBus::pci_hdr_0&);
 
         PCIBus::pci_hdr_0 mInfo;
 

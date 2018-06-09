@@ -36,6 +36,94 @@ PCIBus& PCIBus::get() {
     return gBus;
 }
 
+#define ON_KIND(dev, claz, subclaz, ifce, func) { \
+    if ((claz == 0xFF) || (claz == dev.ident.clazz)) { \
+        if ((subclaz == 0xFF) || (subclaz == dev.ident.subclazz)) { \
+            if ((ifce == 0xFF) || (ifce == dev.ident.progif)) { \
+                PCIDevice* newdevice = func(dev); \
+                if (newdevice) { mDevices.add(newdevice); } \
+            } \
+        } \
+    } \
+}
+
+static PCIBus::PCIDevice* addIDEController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("IDE Disk Controller"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return new IDEController(hdr);
+}
+
+static PCIBus::PCIDevice* printVGAController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("VGA Display Controller"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return nullptr;
+}
+
+static PCIBus::PCIDevice* printEthernetController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("Ethernet Adapter"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return nullptr;
+}
+
+static PCIBus::PCIDevice* printXHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("XHCI USB 3.0 Controller"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return nullptr;
+}
+
+static PCIBus::PCIDevice* printEHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("EHCI USB 2.0 Controller"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return nullptr;
+}
+
+static PCIBus::PCIDevice* printOHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("OHCI USB 1.0 Controller"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return nullptr;
+}
+
+static PCIBus::PCIDevice* printUHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
+    bootphase_t::printf("UHCI USB 1.0 Controller"
+                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
+                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
+                         hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.slot, hdr.ident.header,
+                         hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif,
+                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
+    
+    return nullptr;
+}
+
 PCIBus::PCIBus() : mDevices() {
     endpoint_t ep{
         bus : 0,
@@ -54,24 +142,21 @@ PCIBus::PCIBus() : mDevices() {
                     auto hdr = fill(ep, ident);
                     LOG_DEBUG("bar0: %p, bar1: %p, bar2: %p, bar3: %p, bar4: %p, bar5: %p IRQ line: %u, IRQ PIN: %u",
                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5, hdr.irql, hdr.irqp);
-                    if (ident.clazz == 1 && ident.subclazz == 1) {
-                        char buf[512] = {0};
-                        sprint(&buf[0], 512, "PCI Disk Controller"
-                         " (bus %u, slot %u func %u hdr %u) vendor: %x, device: %x, class: %u, subclass: %u, progif: %u "
-                         " bar0: %x, bar1: %x, bar2: %x, bar3: %x, bar4: %x, bar5: %x\n",
-                         ep.bus, ep.slot, ep.func, ident.header,
-                         ident.vendor, ident.device, ident.clazz, ident.subclazz, ident.progif,
-                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
-                        Framebuffer::get().write(&buf[0]);
-                        auto ide = new IDEController(hdr);
-                        mDevices.add(ide);
-                    }
+                    ON_KIND(hdr, 1, 1, 0xFF, addIDEController);
+                    ON_KIND(hdr, 3, 0, 0, printVGAController);
+                    ON_KIND(hdr, 2, 0, 0xFF, printEthernetController);
+                    ON_KIND(hdr, 0xC, 0x3, 0x30, printXHCIUSBController);
+                    ON_KIND(hdr, 0xC, 0x3, 0x20, printEHCIUSBController);
+                    ON_KIND(hdr, 0xC, 0x3, 0x10, printOHCIUSBController);
+                    ON_KIND(hdr, 0xC, 0x3, 0x00, printUHCIUSBController);
                 }
             }
         }
         ++ep.bus;
     } while(ep.bus != 0);
 }
+
+#undef ON_KIND
 
 uint32_t PCIBus::endpoint_t::address() const {
     return 0x80000000 | (bus << 16) | (slot << 11) | (func << 8);
