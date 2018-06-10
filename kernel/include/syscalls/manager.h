@@ -52,6 +52,7 @@ class SyscallManager : NOCOPY {
             uint32_t arg3;
             uint32_t arg4;
 
+            uint32_t eflags;
             uintptr_t eip;
         };
         using Handler = syscall_response_t(*)(Request&);

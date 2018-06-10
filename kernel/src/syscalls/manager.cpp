@@ -77,6 +77,8 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack) {
         .arg2 = gpr.ecx,
         .arg3 = gpr.edx,
         .arg4 = gpr.edi,
+
+        .eflags = stack.eflags,
         .eip = stack.eip
     };
     if (auto& handler = gHandlers[req.code]) {
@@ -94,6 +96,7 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack) {
             auto res = handler.impl(req);
             gpr.eax = res;
             stack.eip = req.eip;
+            stack.eflags = req.eflags;
         }
     } else {
         gpr.eax = ERR(NO_SUCH_SYSCALL);

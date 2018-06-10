@@ -22,16 +22,16 @@ import os
 import os.path
 
 def writeHeader(stream):
-    header = struct.pack('<B3sBBBB', 0x80, 'IRD', 1, 0, 0, 0)
+    header = struct.pack('<B3sBBBB', 0x80, b'IRD', 1, 0, 0, 0)
     stream.write(header)
 
 def writeFile(stream, f):
     name = os.path.basename(f.path)
-    entry = struct.pack('<64sII', name, f.size, f.offset)
+    entry = struct.pack('<64sII', bytes(name, 'utf-8'), f.size, f.offset)
     stream.write(entry)
 
 def writeNullFile(stream):
-    entry = struct.pack('<64sII', '', 0, 0)
+    entry = struct.pack('<64sII', b'', 0, 0)
     stream.write(entry)
 
 def writeTable(stream, files):
