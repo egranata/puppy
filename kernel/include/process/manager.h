@@ -29,6 +29,7 @@
 #include <process/table.h>
 #include <process/bitmap.h>
 #include <libc/pqueue.h>
+#include <libc/pair.h>
 
 namespace boot::task {
     uint32_t init();
@@ -80,6 +81,7 @@ class ProcessManager : NOCOPY {
         process_t* getprocess(pid_t pid);
 
         process_exit_status_t collect(pid_t pid);
+        bool collectany(pid_t*, process_exit_status_t*);
 
         void ready(process_t*);
         void deschedule(process_t*, process_t::State);

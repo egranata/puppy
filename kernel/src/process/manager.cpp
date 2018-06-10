@@ -572,6 +572,22 @@ void ProcessManager::enqueueForDeath(process_t* task) {
     gExitedProcesses().set(task);
 }
 
+bool ProcessManager::collectany(pid_t* pid, process_exit_status_t* status) {
+    auto c0 = gCurrentProcess->children.begin();
+    auto ce = gCurrentProcess->children.end();
+
+    for (; c0 != ce; ++c0) {
+        auto child = *c0;
+        if (child->state == process_t::State::EXITED) {
+            *status = collect(*pid = child->pid);
+            return true;
+        }
+    }
+
+    // no child has EXITED yet
+    return false;
+}
+
 process_exit_status_t ProcessManager::collect(pid_t pid) {
 begin:
     auto task = getprocess(pid);
