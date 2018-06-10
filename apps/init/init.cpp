@@ -57,6 +57,15 @@ void handleExitStatus(uint16_t pid, process_exit_status_t es) {
     }
 }
 
+void tryCollect() {
+    uint16_t pid;
+    process_exit_status_t status(0);
+
+    if (collectany(&pid, &status)) {
+        handleExitStatus(pid, status);
+    }
+}
+
 int main(int, const char**) {
     printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
     char buffer[512];
@@ -77,5 +86,6 @@ int main(int, const char**) {
             auto exitcode = collect(chld);
             handleExitStatus(chld, exitcode);
         }
+        tryCollect();
     }
 }

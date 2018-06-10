@@ -22,4 +22,6 @@
 
 process_exit_status_t collect(uint16_t pid);
 
+bool collectany(uint16_t*, process_exit_status_t*);
+
 #endif

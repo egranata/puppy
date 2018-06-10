@@ -127,6 +127,9 @@ syscall_response_t unmapregion_syscall(uint32_t arg1) {
 syscall_response_t trymount_syscall(uint32_t arg1,const char* arg2) {
 	return syscall2(trymount_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
+syscall_response_t collectany_syscall(uint16_t* arg1,process_exit_status_t* arg2) {
+	return syscall2(collectany_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
+}
 syscall_response_t mutextrylock_syscall(uint32_t arg1) {
 	return syscall1(mutextrylock_syscall_id,(uint32_t)arg1);
 }

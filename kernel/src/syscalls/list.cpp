@@ -82,6 +82,8 @@ extern syscall_response_t unmapregion_syscall_handler(uint32_t arg1);
 extern syscall_response_t unmapregion_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t trymount_syscall_handler(uint32_t arg1,const char* arg2);
 extern syscall_response_t trymount_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t collectany_syscall_handler(uint16_t* arg1,process_exit_status_t* arg2);
+extern syscall_response_t collectany_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t mutextrylock_syscall_handler(uint32_t arg1);
 extern syscall_response_t mutextrylock_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t vmcheckreadable_syscall_handler(uintptr_t arg1);
@@ -122,6 +124,7 @@ void SyscallManager::sethandlers() {
 	handle(33, mapregion_syscall_helper, false); 
 	handle(34, unmapregion_syscall_helper, false); 
 	handle(35, trymount_syscall_helper, false); 
+	handle(36, collectany_syscall_helper, false); 
 	handle(44, mutextrylock_syscall_helper, false); 
 	handle(45, vmcheckreadable_syscall_helper, false); 
 	handle(46, vmcheckwritable_syscall_helper, false); 
@@ -306,6 +309,12 @@ syscall_response_t trymount_syscall_helper(SyscallManager::Request& req) {
 }
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
+
+syscall_response_t collectany_syscall_helper(SyscallManager::Request& req) {
+	return collectany_syscall_handler((uint16_t*)req.arg1,(process_exit_status_t*)req.arg2);
+}
+static_assert(sizeof(uint16_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(process_exit_status_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t mutextrylock_syscall_helper(SyscallManager::Request& req) {
 	return mutextrylock_syscall_handler((uint32_t)req.arg1);

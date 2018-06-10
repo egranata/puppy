@@ -83,6 +83,8 @@ syscall_response_t unmapregion_syscall(uint32_t arg1);
 constexpr uint8_t unmapregion_syscall_id = 0x22;
 syscall_response_t trymount_syscall(uint32_t arg1,const char* arg2);
 constexpr uint8_t trymount_syscall_id = 0x23;
+syscall_response_t collectany_syscall(uint16_t* arg1,process_exit_status_t* arg2);
+constexpr uint8_t collectany_syscall_id = 0x24;
 syscall_response_t mutextrylock_syscall(uint32_t arg1);
 constexpr uint8_t mutextrylock_syscall_id = 0x2c;
 syscall_response_t vmcheckreadable_syscall(uintptr_t arg1);

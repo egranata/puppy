@@ -71,6 +71,12 @@ syscall_response_t collect_syscall_handler(uint16_t pid, process_exit_status_t* 
     return OK;
 }
 
+syscall_response_t collectany_syscall_handler(uint16_t *pid, process_exit_status_t* result) {
+    auto&& pmm = ProcessManager::get();
+    bool any = pmm.collectany(pid, result);
+    return any ? OK : ERR(NO_SUCH_PROCESS);
+}
+
 HANDLER2(prioritize,pid,prio) {
     auto&& pmm = ProcessManager::get();
     auto process = pmm.getprocess(pid);
