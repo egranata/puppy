@@ -83,7 +83,7 @@ static const char* pageflt_description(uint32_t err) {
     }
 }
 
-static bool pageflt_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
+static bool zeropage_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     auto memmgr = gCurrentProcess->getMemoryManager();
     MemoryManager::region_t region;
     if (memmgr->isWithinRegion(vaddr, &region)) {
@@ -96,14 +96,31 @@ static bool pageflt_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     }
 }
 
+static bool cow_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
+    VirtualPageManager::map_options_t opts;
+    if (vmm.mapped(vaddr, &opts)) {
+        auto phys = vmm.clonePage(vaddr, opts);
+        LOG_DEBUG("faulting address was COW - remapped to %p", phys);
+        if (0 == (phys & 1)) return true;
+    }
+
+    return false;
+}
+
 void pageflt_handler(GPR& gpr, InterruptStack& stack) {
     if (gCurrentProcess) ++gCurrentProcess->memstats.pagefaults;
 
     auto&& vmm(VirtualPageManager::get());
     auto vaddr = gpr.cr2;
+
     if (vmm.isZeroPageAccess(vaddr)) {
-        if (pageflt_recover(vmm, vaddr)) return;
+        if (zeropage_recover(vmm, vaddr)) return;
     }
+
+    if (vmm.isCOWAccess(stack.error, vaddr)) {
+        if (cow_recover(vmm, vaddr)) return;
+    }
+
     LOG_DEBUG("page fault, vaddr = %p, physical counterpart %p", vaddr, vmm.mapping(vaddr));
     APP_PANIC(pageflt_description(stack.error), gpr, stack);
 }

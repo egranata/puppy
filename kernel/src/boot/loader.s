@@ -125,6 +125,7 @@ loader:
     mov ecx, cr0
     or ecx, 0x80000000                          ; Set PG bit in CR0 to enable paging.
     or ecx, 0x20                                ; Enable native floating point exceptions.
+    or ecx, 0x10000                             ; Don't let the kernel write to readonly pages
     mov cr0, ecx
 
     mov ecx, cr4

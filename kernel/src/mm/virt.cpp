@@ -20,6 +20,7 @@
 #include <panic/panic.h>
 #include <libc/memory.h>
 #include <process/current.h>
+#include <libc/memory.h>
 
 #define LOG_NODEBUG
 #include <log/log.h>
@@ -34,9 +35,9 @@ static constexpr uint32_t gNewPhysicalPageBit = 0x200;
 
 VirtualPageManager::DirectoryEntry* VirtualPageManager::gPageDirectory = (DirectoryEntry*)gPageDirectoryAddress;
 
-VirtualPageManager::map_options_t::map_options_t() : _rw(true), _user(false), _clear(false), _frompmm(false), _cached(true) {}
+VirtualPageManager::map_options_t::map_options_t() : _rw(true), _user(false), _clear(false), _frompmm(false), _cow(false), _cached(true), _global(false) {}
 
-VirtualPageManager::map_options_t::map_options_t(bool rw, bool user, bool clear, bool frompmm) : _rw(rw), _user(user), _clear(clear), _frompmm(frompmm), _cached(true), _global(false) {}
+VirtualPageManager::map_options_t::map_options_t(bool rw, bool user, bool clear, bool frompmm) : _rw(rw), _user(user), _clear(clear), _frompmm(frompmm), _cow(false), _cached(true), _global(false) {}
 
 #define DEFINE_OPTION(type, name) \
 type VirtualPageManager::map_options_t:: name () const { return _ ## name; } \
@@ -46,6 +47,7 @@ DEFINE_OPTION(bool, rw);
 DEFINE_OPTION(bool, user);
 DEFINE_OPTION(bool, clear);
 DEFINE_OPTION(bool, frompmm);
+DEFINE_OPTION(bool, cow);
 DEFINE_OPTION(bool, cached);
 DEFINE_OPTION(bool, global);
 
@@ -100,8 +102,8 @@ DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, accessed, 5); /** 1 = this pag
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, dirty, 6); /** 1 == this page has been written to */
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, global, 8); /** 1 == global translation if CR4.PGE is 1 */
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, frompmm, 9); /** 1 == the PhysicalPageManager provided this page */
-// leave bits 10 and 11 unused for now - they are a precious and scarce resource
-// DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, bit10, 10)
+DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, cow, 10); /** 1 == create a copy of this page on a "write" page fault */
+// bit 11 is available for us to define as needed
 // DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, bit11, 11)
 
 uintptr_t VirtualPageManager::TableEntry::page() {
@@ -248,6 +250,44 @@ bool VirtualPageManager::isZeroPageAccess(uintptr_t virt) {
 	return (tbl.page() == gZeroPagePhysical && tbl.present() == false);
 }
 
+bool VirtualPageManager::isCOWAccess(unsigned int errcode, uintptr_t virt) {
+	auto pg = page(virt);
+
+	PagingIndices indices(pg);
+	TableEntry &tbl(indices.table());
+
+	if (tbl.present() == true && tbl.rw() == false && tbl.cow() == true) {
+		// 0x3 == "protection violation & write access"
+		if (0x3 == (errcode & 0x3)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+uintptr_t VirtualPageManager::clonePage(uintptr_t virt, const map_options_t& options) {
+	auto pg = page(virt);
+
+	auto&& physall(PhysicalPageManager::get());
+	auto phys = physall.alloc();
+	{
+		scratch_page_t sp = getScratchPage(phys);
+		memcopy((uint8_t*)pg, sp.get<uint8_t>(), gPageSize);
+	}
+
+	// new page is from PMM (we just allocated it above...)
+	// it is not COW (because it was COW before and now it's its own copy)
+	// and it's clearly writable (or else it wouldn't have been COW)
+	// all other options, leave them alone
+	auto opts = map_options_t(options).frompmm(true).cow(false).rw(true);
+
+	unmap(pg);
+	map(phys, pg, opts);
+
+	return phys;
+}
+
 uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_options_t& options) {
 	PagingIndices indices(virt);
 	
@@ -257,21 +297,39 @@ uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_opti
 		LOG_WARNING("page mapping virt=%p phys=%p shall be visible to userspace, but is not being zeroed out", virt, phys);
 	}
 
+	if (options.cow() && options.rw()) {
+		LOG_WARNING("page mapping virt=%p phys=%p is COW but writable - will never be copied!", virt, phys);
+	}
+
 	const bool isuserspace = !iskernel(virt);
+
+	// if we are asked to clear the page, first map it R/W, so the kernel can clear it
+	// then clear it, then protect it readonly
+	bool mustprotect = options.clear() && !options.rw();
 
 	TableEntry &tbl(indices.table());
 	tbl.present(true);
-	tbl.rw(options.rw());
+	if (mustprotect) {
+		tbl.rw(true);
+	} else {
+		tbl.rw(options.rw());
+	}
 	tbl.user(options.user());
 	tbl.cacheoff(!options.cached());
 	tbl.global(options.global());
 	tbl.frompmm(options.frompmm());
+	tbl.cow(options.cow());
 	tbl.page(phys);
 	invtlb(virt);
 
 	if (options.clear()) {
 		auto pageptr = (uint8_t*)virt;
 		bzero(pageptr, gPageSize);
+
+		if (mustprotect) {
+			tbl.rw(false);
+			invtlb(virt);
+		}
 	}
 
 	if (gCurrentProcess && isuserspace) {
@@ -363,11 +421,32 @@ bool VirtualPageManager::mapped(uintptr_t virt, map_options_t* opts) {
 			opts->frompmm(tbl.frompmm());
 			opts->cached(!tbl.cacheoff());
 			opts->global(tbl.global());
+			opts->cow(tbl.cow());
 		}
 		return true;
 	}
 
 	return false;
+}
+
+uintptr_t VirtualPageManager::newoptions(uintptr_t virt, const map_options_t& options) {
+	auto pg = page(virt);
+
+	PagingIndices indices(pg);
+	TableEntry &tbl(indices.table());
+
+	if (tbl.present()) {
+		tbl.rw(options.rw());
+		tbl.user(options.user());
+		tbl.cacheoff(!options.cached());
+		tbl.global(options.global());
+		tbl.frompmm(options.frompmm());
+		tbl.cow(options.cow());
+		invtlb(pg);
+		return virt;
+	}
+
+	return gPageSize - 1;
 }
 
 uintptr_t VirtualPageManager::mapPageWithinRange(uintptr_t low, uintptr_t high, const map_options_t& options) {

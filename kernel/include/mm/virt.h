@@ -38,6 +38,7 @@ public:
 		DECLARE_OPTION(bool, user);
 		DECLARE_OPTION(bool, clear);
 		DECLARE_OPTION(bool, frompmm);
+		DECLARE_OPTION(bool, cow);
 		DECLARE_OPTION(bool, cached);
 		DECLARE_OPTION(bool, global);
 
@@ -80,6 +81,7 @@ public:
 		DECLARE_FIELD(dirty, bool);
 		DECLARE_FIELD(global, bool);
 		DECLARE_FIELD(frompmm, bool);
+		DECLARE_FIELD(cow, bool);
 		DECLARE_FIELD(page, uintptr_t);
 	};
 	
@@ -109,6 +111,11 @@ public:
 	uintptr_t mapZeroPage(uintptr_t from, uintptr_t to);
 	bool isZeroPageAccess(uintptr_t virt);
 
+	bool isCOWAccess(unsigned int errcode, uintptr_t virt);
+
+	// returns the new *physical* address
+	uintptr_t clonePage(uintptr_t virt, const map_options_t&);
+
 	uintptr_t map(uintptr_t phys, uintptr_t virt, const map_options_t&);
 
 	uintptr_t mapAnyPhysicalPage(uintptr_t virt, const map_options_t& = map_options_t());
@@ -124,6 +131,8 @@ public:
 
 	uintptr_t mapping(uintptr_t virt);
 	bool mapped(uintptr_t virt, map_options_t* = nullptr);
+
+	uintptr_t newoptions(uintptr_t virt, const map_options_t&);
 
 	uintptr_t ksbrk(size_t amount);
 	

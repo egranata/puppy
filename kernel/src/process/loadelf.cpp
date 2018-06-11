@@ -56,7 +56,7 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
         while(len != 0) {
             LOG_DEBUG("start by mapping a page at %p", vaddr);
 
-            mapopts.rw(2 == (pref.flags & 2));
+            mapopts.rw(true);
             vmm.mapAnyPhysicalPage((uintptr_t)vaddr, mapopts);
             vaddr1 += VirtualPageManager::gPageSize;
 
@@ -80,6 +80,10 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
                     LOG_DEBUG("chunk size %u is > flen %u", chunk, flen);                                                
                 }
             }
+
+            mapopts.rw(2 == (pref.flags & 2));
+            vmm.newoptions((uintptr_t)vaddr, mapopts);
+
             len -= chunk;
             src += chunk;
             vaddr += chunk;
