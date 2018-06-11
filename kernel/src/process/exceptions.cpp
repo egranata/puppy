@@ -25,6 +25,7 @@
 #include <i386/backtrace.h>
 #include <mm/pagefault.h>
 #include <process/reaper.h>
+#include <process/dumperror.h>
 
 extern "C"
 void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
@@ -37,30 +38,7 @@ void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
     sprint(&buffer[0], 1024, "\nProcess %u has caused an unrecoverable error: %s\n", pid, cause);
     fb.write(buffer, red);
 
-    sprint(&buffer[0], 1024, "exception = %u, eip = %p, error code = %u flags = %x\n", stack.irqnumber, (void*)stack.eip, stack.error, stack.eflags);
-    fb.write(buffer);
-
-    sprint(&buffer[0], 1024, "eax = %u, ebx = %u, ecx = %u, edx = %u\n",
-        gpr.eax, gpr.ebx, gpr.ecx, gpr.edx);
-    fb.write(buffer);
-
-    sprint(&buffer[0], 1024, "edi = %u, esi = %u, ebp = %u, esp = %u\n",
-        gpr.edi, gpr.esi, gpr.ebp, gpr.esp);
-    fb.write(buffer);
-
-    sprint(&buffer[0], 1024, "cr0 = %x, cr2 = %x, cr3 = %x, cr4 = %x\n",
-        gpr.cr0, gpr.cr2, gpr.cr3, gpr.cr4);
-    fb.write(buffer);
-
-    fb.write("Backtrace:\n");
-
-    Backtrace::backtrace(gpr, [] (uint32_t eip) -> bool {
-        char buffer[1024];
-        auto&& fb(Framebuffer::get());
-        sprint(&buffer[0], 1024, "    %x\n", eip);
-        fb.write(buffer);
-        return true;
-    });
+    dumpErrorState(gpr, stack);
 
     fb.write("Process killed.\n", red);
 
