@@ -129,12 +129,14 @@ def clearDir(path):
     os.makedirs(path)
 
 def makeDir(path):
-    cmdline = 'mkdir "%s"' % path
-    shell(cmdline)
+    if not os.path.isdir(path):
+        cmdline = 'mkdir "%s"' % path
+        shell(cmdline)
     return path
 
 clearDir("out")
 clearDir("out/apps")
+clearDir("out/tests")
 clearDir("out/mnt")
 clearDir("out/iso/boot/grub")
 
@@ -256,10 +258,21 @@ Userspace = Project(name="Userspace",
     linkerdeps=["out/libmuzzle.a"])
 Userspace.link = Userspace.linkAr
 
+Checkup = Project(name="Checkup",
+    srcdir="checkup/src",
+    cflags=BASIC_CFLAGS + " -Icheckup/include -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Icheckup/include -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
+    asmflags="-f elf",
+    ldflags="-ffreestanding -nostdlib",
+    assembler="nasm",
+    linkerdeps=["out/libuserspace.a"])
+Checkup.link = Checkup.linkAr
+
 FatFS.build()
 Muzzle.build()
 Kernel.build()
 Userspace.build()
+Checkup.build()
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
@@ -271,9 +284,11 @@ APPS_CONFIG = {
 }
 
 APPS = []
+TESTS = []
 
 INITRD_REFS = [] # apps for initrd
 APP_REFS = [] # apps for main filesystem
+TEST_REFS = []
 
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
@@ -292,6 +307,22 @@ for app in APP_DIRS:
     config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
     if config["mainfs"]: APP_REFS.append(app_o)
     if config["initrd"]: INITRD_REFS.append(app_o)
+
+TEST_DIRS = findSubdirectories("tests", self=False)
+for test in TEST_DIRS:
+    test_p = Project(name = os.path.basename(test),
+                    srcdir = test,
+                    cflags = BASIC_CFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include -Icheckup/include",
+                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include -Icheckup/include",
+                    asmflags = "-f elf",
+                    ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry -Wl,--as-needed",
+                    assembler="nasm",
+                    linkerdeps = ["out/libcheckup.a", "out/libuserspace.a", "out/libmuzzle.a"],
+                    outwhere="out/tests")
+    test_p.link = test_p.linkGcc
+    test_o = test_p.build()
+    TESTS.append(test_o)
+    TEST_REFS.append(test_o)
 
 INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
 shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
@@ -341,9 +372,13 @@ CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
 shell(CMDLINE)
 
 makeDir("out/mnt/apps")
+makeDir("out/mnt/tests")
 
 for app in APP_REFS:
     copy(app, "out/mnt/apps/%s" % os.path.basename(app))
+
+for test in TEST_REFS:
+    copy(test, "out/mnt/tests/%s" % os.path.basename(test))
 
 CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
 shell(CMDLINE)
