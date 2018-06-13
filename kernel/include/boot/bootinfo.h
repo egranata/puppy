@@ -31,6 +31,12 @@ struct framebuf_info_t : NOCOPY {
     framebuf_info_t(const multiboot_info& mb);
 };
 
+struct kernel_cmdline_t : NOCOPY {
+    uint8_t cmdline[1024] = {0};
+
+    size_t fill(uintptr_t cmdptr);
+};
+
 struct grub_module_info_t : NOCOPY {
     uintptr_t start;
     uintptr_t end;
@@ -48,5 +54,7 @@ struct grub_modules_info_t : NOCOPY {
 framebuf_info_t* bootframbufinfo();
 
 grub_modules_info_t* bootmodinfo();
+
+kernel_cmdline_t* bootcmdline();
 
 #endif

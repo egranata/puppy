@@ -33,3 +33,20 @@ grub_modules_info_t* bootmodinfo() {
     static unsigned char gData[sizeof(grub_modules_info_t)] = {0};
     return (grub_modules_info_t*)&gData[0];
 }
+
+kernel_cmdline_t* bootcmdline() {
+    static unsigned char gData[sizeof(kernel_cmdline_t)] = {0};
+    return (kernel_cmdline_t*)&gData[0];
+}
+
+size_t kernel_cmdline_t::fill(uintptr_t arg) {
+    auto max_size = sizeof(cmdline) - 1;
+
+    uint8_t *cp = (uint8_t*)arg;
+    size_t copied = 0;
+    while(copied < max_size && *cp) {
+        cmdline[copied++] = *cp++;
+    }
+
+    return copied ? copied - 1 : copied;
+}

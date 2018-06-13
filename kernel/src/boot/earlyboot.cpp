@@ -203,10 +203,21 @@ static void loadModules() {
 	}
 }
 
+static void loadCommandline(multiboot_info* multiboot) {
+	auto bcmd = bootcmdline();
+	auto copied = bcmd->fill(multiboot->cmdline);
+	if (copied) {
+		LOG_DEBUG("copied %d bytes of kernel command line - value is %s", copied, bcmd->cmdline);
+	} else {
+		LOG_DEBUG("kernel command line found empty!");
+	}
+}
+
 extern "C"
 void _earlyBoot(uintptr_t multiboot_data, uint32_t multiboot_magic) {
 	setupEarlyIRQs();
 	auto multiboot = getMultiboot(multiboot_data, multiboot_magic);
+	loadCommandline(multiboot);
 	framebuf_info_t framebuf(*multiboot);
 	setupPhysicalMemory(multiboot);
 	reserveMemory(multiboot);
