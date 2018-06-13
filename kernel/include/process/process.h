@@ -105,6 +105,8 @@ struct process_t {
 
     process_t();
 
+    void clone(process_t*);
+
     MemoryManager* getMemoryManager();
 };
 

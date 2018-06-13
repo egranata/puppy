@@ -132,3 +132,8 @@ MemoryManager::region_t MemoryManager::addRegion(const MemoryManager::region_t& 
 uintptr_t MemoryManager::getTotalRegionsSize() const {
     return mAllRegionsSize;
 }
+
+void MemoryManager::clone(MemoryManager* ret) const {
+    ret->mRegions = mRegions;
+    ret->mAllRegionsSize = mAllRegionsSize;
+}

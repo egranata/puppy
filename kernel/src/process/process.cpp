@@ -37,3 +37,27 @@ process_t::ttyinfo_t::~ttyinfo_t() = default;
 MemoryManager* process_t::getMemoryManager() {
     return &mmap;
 }
+
+void process_t::clone(process_t* other) {
+    other->tss = tss;
+    other->cr0 = cr0;
+
+    other->path = strdup(path);
+    other->args = strdup(args);
+
+    other->state = process_t::State::NEW;
+    other->sleeptill = 0;
+    other->priority = priority;
+    other->usedticks = 0;
+
+    other->mmap.clone(&mmap);
+    // tty is cloned in ProcessManager
+
+    other->flags.system = flags.system;
+
+    other->memstats.allocated = 0;
+    other->memstats.pagefaults = 0;
+
+    other->runtimestats.runbegin = 0;
+    other->runtimestats.runtime = 0;
+}

@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef CHECKUP_ASSERT
-#define CHECKUP_ASSERT
+#ifndef LIBUSERSPACE_CLONE
+#define LIBUSERSPACE_CLONE
 
-#define CHECK_EQ(x,y) __do_check((x == y), name(), __FILE__, __LINE__, #x " == " #y)
+#include <stdint.h>
+#include <syscalls/types.h>
 
-#define CHECK_NOT_EQ(x,y) __do_check((x != y), name(), __FILE__, __LINE__, #x " != " #y)
-
-#define CHECK_NULL(x) __do_check((x == nullptr), name(), __FILE__, __LINE__, #x " == nullptr")
-
-#define CHECK_NOT_NULL(x) __do_check((x != nullptr), name(), __FILE__, __LINE__, #x " != nullptr")
-
-#define CHECK_TRUE(x) __do_check((x), name(), __FILE__, __LINE__, #x)
-
-void __do_check(bool ok, const char* test, const char* file, int line, const char* condition);
+uint16_t clone(void(*f)());
 
 #endif

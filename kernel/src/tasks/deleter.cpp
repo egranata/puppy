@@ -46,8 +46,8 @@ namespace tasks::deleter {
                 procTable.free(proc);
 
                 pmm.dealloc((uintptr_t)proc->tss.cr3);
-                vmm.unmap(proc->esp0start);
-                vmm.unmap(proc->espstart);
+                if (proc->esp0start) vmm.unmap(proc->esp0start);
+                if (proc->espstart) vmm.unmap(proc->espstart);
                 proc->~process_t();
                 vmm.unmap((uintptr_t)proc);
             }

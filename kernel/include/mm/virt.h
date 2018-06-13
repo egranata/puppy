@@ -71,6 +71,8 @@ public:
 		uint32_t mValue;
 		
 		TableEntry();
+
+		explicit operator uint32_t() const;
 		
 		DECLARE_FIELD(present, bool);
 		DECLARE_FIELD(rw, bool);
@@ -138,6 +140,8 @@ public:
 	
 	uintptr_t createAddressSpace();
 	void cleanAddressSpace();
+
+	uintptr_t cloneAddressSpace();
 
 	void addKernelRegion(uintptr_t low, uintptr_t high);
 	bool findKernelRegion(size_t size, interval_t& rgn);

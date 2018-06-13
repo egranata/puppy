@@ -641,3 +641,69 @@ begin:
 
     return result;
 }
+
+process_t* ProcessManager::cloneProcess() {
+    auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
+    if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
+        PANIC("set process table location before spawning");
+    }
+    auto&& vm(VirtualPageManager::get());
+    auto processpage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
+    auto esp0page = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
+    if ((processpage & 0x1) || (esp0page & 0x1)) {
+        PANIC("cannot find memory for a new process");
+    }
+    process_t *process = new ((void*)processpage) process_t();
+    gCurrentProcess->clone(process);
+
+    LOG_DEBUG("setup new process_t page at %p", process);
+
+    process->tss.cr3 = vm.cloneAddressSpace();
+    process->pid = gPidBitmap().next();
+    process->ppid = gCurrentProcess->pid;
+    process->ttyinfo = gCurrentProcess->ttyinfo;
+    // TODO: sharing stack pointer is not ideal - the current process
+    // might have exhausted most of its stack already, and the new process
+    // would end up with not enough stack
+    process->tss.esp = gCurrentProcess->tss.esp;
+
+    process->tss.esp0 = 4095 + esp0page;
+    process->esp0start = esp0page;
+    process->espstart = 0;
+
+    LOG_DEBUG("esp0 = %p", process->tss.esp0);
+
+    auto dtbl = gdt<uint64_t*>();
+
+    process->gdtidx = gGDTBitmap().next();
+
+    dtbl[process->gdtidx] = sizeof(process_t) & 0xFFFF;
+    dtbl[process->gdtidx] |= (((uint64_t)process) & 0xFFFFFFULL) << 16;
+    dtbl[process->gdtidx] |= 0xE90000000000ULL;
+    dtbl[process->gdtidx] |= (((uint64_t)process) & 0xFF000000ULL) << 32;
+
+    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llu",
+        process->ppid, process->pid,
+        process->tss.eip, process->tss.cr3,
+        process->tss.esp0, process->tss.esp,
+        process->gdtidx, dtbl[process->gdtidx]);
+
+    gProcessTable().set(process);
+    LOG_DEBUG("process %u is schedulable", process->pid);
+    gReadyQueue().push_back(process);
+    process->state = process_t::State::AVAILABLE;
+
+    {
+        size_t ttyfd;
+        bool ok = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd);
+        if (false == ok || 0 != ttyfd) {
+            PANIC("unable to forward TTY to new process");
+        } else {
+            LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, process->ttyinfo.ttyfile);
+        }
+    }
+
+    gCurrentProcess->children.add(process);
+
+    return process;
+}

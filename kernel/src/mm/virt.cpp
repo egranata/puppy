@@ -93,6 +93,10 @@ DEFINE_BOOL_FIELD(VirtualPageManager::DirectoryEntry, fourmb, 7);
 
 VirtualPageManager::TableEntry::TableEntry() : mValue(0) {}
 
+VirtualPageManager::TableEntry::operator uint32_t() const {
+	return mValue;
+}
+
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, present, 0); /** 1 == this page is present and valid */
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, rw, 1); /** 1 == this page can be written to */
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, user, 2); /** 1 == CPL3 code can access this page */
@@ -473,6 +477,47 @@ uintptr_t VirtualPageManager::findPageWithinRange(uintptr_t low, uintptr_t high)
 
 	// return something non-page-aligned if we failed
 	return (gPageSize - 1);
+}
+
+// returns the physical address of the page directory suitable for
+// launching a new process. The kernel is mapped in, sharing mapping with
+// the process that called createAddressSpace(). All of userspace memory is
+// a COW mapping of the memory that the current process has mapped.
+uintptr_t VirtualPageManager::cloneAddressSpace() {
+	LOG_DEBUG("attempting to clone this address space");
+
+	PhysicalPageManager &phys(PhysicalPageManager::get());
+
+	auto dir_options = map_options_t().rw(true).user(false);
+	auto table_options = map_options_t().rw(true).user(false).clear(true);
+
+	uintptr_t newCR3 = createAddressSpace();
+	auto pageDirScratch = getScratchPage(newCR3, dir_options);
+	uint32_t *pageDir = pageDirScratch.get<uint32_t>();
+
+	PagingIndices indices(0x0);
+	for (auto i = 0u; i < 768u; ++i) {
+		auto pPageTbl = pageDir[i] & ~0xFFF;
+		auto pageTblScratch = getScratchPage(pPageTbl, table_options);
+		uint32_t *pageTbl = pageTblScratch.get<uint32_t>();
+
+		for (auto j = 0u; j < 1024u; ++j, ++indices) {
+			TableEntry tbl(indices.table()); // NB: this is making a *copy* of the original TableEntry
+			if (!tbl.present()) continue;
+			if (tbl.rw()) {
+				// no need to COW map read-only pages
+				tbl.cow(true);
+				tbl.rw(false);
+			}
+			LOG_INFO("cloning indices %p (%u, %u) into dir = %u, tbl = %u - writing %x", indices.address(), indices.dir, indices.tbl, i, j, (uint32_t)tbl);
+			pageTbl[j] = (uint32_t)tbl;
+			if (tbl.frompmm()) {
+				phys.alloc(tbl.page());
+			}
+		}
+	}
+
+	return newCR3;
 }
 
 // returns the physical address of the page directory suitable for

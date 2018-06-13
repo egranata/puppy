@@ -58,6 +58,8 @@ class MemoryManager : NOCOPY {
         void removeRegion(region_t region);
 
         uintptr_t getTotalRegionsSize() const;
+
+        void clone(MemoryManager*) const;
     private:
         bool findRegionImpl(size_t size, region_t&);
         region_t addRegion(const region_t&);

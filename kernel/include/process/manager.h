@@ -102,6 +102,8 @@ class ProcessManager : NOCOPY {
         // cannot be defined via PM_GLOBAL because of macro expansion limitations (hint: would look like a 3-arg macro)
         static pqueue<process_t*, processcomparator>& gSleepQueue();
 
+        process_t* cloneProcess();
+
     private:
         ProcessManager();
 
