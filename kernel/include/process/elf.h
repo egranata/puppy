@@ -59,6 +59,10 @@ struct elf_program_t {
     uint8_t *content(elf_header_t* base, uint32_t off = 0) const {
         return ((uint8_t*)base) + offset + off;
     }
+
+    bool writable() const {
+        return 2 == (flags & 2);
+    }
 } __attribute__((packed));
 
 struct elf_header_t {

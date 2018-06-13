@@ -81,7 +81,8 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
                 }
             }
 
-            mapopts.rw(2 == (pref.flags & 2));
+            vmm.mapped((uintptr_t)vaddr, &mapopts);
+            mapopts.rw(pref.writable());
             vmm.newoptions((uintptr_t)vaddr, mapopts);
 
             len -= chunk;
