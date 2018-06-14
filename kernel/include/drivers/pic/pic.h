@@ -17,7 +17,7 @@
 #ifndef PIC_PIC
 #define PIC_PIC
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 class PIC {
     public:

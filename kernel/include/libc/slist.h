@@ -17,7 +17,7 @@
 #ifndef LIBC_SLIST
 #define LIBC_SLIST
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 template<typename T>
 class slist {

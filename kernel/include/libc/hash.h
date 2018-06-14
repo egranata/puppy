@@ -17,8 +17,8 @@
 #ifndef LIBC_HASH
 #define LIBC_HASH
 
-#include <libc/slist.h>
-#include <libc/pair.h>
+#include <kernel/libc/slist.h>
+#include <kernel/libc/pair.h>
 
 // static hashf::index(Key) -> size_t
 // static comparef::eq(Key, Key) -> bool

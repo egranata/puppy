@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <synch/semaphore.h>
-#include <process/manager.h>
-#include <process/process.h>
-#include <libc/string.h>
-#include <libc/hash.h>
-#include <log/log.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/process.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/hash.h>
+#include <kernel/log/log.h>
 
 Semaphore::Semaphore(const char* name, uint32_t initial, uint32_t max) {
     mKey = strdup(name);

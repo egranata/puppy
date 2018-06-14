@@ -17,12 +17,12 @@
 #ifndef MM_VIRT
 #define MM_VIRT
 
-#include <sys/stdint.h>
-#include <mm/phys.h>
-#include <libc/bytesizes.h>
-#include <mm/heap.h>
-#include <sys/nocopy.h>
-#include <libc/intervals.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/mm/phys.h>
+#include <kernel/libc/bytesizes.h>
+#include <kernel/mm/heap.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/libc/intervals.h>
 
 class PhysicalPageManager;
 struct process_t;

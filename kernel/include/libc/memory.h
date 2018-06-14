@@ -17,7 +17,7 @@
 #ifndef LIBC_MEMORY
 #define LIBC_MEMORY
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 extern "C"
 void* memcopy(uint8_t* src, uint8_t* dst, size_t len);

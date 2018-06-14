@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls.h>
-#include <sbrk.h>
+#include <libuserspace/sbrk.h>
+#include <libuserspace/syscalls.h>
 
 uint8_t *gSbrkPointer;
 

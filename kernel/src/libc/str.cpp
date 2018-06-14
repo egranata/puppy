@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/str.h>
-#include <libc/memory.h>
-#include <libc/string.h>
+#include <kernel/libc/str.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/string.h>
 
 void string::reset(const char* buffer) {
     free(mBuffer);

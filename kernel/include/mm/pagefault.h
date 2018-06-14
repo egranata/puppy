@@ -17,8 +17,8 @@
 #ifndef MM_PAGEFAULT
 #define MM_PAGEFAULT
 
-#include <process/exceptions.h>
-#include <i386/idt.h>
+#include <kernel/process/exceptions.h>
+#include <kernel/i386/idt.h>
 
 void pageflt_handler(GPR&, InterruptStack&);
 

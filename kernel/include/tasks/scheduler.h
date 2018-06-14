@@ -15,7 +15,7 @@
 #ifndef TASKS_SCHEDULER
 #define TASKS_SCHEDULER
 
-#include <tasks/task.h>
+#include <kernel/tasks/task.h>
 
 KERNEL_TASK_NAMESPACE(scheduler)
 

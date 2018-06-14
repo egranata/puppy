@@ -1,6 +1,6 @@
-#include <string.h>
+#include <muzzle/string.h>
 #include <stdint.h>
-#include <endian.h>
+#include <muzzle/endian.h>
 
 void *memcpy(void *restrict dest, const void *restrict src, size_t n)
 {

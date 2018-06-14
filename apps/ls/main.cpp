@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <directory.h>
-#include <printf.h>
-#include <exit.h>
+#include <libuserspace/directory.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/exit.h>
 
 uint32_t gNumFiles = 0;
 uint32_t gNumDirectories = 0;
@@ -57,4 +57,6 @@ int main(int argc, const char** argv) {
 
     printf("        %d File(s)        %d bytes\n", gNumFiles, gTotalSize);
     printf("        %d Dir(s)\n", gNumDirectories);
+
+    return 0;
 }

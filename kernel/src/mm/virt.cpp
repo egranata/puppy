@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sys/globals.h>
-#include <i386/primitives.h>
-#include <mm/virt.h>
-#include <libc/string.h>
-#include <libc/pair.h>
-#include <panic/panic.h>
-#include <libc/memory.h>
-#include <process/current.h>
-#include <libc/memory.h>
+#include <kernel/sys/globals.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/mm/virt.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/pair.h>
+#include <kernel/panic/panic.h>
+#include <kernel/libc/memory.h>
+#include <kernel/process/current.h>
+#include <kernel/libc/memory.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 static constexpr uintptr_t gBootVirtualOffset = 0xC0000000;
 

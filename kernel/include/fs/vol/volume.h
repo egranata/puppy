@@ -17,10 +17,10 @@
 #ifndef FS_VOL_VOLUME
 #define FS_VOL_VOLUME
 
-#include <sys/stdint.h>
-#include <drivers/pci/ide.h>
-#include <sys/nocopy.h>
-#include <fs/vol/ptable.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/fs/vol/ptable.h>
 
 class Volume : NOCOPY {
     public:

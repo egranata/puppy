@@ -15,7 +15,7 @@
 #ifndef TASKS_DELETER
 #define TASKS_DELETER
 
-#include <tasks/task.h>
+#include <kernel/tasks/task.h>
 
 KERNEL_TASK_NAMESPACE(deleter)
 

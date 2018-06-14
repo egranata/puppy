@@ -17,9 +17,9 @@
 #ifndef LIBC_INTERVALS
 #define LIBC_INTERVALS
 
-#include <sys/stdint.h>
-#include <libc/slist.h>
-#include <libc/interval.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/slist.h>
+#include <kernel/libc/interval.h>
 
 template <typename T /** : interval_t */, uint32_t max = 0xFFFFFFFF>
 class IntervalList {

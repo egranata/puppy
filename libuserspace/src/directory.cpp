@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <directory.h>
-#include <syscalls.h>
-#include <fs/filesystem.h>
-#include <memory.h>
+#include <kernel/fs/filesystem.h>
+
+#include <libuserspace/directory.h>
+#include <libuserspace/syscalls.h>
+#include <libuserspace/memory.h>
 
 extern "C"
 uint32_t opendir(const char* path) {

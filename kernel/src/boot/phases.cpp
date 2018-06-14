@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boot/phase.h>
+#include <kernel/boot/phase.h>
 #include <stdarg.h>
-#include <libc/sprint.h>
-#include <drivers/framebuffer/fb.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/drivers/framebuffer/fb.h>
 
 static constexpr size_t gNumPhases = 32;
 

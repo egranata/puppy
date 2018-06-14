@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <process/elf.h>
-#include <log/log.h>
-#include <mm/virt.h>
-#include <libc/string.h>
-#include <libc/memory.h>
-#include <process/current.h>
+#include <kernel/process/elf.h>
+#include <kernel/log/log.h>
+#include <kernel/mm/virt.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
+#include <kernel/process/current.h>
 
 #define UNHAPPY(cause) { \
     LOG_ERROR("failed to load ELF image: " #cause); \

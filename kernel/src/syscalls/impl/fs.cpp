@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <fs/vfs.h>
-#include <process/current.h>
-#include <log/log.h>
-#include <syscalls/types.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/process/current.h>
+#include <kernel/log/log.h>
+#include <kernel/syscalls/types.h>
 
 syscall_response_t fopen_syscall_handler(const char* path, filemode_t mode) {
     auto&& vfs(VFS::get());

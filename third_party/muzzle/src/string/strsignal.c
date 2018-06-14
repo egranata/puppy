@@ -1,7 +1,7 @@
 #if 0
-#include <signal.h>
-#include <string.h>
-#include "locale_impl.h"
+#include <muzzle/signal.h>
+#include <muzzle/string.h>
+#include <muzzle/locale_impl.h>
 
 #if (SIGHUP == 1) && (SIGINT == 2) && (SIGQUIT == 3) && (SIGILL == 4) \
  && (SIGTRAP == 5) && (SIGABRT == 6) && (SIGBUS == 7) && (SIGFPE == 8) \

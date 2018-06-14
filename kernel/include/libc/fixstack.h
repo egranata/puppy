@@ -17,7 +17,7 @@
 #ifndef LIBC_FIXSTACK
 #define LIBC_FIXSTACK
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 template<typename T, size_t N>
 class FixSizeStack {

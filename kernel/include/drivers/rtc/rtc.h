@@ -17,8 +17,8 @@
 #ifndef DRIVERS_RTC_RTC
 #define DRIVERS_RTC_RTC
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 class RTC : NOCOPY {
     public:

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <i386/reboot.h>
-#include <drivers/rtc/rtc.h>
-#include <drivers/pit/pit.h>
-#include <mm/phys.h>
-#include <process/current.h>
-#include <syscalls/types.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/i386/reboot.h>
+#include <kernel/drivers/rtc/rtc.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/mm/phys.h>
+#include <kernel/process/current.h>
+#include <kernel/syscalls/types.h>
 
 HANDLER0(reboot) {
     reboot();

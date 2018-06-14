@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/initrd/fs.h>
-#include <fs/initrd/file.h>
-#include <fs/initrd/directory.h>
-#include <log/log.h>
-#include <libc/string.h>
+#include <kernel/fs/initrd/fs.h>
+#include <kernel/fs/initrd/file.h>
+#include <kernel/fs/initrd/directory.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/string.h>
 
 Initrd::file_t* Initrd::file(uint32_t idx) {
     if (idx >= mFiles->count) return nullptr;

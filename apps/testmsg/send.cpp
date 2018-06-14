@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <message.h>
-#include <printf.h>
-#include <getpid.h>
+#include <libuserspace/message.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/getpid.h>
 
 void send(uint16_t pid) {
     printf("[pid %u] Will be sending a message to %u\n", getpid(), pid);

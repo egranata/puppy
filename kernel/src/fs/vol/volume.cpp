@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/vol/volume.h>
+#include <kernel/fs/vol/volume.h>
 
 Volume::Volume(IDEController* ctrl, IDEController::disk_t dsk, diskpart_t part) :
     mController(ctrl), mDisk(dsk), mPartition(part) {}

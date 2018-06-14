@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boot/phase.h>
+#include <kernel/boot/phase.h>
 
 namespace boot {
     namespace info {

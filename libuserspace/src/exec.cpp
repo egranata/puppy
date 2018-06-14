@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <exec.h>
-#include <syscalls.h>
+#include <libuserspace/exec.h>
+#include <libuserspace/syscalls.h>
 
 extern "C"
 uint16_t exec(const char* path, const char* args, bool fg) {

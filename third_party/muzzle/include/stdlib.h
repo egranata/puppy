@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stddef.h>
 
 void *malloc (size_t);
 void *calloc (size_t, size_t);

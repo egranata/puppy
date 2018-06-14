@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 #include <stdint.h>
 
 void *memset(void *dest, int c, size_t n)

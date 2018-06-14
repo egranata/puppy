@@ -17,8 +17,8 @@
 #ifndef FS_INITRD_FS
 #define FS_INITRD_FS
 
-#include <sys/stdint.h>
-#include <fs/filesystem.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/fs/filesystem.h>
 
 class InitrdDirectory;
 

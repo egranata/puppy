@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/idt.h>
-#include <i386/cpustate.h>
-#include <i386/primitives.h>
-#include <libc/string.h>
+#include <kernel/i386/idt.h>
+#include <kernel/i386/cpustate.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/string.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 extern "C"
 void interrupt_handler(GPR gpr, InterruptStack stack) {

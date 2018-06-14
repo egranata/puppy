@@ -17,8 +17,8 @@
 #ifndef DRIVERS_ACPI_RDSP
 #define DRIVERS_ACPI_RDSP
 
-#include <sys/stdint.h>
-#include <drivers/acpi/rsdt.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/drivers/acpi/rsdt.h>
 
 class RSDP {
     public:

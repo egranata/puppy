@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <clone.h>
-#include <syscalls.h>
+#include <libuserspace/clone.h>
+#include <libuserspace/syscalls.h>
 
 uint16_t clone(void(*f)()) {
     auto ok = clone_syscall( (uintptr_t)f );

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <synch/mutexmanager.h>
-#include <synch/store.h>
-#include <log/log.h>
+#include <kernel/synch/mutexmanager.h>
+#include <kernel/synch/store.h>
+#include <kernel/log/log.h>
 
 Mutex* MutexStore::getOrMake(const char* key) {
     return KeyedStore::getOrMake(key);

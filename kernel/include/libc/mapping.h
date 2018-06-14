@@ -17,8 +17,8 @@
 #ifndef LIBC_MAPPING
 #define LIBC_MAPPING
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 /**
  * Establishes an identity mapping between a region of virtual and physical memory, e.g.

@@ -17,10 +17,10 @@
 #ifndef LIBC_KEYEDSTORE
 #define LIBC_KEYEDSTORE
 
-#include <libc/hash.h>
-#include <libc/pair.h>
-#include <libc/string.h>
-#include <libc/forward.h>
+#include <kernel/libc/hash.h>
+#include <kernel/libc/pair.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/forward.h>
 
 template<typename T, size_t N = 1024>
 class KeyedStore {

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/idt.h>
-#include <boot/phase.h>
-#include <log/log.h>
+#include <kernel/i386/idt.h>
+#include <kernel/boot/phase.h>
+#include <kernel/log/log.h>
 
 namespace boot::irq {
     uint32_t init() {

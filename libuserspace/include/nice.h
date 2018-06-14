@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_NICE
 #define LIBUSERSPACE_NICE
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 uint8_t nice();
 uint8_t renice(uint8_t);

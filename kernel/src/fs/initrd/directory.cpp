@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/initrd/directory.h>
-#include <libc/memory.h>
-#include <libc/str.h>
+#include <kernel/fs/initrd/directory.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/str.h>
 
 bool InitrdDirectory::next(fileinfo_t& fi) {
     if (mIndex >= mFiles->count) {

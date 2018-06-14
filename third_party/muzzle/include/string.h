@@ -5,17 +5,19 @@
 extern "C" {
 #endif
 
-#include <features.h>
+#include <muzzle/features.h>
 
+#ifndef NULL
 #ifdef __cplusplus
 #define NULL 0L
 #else
 #define NULL ((void*)0)
 #endif
+#endif
 
 #define __NEED_size_t
 
-#include <bits/alltypes.h>
+#include <muzzle/bits/alltypes.h>
 
 void bzero(void*, size_t);
 
@@ -55,7 +57,7 @@ char *strerror (int);
 char *strtok_r (char *__restrict, const char *__restrict, char **__restrict);
 
 #if defined(_BSD_SOURCE) || defined(_GNU_SOURCE)
-#include <strings.h>
+#include <muzzle/strings.h>
 #endif
 
 #if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \

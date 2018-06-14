@@ -17,7 +17,7 @@
 #ifndef DRIVERS_SERIAL_SERIAL
 #define DRIVERS_SERIAL_SERIAL
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 class Serial {
 public:

@@ -17,8 +17,8 @@
 #ifndef I386_IDT
 #define I386_IDT
 
-#include <sys/stdint.h>
-#include <i386/cpustate.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/i386/cpustate.h>
 
 extern "C"
 void interrupt_handler(GPR gpr, InterruptStack stack);

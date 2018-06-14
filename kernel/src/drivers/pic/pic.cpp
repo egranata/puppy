@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pic/pic.h>
-#include <i386/primitives.h>
-#include <panic/panic.h>
-#include <log/log.h>
+#include <kernel/drivers/pic/pic.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/panic/panic.h>
+#include <kernel/log/log.h>
 
 namespace boot::pic {
         uint32_t init() {

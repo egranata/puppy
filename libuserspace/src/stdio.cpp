@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdio.h>
-#include <syscalls.h>
+#include <libuserspace/stdio.h>
+#include <libuserspace/syscalls.h>
 
 extern "C"
 void cwrite(const char* s) {

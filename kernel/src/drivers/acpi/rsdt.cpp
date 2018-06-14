@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/acpi/rsdt.h>
-#include <mm/virt.h>
-#include <libc/memory.h>
-#include <libc/mapping.h>
-#include <libc/string.h>
+#include <kernel/drivers/acpi/rsdt.h>
+#include <kernel/mm/virt.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/mapping.h>
+#include <kernel/libc/string.h>
 
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
     {

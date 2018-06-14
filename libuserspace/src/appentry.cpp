@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <exit.h>
-#include <libmuzzle/string.h>
-#include <memory.h>
-#include <sbrk.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/sbrk.h>
+
+#include <muzzle/string.h>
 
 int main(int argc, char** argv);
 

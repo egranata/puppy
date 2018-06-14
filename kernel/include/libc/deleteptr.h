@@ -17,8 +17,8 @@
 #ifndef LIBC_DELETEPTR
 #define LIBC_DELETEPTR
 
-#include <libc/memory.h>
-#include <sys/nocopy.h>
+#include <kernel/libc/memory.h>
+#include <kernel/sys/nocopy.h>
 
 template<typename T>
 class delete_ptr : NOCOPY {

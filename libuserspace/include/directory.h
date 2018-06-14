@@ -18,6 +18,7 @@
 #define LIBUSERSPACE_DIRECTORY
 
 #include <stdint.h>
+#include <stddef.h>
 
 static constexpr uint32_t gInvalidDid = -1;
 

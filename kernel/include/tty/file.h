@@ -17,8 +17,8 @@
 #ifndef TTY_FILE
 #define TTY_FILE
 
-#include <fs/filesystem.h>
-#include <tty/tty.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/tty/tty.h>
 
 class TTYFile : public Filesystem::File {
     public:

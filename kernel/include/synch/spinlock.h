@@ -17,7 +17,7 @@
 #ifndef SYNCH_SPINLOCK
 #define SYNCH_SPINLOCK
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 typedef class spinlock {
     public:

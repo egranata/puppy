@@ -17,8 +17,8 @@
 #ifndef DRIVERS_PCI_BUS
 #define DRIVERS_PCI_BUS
 
-#include <sys/stdint.h>
-#include <libc/slist.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/slist.h>
 
 class PCIBus {
     public:

@@ -17,7 +17,7 @@
 #ifndef FS_DEVFS_DEVFS
 #define FS_DEVFS_DEVFS
 
-#include <fs/ramfs/ramfs.h>
+#include <kernel/fs/ramfs/ramfs.h>
 
 class DevFS : public RAMFS {
     public:

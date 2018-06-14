@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <synch/semaphore.h>
-#include <synch/semaphoremanager.h>
-#include <synch/mutexmanager.h>
-#include <process/manager.h>
-#include <log/log.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/synch/semaphoremanager.h>
+#include <kernel/synch/mutexmanager.h>
+#include <kernel/process/manager.h>
+#include <kernel/log/log.h>
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 

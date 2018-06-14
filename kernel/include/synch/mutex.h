@@ -17,10 +17,10 @@
 #ifndef SYNCH_MUTEX
 #define SYNCH_MUTEX
 
-#include <sys/stdint.h>
-#include <synch/refcount.h>
-#include <libc/dynqueue.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/synch/refcount.h>
+#include <kernel/libc/dynqueue.h>
+#include <kernel/sys/nocopy.h>
 
 struct process_t;
 

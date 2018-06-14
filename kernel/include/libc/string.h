@@ -17,8 +17,8 @@
 #ifndef LIBC_STRING
 #define LIBC_STRING
 
-#include <sys/stdint.h>
-#include <libmuzzle/string.h>
+#include <kernel/sys/stdint.h>
+#include <muzzle/string.h>
 
 extern "C"
 const char* strprefix(const char* prefix, const char* full);

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mm/pagefault.h>
-#include <mm/virt.h>
-#include <log/log.h>
-#include <process/manager.h>
-#include <process/process.h>
-#include <mm/memmgr.h>
+#include <kernel/mm/pagefault.h>
+#include <kernel/mm/virt.h>
+#include <kernel/log/log.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/process.h>
+#include <kernel/mm/memmgr.h>
 
 //P: 1 = protection violation; 0 = page not present
 //W: 1 = write; 0 = read

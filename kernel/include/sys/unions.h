@@ -17,7 +17,7 @@
 #ifndef SYS_UNIONS
 #define SYS_UNIONS
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 union sixteen {
     uint16_t word;

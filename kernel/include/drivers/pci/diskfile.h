@@ -17,8 +17,8 @@
 #ifndef DRIVERS_PCI_DISKFILE
 #define DRIVERS_PCI_DISKFILE
 
-#include <drivers/pci/ide.h>
-#include <fs/ramfs/fsobject.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/fs/ramfs/fsobject.h>
 
 class IDEDiskFile : public RAMFile {
     public:

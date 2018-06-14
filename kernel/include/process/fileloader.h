@@ -17,7 +17,7 @@
 #ifndef PROCESS_FILELOADER
 #define PROCESS_FILELOADER
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 extern "C"
 void fileloader(uintptr_t argument);

@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/acpi/rsdp.h>
-#include <drivers/acpi/rsdt.h>
-#include <drivers/acpi/fadt.h>
+#include <kernel/drivers/acpi/rsdp.h>
+#include <kernel/drivers/acpi/rsdt.h>
+#include <kernel/drivers/acpi/fadt.h>
 
-#include <mm/virt.h>
+#include <kernel/mm/virt.h>
 
-#include <i386/primitives.h>
+#include <kernel/i386/primitives.h>
 
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 extern "C"
 void reboot8042();

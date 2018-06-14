@@ -17,7 +17,7 @@
 #ifndef DRIVERS_ACPI_FADT
 #define DRIVERS_ACPI_FADT
 
-#include <drivers/acpi/tablehdr.h>
+#include <kernel/drivers/acpi/tablehdr.h>
 
 static constexpr char gFADTSignature[4] = {'F', 'A', 'C', 'P'};
 

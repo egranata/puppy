@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sema.h>
-#include <syscalls.h>
+#include <libuserspace/sema.h>
+#include <libuserspace/syscalls.h>
 
 Semaphore::Semaphore(const char* key) {
     mHandle = semget_syscall((uint32_t)key) >> 1;

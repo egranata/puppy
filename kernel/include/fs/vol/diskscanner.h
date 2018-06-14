@@ -17,11 +17,11 @@
 #ifndef FS_VOL_DISKSCANNER
 #define FS_VOL_DISKSCANNER
 
-#include <sys/stdint.h>
-#include <drivers/pci/ide.h>
-#include <sys/nocopy.h>
-#include <libc/slist.h>
-#include <fs/vol/volume.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/libc/slist.h>
+#include <kernel/fs/vol/volume.h>
 
 class DiskScanner : NOCOPY {
     private:

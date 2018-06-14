@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 extern "C"
 int printf( char const * fmt, ... );

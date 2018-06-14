@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_UPTIME
 #define LIBUSERSPACE_UPTIME
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 extern "C"
 uint64_t uptime();

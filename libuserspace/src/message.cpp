@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls.h>
-#include <message.h>
+#include <libuserspace/syscalls.h>
+#include <libuserspace/message.h>
 
 void message_t::send() {
     msgsend_syscall(sender, a1, a2);

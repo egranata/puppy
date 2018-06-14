@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_GETPID
 #define LIBUSERSPACE_GETPID
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 extern "C"
 uint16_t getpid();

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <message.h>
-#include <printf.h>
-#include <getpid.h>
-#include <yield.h>
+#include <libuserspace/message.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/getpid.h>
+#include <libuserspace/yield.h>
 
 void waitForReceive() {
     printf("[pid %u] Will be waiting for a message\n", getpid());

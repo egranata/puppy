@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <tty.h>
-#include <printf.h>
-#include <sleep.h>
-#include <yield.h>
-#include <getpid.h>
+#include <libuserspace/tty.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/sleep.h>
+#include <libuserspace/yield.h>
+#include <libuserspace/getpid.h>
 
 int main(int argc, const char** argv) {
     auto pid = getpid();

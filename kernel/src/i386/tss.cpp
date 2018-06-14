@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/tss.h>
-#include <libc/string.h>
+#include <kernel/i386/tss.h>
+#include <kernel/libc/string.h>
 
 TaskStateSegment::TaskStateSegment() {
     bzero(this, sizeof(*this));

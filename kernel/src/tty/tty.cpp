@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <tty/tty.h>
-#include <drivers/ps2/controller.h>
-#include <drivers/ps2/keyboard.h>
-#include <process/manager.h>
-#include <log/log.h>
+#include <kernel/tty/tty.h>
+#include <kernel/drivers/ps2/controller.h>
+#include <kernel/drivers/ps2/keyboard.h>
+#include <kernel/process/manager.h>
+#include <kernel/log/log.h>
 
 TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()) {}
 

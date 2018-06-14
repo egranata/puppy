@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/ps2/keyboard.h>
-#include <drivers/pic/pic.h>
-#include <i386/idt.h>
-#include <i386/primitives.h>
+#include <kernel/drivers/ps2/keyboard.h>
+#include <kernel/drivers/pic/pic.h>
+#include <kernel/i386/idt.h>
+#include <kernel/i386/primitives.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 static struct keyb_buffer_t {
     static constexpr uint8_t gBufferSize = 128;

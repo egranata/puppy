@@ -17,8 +17,8 @@
 #ifndef SYSCALLS_MANAGER
 #define SYSCALLS_MANAGER
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 typedef uint32_t syscall_response_t;
 

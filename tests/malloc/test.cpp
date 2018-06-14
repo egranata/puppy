@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <test.h>
-#include <assert.h>
-#include <memory.h>
+#include <checkup/test.h>
+#include <checkup/assert.h>
+#include <libuserspace/memory.h>
 
 class TheTest : public Test {
     public:

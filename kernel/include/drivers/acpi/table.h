@@ -17,8 +17,8 @@
 #ifndef DRIVERS_ACPI_TABLE
 #define DRIVERS_ACPI_TABLE
 
-#include <sys/stdint.h>
-#include <drivers/acpi/tablehdr.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/drivers/acpi/tablehdr.h>
 
 struct acpi_table_t {
     acpi_table_header_t header;

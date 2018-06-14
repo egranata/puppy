@@ -1847,8 +1847,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 */
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <libuserspace/stdio.h>
 
 extern "C"
 int printf( char const * fmt, ... ) {

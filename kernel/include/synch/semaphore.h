@@ -17,10 +17,10 @@
 #ifndef SYNCH_SEMAPHORE
 #define SYNCH_SEMAPHORE
 
-#include <sys/stdint.h>
-#include <libc/dynqueue.h>
-#include <synch/refcount.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/dynqueue.h>
+#include <kernel/synch/refcount.h>
+#include <kernel/sys/nocopy.h>
 
 struct process_t;
 

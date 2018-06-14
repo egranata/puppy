@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 char *__stpcpy(char *, const char *);
 

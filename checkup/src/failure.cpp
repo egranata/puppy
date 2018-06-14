@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <failure.h>
-#include <printf.h>
-#include <exit.h>
+#include <checkup/failure.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/exit.h>
 
 void __failed(const char* test, const char* file, int line, const char* condition) {
     printf("TEST[%s] condition failed: %s at %s:%d\n", test, condition, file, line);

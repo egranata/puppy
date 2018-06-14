@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mm/phys.h>
-#include <libc/string.h>
-#include <libc/pair.h>
-#include <panic/panic.h>
+#include <kernel/mm/phys.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/pair.h>
+#include <kernel/panic/panic.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 PhysicalPageManager& PhysicalPageManager::get() {
 	static PhysicalPageManager gAllocator;

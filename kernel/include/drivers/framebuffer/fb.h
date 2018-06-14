@@ -17,8 +17,8 @@
 #ifndef DRIVERS_FRAMEBUFFER_FB
 #define DRIVERS_FRAMEBUFFER_FB
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 class Framebuffer : NOCOPY {
     public:

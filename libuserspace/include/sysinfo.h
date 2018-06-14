@@ -17,8 +17,8 @@
 #ifndef LIBUSERSPACE_SYSINFO
 #define LIBUSERSPACE_SYSINFO
 
-#include <sys/stdint.h>
-#include <syscalls/types.h>
+#include <stdint.h>
+#include <kernel/syscalls/types.h>
 
 sysinfo_t sysinfo(bool global, bool local);
 

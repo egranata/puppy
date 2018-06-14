@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <exit.h>
-#include <syscalls.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/syscalls.h>
 
 extern "C"
 void exit(uint8_t exitcode) {
     exit_syscall(exitcode);
+    __builtin_unreachable();
 }

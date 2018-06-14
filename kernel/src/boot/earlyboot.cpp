@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boot/earlyboot.h>
-#include <mm/phys.h>
-#include <log/log.h>
-#include <sys/globals.h>
-#include <boot/bootinfo.h>
-#include <mm/virt.h>
-#include <drivers/framebuffer/fb.h>
-#include <i386/primitives.h>
-#include <libc/memory.h>
-#include <i386/idt.h>
-#include <panic/panic.h>
+#include <kernel/boot/earlyboot.h>
+#include <kernel/mm/phys.h>
+#include <kernel/log/log.h>
+#include <kernel/sys/globals.h>
+#include <kernel/boot/bootinfo.h>
+#include <kernel/mm/virt.h>
+#include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/memory.h>
+#include <kernel/i386/idt.h>
+#include <kernel/panic/panic.h>
 
 static constexpr uint32_t gMultibootValid = 0x2BADB002;
 

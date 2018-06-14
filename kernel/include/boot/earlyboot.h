@@ -17,7 +17,7 @@
 #ifndef BOOT_EARLYBOOT
 #define BOOT_EARLYBOOT
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 constexpr uintptr_t gBootVirtualOffset = 0xC0000000;
 

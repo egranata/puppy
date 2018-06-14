@@ -1,7 +1,7 @@
-#include <string.h>
-#include <limits.h>
-#include <stdlib.h>
-#include "libc.h"
+#include <muzzle/string.h>
+#include <muzzle/bits/limits.h>
+#include <muzzle/stdlib.h>
+#include <muzzle/libc.h>
 
 char *optarg;
 int optind=0, opterr=1, optopt, __optpos, __optreset=0;

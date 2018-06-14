@@ -160,7 +160,7 @@ def genCommonHeader(table):
         f.write("#define LIBUSERSPACE_SYSCALLS\n")
         f.write("\n")
 
-        f.write("#include <syscalls/types.h>\n")
+        f.write("#include <kernel/syscalls/types.h>\n")
         f.write("\n")
 
         for syscall in table:
@@ -173,7 +173,7 @@ def genCommonHeader(table):
 def genCommonImpl(table):
     with open(os.path.join(LIBUSERSPACE_SRC_DIR, "syscalls.cpp"), "w") as f:
         printLicense(f)        
-        f.write("#include <syscalls.h>\n")
+        f.write("#include <libuserspace/syscalls.h>\n")
         f.write("\n")
 
         f.write('extern "C"\n')
@@ -197,9 +197,9 @@ def genCommonImpl(table):
 def genManagerInit(table):
     with open(os.path.join(SYSCALLS_DIR, "list.cpp"), "w") as f:
         printLicense(f)
-        f.write("#include <syscalls/manager.h>\n")
-        f.write("#include <syscalls/types.h>\n")
-        f.write("#include <libc/string.h>\n")
+        f.write("#include <kernel/syscalls/manager.h>\n")
+        f.write("#include <kernel/syscalls/types.h>\n")
+        f.write("#include <kernel/libc/string.h>\n")
         f.write("\n")
 
         for syscall in table:

@@ -17,8 +17,8 @@
 #ifndef APIC_APIC
 #define APIC_APIC
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 class APIC : NOCOPY {
     public:

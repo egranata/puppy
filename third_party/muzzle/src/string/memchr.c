@@ -1,6 +1,6 @@
-#include <string.h>
+#include <muzzle/string.h>
 #include <stdint.h>
-#include <limits.h>
+#include <muzzle/bits/limits.h>
 
 #pragma GCC diagnostic ignored "-Wparentheses"
 

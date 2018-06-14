@@ -17,8 +17,8 @@
 #ifndef FS_INITRD_FILE
 #define FS_INITRD_FILE
 
-#include <fs/filesystem.h>
-#include <sys/nocopy.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/sys/nocopy.h>
 
 class InitrdFile : public Filesystem::File, NOCOPY {
     public:

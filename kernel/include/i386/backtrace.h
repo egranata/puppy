@@ -17,8 +17,8 @@
 #ifndef I386_BACKTRACE
 #define I386_BACKTRACE
 
-#include <sys/stdint.h>
-#include <i386/cpustate.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/i386/cpustate.h>
 
 class Backtrace {
     public:

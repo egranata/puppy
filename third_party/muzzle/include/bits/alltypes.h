@@ -29,8 +29,6 @@ typedef long double float_t;
 typedef long double double_t;
 #endif
 
-typedef struct { __attribute__((__aligned__(8))) long long __ll; long double __ld; } max_align_t;
-
 typedef long time_t;
 typedef long suseconds_t;
 typedef long unsigned int size_t;

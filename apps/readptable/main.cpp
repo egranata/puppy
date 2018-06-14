@@ -14,10 +14,10 @@
 
 #include <stdint.h>
 #include "ptable.h"
-#include <printf.h>
-#include <file.h>
-#include <exit.h>
-#include <memory.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/file.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/memory.h>
 
 void dump(uint8_t n, const partition& p) {
     if (p.sysid == 0) return;

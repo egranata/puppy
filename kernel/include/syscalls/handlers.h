@@ -17,8 +17,8 @@
 #ifndef SYSCALLS_HANDLERS
 #define SYSCALLS_HANDLERS
 
-#include <sys/stdint.h>
-#include <syscalls/manager.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/syscalls/manager.h>
 
 #define ERR(name) SyscallManager::SYSCALL_ERR_ ## name
 #define OK SyscallManager::SYSCALL_SUCCESS

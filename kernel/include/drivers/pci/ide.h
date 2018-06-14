@@ -17,9 +17,9 @@
 #ifndef DRIVERS_PCI_IDE
 #define DRIVERS_PCI_IDE
 
-#include <drivers/pci/bus.h>
-#include <sys/nocopy.h>
-#include <sys/stdint.h>
+#include <kernel/drivers/pci/bus.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/sys/stdint.h>
 
 class IDEController : public PCIBus::PCIDevice, NOCOPY {
     public:

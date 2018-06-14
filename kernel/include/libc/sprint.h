@@ -18,7 +18,7 @@
 #define LIBC_SPRINT
 
 #include <stdarg.h>
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 extern "C"
 size_t sprint(char* dest, size_t max, const char* fmt, ...) __attribute__ ((format (printf, 3, 4)));

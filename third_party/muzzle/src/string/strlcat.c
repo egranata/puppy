@@ -1,5 +1,5 @@
 #define _BSD_SOURCE
-#include <string.h>
+#include <muzzle/string.h>
 
 size_t strlcat(char *d, const char *s, size_t n)
 {

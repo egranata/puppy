@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pci/volumefile.h>
-#include <libc/sprint.h>
-#include <log/log.h>
-#include <syscalls/types.h>
-#include <sys/nocopy.h>
+#include <kernel/drivers/pci/volumefile.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/log/log.h>
+#include <kernel/syscalls/types.h>
+#include <kernel/sys/nocopy.h>
 
 IDEVolumeFile::IDEVolumeFile(Volume* vol, uint32_t ctrlid) : RAMFile(nullptr, Filesystem::FilesystemObject::kind_t::blockdevice), mVolume(vol) {
     auto& dsk(vol->disk());

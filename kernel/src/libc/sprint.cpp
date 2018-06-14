@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/sprint.h>
+#include <kernel/libc/sprint.h>
 #include <stdarg.h>
-#include <libc/pair.h>
-#include <libc/string.h>
+#include <kernel/libc/pair.h>
+#include <kernel/libc/string.h>
 
 class Impl {
 private:

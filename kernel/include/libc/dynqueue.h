@@ -17,7 +17,7 @@
 #ifndef LIBC_DYNQUEUE
 #define LIBC_DYNQUEUE
 
-#include <libc/vec.h>
+#include <kernel/libc/vec.h>
 
 template<typename T>
 class dynqueue {

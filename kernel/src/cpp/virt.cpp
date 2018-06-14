@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <panic/panic.h>
+#include <kernel/panic/panic.h>
 
 extern "C"
 void __cxa_pure_virtual() {

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <collect.h>
-#include <syscalls.h>
+#include <libuserspace/collect.h>
+#include <libuserspace/syscalls.h>
 
 process_exit_status_t collect(uint16_t pid) {
     process_exit_status_t result(0);

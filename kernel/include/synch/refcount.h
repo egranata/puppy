@@ -17,7 +17,7 @@
 #ifndef SYNCH_REFCOUNT
 #define SYNCH_REFCOUNT
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 template <typename T>
 class refcountedptr {

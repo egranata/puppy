@@ -17,7 +17,7 @@
 #ifndef SYNCH_MANAGER
 #define SYNCH_MANAGER
 
-#include <sys/nocopy.h>
+#include <kernel/sys/nocopy.h>
 
 template<typename Object, typename Store>
 class SynchManager : NOCOPY {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/interval.h>
+#include <kernel/libc/interval.h>
 
 uint32_t interval_t::size() const {
     return to - from + 1;

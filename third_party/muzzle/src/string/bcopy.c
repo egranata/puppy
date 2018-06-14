@@ -1,6 +1,6 @@
 #define _BSD_SOURCE
-#include <string.h>
-#include <strings.h>
+#include <muzzle/string.h>
+#include <muzzle/strings.h>
 
 void bcopy(const void *s1, void *s2, size_t n)
 {

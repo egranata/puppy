@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pci/diskfile.h>
-#include <libc/sprint.h>
-#include <log/log.h>
-#include <syscalls/types.h>
-#include <sys/nocopy.h>
+#include <kernel/drivers/pci/diskfile.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/log/log.h>
+#include <kernel/syscalls/types.h>
+#include <kernel/sys/nocopy.h>
 
 IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d, uint32_t ctrlid) : RAMFile(nullptr, Filesystem::FilesystemObject::kind_t::blockdevice), mController(ctrl), mDisk(d) {
     char buf[64] = {0};

@@ -17,7 +17,7 @@
 #ifndef DRIVERS_ACPI_TABLEHDR
 #define DRIVERS_ACPI_TABLEHDR
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct acpi_table_header_t {
     char sig[4];

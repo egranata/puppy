@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <ctype.h>
+#include <muzzle/stdlib.h>
+#include <muzzle/ctype.h>
 
 long long atoll(const char *s)
 {

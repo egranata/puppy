@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/memory.h>
+#include <kernel/libc/memory.h>
 
 void *operator new(size_t size) {
     return malloc(size);

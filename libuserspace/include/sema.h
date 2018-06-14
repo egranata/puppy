@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_SEMA
 #define LIBUSERSPACE_SEMA
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 class Semaphore {
     public:

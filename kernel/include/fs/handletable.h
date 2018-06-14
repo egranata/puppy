@@ -17,7 +17,7 @@
 #ifndef FS_HANDLETABLE
 #define FS_HANDLETABLE
 
-#include <libc/string.h>
+#include <kernel/libc/string.h>
 
 template<typename T, size_t N>
 class Handletable {

@@ -17,7 +17,7 @@
 #ifndef I386_TSS
 #define I386_TSS
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct TaskStateSegment {
 	uint16_t prev;

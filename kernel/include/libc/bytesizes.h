@@ -17,7 +17,7 @@
 #ifndef LIBC_BYTESIZES
 #define LIBC_BYTESIZES
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 constexpr uint64_t operator "" _KB(uint64_t n) {
     return 1024 * n;

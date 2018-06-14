@@ -12,26 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory.h>
-#include <syscalls.h>
-#include <sysinfo.h>
-
-void* memset(void *b, int c, unsigned long int len) {
-    char* ptr = (char*)b;
-    for(;len > 0; --len) {
-        *ptr++ = c;
-    }
-    return b;
-}
-
-void* memcpy(void* dst, const void* src, unsigned long int n) {
-    char* dp = (char*)dst;
-    const char* sp = (const char*)src;
-    for(;n > 0; --n) {
-        *dp++ = *sp++;
-    }
-    return dst;
-}
+#include <libuserspace/memory.h>
+#include <libuserspace/syscalls.h>
+#include <libuserspace/sysinfo.h>
 
 extern "C"
 meminfo_t meminfo() {

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boot/phase.h>
-#include <sys/osinfo.h>
-#include <i386/cpuid.h>
-#include <drivers/framebuffer/fb.h>
+#include <kernel/boot/phase.h>
+#include <kernel/sys/osinfo.h>
+#include <kernel/i386/cpuid.h>
+#include <kernel/drivers/framebuffer/fb.h>
 
 namespace boot::info {
     uint32_t init() {
@@ -30,7 +30,7 @@ namespace boot::info {
         #define CPU_FEATURE(name, reg, bit) {\
             if (features. name) { bootphase_t::printf("%s ", #name); } \
         }
-      	#include <i386/features.tbl>
+      	#include <kernel/i386/features.tbl>
     	#undef CPU_FEATURE
         bootphase_t::printf("\n");
 

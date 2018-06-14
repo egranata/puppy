@@ -17,8 +17,8 @@
 #ifndef PROCESS_TABLE
 #define PROCESS_TABLE
 
-#include <sys/stdint.h>
-#include <panic/panic.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/panic/panic.h>
 
 class process_t;
 

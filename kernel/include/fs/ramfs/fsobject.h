@@ -17,10 +17,10 @@
 #ifndef FS_RAMFS_FSOBJECT
 #define FS_RAMFS_FSOBJECT
 
-#include <fs/filesystem.h>
-#include <libc/vec.h>
-#include <sys/nocopy.h>
-#include <libc/deleteptr.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/libc/vec.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/libc/deleteptr.h>
 
 class RAMObject : NOCOPY {
     public:

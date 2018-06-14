@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <process/dumperror.h>
-#include <libc/sprint.h>
-#include <log/log.h>
-#include <drivers/framebuffer/fb.h>
-#include <i386/primitives.h>
-#include <i386/backtrace.h>
+#include <kernel/process/dumperror.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/log/log.h>
+#include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/i386/backtrace.h>
 
 void dumpErrorState(GPR& gpr, InterruptStack& stack) {
     Framebuffer &fb(Framebuffer::get());

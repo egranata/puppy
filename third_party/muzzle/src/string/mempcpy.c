@@ -1,5 +1,5 @@
 #define _GNU_SOURCE
-#include <string.h>
+#include <muzzle/string.h>
 
 void *mempcpy(void *dest, const void *src, size_t n)
 {

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pci/ide.h>
-#include <drivers/pci/bus.h>
-#include <panic/panic.h>
-#include <i386/primitives.h>
-#include <log/log.h>
-#include <libc/memory.h>
-#include <drivers/pit/pit.h>
-#include <sys/unions.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/bus.h>
+#include <kernel/panic/panic.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/memory.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/sys/unions.h>
 
 static constexpr IDEController::channelid_t channel0 = IDEController::channelid_t::zero;
 static constexpr IDEController::channelid_t channel1 = IDEController::channelid_t::one;

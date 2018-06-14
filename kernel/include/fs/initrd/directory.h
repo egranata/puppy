@@ -17,9 +17,9 @@
 #ifndef FS_INITRD_DIRECTORY
 #define FS_INITRD_DIRECTORY
 
-#include <fs/filesystem.h>
-#include <fs/initrd/fs.h>
-#include <sys/nocopy.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/fs/initrd/fs.h>
+#include <kernel/sys/nocopy.h>
 
 class InitrdDirectory : public Filesystem::Directory, NOCOPY {
     public:

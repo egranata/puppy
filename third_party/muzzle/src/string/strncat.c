@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 char *strncat(char *restrict d, const char *restrict s, size_t n)
 {

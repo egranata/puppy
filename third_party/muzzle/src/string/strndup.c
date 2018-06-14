@@ -1,6 +1,6 @@
 #if 0
-#include <stdlib.h>
-#include <string.h>
+#include <muzzle/stdlib.h>
+#include <muzzle/string.h>
 
 char *strndup(const char *s, size_t n)
 {

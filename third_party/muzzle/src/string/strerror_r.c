@@ -1,7 +1,7 @@
 #if 0
-#include <string.h>
-#include <errno.h>
-#include "libc.h"
+#include <muzzle/string.h>
+#include <muzzle/errno.h>
+#include <muzzle/libc.h>
 
 int strerror_r(int err, char *buf, size_t buflen)
 {

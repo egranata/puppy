@@ -18,7 +18,7 @@
 #define LIBUSERSPACE_FILE
 
 #include <stdint.h>
-#include <syscalls/types.h>
+#include <kernel/syscalls/types.h>
 
 static constexpr filemode_t gModeRead = filemode_t::read;
 static constexpr filemode_t gModeWrite = filemode_t::write;

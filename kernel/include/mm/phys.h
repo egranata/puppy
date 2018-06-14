@@ -17,10 +17,10 @@
 #ifndef MM_PHYS
 #define MM_PHYS
 
-#include <sys/stdint.h>
-#include <libc/atomic.h>
-#include <libc/bytesizes.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/atomic.h>
+#include <kernel/libc/bytesizes.h>
+#include <kernel/sys/nocopy.h>
 
 class PhysicalPageManager : NOCOPY {
 public:

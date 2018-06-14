@@ -15,7 +15,7 @@
 #ifndef PROCESS_DUMPERROR
 #define PROCESS_DUMPERROR
 
-#include <i386/cpustate.h>
+#include <kernel/i386/cpustate.h>
 
 void dumpErrorState(GPR& gpr, InterruptStack& stack);
 

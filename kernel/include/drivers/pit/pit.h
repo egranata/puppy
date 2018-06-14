@@ -17,7 +17,7 @@
 #ifndef PIT_PIT
 #define PIT_PIT
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 class PIT {
     public:

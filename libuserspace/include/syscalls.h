@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_SYSCALLS
 #define LIBUSERSPACE_SYSCALLS
 
-#include <syscalls/types.h>
+#include <kernel/syscalls/types.h>
 
 syscall_response_t yield_syscall();
 constexpr uint8_t yield_syscall_id = 0x1;

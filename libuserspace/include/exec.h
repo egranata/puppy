@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_EXEC
 #define LIBUSERSPACE_EXEC
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 extern "C"
 uint16_t exec(const char* path, const char* args, bool fg);

@@ -17,8 +17,8 @@
 #ifndef SYS_GLOBALS
 #define SYS_GLOBALS
 
-#include <sys/sanity.h>
-#include <sys/stdint.h>
+#include <kernel/sys/sanity.h>
+#include <kernel/sys/stdint.h>
 
 #define GLOBAL_ITEM(varname, apiname) extern uintptr_t varname; \
 template<typename T = uintptr_t> \

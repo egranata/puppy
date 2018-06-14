@@ -17,8 +17,8 @@
 #ifndef PROCESS_BITMAP
 #define PROCESS_BITMAP
 
-#include <sys/stdint.h>
-#include <panic/panic.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/panic/panic.h>
 
 template<size_t NumProcesses, size_t NumBytes = NumProcesses / 8, typename PidType = uint16_t>
 class ProcessBitmap {

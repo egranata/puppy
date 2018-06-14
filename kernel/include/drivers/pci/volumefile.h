@@ -17,9 +17,9 @@
 #ifndef DRIVERS_PCI_VOLUMEFILE
 #define DRIVERS_PCI_VOLUMEFILE
 
-#include <drivers/pci/ide.h>
-#include <fs/ramfs/fsobject.h>
-#include <fs/vol/volume.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/fs/ramfs/fsobject.h>
+#include <kernel/fs/vol/volume.h>
 
 class IDEVolumeFile : public RAMFile {
     public:

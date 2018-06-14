@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <printf.h>
-#include <memory.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/printf.h>
 
 int main(int, const char**) {
     auto mi(meminfo());
 
     printf("Total System Memory: %u bytes\nFree System Memory:  %u bytes\n",
         mi.total, mi.free);
+
+    return 0;
 }

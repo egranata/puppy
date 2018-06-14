@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-#include <test.h>
-#include <libmuzzle/string.h>
-#include <libmuzzle/stdlib.h>
-#include <memory.h>
-#include <failure.h>
-#include <printf.h>
+#include <checkup/failure.h>
+#include <checkup/test.h>
+
+#include <libuserspace/memory.h>
+#include <libuserspace/printf.h>
+
+#include <muzzle/string.h>
+#include <muzzle/stdlib.h>
 
 Test::Test(const char* name) {
     mName = (char*)calloc(1, strlen(name) + 1);

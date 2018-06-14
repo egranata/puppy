@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string.h>
+#include <libuserspace/string.h>
+#include <muzzle/stdlib.h>
 #include <stdint.h>
 
 void waitForReceive();

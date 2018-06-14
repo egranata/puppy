@@ -17,9 +17,9 @@
 #ifndef LIBC_VEC
 #define LIBC_VEC
 
-#include <sys/stdint.h>
-#include <libc/memory.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/memory.h>
+#include <kernel/sys/nocopy.h>
 
 template<typename T>
 class vector : NOCOPY {

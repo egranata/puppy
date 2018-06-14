@@ -1,8 +1,8 @@
 #pragma GCC diagnostic ignored "-Wparentheses"
 
-#include <string.h>
+#include <muzzle/string.h>
 #include <stdint.h>
-#include <limits.h>
+#include <muzzle/bits/limits.h>
 
 #define ALIGN (sizeof(size_t))
 #define ONES ((size_t)-1/UCHAR_MAX)

@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
-#include <ctype.h>
-#include <string.h>
+#include <muzzle/ctype.h>
+#include <muzzle/string.h>
 
 int strverscmp(const char *l0, const char *r0)
 {

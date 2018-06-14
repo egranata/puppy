@@ -17,7 +17,7 @@
 #ifndef I386_PRIMITIVES
 #define I386_PRIMITIVES
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 extern "C"
 void outb(uint16_t port, uint8_t data);

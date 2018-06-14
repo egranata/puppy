@@ -15,7 +15,7 @@
 #ifndef TASKS_COLLECTOR
 #define TASKS_COLLECTOR
 
-#include <tasks/task.h>
+#include <kernel/tasks/task.h>
 
 KERNEL_TASK_NAMESPACE(collector)
 

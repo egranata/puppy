@@ -17,7 +17,7 @@
 #ifndef I386_CPUID
 #define I386_CPUID
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 class CPUID {
     public:
@@ -34,7 +34,7 @@ class CPUID {
 
         struct Features {
             #define CPU_FEATURE(name, reg, bit) bool name : 1;
-            #include <i386/features.tbl>
+            #include <kernel/i386/features.tbl>
             #undef CPU_FEATURE
         };
 

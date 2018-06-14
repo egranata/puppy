@@ -17,9 +17,9 @@
 #ifndef SYNCH_SEMAPHOREMANAGER
 #define SYNCH_SEMAPHOREMANAGER
 
-#include <synch/semaphore.h>
-#include <synch/manager.h>
-#include <synch/store.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/synch/manager.h>
+#include <kernel/synch/store.h>
 
 class SemaphoreStore : public SynchStore<Semaphore> {
     public:

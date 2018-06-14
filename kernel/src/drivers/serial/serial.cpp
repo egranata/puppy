@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/serial/serial.h>
-#include <i386/primitives.h>
-#include <libc/string.h>
+#include <kernel/drivers/serial/serial.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/string.h>
 
 static constexpr uint16_t dataport(uint16_t base) {
 	return base;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/memory.h>
+#include <kernel/libc/memory.h>
 
 extern "C"
 void* memcopy(uint8_t* src, uint8_t* dst, size_t len) {

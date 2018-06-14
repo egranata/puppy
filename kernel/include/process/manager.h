@@ -17,19 +17,19 @@
 #ifndef PROCESS_MANAGER
 #define PROCESS_MANAGER
 
-#include <sys/stdint.h>
-#include <i386/tss.h>
-#include <synch/message.h>
-#include <synch/semaphore.h>
-#include <libc/slist.h>
-#include <libc/queue.h>
-#include <process/current.h>
-#include <process/process.h>
-#include <sys/nocopy.h>
-#include <process/table.h>
-#include <process/bitmap.h>
-#include <libc/pqueue.h>
-#include <libc/pair.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/i386/tss.h>
+#include <kernel/synch/message.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/libc/slist.h>
+#include <kernel/libc/queue.h>
+#include <kernel/process/current.h>
+#include <kernel/process/process.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/process/table.h>
+#include <kernel/process/bitmap.h>
+#include <kernel/libc/pqueue.h>
+#include <kernel/libc/pair.h>
 
 namespace boot::task {
     uint32_t init();

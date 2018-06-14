@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <tty/file.h>
-#include <process/manager.h>
-#include <log/log.h>
+#include <kernel/tty/file.h>
+#include <kernel/process/manager.h>
+#include <kernel/log/log.h>
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {}
 

@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <drivers/pci/bus.h>
-#include <drivers/pci/ide.h>
-#include <fs/vfs.h>
-#include <fs/devfs/devfs.h>
-#include <drivers/pci/diskfile.h>
-#include <process/current.h>
-#include <fs/vol/diskscanner.h>
-#include <log/log.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/drivers/pci/bus.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/fs/devfs/devfs.h>
+#include <kernel/drivers/pci/diskfile.h>
+#include <kernel/process/current.h>
+#include <kernel/fs/vol/diskscanner.h>
+#include <kernel/log/log.h>
 
 syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
     auto& vfs(VFS::get());

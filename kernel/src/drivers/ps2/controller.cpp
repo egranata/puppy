@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/ps2/controller.h>
-#include <i386/primitives.h>
-#include <drivers/ps2/keyboard.h>
-#include <log/log.h>
-#include <boot/phase.h>
-#include <drivers/pic/pic.h>
+#include <kernel/drivers/ps2/controller.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/drivers/ps2/keyboard.h>
+#include <kernel/log/log.h>
+#include <kernel/boot/phase.h>
+#include <kernel/drivers/pic/pic.h>
 
 
 namespace boot::ps2 {

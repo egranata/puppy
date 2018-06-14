@@ -1,6 +1,6 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
-#include <string.h>
+#include <muzzle/string.h>
 
 size_t strnlen(const char *s, size_t n)
 {

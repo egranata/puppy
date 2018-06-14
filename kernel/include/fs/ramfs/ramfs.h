@@ -17,8 +17,8 @@
 #ifndef FS_RAMFS_RAMFS
 #define FS_RAMFS_RAMFS
 
-#include <fs/filesystem.h>
-#include <libc/deleteptr.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/libc/deleteptr.h>
 
 class RAMObject;
 class RAMFile;

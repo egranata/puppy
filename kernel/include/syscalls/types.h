@@ -19,7 +19,7 @@
 #ifndef SYSCALLS_TYPES
 #define SYSCALLS_TYPES
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 using syscall_response_t = uint32_t;
 
 struct sysinfo_t {

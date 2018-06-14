@@ -17,7 +17,7 @@
 #ifndef DRIVERS_ACPI_MADT
 #define DRIVERS_ACPI_MADT
 
-#include <drivers/acpi/tablehdr.h>
+#include <kernel/drivers/acpi/tablehdr.h>
 
 static constexpr char gMADTSignature[4] = {'A', 'P', 'I', 'C'};
 

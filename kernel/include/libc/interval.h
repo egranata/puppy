@@ -17,7 +17,7 @@
 #ifndef LIBC_INTERVAL
 #define LIBC_INTERVAL
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct interval_t {
     uint32_t from;

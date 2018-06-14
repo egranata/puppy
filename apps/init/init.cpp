@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <printf.h>
-#include <yield.h>
-#include <stdio.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/yield.h>
+#include <libuserspace/stdio.h>
 #include <stdint.h>
-#include <exec.h>
-#include <getpid.h>
-#include <string.h>
-#include <sys/osinfo.h>
-#include <collect.h>
+#include <libuserspace/exec.h>
+#include <libuserspace/getpid.h>
+#include <libuserspace/string.h>
+#include <kernel/sys/osinfo.h>
+#include <libuserspace/collect.h>
 
 template<typename T>
 T* zero(T* thing, size_t size) {

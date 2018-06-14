@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/test/testfs.h>
-#include <log/log.h>
-#include <libc/string.h>
-#include <libc/memory.h>
-#include <libc/str.h>
-#include <fs/ramfs/fsobject.h>
-#include <log/log.h>
+#include <kernel/fs/test/testfs.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/str.h>
+#include <kernel/fs/ramfs/fsobject.h>
+#include <kernel/log/log.h>
 
 static auto gTestFSFilename = "file.txt";
 static auto gTestFSContent = "Hello world I am just a little file\nI like being a little test file for a new kernel. It's fun";

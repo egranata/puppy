@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/manager.h>
-#include <libc/string.h>
-#include <i386/idt.h>
-#include <process/manager.h>
-#include <process/process.h>
-#include <boot/phase.h>
-#include <process/current.h>
+#include <kernel/syscalls/manager.h>
+#include <kernel/libc/string.h>
+#include <kernel/i386/idt.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/process.h>
+#include <kernel/boot/phase.h>
+#include <kernel/process/current.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 namespace boot::syscalls {
     uint32_t init() {

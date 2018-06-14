@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 int memcmp(const void *vl, const void *vr, size_t n)
 {

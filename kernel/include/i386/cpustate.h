@@ -17,7 +17,7 @@
 #ifndef I386_CPUSTATE
 #define I386_CPUSTATE
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct GPR {
 	uint32_t cr0;

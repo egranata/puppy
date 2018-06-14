@@ -17,21 +17,21 @@
 #ifndef PROCESS_PROCESS
 #define PROCESS_PROCESS
 
-#include <sys/stdint.h>
-#include <i386/tss.h>
-#include <synch/semaphore.h>
-#include <synch/mutex.h>
-#include <synch/message.h>
-#include <tty/tty.h>
-#include <tty/file.h>
-#include <fs/handletable.h>
-#include <fs/filesystem.h>
-#include <mm/heap.h>
-#include <fs/vfs.h>
-#include <libc/vec.h>
-#include <libc/slist.h>
-#include <mm/memmgr.h>
-#include <syscalls/types.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/i386/tss.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/synch/mutex.h>
+#include <kernel/synch/message.h>
+#include <kernel/tty/tty.h>
+#include <kernel/tty/file.h>
+#include <kernel/fs/handletable.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/mm/heap.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/libc/vec.h>
+#include <kernel/libc/slist.h>
+#include <kernel/mm/memmgr.h>
+#include <kernel/syscalls/types.h>
 
 struct process_t {
     enum class State : uint8_t {

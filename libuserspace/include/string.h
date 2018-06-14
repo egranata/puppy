@@ -17,12 +17,6 @@
 #ifndef LIBUSERSPACE_STRING
 #define LIBUSERSPACE_STRING
 
-#include <stdint.h>
-
-extern "C"
-const char* strchr(const char*, char);
-
-extern "C"
-uint64_t atoi(const char*);
+#include <muzzle/string.h>
 
 #endif

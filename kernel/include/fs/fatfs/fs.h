@@ -17,11 +17,12 @@
 #ifndef FS_FATFS_FS
 #define FS_FATFS_FS
 
-#include <sys/stdint.h>
-#include <fs/filesystem.h>
-#include <fs/vol/volume.h>
-#include <fatfs/include/ff.h>
-#include <fatfs/include/diskio.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/fs/vol/volume.h>
+
+#include <fatfs/ff.h>
+#include <fatfs/diskio.h>
 
 class FATFileSystem : public Filesystem {
     public:

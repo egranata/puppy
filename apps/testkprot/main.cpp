@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libmuzzle/string.h>
-#include <libmuzzle/stdlib.h>
-#include <exit.h>
-#include <memory.h>
-#include <printf.h>
+#include <muzzle/string.h>
+#include <muzzle/stdlib.h>
+#include <muzzle/getopt.h>
+
+#include <libuserspace/exit.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/printf.h>
 #include <stdint.h>
-#include <libmuzzle/getopt.h>
 
 int main(int argc, char * const argv[]) {
     int ch = -1;

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/ramfs/ramfs.h>
-#include <fs/ramfs/fsobject.h>
-#include <log/log.h>
-#include <libc/memory.h>
-#include <libc/string.h>
+#include <kernel/fs/ramfs/ramfs.h>
+#include <kernel/fs/ramfs/fsobject.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/string.h>
 
 class OpenDirectory : public Filesystem::Directory {
     public:

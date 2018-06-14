@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <nice.h>
-#include <getpid.h>
-#include <syscalls.h>
+#include <libuserspace/getpid.h>
+#include <libuserspace/nice.h>
+#include <libuserspace/syscalls.h>
 
 uint8_t nice(uint16_t pid) {
     auto c = prioritize_syscall(pid, 0);

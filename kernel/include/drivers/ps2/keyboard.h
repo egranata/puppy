@@ -17,7 +17,7 @@
 #ifndef DRIVERS_PS2_KEYBOARD
 #define DRIVERS_PS2_KEYBOARD
 
-#include <drivers/ps2/controller.h>
+#include <kernel/drivers/ps2/controller.h>
 
 class PS2Keyboard : public PS2Controller::Device {
     public:

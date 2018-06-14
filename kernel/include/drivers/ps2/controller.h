@@ -17,7 +17,7 @@
 #ifndef DRIVERS_PS2_CONTROLLER
 #define DRIVERS_PS2_CONTROLLER
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 class PS2Controller {
 public:

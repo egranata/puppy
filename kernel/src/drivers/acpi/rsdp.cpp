@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/acpi/rsdp.h>
-#include <mm/virt.h>
-#include <libc/string.h>
-#include <libc/memory.h>
-#include <libc/mapping.h>
-#include <boot/phase.h>
-#include <log/log.h>
+#include <kernel/drivers/acpi/rsdp.h>
+#include <kernel/mm/virt.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/mapping.h>
+#include <kernel/boot/phase.h>
+#include <kernel/log/log.h>
 
 namespace boot::acpi {
     uint32_t init() {

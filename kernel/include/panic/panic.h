@@ -17,7 +17,7 @@
 #ifndef PANIC_PANIC
 #define PANIC_PANIC
 
-#include <i386/idt.h>
+#include <kernel/i386/idt.h>
 
 extern const char* gPanicReason;
 extern const char* gPanicFile;

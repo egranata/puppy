@@ -563,10 +563,8 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 
 #define DLMALLOC_EXPORT extern "C"
 
-void* memset(void *b, int c, unsigned long int len);
-void* memcpy(void* dst, const void* src, unsigned long int n);
-
-#include <sbrk.h>
+#include <muzzle/string.h>
+#include <libuserspace/sbrk.h>
 
 typedef unsigned long int size_t;
 

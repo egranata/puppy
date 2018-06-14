@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <synch/mutex.h>
-#include <process/manager.h>
-#include <libc/string.h>
-#include <libc/hash.h>
-#include <log/log.h>
+#include <kernel/synch/mutex.h>
+#include <kernel/process/manager.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/hash.h>
+#include <kernel/log/log.h>
 
 Mutex::Mutex(const char* name) {
     mKey = strdup(name);

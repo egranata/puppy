@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #include <stdint.h>
-#include <printf.h>
-#include <file.h>
-#include <exit.h>
-#include <memory.h>
-#include <syscalls.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/file.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/syscalls.h>
 
 static void usage() {
     printf("mount: <device> <path>\n");
@@ -37,4 +37,7 @@ int main(int argc, const char** argv) {
     if (argv[1][0] == '/') ++argv[1];
 
     trymount_syscall(fd, argv[1]);
+
+    return 0;
 }
+

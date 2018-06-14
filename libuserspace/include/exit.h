@@ -20,6 +20,6 @@
 #include <stdint.h>
 
 extern "C"
-void exit(uint8_t);
+void exit(uint8_t) __attribute__((noreturn));
 
 #endif

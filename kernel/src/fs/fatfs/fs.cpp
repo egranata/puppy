@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/fatfs/fs.h>
-#include <panic/panic.h>
-#include <libc/sprint.h>
-#include <log/log.h>
-#include <libc/memory.h>
-#include <libc/string.h>
-#include <libc/deleteptr.h>
+#include <kernel/fs/fatfs/fs.h>
+#include <kernel/panic/panic.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/deleteptr.h>
 
 static uint8_t gNextId() {
     static uint8_t gId = 0;

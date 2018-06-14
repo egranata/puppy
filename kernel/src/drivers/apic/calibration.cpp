@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include <drivers/apic/apic.h>
-#include <drivers/pit/pit.h>
-#include <log/log.h>
-#include <i386/idt.h>
+#include <kernel/drivers/apic/apic.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/log/log.h>
+#include <kernel/i386/idt.h>
 
 static constexpr uint8_t gWantedCycles = 10;
 static_assert(gWantedCycles > 2, "at least 3 cycles required for calibration");

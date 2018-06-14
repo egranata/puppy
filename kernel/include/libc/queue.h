@@ -17,8 +17,8 @@
 #ifndef LIBC_QUEUE
 #define LIBC_QUEUE
 
-#include <sys/stdint.h>
-#include <libc/string.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/string.h>
 
 template<typename T>
 static constexpr T incr(T n, T max, T wrap = 0) {

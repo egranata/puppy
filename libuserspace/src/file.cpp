@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls.h>
-#include <file.h>
+#include <libuserspace/file.h>
+#include <libuserspace/syscalls.h>
 
 extern "C"
 uint32_t open(const char* path, filemode_t mode) {

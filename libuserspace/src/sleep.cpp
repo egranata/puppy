@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sleep.h>
-#include <syscalls.h>
+#include <libuserspace/sleep.h>
+#include <libuserspace/syscalls.h>
 
 extern "C"
 void sleep(unsigned int ms) {

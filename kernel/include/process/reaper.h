@@ -17,7 +17,7 @@
 #ifndef PROCESS_REAPER
 #define PROCESS_REAPER
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 extern "C"
 void reaper(uint32_t exitcode);

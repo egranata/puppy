@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <time.h>
-#include <syscalls.h>
-#include <sysinfo.h>
+#include <libuserspace/time.h>
+#include <libuserspace/syscalls.h>
+#include <libuserspace/sysinfo.h>
 
 extern "C"
 uint64_t uptime() {

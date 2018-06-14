@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <process/manager.h>
-#include <mm/virt.h>
-#include <log/log.h>
-#include <syscalls/types.h>
+#include <kernel/process/manager.h>
+#include <kernel/mm/virt.h>
+#include <kernel/log/log.h>
+#include <kernel/syscalls/types.h>
 
 extern "C"
 void reaper(uint32_t exitword) {

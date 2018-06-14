@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sys/stdint.h>
-#include <sys/globals.h>
-#include <process/manager.h>
-#include <i386/primitives.h>
-#include <libc/memory.h>
-#include <log/log.h>
-#include <panic/panic.h>
-#include <drivers/pit/pit.h>
-#include <libc/slist.h>
-#include <process/process.h>
-#include <mm/virt.h>
-#include <process/fileloader.h>
-#include <process/reaper.h>
-#include <boot/phase.h>
-#include <libc/vec.h>
-#include <synch/semaphoremanager.h>
-#include <synch/mutexmanager.h>
-#include <tasks/scheduler.h>
-#include <tasks/awaker.h>
-#include <tasks/collector.h>
-#include <tasks/deleter.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/globals.h>
+#include <kernel/process/manager.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/memory.h>
+#include <kernel/log/log.h>
+#include <kernel/panic/panic.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/libc/slist.h>
+#include <kernel/process/process.h>
+#include <kernel/mm/virt.h>
+#include <kernel/process/fileloader.h>
+#include <kernel/process/reaper.h>
+#include <kernel/boot/phase.h>
+#include <kernel/libc/vec.h>
+#include <kernel/synch/semaphoremanager.h>
+#include <kernel/synch/mutexmanager.h>
+#include <kernel/tasks/scheduler.h>
+#include <kernel/tasks/awaker.h>
+#include <kernel/tasks/collector.h>
+#include <kernel/tasks/deleter.h>
 
 // this is THE current process information
 process_t *gCurrentProcess;

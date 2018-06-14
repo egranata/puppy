@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 int strncmp(const char *_l, const char *_r, size_t n)
 {

@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fatfs/include/ff.h>
-#include <fs/fatfs/fs.h>
-#include <fs/vol/volume.h>
+#include <fatfs/ff.h>
+
+#include <kernel/fs/fatfs/fs.h>
+#include <kernel/fs/vol/volume.h>
 
 extern "C"
 DSTATUS disk_initialize (FATFS*) {

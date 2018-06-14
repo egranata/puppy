@@ -17,7 +17,7 @@
 #ifndef SYNCH_STORE
 #define SYNCH_STORE
 
-#include <libc/keyedstore.h>
+#include <kernel/libc/keyedstore.h>
 
 template<typename Object>
 class SynchStore : public KeyedStore<Object> {

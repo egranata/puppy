@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <printf.h>
-#include <file.h>
-#include <exit.h>
-#include <memory.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/file.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/memory.h>
 
 const unsigned char* read(uint32_t fd, uint32_t& size) {
     size = 0;

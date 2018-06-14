@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string.h>
-#include <kill.h>
-#include <printf.h>
-#include <exit.h>
+#include <libuserspace/string.h>
+#include <libuserspace/kill.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/exit.h>
+#include <muzzle/stdlib.h>
 
 int main(int argc, const char** argv) {
     if (argc == 0) {

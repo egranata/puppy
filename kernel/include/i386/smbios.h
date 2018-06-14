@@ -17,8 +17,8 @@
 #ifndef I386_SMBIOS
 #define I386_SMBIOS
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 class SMBIOS : NOCOPY {
     public:

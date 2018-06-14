@@ -17,12 +17,12 @@
 #ifndef FS_VFS
 #define FS_VFS
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
-#include <fs/filesystem.h>
-#include <libc/slist.h>
-#include <fs/vol/volume.h>
-#include <libc/pair.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/libc/slist.h>
+#include <kernel/fs/vol/volume.h>
+#include <kernel/libc/pair.h>
 
 class VFS : NOCOPY {
     public:

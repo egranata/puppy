@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <process/manager.h>
-#include <synch/message.h>
-#include <synch/semaphore.h>
-#include <drivers/pit/pit.h>
-#include <process/process.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/process/manager.h>
+#include <kernel/synch/message.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/process/process.h>
 
 HANDLER3(msgsend, destpid, msg1, msg2) {
     auto&& pmm(ProcessManager::get());

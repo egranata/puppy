@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/acpi/madt.h>
-#include <log/log.h>
+#include <kernel/drivers/acpi/madt.h>
+#include <kernel/log/log.h>
 
 madt_entry_header_t* acpi_madt_table_t::madt_header(uint8_t idx) {
     uint8_t* limit = (uint8_t*)this + hdr.len;

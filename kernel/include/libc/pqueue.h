@@ -17,8 +17,8 @@
 #ifndef LIBC_PQUEUE
 #define LIBC_PQUEUE
 
-#include <libc/vec.h>
-#include <libc/swap.h>
+#include <kernel/libc/vec.h>
+#include <kernel/libc/swap.h>
 
 template<typename ArgType, typename Comparator>
 class pqueue {

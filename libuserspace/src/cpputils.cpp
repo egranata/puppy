@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include <cpputils.h>
-#include <memory.h>
-#include <printf.h>
-#include <exit.h>
+#include <libuserspace/cpputils.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/exit.h>
 
 void* operator new(unsigned long size) {
     return malloc(size);

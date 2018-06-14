@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include <test.h>
-#include <assert.h>
-#include <memory.h>
-#include <exit.h>
-#include <clone.h>
-#include <collect.h>
+#include <checkup/test.h>
+#include <checkup/assert.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/clone.h>
+#include <libuserspace/collect.h>
 
 static constexpr int gExitCode = 96;
 

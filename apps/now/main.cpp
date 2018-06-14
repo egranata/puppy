@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <printf.h>
-#include <time.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/time.h>
 
 static bool leap(uint16_t year) {
     if (0 != (year % 4)) return false;

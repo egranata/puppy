@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/initrd/file.h>
-#include <libc/memory.h>
+#include <kernel/fs/initrd/file.h>
+#include <kernel/libc/memory.h>
 
 bool InitrdFile::seek(size_t) {
     return false;

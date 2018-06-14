@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <tasks/deleter.h>
-#include <process/manager.h>
-#include <process/current.h>
-#include <drivers/pit/pit.h>
-#include <mm/phys.h>
-#include <mm/virt.h>
-#include <sys/globals.h>
+#include <kernel/tasks/deleter.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/current.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/mm/phys.h>
+#include <kernel/mm/virt.h>
+#include <kernel/sys/globals.h>
 
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 namespace tasks::deleter {
     void task() {

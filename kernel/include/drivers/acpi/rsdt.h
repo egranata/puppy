@@ -17,12 +17,12 @@
 #ifndef DRIVERS_ACPI_RSDT
 #define DRIVERS_ACPI_RSDT
 
-#include <drivers/acpi/tablehdr.h>
-#include <drivers/acpi/table.h>
-#include <drivers/acpi/fadt.h>
-#include <drivers/acpi/madt.h>
+#include <kernel/drivers/acpi/tablehdr.h>
+#include <kernel/drivers/acpi/table.h>
+#include <kernel/drivers/acpi/fadt.h>
+#include <kernel/drivers/acpi/madt.h>
 
-#include <sys/nocopy.h>
+#include <kernel/sys/nocopy.h>
 
 class RSDT : NOCOPY {
     public:

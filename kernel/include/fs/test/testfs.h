@@ -17,9 +17,9 @@
 #ifndef FS_TEST_TESTFS
 #define FS_TEST_TESTFS
 
-#include <fs/filesystem.h>
-#include <fs/ramfs/ramfs.h>
-#include <libc/deleteptr.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/fs/ramfs/ramfs.h>
+#include <kernel/libc/deleteptr.h>
 
 // A test filesystem
 class TestFS : public Filesystem {

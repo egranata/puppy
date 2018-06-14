@@ -18,16 +18,14 @@
 #define LIBUSERSPACE_MEMORY
 
 #include <stdint.h>
+#include <stddef.h>
+#include <muzzle/string.h>
 
 extern "C"
 void* malloc(unsigned long int size);
 
 extern "C"
 void free(void* ptr);
-
-void* memset(void *b, int c, unsigned long int len);
-
-void* memcpy(void* dst, const void* src, unsigned long int n);
 
 struct meminfo_t {
     uint32_t total;

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sema.h>
-#include <printf.h>
-#include <getpid.h>
+#include <libuserspace/sema.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/getpid.h>
 
 void waitForSema(const char* key) {
     Semaphore sema(key);

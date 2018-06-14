@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mutex.h>
-#include <syscalls.h>
+#include <libuserspace/mutex.h>
+#include <libuserspace/syscalls.h>
 
 Mutex::Mutex(const char* key) {
     mHandle = mutexget_syscall((uint32_t)key) >> 1;

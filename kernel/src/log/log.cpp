@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <log/log.h>
-#include <libc/sprint.h>
-#include <drivers/serial/serial.h>
-#include <drivers/pit/pit.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/drivers/serial/serial.h>
+#include <kernel/drivers/pit/pit.h>
 
 void logimpl(const char* filename, size_t line, const char* msg, va_list args) {
     char gBuffer[1027] = {0};

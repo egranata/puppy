@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_SBRK
 #define LIBUSERSPACE_SBRK
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 extern uint8_t *gSbrkPointer;
 

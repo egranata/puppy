@@ -17,9 +17,9 @@
 #ifndef BOOT_BOOTINFO
 #define BOOT_BOOTINFO
 
-#include <sys/nocopy.h>
-#include <sys/stdint.h>
-#include <boot/multiboot.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/boot/multiboot.h>
 
 struct framebuf_info_t : NOCOPY {
     uint16_t width;

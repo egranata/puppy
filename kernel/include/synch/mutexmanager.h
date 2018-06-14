@@ -17,9 +17,9 @@
 #ifndef SYNCH_MUTEXMANAGER
 #define SYNCH_MUTEXMANAGER
 
-#include <synch/mutex.h>
-#include <synch/manager.h>
-#include <synch/store.h>
+#include <kernel/synch/mutex.h>
+#include <kernel/synch/manager.h>
+#include <kernel/synch/store.h>
 
 class MutexStore : public SynchStore<Mutex> {
     public:

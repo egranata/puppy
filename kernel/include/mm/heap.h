@@ -17,8 +17,8 @@
 #ifndef MM_HEAP
 #define MM_HEAP
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
 
 class Heap : NOCOPY {
     public:

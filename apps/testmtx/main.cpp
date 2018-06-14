@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libmuzzle/string.h>
 #include <stdint.h>
-#include <printf.h>
-#include <exit.h>
-#include <mutex.h>
-#include <sleep.h>
-#include <getpid.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/mutex.h>
+#include <libuserspace/sleep.h>
+#include <libuserspace/getpid.h>
+#include <muzzle/string.h>
 
 void error() {
     printf("syntax: testmutex <path>\n");

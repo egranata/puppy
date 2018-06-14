@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mm/heap.h>
-#include <mm/virt.h>
+#include <kernel/mm/heap.h>
+#include <kernel/mm/virt.h>
 
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 Heap::Heap(uintptr_t low, uintptr_t high) : mRange({low, high}), mCurrent(low) {}
 Heap::Heap(Heap::range_t range) : mRange(range), mCurrent(range.low) {}

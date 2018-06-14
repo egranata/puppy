@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <process/current.h>
-#include <mm/memmgr.h>
-#include <mm/virt.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/process/current.h>
+#include <kernel/mm/memmgr.h>
+#include <kernel/mm/virt.h>
 
 syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {
     // only regions that are multiple of the page size can be mapped

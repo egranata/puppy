@@ -17,7 +17,7 @@
 #ifndef PROCESS_ELF
 #define PROCESS_ELF
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct elf_header_t;
 

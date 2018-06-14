@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/backtrace.h>
-#include <mm/virt.h>
+#include <kernel/i386/backtrace.h>
+#include <kernel/mm/virt.h>
 
 void Backtrace::backtrace(const GPR& gpr, callback f, size_t depth) {
     auto&& vmm(VirtualPageManager::get());

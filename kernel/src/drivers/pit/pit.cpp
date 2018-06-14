@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pit/pit.h>
-#include <i386/primitives.h>
-#include <i386/idt.h>
-#include <drivers/pic/pic.h>
-#include <process/manager.h>
-#include <mm/virt.h>
-#include <log/log.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/i386/idt.h>
+#include <kernel/drivers/pic/pic.h>
+#include <kernel/process/manager.h>
+#include <kernel/mm/virt.h>
+#include <kernel/log/log.h>
 
 namespace boot::pit {
         uint32_t init() {

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/framebuffer/fb.h>
-#include <log/log.h>
-#include <mm/virt.h>
-#include <libc/memory.h>
-#include <libc/string.h>
+#include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/log/log.h>
+#include <kernel/mm/virt.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/string.h>
 
 #include "font.cpp"
 

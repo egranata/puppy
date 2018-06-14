@@ -17,12 +17,12 @@
 #ifndef TTY_TTY
 #define TTY_TTY
 
-#include <sys/stdint.h>
-#include <synch/semaphore.h>
-#include <libc/queue.h>
-#include <libc/atomic.h>
-#include <libc/fixstack.h>
-#include <drivers/framebuffer/fb.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/synch/semaphore.h>
+#include <kernel/libc/queue.h>
+#include <kernel/libc/atomic.h>
+#include <kernel/libc/fixstack.h>
+#include <kernel/drivers/framebuffer/fb.h>
 
 class TTY {
     public:

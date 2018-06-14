@@ -17,8 +17,8 @@
 #ifndef FS_VOL_PTABLE
 #define FS_VOL_PTABLE
 
-#include <sys/stdint.h>
-#include <libc/pair.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/pair.h>
 
 struct diskpart_t {
     static constexpr uint16_t gPartitionOffset(uint8_t part) {

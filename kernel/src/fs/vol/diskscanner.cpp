@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/vol/diskscanner.h>
-#include <log/log.h>
-#include <fs/vol/ptable.h>
+#include <kernel/fs/vol/diskscanner.h>
+#include <kernel/log/log.h>
+#include <kernel/fs/vol/ptable.h>
 
 DiskScanner::DiskScanner(IDEController* ide) : mDiskController(ide) {}
 

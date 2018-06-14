@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls.h>
+#include <libuserspace/syscalls.h>
 
 int main() {
     reboot_syscall();
+    __builtin_unreachable();
 }

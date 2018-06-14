@@ -16,13 +16,13 @@
 
 #define NALLOC 1024
 
-#include <sys/stdint.h>
-#include <libc/string.h>
-#include <libc/memory.h>
-#include <mm/virt.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
+#include <kernel/mm/virt.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 #define sbrk(x) (char*)VirtualPageManager::get().ksbrk(x)
 

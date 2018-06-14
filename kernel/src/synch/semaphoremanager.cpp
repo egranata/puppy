@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <synch/semaphoremanager.h>
-#include <synch/store.h>
-#include <log/log.h>
+#include <kernel/synch/semaphoremanager.h>
+#include <kernel/synch/store.h>
+#include <kernel/log/log.h>
 
 Semaphore* SemaphoreStore::getOrMake(const char* key) {
     return KeyedStore::getOrMake(key, 0, 1);

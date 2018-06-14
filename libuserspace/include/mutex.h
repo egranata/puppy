@@ -17,7 +17,7 @@
 #ifndef LIBUSERSPACE_MUTEX
 #define LIBUSERSPACE_MUTEX
 
-#include <sys/stdint.h>
+#include <stdint.h>
 
 class Mutex {
     public:

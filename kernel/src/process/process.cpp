@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <process/process.h>
+#include <kernel/process/process.h>
 
 process_t::process_t() : tss(), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;

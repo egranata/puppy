@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <process/fileloader.h>
-#include <process/elf.h>
-#include <log/log.h>
-#include <process/current.h>
-#include <mm/virt.h>
-#include <fs/vfs.h>
-#include <fs/filesystem.h>
-#include <libc/memory.h>
-#include <libc/bytesizes.h>
-#include <i386/primitives.h>
-#include <tty/tty.h>
-#include <process/reaper.h>
-#include <libc/bytesizes.h>
-#include <libc/bytesizes.h>
-#include <syscalls/types.h>
+#include <kernel/process/fileloader.h>
+#include <kernel/process/elf.h>
+#include <kernel/log/log.h>
+#include <kernel/process/current.h>
+#include <kernel/mm/virt.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/fs/filesystem.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/bytesizes.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/tty/tty.h>
+#include <kernel/process/reaper.h>
+#include <kernel/libc/bytesizes.h>
+#include <kernel/libc/bytesizes.h>
+#include <kernel/syscalls/types.h>
 
 static constexpr uintptr_t gStackSize = 4_MB;
 

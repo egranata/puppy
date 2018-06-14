@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sys/globals.h>
-#include <log/log.h>
-#include <boot/phase.h>
-#include <boot/earlyboot.h>
-#include <mm/phys.h>
-#include <panic/panic.h>
-#include <process/task0.h>
+#include <kernel/sys/globals.h>
+#include <kernel/log/log.h>
+#include <kernel/boot/phase.h>
+#include <kernel/boot/earlyboot.h>
+#include <kernel/mm/phys.h>
+#include <kernel/panic/panic.h>
+#include <kernel/process/task0.h>
 
 static void _runGlobalConstructors() {
 	typedef void(**ctorf)();

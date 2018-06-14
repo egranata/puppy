@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include <features.h>
+#include <muzzle/features.h>
 
 int   isalnum(int);
 int   isalpha(int);
@@ -42,7 +42,7 @@ static __inline int __isspace(int _c)
  || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
  || defined(_BSD_SOURCE)
 
-#include <bits/alltypes.h>
+#include <muzzle/bits/alltypes.h>
 
 int   isascii(int);
 int   toascii(int);

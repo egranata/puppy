@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/vol/ptable.h>
-#include <fs/fatfs/trymount.h>
+#include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/fatfs/trymount.h>
 
 fs_ident_t gKnownFilesystemTypes[] = {
     {0x00, "empty", nullptr},

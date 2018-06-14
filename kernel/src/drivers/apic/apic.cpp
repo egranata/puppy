@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include <drivers/apic/apic.h>
-#include <log/log.h>
-#include <i386/cpuid.h>
-#include <i386/primitives.h>
-#include <mm/virt.h>
-#include <i386/idt.h>
-#include <panic/panic.h>
-#include <boot/phase.h>
+#include <kernel/drivers/apic/apic.h>
+#include <kernel/log/log.h>
+#include <kernel/i386/cpuid.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/mm/virt.h>
+#include <kernel/i386/idt.h>
+#include <kernel/panic/panic.h>
+#include <kernel/boot/phase.h>
 
 namespace boot::apic {
         uint32_t init() {

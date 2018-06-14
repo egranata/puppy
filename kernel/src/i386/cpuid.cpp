@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/cpuid.h>
-#include <i386/primitives.h>
-#include <libc/string.h>
-#include <libc/memory.h>
+#include <kernel/i386/cpuid.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
 
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 CPUID& CPUID::get() {
     static CPUID gID;
@@ -71,7 +71,7 @@ CPUID::CPUID() {
     #define CPU_FEATURE(name, reg, bit) mFeatures. name = (0 != (reg & (1 << bit)));
 
     #define SELECT 1
-    #include <i386/features.tbl>
+    #include <kernel/i386/features.tbl>
     #undef SELECT
 
     #undef CPU_FEATURE

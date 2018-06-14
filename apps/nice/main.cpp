@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string.h>
-#include <nice.h>
-#include <printf.h>
-#include <exit.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/nice.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/string.h>
+
+#include <muzzle/stdlib.h>
 
 int getnice(const char *spid) {
     auto pid = (uint16_t)atoi(spid);

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <printf.h>
-#include <memory.h>
-#include <exit.h>
-#include <sysinfo.h>
+#include <libuserspace/printf.h>
+#include <libuserspace/memory.h>
+#include <libuserspace/exit.h>
+#include <libuserspace/sysinfo.h>
 
 void test(uint32_t* ptr, uint32_t value) {
     *ptr = value;

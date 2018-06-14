@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mm/memmgr.h>
-#include <log/log.h>
-#include <process/process.h>
+#include <kernel/mm/memmgr.h>
+#include <kernel/log/log.h>
+#include <kernel/process/process.h>
 
 static constexpr uintptr_t gKernelInitial = 0xC0000000;
 static constexpr uintptr_t gKernelFinal =   0xFFFFFFFF;

@@ -1,5 +1,5 @@
 #define _GNU_SOURCE
-#include <string.h>
+#include <muzzle/string.h>
 
 char *strsep(char **str, const char *sep)
 {

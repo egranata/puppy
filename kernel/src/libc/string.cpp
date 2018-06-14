@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/string.h>
-#include <libc/memory.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
 
 extern "C"
 char* strdup(const char* str) {

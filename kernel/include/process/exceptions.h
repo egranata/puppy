@@ -17,7 +17,7 @@
 #ifndef PROCESS_EXCEPTIONS
 #define PROCESS_EXCEPTIONS
 
-#include <i386/idt.h>
+#include <kernel/i386/idt.h>
 
 extern "C"
 void rettokiller();

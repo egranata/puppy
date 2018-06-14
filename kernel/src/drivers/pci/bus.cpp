@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/pci/bus.h>
-#include <drivers/pci/ide.h>
-#include <i386/primitives.h>
-#include <log/log.h>
-#include <drivers/framebuffer/fb.h>
-#include <libc/sprint.h>
-#include <drivers/pit/pit.h>
-#include <boot/phase.h>
+#include <kernel/drivers/pci/bus.h>
+#include <kernel/drivers/pci/ide.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/log/log.h>
+#include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/drivers/pit/pit.h>
+#include <kernel/boot/phase.h>
 
 namespace boot::pci {
     uint32_t init() {

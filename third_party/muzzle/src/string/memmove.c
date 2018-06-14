@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 #include <stdint.h>
 
 #define WT size_t

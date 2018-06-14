@@ -1,6 +1,6 @@
-#include <strings.h>
-#include <ctype.h>
-#include "libc.h"
+#include <muzzle/strings.h>
+#include <muzzle/ctype.h>
+#include <muzzle/libc.h>
 
 int strncasecmp(const char *_l, const char *_r, size_t n)
 {

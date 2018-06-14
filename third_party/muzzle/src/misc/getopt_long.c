@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
-#include <getopt.h>
-#include <string.h>
+#include <muzzle/getopt.h>
+#include <muzzle/string.h>
 
 extern int __optpos, __optreset;
 

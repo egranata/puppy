@@ -17,7 +17,7 @@
 #ifndef LIBC_STR
 #define LIBC_STR
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 class string {
     public:

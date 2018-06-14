@@ -1,6 +1,6 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
-#include <string.h>
+#include <muzzle/string.h>
 #include <stdint.h>
 
 static char *twobyte_strstr(const unsigned char *h, const unsigned char *n)

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 char *strtok(char *restrict s, const char *restrict sep)
 {

@@ -18,7 +18,7 @@
 #define LIBUSERSPACE_CLONE
 
 #include <stdint.h>
-#include <syscalls/types.h>
+#include <kernel/syscalls/types.h>
 
 uint16_t clone(void(*f)());
 

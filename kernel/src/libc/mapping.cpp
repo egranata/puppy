@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libc/mapping.h>
-#include <mm/virt.h>
+#include <kernel/libc/mapping.h>
+#include <kernel/mm/virt.h>
 
 Mapping::Mapping(uintptr_t base, size_t len) : mBase(base) {
     auto& vm(VirtualPageManager::get());

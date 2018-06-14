@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/primitives.h>
-#include <log/log.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/log/log.h>
 
 namespace boot::i386 {
     uint32_t init() {

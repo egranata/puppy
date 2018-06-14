@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <muzzle/stdlib.h>
 
 int abs(int a)
 {

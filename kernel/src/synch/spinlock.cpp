@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <synch/spinlock.h>
+#include <kernel/synch/spinlock.h>
 
 spinlock::spinlock() : mLock(0) {}
 

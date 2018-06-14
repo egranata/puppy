@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <i386/smbios.h>
-#include <mm/virt.h>
-#include <log/log.h>
-#include <sys/unions.h>
-#include <libc/memory.h>
-#include <libc/string.h>
-#include <libc/mapping.h>
-#include <boot/phase.h>
+#include <kernel/i386/smbios.h>
+#include <kernel/mm/virt.h>
+#include <kernel/log/log.h>
+#include <kernel/sys/unions.h>
+#include <kernel/libc/memory.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/mapping.h>
+#include <kernel/boot/phase.h>
 
 namespace boot::smbios {
     uint32_t init() {

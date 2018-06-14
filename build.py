@@ -29,7 +29,7 @@ print("Building OS image from %s" % MYPATH)
 
 BUILD_START = time.time()
 
-BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Wno-main -Werror -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
+BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Wno-main -Werror -Wno-error=format -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
 BASIC_CPPFLAGS = " -std=c++14 -fno-exceptions -fno-rtti "
 BASIC_ASFLAGS = "-f elf"
 BASIC_LDFLAGS = ""
@@ -222,7 +222,7 @@ class Project(object):
 
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
-    cflags=BASIC_CFLAGS + " -Ithird_party/fatfs/include", 
+    cflags=BASIC_CFLAGS + " -Iinclude", 
     cppflags=BASIC_CPPFLAGS,
     asmflags=BASIC_ASFLAGS,
     ldflags="-ffreestanding -nostdlib",
@@ -231,8 +231,8 @@ FatFS.link = FatFS.linkAr
 
 Muzzle = Project(name="Muzzle",
     srcdir="third_party/muzzle/src",
-    cflags=BASIC_CFLAGS + " -Ithird_party/muzzle/include",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ithird_party/muzzle/include",
+    cflags=BASIC_CFLAGS + " -Iinclude",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
     asmflags="-nostartfiles -nodefaultlibs -Wall -Wextra -fdiagnostics-color=always -nostdlib -c",
     ldflags="-ffreestanding -nostdlib",
     assembler="i686-elf-gcc")
@@ -240,8 +240,8 @@ Muzzle.link = Muzzle.linkAr
 
 Kernel = Project(name="Kernel",
     srcdir="kernel/src",
-    cflags=BASIC_CFLAGS + " -mgeneral-regs-only -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/libmuzzle -Ithird_party",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -mgeneral-regs-only -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/libmuzzle -Ithird_party",
+    cflags=BASIC_CFLAGS + " -mgeneral-regs-only -Iinclude",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -mgeneral-regs-only -Iinclude",
     asmflags="-f elf",
     ldflags="-T build/linker.ld -ffreestanding -nostdlib",
     assembler="nasm",
@@ -250,8 +250,8 @@ Kernel.link = Kernel.linkGcc
 
 Userspace = Project(name="Userspace",
     srcdir="libuserspace/src",
-    cflags=BASIC_CFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
+    cflags=BASIC_CFLAGS + " -Iinclude",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
     asmflags="-f elf",
     ldflags="-ffreestanding -nostdlib",
     assembler="nasm",
@@ -260,8 +260,8 @@ Userspace.link = Userspace.linkAr
 
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
-    cflags=BASIC_CFLAGS + " -Icheckup/include -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Icheckup/include -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
+    cflags=BASIC_CFLAGS + " -Iinclude",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
     asmflags="-f elf",
     ldflags="-ffreestanding -nostdlib",
     assembler="nasm",
@@ -294,8 +294,8 @@ APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
     app_p = Project(name = os.path.basename(app),
                     srcdir = app,
-                    cflags = BASIC_CFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
-                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include",
+                    cflags = BASIC_CFLAGS + " -Iinclude",
+                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
                     asmflags = "-f elf",
                     ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry",
                     assembler="nasm",
@@ -312,8 +312,8 @@ TEST_DIRS = findSubdirectories("tests", self=False)
 for test in TEST_DIRS:
     test_p = Project(name = os.path.basename(test),
                     srcdir = test,
-                    cflags = BASIC_CFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include -Icheckup/include",
-                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Ilibuserspace/include -Ikernel/include -Ithird_party/muzzle -Ithird_party/muzzle/include -Icheckup/include",
+                    cflags = BASIC_CFLAGS + " -Iinclude",
+                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
                     asmflags = "-f elf",
                     ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry -Wl,--as-needed",
                     assembler="nasm",

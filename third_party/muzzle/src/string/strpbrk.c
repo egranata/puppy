@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 char *strpbrk(const char *s, const char *b)
 {

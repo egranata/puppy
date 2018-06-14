@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/fatfs/trymount.h>
-#include <log/log.h>
-#include <fs/fatfs/fs.h>
-#include <fs/vfs.h>
-#include <libc/sprint.h>
-#include <libc/string.h>
+#include <kernel/fs/fatfs/trymount.h>
+#include <kernel/log/log.h>
+#include <kernel/fs/fatfs/fs.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/libc/string.h>
 
 namespace {
     struct ebr16_t {

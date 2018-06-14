@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boot/bootinfo.h>
-#include <sys/unions.h>
-#include <libc/string.h>
+#include <kernel/boot/bootinfo.h>
+#include <kernel/sys/unions.h>
+#include <kernel/libc/string.h>
 
 framebuf_info_t::framebuf_info_t(const multiboot_info& mbi) {
     width = mbi.framebuffer_width;

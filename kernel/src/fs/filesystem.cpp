@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/filesystem.h>
+#include <kernel/fs/filesystem.h>
 
 Filesystem::FilesystemObject::FilesystemObject(kind_t kind) : mKind(kind) {}
 

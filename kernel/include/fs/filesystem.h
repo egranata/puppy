@@ -17,9 +17,9 @@
 #ifndef VFS_FILESYSTEM
 #define VFS_FILESYSTEM
 
-#include <sys/stdint.h>
-#include <libc/str.h>
-#include <syscalls/types.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/libc/str.h>
+#include <kernel/syscalls/types.h>
 
 class Filesystem {
     public:

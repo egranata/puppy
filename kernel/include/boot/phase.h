@@ -17,7 +17,7 @@
 #ifndef BOOT_PHASE
 #define BOOT_PHASE
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct bootphase_t {
     static constexpr uint8_t gSuccess = 0;

@@ -1,5 +1,5 @@
-#include <string.h>
-#include <libc.h>
+#include <muzzle/string.h>
+#include <muzzle/libc.h>
 
 void *__memrchr(const void *m, int c, size_t n)
 {

@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <drivers/framebuffer/fb.h>
-#include <drivers/serial/serial.h>
-#include <panic/panic.h>
-#include <i386/primitives.h>
-#include <libc/string.h>
-#include <log/log.h>
-#include <mm/virt.h>
-#include <i386/backtrace.h>
-#include <process/dumperror.h>
+#include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/drivers/serial/serial.h>
+#include <kernel/panic/panic.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/string.h>
+#include <kernel/log/log.h>
+#include <kernel/mm/virt.h>
+#include <kernel/i386/backtrace.h>
+#include <kernel/process/dumperror.h>
 
 const char* gPanicReason = nullptr;
 const char* gPanicFile = nullptr;

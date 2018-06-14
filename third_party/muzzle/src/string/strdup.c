@@ -1,6 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
-#include "libc.h"
+#include <muzzle/stdlib.h>
+#include <muzzle/string.h>
+#include <muzzle/libc.h>
 
 char *__strdup(const char *s)
 {

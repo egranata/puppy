@@ -17,11 +17,11 @@
 #ifndef MM_MEMMGR
 #define MM_MEMMGR
 
-#include <sys/stdint.h>
-#include <sys/nocopy.h>
-#include <libc/intervals.h>
-#include <libc/interval.h>
-#include <mm/virt.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/libc/intervals.h>
+#include <kernel/libc/interval.h>
+#include <kernel/mm/virt.h>
 
 struct process_t;
 

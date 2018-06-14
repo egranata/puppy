@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fs/vfs.h>
-#include <log/log.h>
-#include <libc/string.h>
-#include <libc/memory.h>
-#include <fs/vol/ptable.h>
-#include <boot/phase.h>
-#include <fs/test/testfs.h>
-#include <fs/initrd/fs.h>
-#include <boot/bootinfo.h>
-#include <fs/devfs/devfs.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/log/log.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
+#include <kernel/fs/vol/ptable.h>
+#include <kernel/boot/phase.h>
+#include <kernel/fs/test/testfs.h>
+#include <kernel/fs/initrd/fs.h>
+#include <kernel/boot/bootinfo.h>
+#include <kernel/fs/devfs/devfs.h>
 
 namespace boot::vfs {
     uint32_t init() {

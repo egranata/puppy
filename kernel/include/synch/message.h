@@ -17,7 +17,7 @@
 #ifndef SYNCH_MESSAGE
 #define SYNCH_MESSAGE
 
-#include <sys/stdint.h>
+#include <kernel/sys/stdint.h>
 
 struct message_t {
     uint64_t time;

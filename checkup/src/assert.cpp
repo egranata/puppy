@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <assert.h>
-#include <failure.h>
+#include <checkup/assert.h>
+#include <checkup/failure.h>
 
 void __do_check(bool ok, const char* name, const char* file, int line, const char* condition) {
     if (ok) return;

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 void *__memrchr(const void *, int, size_t);
 

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <muzzle/string.h>
 
 char *strcat(char *restrict dest, const char *restrict src)
 {

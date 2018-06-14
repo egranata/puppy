@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <process/exceptions.h>
-#include <process/manager.h>
-#include <process/process.h>
-#include <drivers/framebuffer/fb.h>
-#include <i386/idt.h>
-#include <libc/sprint.h>
-#include <mm/virt.h>
-#include <panic/panic.h>
-#include <i386/primitives.h>
-#include <log/log.h>
-#include <i386/backtrace.h>
-#include <mm/pagefault.h>
-#include <process/reaper.h>
-#include <process/dumperror.h>
+#include <kernel/process/exceptions.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/process.h>
+#include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/i386/idt.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/mm/virt.h>
+#include <kernel/panic/panic.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/log/log.h>
+#include <kernel/i386/backtrace.h>
+#include <kernel/mm/pagefault.h>
+#include <kernel/process/reaper.h>
+#include <kernel/process/dumperror.h>
 
 extern "C"
 void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {

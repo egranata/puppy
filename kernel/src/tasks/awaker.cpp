@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <tasks/awaker.h>
-#include <process/manager.h>
-#include <process/current.h>
-#include <drivers/pit/pit.h>
+#include <kernel/tasks/awaker.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/current.h>
+#include <kernel/drivers/pit/pit.h>
 
 #define LOG_NODEBUG
-#include <log/log.h>
+#include <kernel/log/log.h>
 
 namespace tasks::awaker {    
     void task() {

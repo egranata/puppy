@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <syscalls/handlers.h>
-#include <process/manager.h>
-#include <process/reaper.h>
-#include <log/log.h>
-#include <mm/virt.h>
-#include <libc/string.h>
-#include <process/process.h>
-#include <process/manager.h>
-#include <tty/tty.h>
-#include <libc/math.h>
-#include <syscalls/types.h>
+#include <kernel/syscalls/handlers.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/reaper.h>
+#include <kernel/log/log.h>
+#include <kernel/mm/virt.h>
+#include <kernel/libc/string.h>
+#include <kernel/process/process.h>
+#include <kernel/process/manager.h>
+#include <kernel/tty/tty.h>
+#include <kernel/libc/math.h>
+#include <kernel/syscalls/types.h>
 
 HANDLER0(yield) {
     ProcessManager::get().yield();
