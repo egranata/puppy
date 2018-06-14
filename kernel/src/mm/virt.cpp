@@ -21,6 +21,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/process/current.h>
 #include <kernel/libc/memory.h>
+#include <kernel/libc/bitmask.h>
 
 #define LOG_NODEBUG
 #include <kernel/log/log.h>
@@ -32,6 +33,9 @@ static constexpr uint32_t gWritableBit = 0x2;
 static constexpr uint32_t gUserBit = 0x4;
 static constexpr uint32_t gGlobalBit = 0x100;
 static constexpr uint32_t gNewPhysicalPageBit = 0x200;
+
+static constexpr uint32_t gFlagsBitmask = bitmask<0,11>();
+static_assert(gFlagsBitmask == 0xFFF);
 
 VirtualPageManager::DirectoryEntry* VirtualPageManager::gPageDirectory = (DirectoryEntry*)gPageDirectoryAddress;
 
@@ -79,7 +83,7 @@ uintptr_t VirtualPageManager::DirectoryEntry::table() {
 }
 
 void VirtualPageManager::DirectoryEntry::table(uintptr_t value) {
-    mValue &= 0xFFF;
+    mValue &= gFlagsBitmask;
 	mValue |= (value & 0xFFFFF000);
 }
 
@@ -115,7 +119,7 @@ uintptr_t VirtualPageManager::TableEntry::page() {
 }
 
 void VirtualPageManager::TableEntry::page(uintptr_t value) {
-    mValue &= 0xFFF;
+    mValue &= gFlagsBitmask;
 	mValue |= (value & 0xFFFFF000);
 }
 
@@ -497,7 +501,7 @@ uintptr_t VirtualPageManager::cloneAddressSpace() {
 
 	PagingIndices indices(0x0);
 	for (auto i = 0u; i < 768u; ++i) {
-		auto pPageTbl = pageDir[i] & ~0xFFF;
+		auto pPageTbl = pageDir[i] & ~gFlagsBitmask;
 		auto pageTblScratch = getScratchPage(pPageTbl, table_options);
 		uint32_t *pageTbl = pageTblScratch.get<uint32_t>();
 
