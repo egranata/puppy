@@ -15,6 +15,9 @@
 #include <kernel/boot/phase.h>
 
 namespace boot {
+    namespace config {
+        uint32_t init();
+    }
     namespace info {
         uint32_t init();
     }
@@ -72,6 +75,14 @@ namespace boot {
 }
 
 __attribute__((constructor)) void loadBootPhases() {
+    registerBootPhase(bootphase_t{
+        description : "Parse Kernel Commandline",
+        visible : false,
+        operation : boot::config::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
     registerBootPhase(bootphase_t{
         description : "Print System Info",
         visible : false,

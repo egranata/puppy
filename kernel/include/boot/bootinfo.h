@@ -32,7 +32,10 @@ struct framebuf_info_t : NOCOPY {
 };
 
 struct kernel_cmdline_t : NOCOPY {
-    uint8_t cmdline[1024] = {0};
+    static constexpr size_t gCmdlineMaxSize = 1024;
+
+    char cmdline[gCmdlineMaxSize] = {0};
+    size_t actualSize;
 
     size_t fill(uintptr_t cmdptr);
 };

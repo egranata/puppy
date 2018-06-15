@@ -48,5 +48,5 @@ size_t kernel_cmdline_t::fill(uintptr_t arg) {
         cmdline[copied++] = *cp++;
     }
 
-    return copied ? copied - 1 : copied;
+    return actualSize = (copied ? (copied - 1) : copied);
 }

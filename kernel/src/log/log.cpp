@@ -16,8 +16,12 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/drivers/serial/serial.h>
 #include <kernel/drivers/pit/pit.h>
+#include <kernel/sys/config.h>
 
 void logimpl(const char* filename, size_t line, const char* msg, va_list args) {
+    if (gKernelConfiguration()->logging.value == kernel_config_t::config_logging::gNoLogging)
+        return;
+
     char gBuffer[1027] = {0};
 
     size_t idx = sprint(gBuffer, 1024, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
@@ -27,4 +31,3 @@ void logimpl(const char* filename, size_t line, const char* msg, va_list args) {
     // TODO write somewhere other than COM1
     Serial::get().write(gBuffer);
 }
-
