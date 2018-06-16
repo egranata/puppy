@@ -160,7 +160,7 @@ class _BuildCpp(object):
 THE_POOL = Pool(5)
 
 class Project(object):
-    def __init__(self, name, srcdir, cflags, cppflags, asmflags, ldflags, assembler="nasm", linkerdeps=None, outwhere="out"):
+    def __init__(self, name, srcdir, cflags, cppflags, asmflags, ldflags, ipaths=None, assembler="nasm", linkerdeps=None, outwhere="out", announce=True):
         self.name = name
         self.srcdir = srcdir
         self.cflags = cflags
@@ -168,8 +168,12 @@ class Project(object):
         self.asmflags = asmflags
         self.assembler = assembler
         self.ldflags = ldflags
+        self.ipaths = ipaths if ipaths else ["include"]
         self.linkerdeps = linkerdeps if linkerdeps else []
         self.outwhere = outwhere
+        self.announce = announce
+        self.cflags = self.cflags + " %s " % ' '.join([" -I%s " % x for x in self.ipaths])
+        self.cppflags = self.cppflags + " %s " % ' '.join([" -I%s " % x for x in self.ipaths])
 
     def findCFiles(self):
         return findAll(self.srcdir, "c")
@@ -210,20 +214,20 @@ class Project(object):
         pass
     
     def build(self):
-        print("Building %s" % self.name)
+        if self.announce: print("Building %s" % self.name)
         BEGIN = time.time()
         DEST = self.link(self.compile())
         END = time.time()
         DURATION = int(END - BEGIN)
         if DURATION > 0:
-            print("Duration: %s seconds" % DURATION)
-        print("Output size: %s bytes" % (os.stat(DEST).st_size))
+            if self.announce: print("Duration: %s seconds" % DURATION)
+        if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
-    cflags=BASIC_CFLAGS + " -Iinclude", 
-    cppflags=BASIC_CPPFLAGS,
+    cflags=BASIC_CFLAGS, 
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
     asmflags=BASIC_ASFLAGS,
     ldflags="-ffreestanding -nostdlib",
     assembler="nasm")
@@ -231,8 +235,8 @@ FatFS.link = FatFS.linkAr
 
 Muzzle = Project(name="Muzzle",
     srcdir="third_party/muzzle/src",
-    cflags=BASIC_CFLAGS + " -Iinclude",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
+    cflags=BASIC_CFLAGS,
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
     asmflags="-nostartfiles -nodefaultlibs -Wall -Wextra -fdiagnostics-color=always -nostdlib -c",
     ldflags="-ffreestanding -nostdlib",
     assembler="i686-elf-gcc")
@@ -240,8 +244,8 @@ Muzzle.link = Muzzle.linkAr
 
 Kernel = Project(name="Kernel",
     srcdir="kernel/src",
-    cflags=BASIC_CFLAGS + " -mgeneral-regs-only -Iinclude",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -mgeneral-regs-only -Iinclude",
+    cflags=BASIC_CFLAGS + " -mgeneral-regs-only",
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -mgeneral-regs-only",
     asmflags="-f elf",
     ldflags="-T build/linker.ld -ffreestanding -nostdlib",
     assembler="nasm",
@@ -250,8 +254,8 @@ Kernel.link = Kernel.linkGcc
 
 Userspace = Project(name="Userspace",
     srcdir="libuserspace/src",
-    cflags=BASIC_CFLAGS + " -Iinclude",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
+    cflags=BASIC_CFLAGS,
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
     asmflags="-f elf",
     ldflags="-ffreestanding -nostdlib",
     assembler="nasm",
@@ -260,8 +264,8 @@ Userspace.link = Userspace.linkAr
 
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
-    cflags=BASIC_CFLAGS + " -Iinclude",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
+    cflags=BASIC_CFLAGS,
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
     asmflags="-f elf",
     ldflags="-ffreestanding -nostdlib",
     assembler="nasm",
@@ -289,6 +293,10 @@ TESTS = []
 INITRD_REFS = [] # apps for initrd
 APP_REFS = [] # apps for main filesystem
 TEST_REFS = []
+APP_PROJECTS = []
+TEST_PROJECTS = []
+
+USER_CONTENT_BEGIN = time.time()
 
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
@@ -300,7 +308,9 @@ for app in APP_DIRS:
                     ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry",
                     assembler="nasm",
                     linkerdeps = ["out/libuserspace.a", "out/libmuzzle.a"],
-                    outwhere="out/apps")
+                    outwhere="out/apps",
+                    announce=False)
+    APP_PROJECTS.append(app_p.name)
     app_p.link = app_p.linkGcc
     app_o = app_p.build()
     APPS.append(app_o)
@@ -318,11 +328,21 @@ for test in TEST_DIRS:
                     ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry -Wl,--as-needed",
                     assembler="nasm",
                     linkerdeps = ["out/libcheckup.a", "out/libuserspace.a", "out/libmuzzle.a"],
-                    outwhere="out/tests")
+                    outwhere="out/tests",
+                    announce=False)
+    TEST_PROJECTS.append(test_p.name)
     test_p.link = test_p.linkGcc
     test_o = test_p.build()
     TESTS.append(test_o)
     TEST_REFS.append(test_o)
+
+USER_CONTENT_END = time.time()
+USER_CONTENT_DURATION = int(USER_CONTENT_END - USER_CONTENT_BEGIN)
+
+print("Built %d apps (%s) and %d tests (%s) in %s seconds" %
+    (len(APP_PROJECTS), ', '.join(APP_PROJECTS),
+    len(TEST_PROJECTS), ', '.join(TEST_PROJECTS),
+    USER_CONTENT_DURATION))
 
 INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
 shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
