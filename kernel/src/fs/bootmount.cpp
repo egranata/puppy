@@ -22,11 +22,15 @@
 #include <kernel/drivers/pci/volumefile.h>
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/panic/panic.h>
+#include <kernel/sys/config.h>
+#include <muzzle/string.h>
 
 namespace boot::mount {
     uint32_t init() {
     	auto& pci(PCIBus::get());
     	auto& vfs(VFS::get());
+
+        auto path2mainfs = gKernelConfiguration()->mainfs.value;
 
         DevFS *devfs = (DevFS*)vfs.findfs("devices");
         if (devfs == nullptr) {
@@ -59,6 +63,16 @@ namespace boot::mount {
                             LOG_DEBUG("adding partition block file %s", volumeFile->name());
                             bootphase_t::printf("Found new volume /devices/%s\n", volumeFile->name());
                             devfs->add(volumeFile);
+
+                            if (path2mainfs && 0 == strcmp(volumeFile->name(), path2mainfs)) {
+                                auto ok = vfs.mount(vol, "mainfs").first;
+                                if (false == ok) {
+                                    LOG_ERROR("could not mount %s as mainfs", volumeFile->name());
+                                } else {
+                                    bootphase_t::printf("mainfs mounted from /devices/%s as /mainfs\n", volumeFile->name());
+                                    LOG_DEBUG("%s was mounted as mainfs", volumeFile->name());
+                                }
+                            }
                         }
                         scanner.clear();
                     }

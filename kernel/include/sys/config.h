@@ -35,6 +35,14 @@ struct kernel_config_t : NOCOPY {
         static constexpr uint8_t gFullLogging = 255;
     } logging;
 
+    /**
+     * Name of the /devices entry to be mounted under /mainfs
+     * e.g. mainfs=ide0disk0part2048
+     */
+    struct config_mainfs {
+        const char* value;
+    } mainfs;
+
     kernel_config_t();
 };
 

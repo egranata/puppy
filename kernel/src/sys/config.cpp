@@ -29,6 +29,7 @@ kernel_config_t* gKernelConfiguration() {
 
 kernel_config_t::kernel_config_t() {
     logging.value = config_logging::gFullLogging;
+    mainfs.value = nullptr;
 }
 
 namespace {
@@ -58,6 +59,9 @@ static void parseOption(kernel_config_t* kcfg, char* option) {
 
     if (matches(key, "loglevel")) {
         kcfg->logging.value = atoi(value);
+    }
+    else if (matches(key, "mainfs")) {
+        kcfg->mainfs.value = strdup(value);
     }
 }
 
