@@ -387,10 +387,13 @@ copy("out/kernel", "out/mnt/boot/puppy")
 copy("out/iso/boot/initrd.img", "out/mnt/boot/initrd.img")
 copy("out/iso/boot/grub/grub.cfg", "out/mnt/boot/grub/grub.cfg")
 
+CMDLINE="df %s/out/mnt -BK --output=used" % (MYPATH)
+PART_USAGE = int(shell(CMDLINE).splitlines()[1][0:-1]) * 1024
+
 CMDLINE="umount out/mnt"
 shell(CMDLINE)
 
-print("Size of OS disk image: %d bytes" % os.stat("out/os.img").st_size)
+print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat("out/os.img").st_size, PART_USAGE))
 
 BUILD_END = time.time()
 print("Build took %s seconds" % int(BUILD_END - BUILD_START))
