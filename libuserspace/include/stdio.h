@@ -26,4 +26,7 @@ int getchar();
 extern "C"
 unsigned int getline(char* buffer, unsigned int len);
 
+extern "C"
+void echomode(bool echo);
+
 #endif

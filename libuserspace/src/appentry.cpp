@@ -15,6 +15,7 @@
 #include <libuserspace/exit.h>
 #include <libuserspace/memory.h>
 #include <libuserspace/sbrk.h>
+#include <libuserspace/stdio.h>
 
 #include <muzzle/string.h>
 
@@ -28,6 +29,7 @@ static void initheap() {
 extern "C"
 void __app_entry(char* args) {
     initheap();
+    echomode(true);
 
     if (args == nullptr) {
         exit(main(0, nullptr));

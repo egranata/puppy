@@ -15,6 +15,13 @@
 #include <libuserspace/stdio.h>
 #include <libuserspace/syscalls.h>
 
+static bool gEchoMode = true;
+
+extern "C"
+void echomode(bool echo) {
+    gEchoMode = echo;
+}
+
 extern "C"
 void cwrite(const char* s) {
     // TODO: tty does not use the size argument
@@ -47,13 +54,13 @@ unsigned int getline(char* buffer, unsigned int len) {
         if (c == -1) continue;
         if (c == '\b') {
             if (ret == 0) continue;
-            putchar(c);
+            if (gEchoMode) putchar(c);
             --buffer;
             *buffer = 0;
             --ret;
             continue;
         }
-        putchar(c);
+        if (gEchoMode) putchar(c);
         if (c == '\n') break;
         *buffer = (char)c;
         ++buffer;
