@@ -17,7 +17,7 @@
 #include <kernel/i386/primitives.h>
 #include <kernel/libc/string.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 extern "C"

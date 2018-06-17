@@ -17,7 +17,7 @@
 #include <kernel/process/current.h>
 #include <kernel/drivers/pit/pit.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 namespace tasks::awaker {    

@@ -134,7 +134,7 @@ static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot
 	}
 
 	auto mbpage = fourMBPageForMultiboot(multiboot_data);
-	LOG_DEBUG("mapping multiboot at %u", mbpage);
+	LOG_DEBUG("mapping multiboot at %p", mbpage);
 	bootpagedirectory<uintptr_t*>()[mbpage] = 0x83 | (multiboot_data & 0xFFC00000);
 	invtlb(mbpage);
 	auto multiboot_hdr = (multiboot_info*)(mbpage+multibootOffset(multiboot_data));

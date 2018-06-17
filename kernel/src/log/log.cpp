@@ -18,16 +18,16 @@
 #include <kernel/drivers/pit/pit.h>
 #include <kernel/sys/config.h>
 
-void logimpl(const char* filename, size_t line, const char* msg, va_list args) {
-    if (gKernelConfiguration()->logging.value == kernel_config_t::config_logging::gNoLogging)
-        return;
-
-    char gBuffer[1027] = {0};
-
-    size_t idx = sprint(gBuffer, 1024, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
-    idx += vsprint(gBuffer+idx, 1024-idx, msg, args);
-    gBuffer[idx++] = '\n'; gBuffer[idx++] = '\0';
-
-    // TODO write somewhere other than COM1
-    Serial::get().write(gBuffer);
+extern "C"
+void __really_log(const char* tag, const char* filename, unsigned long line, const char* fmt, va_list args) {
+    static constexpr size_t gBufferSize = 1024;    
+    static char gBuffer[gBufferSize];
+    size_t n = 0;
+    if (tag) {
+		n = sprint(&gBuffer[0], gBufferSize, "%s [%llu] %s:%lu ", tag, PIT::getUptime(), filename, line);
+    } else {
+		n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
+    }
+	vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
+    Serial::get().write(gBuffer).write("\n");
 }

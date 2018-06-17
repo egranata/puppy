@@ -21,7 +21,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/mm/virt.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 #define sbrk(x) (char*)VirtualPageManager::get().ksbrk(x)

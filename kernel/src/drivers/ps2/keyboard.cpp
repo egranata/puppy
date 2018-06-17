@@ -17,7 +17,7 @@
 #include <kernel/i386/idt.h>
 #include <kernel/i386/primitives.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 static struct keyb_buffer_t {

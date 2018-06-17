@@ -20,7 +20,7 @@
 #include <kernel/boot/phase.h>
 #include <kernel/process/current.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 namespace boot::syscalls {
@@ -83,10 +83,7 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack) {
     };
     if (auto& handler = gHandlers[req.code]) {
         ++handler.numCalls;
-#ifndef LOG_NODEBUG
-        auto pid = ProcessManager::get().getpid();
-        LOG_DEBUG("syscall from pid %u; eax = %x, handler = %p", pid, gpr.eax, handler);
-#endif
+        LOG_DEBUG("syscall from pid %u; eax = %x, handler = %p", gCurrentProcess->pid, gpr.eax, handler.impl);
 
         if (handler.system && !gCurrentProcess->flags.system) {
             LOG_ERROR("process %u attempted to exec system call %u which is reserved to the system", gCurrentProcess->pid, req.code);

@@ -23,7 +23,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/libc/bitmask.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 static constexpr uintptr_t gBootVirtualOffset = 0xC0000000;

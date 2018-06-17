@@ -17,7 +17,7 @@
 #include <kernel/mm/memmgr.h>
 #include <kernel/mm/virt.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {

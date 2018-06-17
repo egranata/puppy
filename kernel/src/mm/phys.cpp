@@ -17,7 +17,7 @@
 #include <kernel/libc/pair.h>
 #include <kernel/panic/panic.h>
 
-#define LOG_NODEBUG
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 PhysicalPageManager& PhysicalPageManager::get() {
