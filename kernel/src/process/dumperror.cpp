@@ -79,10 +79,10 @@ void dumpErrorState(GPR& gpr, InterruptStack& stack) {
     Backtrace::backtrace(gpr, [] (uint32_t eip) -> bool {
         auto&& fb(Framebuffer::get());
         char seip[32];
-        sprint(&seip[0], 32, "    %x\n", eip);
+        sprint(&seip[0], 32, "    %x", eip);
 
 		LOG_ERROR(&seip[0]);
-		fb.write(&seip[0]);
+		fb.write(&seip[0]).write("\n");
         return true;
     });
 }

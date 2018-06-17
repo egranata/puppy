@@ -39,8 +39,8 @@ void* mapregion(size_t size, bool rw);
 
 bool unmapregion(uintptr_t address);
 
-bool readable(void*);
+bool readable(void*, size_t = 1);
 
-bool writable(void*);
+bool writable(void*, size_t = 1);
 
 #endif

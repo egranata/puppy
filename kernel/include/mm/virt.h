@@ -84,6 +84,7 @@ public:
 		DECLARE_FIELD(global, bool);
 		DECLARE_FIELD(frompmm, bool);
 		DECLARE_FIELD(cow, bool);
+		DECLARE_FIELD(zpmap, bool);
 		DECLARE_FIELD(page, uintptr_t);
 	};
 	
@@ -109,8 +110,8 @@ public:
 	
 	static VirtualPageManager& get();
 
-	uintptr_t mapZeroPage(uintptr_t virt);
-	uintptr_t mapZeroPage(uintptr_t from, uintptr_t to);
+	uintptr_t mapZeroPage(uintptr_t virt, const map_options_t&);
+	uintptr_t mapZeroPage(uintptr_t from, uintptr_t to, const map_options_t&);
 	bool isZeroPageAccess(uintptr_t virt);
 
 	bool isCOWAccess(unsigned int errcode, uintptr_t virt);
@@ -132,7 +133,9 @@ public:
 	void unmaprange(uintptr_t low, uintptr_t high);
 
 	uintptr_t mapping(uintptr_t virt);
+
 	bool mapped(uintptr_t virt, map_options_t* = nullptr);
+	bool zeroPageMapped(uintptr_t virt, map_options_t* = nullptr);
 
 	uintptr_t newoptions(uintptr_t virt, const map_options_t&);
 

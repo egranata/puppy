@@ -83,8 +83,12 @@ uintptr_t VirtualPageManager::DirectoryEntry::table() {
 }
 
 void VirtualPageManager::DirectoryEntry::table(uintptr_t value) {
+	if (value & gFlagsBitmask) {
+		LOG_ERROR("value=%p is not page aligned", value);
+		PANIC("trying to set page directory entry to non-page aligned");
+	}
     mValue &= gFlagsBitmask;
-	mValue |= (value & 0xFFFFF000);
+	mValue |= value;
 }
 
 DEFINE_BOOL_FIELD(VirtualPageManager::DirectoryEntry, present, 0);
@@ -110,7 +114,8 @@ DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, accessed, 5); /** 1 = this pag
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, dirty, 6); /** 1 == this page has been written to */
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, global, 8); /** 1 == global translation if CR4.PGE is 1 */
 DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, frompmm, 9); /** 1 == the PhysicalPageManager provided this page */
-DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, cow, 10); /** 1 == create a copy of this page on a "write" page fault */
+DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, cow, 10); /** 1 == create a copy of this page on a "write" page fault (present == 1) */
+DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, zpmap, 10); /** 1 == this is a zero page mapped (present == 0) */
 // bit 11 is available for us to define as needed
 // DEFINE_BOOL_FIELD(VirtualPageManager::TableEntry, bit11, 11)
 
@@ -119,8 +124,12 @@ uintptr_t VirtualPageManager::TableEntry::page() {
 }
 
 void VirtualPageManager::TableEntry::page(uintptr_t value) {
+	if (value & gFlagsBitmask) {
+		LOG_ERROR("value=%p is not page aligned", value);
+		PANIC("trying to set page table entry to non-page aligned");
+	}
     mValue &= gFlagsBitmask;
-	mValue |= (value & 0xFFFFF000);
+	mValue |= value;
 }
 
 #undef DEFINE_BOOL_FIELD
@@ -226,24 +235,25 @@ uintptr_t VirtualPageManager::ksbrk(size_t amount) {
 	return ptr;
 }
 
-uintptr_t VirtualPageManager::mapZeroPage(uintptr_t virt) {
+uintptr_t VirtualPageManager::mapZeroPage(uintptr_t virt, const map_options_t& opts) {
 	PagingIndices indices(virt);
 
 	LOG_DEBUG("asked to map %p as the zero page", virt);
 
 	TableEntry &tbl(indices.table());
 	tbl.present(false);
-	tbl.rw(false);
-	tbl.user(false);
+	tbl.rw(opts.rw());
+	tbl.user(opts.user());
 	tbl.page(gZeroPagePhysical);
+	tbl.zpmap(true);
 	invtlb(virt);
 
 	return virt;
 }
 
-uintptr_t VirtualPageManager::mapZeroPage(uintptr_t from, uintptr_t to) {
+uintptr_t VirtualPageManager::mapZeroPage(uintptr_t from, uintptr_t to, const map_options_t& opts) {
 	for(auto i = from; i <= to; i += gPageSize) {
-		mapZeroPage(i);
+		mapZeroPage(i, opts);
 	}
 
 	return from;
@@ -386,6 +396,7 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 	const bool isuserspace = !iskernel(virt);
 
 	tbl.present(false);
+	tbl.zpmap(false); // make sure we don't think this is a zeropage mapping
 	invtlb(virt);
 
 	if (tbl.frompmm()) {
@@ -436,6 +447,27 @@ bool VirtualPageManager::mapped(uintptr_t virt, map_options_t* opts) {
 
 	return false;
 }
+
+bool VirtualPageManager::zeroPageMapped(uintptr_t virt, map_options_t* opts) {
+	uintptr_t b = page(virt);
+	PagingIndices indices(b);
+	TableEntry &tbl(indices.table());
+
+	if (!tbl.present() && tbl.zpmap()) {
+		if (opts) {
+			opts->rw(tbl.rw());
+			opts->user(tbl.user());
+			opts->frompmm(tbl.frompmm());
+			opts->cached(!tbl.cacheoff());
+			opts->global(tbl.global());
+			opts->cow(tbl.cow());
+		}
+		return true;
+	}
+
+	return false;
+}
+
 
 uintptr_t VirtualPageManager::newoptions(uintptr_t virt, const map_options_t& options) {
 	auto pg = page(virt);

@@ -94,7 +94,7 @@ MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size, const 
         region.permission = opts;
         LOG_DEBUG("zeropage mapping all pages from %p to %p", region.from, region.to);        
         auto&& vmm(VirtualPageManager::get());
-        vmm.mapZeroPage(region.from, region.to);
+        vmm.mapZeroPage(region.from, region.to, opts);
         return addRegion(region);
     } else {
         return {0,0};

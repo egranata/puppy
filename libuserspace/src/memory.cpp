@@ -38,10 +38,10 @@ bool unmapregion(uintptr_t address) {
     return 0 == unmapregion_syscall(address);
 }
 
-bool readable(void* p) {
-    return 0 == vmcheckreadable_syscall((uintptr_t)p);
+bool readable(void* p, size_t sz) {
+    return 0 == vmcheckreadable_syscall((uintptr_t)p, sz);
 }
 
-bool writable(void* p)  {
-    return 0 == vmcheckwritable_syscall((uintptr_t)p);
+bool writable(void* p, size_t sz)  {
+    return 0 == vmcheckwritable_syscall((uintptr_t)p, sz);
 }

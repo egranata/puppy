@@ -27,6 +27,8 @@
 
 #define CHECK_TRUE(x) __do_check((x), name(), __FILE__, __LINE__, #x)
 
+#define CHECK_FALSE(x) __do_check((!x), name(), __FILE__, __LINE__, "!(" #x ")")
+
 void __do_check(bool ok, const char* test, const char* file, int line, const char* condition);
 
 #endif
