@@ -15,6 +15,7 @@
 #include <kernel/mm/heap.h>
 #include <kernel/mm/virt.h>
 
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 Heap::Heap(uintptr_t low, uintptr_t high) : mRange({low, high}), mCurrent(low) {}

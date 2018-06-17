@@ -19,8 +19,10 @@
 #include <kernel/libc/memory.h>
 #include <kernel/process/current.h>
 
+LOG_TAG(LOADELF, 1);
+
 #define UNHAPPY(cause) { \
-    LOG_ERROR("failed to load ELF image: " #cause); \
+    TAG_ERROR(LOADELF, "failed to load ELF image: " #cause); \
     return loadinfo; \
 }
 
@@ -41,7 +43,7 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
     for (auto i = 0u; i < header->phnum; ++i) {
         auto&& pref = header->program(i);
         
-        LOG_DEBUG("program header idx = %u, offset = %p, vaddr = %p, paddr = %p, filesz = %u, memsz = %u, flags = %u, align = %u",
+        TAG_INFO(LOADELF, "program header idx = %u, offset = %p, vaddr = %p, paddr = %p, filesz = %u, memsz = %u, flags = %u, align = %u",
             i, pref.offset, pref.vaddr, pref.paddr, pref.filesz, pref.memsz, pref.flags, pref.align);
         
         if (pref.align != VirtualPageManager::gPageSize) UNHAPPY("ELF binary non page aligned");
@@ -54,7 +56,7 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
         auto vaddr0 = (uintptr_t)vaddr; // low address for this section
         auto vaddr1 = (uintptr_t)vaddr; // high address for this section
         while(len != 0) {
-            LOG_DEBUG("start by mapping a page at %p", vaddr);
+            TAG_DEBUG(LOADELF, "start by mapping a page at %p", vaddr);
 
             mapopts.rw(true);
             vmm.mapAnyPhysicalPage((uintptr_t)vaddr, mapopts);
@@ -62,22 +64,22 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
 
             auto chunk = len;
             if (chunk < VirtualPageManager::gPageSize) {
-                LOG_DEBUG("chunk size %u is < page size", chunk);
+                TAG_DEBUG(LOADELF, "chunk size %u is < page size", chunk);
             } else if (chunk > VirtualPageManager::gPageSize) {
-                LOG_DEBUG("chunk size %u is > page size - truncating to page size", chunk);
+                TAG_DEBUG(LOADELF, "chunk size %u is > page size - truncating to page size", chunk);
                 chunk = VirtualPageManager::gPageSize;
             }
             if (chunk <= flen) {
-                LOG_DEBUG("chunk size %u is <= flen %u - copying entire chunk from file", chunk, flen);
+                TAG_DEBUG(LOADELF, "chunk size %u is <= flen %u - copying entire chunk from file", chunk, flen);
                 memcopy(src, vaddr, chunk);
                 flen -= chunk;
             } else {
                 if (flen > 0) {
-                    LOG_DEBUG("chunk size %u is > flen %u - copying flen from disk", chunk, flen);                        
+                    TAG_DEBUG(LOADELF, "chunk size %u is > flen %u - copying flen from disk", chunk, flen);                        
                     memcopy(src, vaddr, flen);
                     flen = 0;
                 } else {
-                    LOG_DEBUG("chunk size %u is > flen %u", chunk, flen);                                                
+                    TAG_DEBUG(LOADELF, "chunk size %u is > flen %u", chunk, flen);                                                
                 }
             }
 
@@ -91,18 +93,18 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
             if ((uintptr_t)vaddr > maxprogaddr) {
                 maxprogaddr = (uintptr_t)vaddr;
             }
-            LOG_DEBUG("len = %u flen = %u vaddr = %p src = %p", len, flen, vaddr, src);
+            TAG_DEBUG(LOADELF, "len = %u flen = %u vaddr = %p src = %p", len, flen, vaddr, src);
         }
         memmgr->addMappedRegion(vaddr0, vaddr1-1);
     }
 
     maxprogaddr = VirtualPageManager::page(maxprogaddr);
-    LOG_DEBUG("memory setup - max program address is %p", maxprogaddr);
+    TAG_INFO(LOADELF, "memory setup - max program address is %p", maxprogaddr);
     memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
     auto stackpermission = VirtualPageManager::map_options_t::userspace().clear(true);
     auto stackregion = memmgr->findAndZeroPageRegion(stacksize, stackpermission);
-    LOG_DEBUG("stack is begin = %p, end = %p", stackregion.to, stackregion.from);
+    TAG_INFO(LOADELF, "stack is begin = %p, end = %p", stackregion.to, stackregion.from);
     const auto stackbegin = stackregion.to;
 
     maxprogaddr = VirtualPageManager::page(stackbegin + 1);
@@ -118,16 +120,16 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
         auto mapopts = VirtualPageManager::map_options_t().rw(true).user(true).clear(true);
         auto cmdlinergn = memmgr->findAndMapRegion(VirtualPageManager::gPageSize, mapopts);
         uint8_t* cmdlines = (uint8_t*)cmdlinergn.from;
-        LOG_DEBUG("cmdline pointer at %p", cmdlines);
+        TAG_DEBUG(LOADELF, "cmdline pointer at %p", cmdlines);
         memcopy((uint8_t*)gCurrentProcess->args, cmdlines, strlen(gCurrentProcess->args));
-        LOG_DEBUG("copied command line arguments (%s) to %p - pushing on stack at %p", cmdlines, cmdlines, stack);
+        TAG_DEBUG(LOADELF, "copied command line arguments (%s) to %p - pushing on stack at %p", cmdlines, cmdlines, stack);
         *stack = (uintptr_t)cmdlines;
     } else {
         *stack = 0;
     }
     --stack;
     loadinfo.stack = (uint32_t)stack;
-    LOG_DEBUG("loadinfo.stack = %p", loadinfo.stack);
+    TAG_DEBUG(LOADELF, "loadinfo.stack = %p", loadinfo.stack);
 
     loadinfo.eip = header->entry;
 

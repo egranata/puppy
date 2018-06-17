@@ -21,6 +21,8 @@
 #include <kernel/drivers/pit/pit.h>
 #include <kernel/sys/unions.h>
 
+LOG_TAG(DISKACCESS, 2);
+
 static constexpr IDEController::channelid_t channel0 = IDEController::channelid_t::zero;
 static constexpr IDEController::channelid_t channel1 = IDEController::channelid_t::one;
 
@@ -155,12 +157,12 @@ bool IDEController::preparepio(const disk_t& disk, const pio_op_params_t& params
 
     for(tries = 500u; tries != 0; --tries) {
         auto status = read(disk.chan, gStatusRegister);
-        LOG_DEBUG("status register: %x", status);
+        TAG_DEBUG(DISKACCESS, "status register: %x", status);
         if (status & gStatusBusy) continue;
         break;
     }
     if (tries == 0) {
-        LOG_ERROR("IDE controller didn't answer within deadline");
+        TAG_ERROR(DISKACCESS, "IDE controller didn't answer within deadline");
         return false;
     }
 
@@ -180,13 +182,13 @@ bool IDEController::preparepio(const disk_t& disk, const pio_op_params_t& params
 
     for(tries = 500u; tries != 0; --tries) {
         auto status = read(disk.chan, gStatusRegister);
-        LOG_DEBUG("status register: %x", status);
+        TAG_DEBUG(DISKACCESS, "status register: %x", status);
         if (status & gStatusBusy) continue;
         if (0 == (status & gStatusDriveReady)) continue;
         break;
     }
     if (tries == 0) {
-        LOG_ERROR("IDE controller didn't answer within deadline");
+        TAG_ERROR(DISKACCESS, "IDE controller didn't answer within deadline");
         return false;
     }
 
@@ -237,19 +239,19 @@ bool IDEController::write(const disk_t& disk, uint32_t sec0, uint16_t num, unsig
 bool IDEController::doread(const disk_t& disk, uint32_t sector, uint8_t num, unsigned char *buffer) {
     pio_op_params_t params{disk, sector, num};
     params.command = params.lba48 ? gReadLBA48PIOCommand : gReadPIOCommand;
-
-    LOG_DEBUG("attempting to read from disk %u-%u:%u - params are cmd: %x, sector: %u %u %u %u %u sel: %x count: %u",
+    
+    TAG_DEBUG(DISKACCESS, "attempting to read from disk %u-%u:%u - params are cmd: %x, sector: %u %u %u %u %u sel: %x count: %u",
         disk.chan, disk.bus, sector, params.command, params.sector[0],params.sector[1],params.sector[2],params.sector[3],params.sector[4],
         params.sel, params.count);
 
     if (preparepio(disk, params)) {
-        LOG_DEBUG("polled disk successfully - copying data from port %x", disk.iobase);
+        TAG_DEBUG(DISKACCESS, "polled disk successfully - copying data from port %x", disk.iobase);
         for (auto j = 0; j < num; ++j) {
             if (!poll(disk.chan)) {
-                LOG_ERROR("read failed before sector %u", j);
+                TAG_ERROR(DISKACCESS, "read failed before sector %u", j);
                 return false;
             }
-            LOG_DEBUG("handling sector %u", j);
+            TAG_DEBUG(DISKACCESS, "handling sector %u", j);
             for (auto i = 0; i < 256; ++i) {
                 sixteen w; w.word = inw(disk.iobase);
                 buffer[512*j + 2*i] = w.byte[0];
@@ -257,11 +259,11 @@ bool IDEController::doread(const disk_t& disk, uint32_t sector, uint8_t num, uns
             }
         }
     } else {
-        LOG_ERROR("read failed - disk had error");
+        TAG_ERROR(DISKACCESS, "read failed - disk had error");
         return false;
     }
 
-    LOG_DEBUG("disk operation completed");
+    TAG_DEBUG(DISKACCESS, "disk operation completed");
     return true;
 }
 
@@ -269,18 +271,18 @@ bool IDEController::dowrite(const disk_t& disk, uint32_t sector, uint8_t num, un
     pio_op_params_t params{disk, sector, num};
     params.command = params.lba48 ? gWriteLBA48PIOCommand : gWritePIOCommand;
 
-    LOG_DEBUG("attempting to write to disk %u-%u:%u - params are cmd: %x, sector: %u %u %u %u %u sel: %x count: %u",
+    TAG_DEBUG(DISKACCESS, "attempting to write to disk %u-%u:%u - params are cmd: %x, sector: %u %u %u %u %u sel: %x count: %u",
         disk.chan, disk.bus, sector, params.command, params.sector[0],params.sector[1],params.sector[2],params.sector[3],params.sector[4],
         params.sel, params.count);
 
     if (preparepio(disk, params)) {
-        LOG_DEBUG("polled disk successfully - copying data to port %x", disk.iobase);
+        TAG_DEBUG(DISKACCESS, "polled disk successfully - copying data to port %x", disk.iobase);
         for (auto j = 0; j < num; ++j) {
             if (!poll(disk.chan, true)) {
                 LOG_ERROR("write failed after sector %u", j);
                 return false;
             }            
-            LOG_DEBUG("handling sector %u", j);            
+            TAG_DEBUG(DISKACCESS, "handling sector %u", j);            
             for (auto i = 0; i < 256; ++i) {
                 // in theory, one should wait a few instructions between sending words
                 // hopefully, this is enough instructions to appease the bus...
@@ -294,15 +296,15 @@ bool IDEController::dowrite(const disk_t& disk, uint32_t sector, uint8_t num, un
         if (poll(disk.chan, false)) {
             return true;
         } else {
-            LOG_ERROR("write failed - flush error");
+            TAG_ERROR(DISKACCESS, "write failed - flush error");
             return false;
         }
     } else {
-        LOG_ERROR("write failed - disk had error");
+        TAG_ERROR(DISKACCESS, "write failed - disk had error");
         return false;
     }
 
-    LOG_DEBUG("disk operation completed");
+    TAG_DEBUG(DISKACCESS, "disk operation completed");
     return true;
 }
 
@@ -313,7 +315,7 @@ bool IDEController::poll(channelid_t chan, bool check) {
 
     if(check) {
         auto status = read(chan, gStatusRegister);
-        LOG_DEBUG("status register: %x", status);
+        TAG_DEBUG(DISKACCESS, "status register: %x", status);
         if ((status & gStatusError) || (status & gStatusDeviceFault)) {
             return false;
         }

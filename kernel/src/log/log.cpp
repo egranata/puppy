@@ -24,10 +24,10 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     static char gBuffer[gBufferSize];
     size_t n = 0;
     if (tag) {
-		n = sprint(&gBuffer[0], gBufferSize, "%s [%llu] %s:%lu ", tag, PIT::getUptime(), filename, line);
+		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu (%s) ", PIT::getUptime(), filename, line, tag);
     } else {
-		n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
+		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
     }
-	vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
+	  vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
     Serial::get().write(gBuffer).write("\n");
 }
