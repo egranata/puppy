@@ -23,6 +23,7 @@ size_t InitrdFile::read(size_t n, char* buf) {
     if (n > mSizeLeft) n = mSizeLeft;
     memcopy(mPointer, (uint8_t*)buf, n);
     mSizeLeft -= n;
+    mPointer += n;
     return n;
 }
 

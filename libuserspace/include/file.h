@@ -48,4 +48,7 @@ uintptr_t ioctl(uint32_t fid, uintptr_t, uintptr_t);
 extern "C"
 bool fsize(uint32_t fid, uint32_t& sz);
 
+extern "C"
+bool mkdir(const char* path);
+
 #endif

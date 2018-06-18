@@ -74,3 +74,8 @@ bool fsize(uint32_t fid, uint32_t& sz) {
     return false;
 }
 
+extern "C"
+bool mkdir(const char* path) {
+    auto o = mkdir_syscall(path);
+    return (o & 1) ? false : true;
+}

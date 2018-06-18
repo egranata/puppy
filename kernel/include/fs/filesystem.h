@@ -86,6 +86,7 @@ class Filesystem {
         virtual File* open(const char* path, uint32_t mode) = 0;
         virtual bool del(const char* path);
         virtual Directory* opendir(const char* path) = 0;
+        virtual bool mkdir(const char* path);
 
         virtual void close(FilesystemObject*) = 0;
 };

@@ -171,3 +171,9 @@ HANDLER2(freaddir,fid,fip) {
         }
     }
 }
+
+syscall_response_t mkdir_syscall_handler(const char* path) {
+    auto&& vfs(VFS::get());
+
+    return vfs.mkdir(path) ? OK : ERR(NO_SUCH_FILE);
+}

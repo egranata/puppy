@@ -136,6 +136,9 @@ syscall_response_t clone_syscall(uintptr_t arg1) {
 syscall_response_t fdel_syscall(const char* arg1) {
 	return syscall1(fdel_syscall_id,(uint32_t)arg1);
 }
+syscall_response_t mkdir_syscall(const char* arg1) {
+	return syscall1(mkdir_syscall_id,(uint32_t)arg1);
+}
 syscall_response_t mutextrylock_syscall(uint32_t arg1) {
 	return syscall1(mutextrylock_syscall_id,(uint32_t)arg1);
 }

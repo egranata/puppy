@@ -34,3 +34,7 @@ uintptr_t Filesystem::File::ioctl(uintptr_t, uintptr_t) {
 bool Filesystem::del(const char*) {
     return false;
 }
+
+bool Filesystem::mkdir(const char*) {
+    return false;
+}

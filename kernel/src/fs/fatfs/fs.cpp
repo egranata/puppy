@@ -202,3 +202,19 @@ Filesystem::Directory* FATFileSystem::opendir(const char* path) {
             return nullptr;
     }
 }
+
+bool FATFileSystem::mkdir(const char* path) {
+    if (path == nullptr || path[0] == 0) path = "/";
+    LOG_DEBUG("FatFs on drive %d is trying to create directory %s", mFatFS.pdrv, path);
+    auto len = 4 + strlen(path);
+    delete_ptr<char> fullpath((char*)calloc(len, 1));
+    sprint(fullpath.get(), len, "%d:%s", mFatFS.pdrv, path);
+
+    switch (f_mkdir(fullpath.get())) {
+        case FR_OK: return true;
+        default:
+            LOG_WARNING("failed to create directory by full path %s", fullpath.get());
+    }
+
+    return false;
+}

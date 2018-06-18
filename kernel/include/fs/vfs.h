@@ -38,6 +38,7 @@ class VFS : NOCOPY {
 
         filehandle_t open(const char* path, uint32_t mode);
         bool del(const char* path);
+        bool mkdir(const char* path);
         filehandle_t opendir(const char* path);
     private:
         struct mount_t {
@@ -46,6 +47,8 @@ class VFS : NOCOPY {
         };
         slist<mount_t> mMounts;
         VFS();
+
+        pair<Filesystem*, const char*> getfs(const char* root);
 
         friend class RootDirectory;
 };

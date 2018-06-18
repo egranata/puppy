@@ -17,33 +17,18 @@
 #include <libuserspace/file.h>
 
 static void usage(bool exit) {
-    printf("cp <src> <dst>\n");
+    printf("mkdir <path>\n");
     if (exit) ::exit(1);
 }
 
-void copy(int from, int to) {
-    while(true) {
-        uint8_t buffer[1024] = {0};
-        size_t n = ::read(from, 1024, &buffer[0]);
-        ::write(to, n, &buffer[0]);
-        if (n < 1024) break;
-    }
-}
-
 int main(int argc, const char** argv) {
-    if (argc != 2) {
+    if (argc != 1) {
         usage(true);
     }
 
-    auto srcFd = open(argv[0], FILE_OPEN_READ);
-    if (srcFd == gInvalidFd) usage(true);
-    auto dstFd = open(argv[1], FILE_OPEN_WRITE | FILE_OPEN_NEW);
-    if (dstFd == gInvalidFd) usage(true);
-
-    copy(srcFd, dstFd);
-
-    close(srcFd);
-    close(dstFd);
+    if (!mkdir(argv[0])) {
+        usage(true);
+    }
 
     return 0;
 }
