@@ -56,7 +56,7 @@ void fileloader(uintptr_t) {
     auto&& vfs(VFS::get());
 
     LOG_DEBUG("launching process %u (%s)", gCurrentProcess->pid, gCurrentProcess->path);
-    auto fhandle = vfs.open(gCurrentProcess->path, Filesystem::mode_t::read);
+    auto fhandle = vfs.open(gCurrentProcess->path, FILE_OPEN_READ | FILE_NO_CREATE);
     auto file = (Filesystem::File*)fhandle.second;
     if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file", 1);
 

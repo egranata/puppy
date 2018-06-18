@@ -16,10 +16,16 @@
 #include <libuserspace/syscalls.h>
 
 extern "C"
-uint32_t open(const char* path, filemode_t mode) {
+uint32_t open(const char* path, uint32_t mode) {
     auto o = fopen_syscall(path, mode);
     if (o & 1) return -1;
     return o >> 1;
+}
+
+extern "C"
+bool del(const char* path) {
+    auto o = fdel_syscall(path);
+    return (o & 1) ? false : true;
 }
 
 extern "C"
@@ -28,17 +34,21 @@ void close(uint32_t fid) {
 }
 
 extern "C"
-bool read(uint32_t fid, uint32_t size, unsigned char* buffer) {
+size_t read(uint32_t fid, uint32_t size, unsigned char* buffer) {
     if (fid == gInvalidFd) return false;
     if (buffer == nullptr) return false;
-    return 0 == fread_syscall(fid,size,(uint32_t)buffer);
+    auto ro = fread_syscall(fid,size,(uint32_t)buffer);
+    if (ro & 1) return 0;
+    return ro >> 1;
 }
 
 extern "C"
-bool write(uint32_t fid, uint32_t size, unsigned char* buffer) {
+size_t write(uint32_t fid, uint32_t size, unsigned char* buffer) {
     if (fid == gInvalidFd) return false;
     if (buffer == nullptr) return false;
-    return 0 == fwrite_syscall(fid,size,(uint32_t)buffer);
+    auto wo = fwrite_syscall(fid,size,(uint32_t)buffer);
+    if (wo & 1) return 0;
+    return wo >> 1;
 }
 
 extern "C"

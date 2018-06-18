@@ -23,7 +23,6 @@
 
 class Filesystem {
     public:
-        using mode_t = filemode_t;
         class FilesystemObject {
             public:
                 static constexpr size_t gFilenameSize = 32;
@@ -55,8 +54,8 @@ class Filesystem {
                 };
 
                 virtual bool seek(size_t) = 0;
-                virtual bool read(size_t, char*) = 0;
-                virtual bool write(size_t, char*) = 0;
+                virtual size_t read(size_t, char*) = 0;
+                virtual size_t write(size_t, char*) = 0;
                 virtual bool stat(stat_t&) = 0;
                 virtual uintptr_t ioctl(uintptr_t, uintptr_t);
 
@@ -84,7 +83,8 @@ class Filesystem {
 
         virtual ~Filesystem() = default;
 
-        virtual File* open(const char* path, mode_t mode) = 0;
+        virtual File* open(const char* path, uint32_t mode) = 0;
+        virtual bool del(const char* path);
         virtual Directory* opendir(const char* path) = 0;
 
         virtual void close(FilesystemObject*) = 0;

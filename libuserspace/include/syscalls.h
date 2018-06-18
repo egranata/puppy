@@ -39,7 +39,7 @@ syscall_response_t semsignal_syscall(uint32_t arg1);
 constexpr uint8_t semsignal_syscall_id = 0xb;
 syscall_response_t getpid_syscall();
 constexpr uint8_t getpid_syscall_id = 0xc;
-syscall_response_t fopen_syscall(const char* arg1,filemode_t arg2);
+syscall_response_t fopen_syscall(const char* arg1,uint32_t arg2);
 constexpr uint8_t fopen_syscall_id = 0xd;
 syscall_response_t fclose_syscall(uint32_t arg1);
 constexpr uint8_t fclose_syscall_id = 0xe;
@@ -87,6 +87,8 @@ syscall_response_t collectany_syscall(uint16_t* arg1,process_exit_status_t* arg2
 constexpr uint8_t collectany_syscall_id = 0x24;
 syscall_response_t clone_syscall(uintptr_t arg1);
 constexpr uint8_t clone_syscall_id = 0x25;
+syscall_response_t fdel_syscall(const char* arg1);
+constexpr uint8_t fdel_syscall_id = 0x26;
 syscall_response_t mutextrylock_syscall(uint32_t arg1);
 constexpr uint8_t mutextrylock_syscall_id = 0x2c;
 syscall_response_t vmcheckreadable_syscall(uintptr_t arg1,size_t arg2);

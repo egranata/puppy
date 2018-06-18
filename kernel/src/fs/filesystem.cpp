@@ -30,3 +30,7 @@ Filesystem::Directory::Directory() : FilesystemObject(Filesystem::FilesystemObje
 uintptr_t Filesystem::File::ioctl(uintptr_t, uintptr_t) {
     return 0;
 }
+
+bool Filesystem::del(const char*) {
+    return false;
+}

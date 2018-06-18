@@ -36,6 +36,7 @@ void dump(const unsigned char* buffer, uint32_t size) {
         }
         printf("    ");
         for (auto j = 0; j < 16; ++j) {
+            if (i + j >= size) break;
             auto c = buffer[i + j];
             switch(c) {
                 case '\n':

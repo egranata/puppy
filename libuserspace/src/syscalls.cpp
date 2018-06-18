@@ -61,7 +61,7 @@ syscall_response_t semsignal_syscall(uint32_t arg1) {
 syscall_response_t getpid_syscall() {
 	return syscall0(getpid_syscall_id);
 }
-syscall_response_t fopen_syscall(const char* arg1,filemode_t arg2) {
+syscall_response_t fopen_syscall(const char* arg1,uint32_t arg2) {
 	return syscall2(fopen_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
 syscall_response_t fclose_syscall(uint32_t arg1) {
@@ -132,6 +132,9 @@ syscall_response_t collectany_syscall(uint16_t* arg1,process_exit_status_t* arg2
 }
 syscall_response_t clone_syscall(uintptr_t arg1) {
 	return syscall1(clone_syscall_id,(uint32_t)arg1);
+}
+syscall_response_t fdel_syscall(const char* arg1) {
+	return syscall1(fdel_syscall_id,(uint32_t)arg1);
 }
 syscall_response_t mutextrylock_syscall(uint32_t arg1) {
 	return syscall1(mutextrylock_syscall_id,(uint32_t)arg1);

@@ -19,15 +19,15 @@ bool InitrdFile::seek(size_t) {
     return false;
 }
 
-bool InitrdFile::read(size_t n, char* buf) {
-    if (n > mSizeLeft) return false;
+size_t InitrdFile::read(size_t n, char* buf) {
+    if (n > mSizeLeft) n = mSizeLeft;
     memcopy(mPointer, (uint8_t*)buf, n);
     mSizeLeft -= n;
-    return true;
+    return n;
 }
 
-bool InitrdFile::write(size_t, char*) {
-    return false;
+size_t InitrdFile::write(size_t, char*) {
+    return 0;
 }
 
 bool InitrdFile::stat(Filesystem::File::stat_t& stat) {

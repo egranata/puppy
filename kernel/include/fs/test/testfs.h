@@ -25,7 +25,7 @@
 class TestFS : public Filesystem {
     public:
         TestFS();
-        File* open(const char* path, mode_t mode) override;
+        File* open(const char* path, uint32_t mode) override;
         Directory* opendir(const char* path) override;
 
         void close(FilesystemObject*) override;

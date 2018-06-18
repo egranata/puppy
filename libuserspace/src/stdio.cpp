@@ -41,9 +41,10 @@ int getchar() {
     char buf[2] = {0, 0};
     auto r = fread_syscall(0, 1, (uint32_t)&buf[0]);
     if (r == 0) {
-        return buf[0];
+        return -1;
     }
-    return -1;
+
+    return buf[0];
 }
 
 extern "C"

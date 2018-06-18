@@ -17,8 +17,11 @@
 #include <kernel/process/current.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/log/log.h>
 
-syscall_response_t fopen_syscall_handler(const char* path, filemode_t mode) {
+LOG_TAG(FILEIO, 2);
+
+syscall_response_t fopen_syscall_handler(const char* path, uint32_t mode) {
     auto&& vfs(VFS::get());
 
     auto&& file = vfs.open(path, mode);
@@ -34,13 +37,20 @@ syscall_response_t fopen_syscall_handler(const char* path, filemode_t mode) {
     }
 }
 
+syscall_response_t fdel_syscall_handler(const char* path) {
+    auto&& vfs(VFS::get());
+
+    return vfs.del(path) ? OK : ERR(NO_SUCH_FILE);
+}
+
 HANDLER1(fclose,fid) {
     LOG_DEBUG("closing file handle %u for process %u", fid, gCurrentProcess->pid);
     VFS::filehandle_t file = {nullptr, nullptr};
-    if (!gCurrentProcess->fds.is(fid,&file)) {
+    if (gCurrentProcess->fds.is(fid,&file)) {
         if (file.first && file.second) {
             file.first->close(file.second);
         } else {
+            LOG_DEBUG("file.first = %p, file.second = %p, will not close", file.first, file.second);
             return ERR(NO_SUCH_FILE);
         }
     }
@@ -55,7 +65,9 @@ HANDLER3(fread,fid,len,buf) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            return ((Filesystem::File*)file.second)->read(len, buffer) ? OK : ERR(NO_SUCH_FILE);
+            auto sz = ((Filesystem::File*)file.second)->read(len, buffer);
+            TAG_DEBUG(FILEIO, "read %u bytes to handle %u", sz, fid);
+            return OK | (sz << 1);
         } else {
             return ERR(NO_SUCH_FILE);
         }
@@ -69,7 +81,9 @@ HANDLER3(fwrite,fid,len,buf) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            return ((Filesystem::File*)file.second)->write(len, buffer) ? OK : ERR(NO_SUCH_FILE);
+            auto sz = ((Filesystem::File*)file.second)->write(len, buffer);
+            TAG_DEBUG(FILEIO, "written %u bytes to handle %u", sz, fid);
+            return OK | (sz << 1);
         } else {
             return ERR(NO_SUCH_FILE);
         }

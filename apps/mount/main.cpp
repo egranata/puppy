@@ -28,7 +28,7 @@ int main(int argc, const char** argv) {
     if (argc != 2) {
         usage();
     }
-    auto fd = open(argv[0], filemode_t::read);
+    auto fd = open(argv[0], gModeRead);
     if (fd == gInvalidFd) {
         printf("Could not open %s\n", argv[0]);
         exit(1);

@@ -31,8 +31,8 @@ class OpenDirectory : public Filesystem::Directory {
 class OpenFile : public Filesystem::File {
     public:
         bool seek(size_t) override;
-        bool read(size_t, char*) override;
-        bool write(size_t, char*) override;
+        size_t read(size_t, char*) override;
+        size_t write(size_t, char*) override;
         bool stat(stat_t&) override;
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
 
@@ -75,15 +75,15 @@ bool OpenFile::seek(size_t s) {
     return (s < mBuffer->size());
 }
 
-bool OpenFile::read(size_t s, char* dest) {
-    if (mPosition + s > mBuffer->size()) return false;
+size_t OpenFile::read(size_t s, char* dest) {
+    if (mPosition + s > mBuffer->size()) return s = mBuffer->size() - mPosition;
     auto ok = mBuffer->read(mPosition, s, (uint8_t*)dest);
     if (ok) mPosition += s;
-    return ok;
+    return s;
 }
 
-bool OpenFile::write(size_t, char*) {
-    return false;
+size_t OpenFile::write(size_t, char*) {
+    return 0;
 }
 
 bool OpenFile::stat(stat_t& s) {
@@ -130,7 +130,7 @@ RAMObject* RAMFS::get(char* path) {
     }
 }
 
-Filesystem::File* RAMFS::open(const char* path, mode_t) {
+Filesystem::File* RAMFS::open(const char* path, uint32_t) {
     char* ppath = allocate<char>(strlen(path) + 1);
     strcpy(ppath, path);
     auto file = get(ppath);

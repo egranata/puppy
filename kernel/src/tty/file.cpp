@@ -22,7 +22,8 @@ bool TTYFile::seek(size_t) {
     return false;
 }
 
-bool TTYFile::read(size_t n, char* b) {
+size_t TTYFile::read(size_t n, char* b) {
+    size_t n0 = n;
     for(;n > 0;++b,--n) {
 ch:     auto c = mTTY->read();
         if (c == -1) {
@@ -32,12 +33,12 @@ ch:     auto c = mTTY->read();
         *b = c;
     }
 
-    return true;
+    return n0;
 }
 
-bool TTYFile::write(size_t, char* buffer) {
+size_t TTYFile::write(size_t s, char* buffer) {
     mTTY->write(buffer);
-    return true;
+    return s;
 }
 
 bool TTYFile::stat(stat_t&) {

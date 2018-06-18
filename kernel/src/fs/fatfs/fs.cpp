@@ -19,6 +19,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/deleteptr.h>
+#include <kernel/syscalls/types.h>
 
 static uint8_t gNextId() {
     static uint8_t gId = 0;
@@ -43,7 +44,7 @@ FATFileSystem::FATFileSystem(Volume* vol) {
 
 class FATFileSystemFile : public Filesystem::File {
     public:
-        FATFileSystemFile(FIL* file, const FILINFO& info) : mFileInfo(info), mFile(file) {}
+        FATFileSystemFile(FIL *file) : mFile(file) {}
 
         bool seek(size_t pos) override {
             switch (f_lseek(mFile, pos)) {
@@ -52,38 +53,39 @@ class FATFileSystemFile : public Filesystem::File {
             }
         }
 
-        bool read(size_t size, char* dest) override {
+        size_t read(size_t size, char* dest) override {
             UINT br = 0;
             switch (f_read(mFile, dest, size, &br)) {
-                case FR_OK: return true;
-                default: return false;
+                case FR_OK: return br;
+                default: return br;
             }
         }
 
-        bool write(size_t size, char* src) override {
+        size_t write(size_t size, char* src) override {
             UINT bw = 0;
             switch (f_write(mFile, src, size, &bw)) {
-                case FR_OK: return true;
-                default: return false;
+                case FR_OK: return bw;
+                default: return bw;
             }
         }
 
         bool stat(stat_t& stat) override {
-            stat.size = mFileInfo.fsize;
+            stat.size = f_size(mFile);
             return true;
         }
 
         ~FATFileSystemFile() override {
-            if (mFile != nullptr) {
+            LOG_DEBUG("closing file ptr %p", mFile);
+
+            if (mFile) {
                 f_close(mFile);
+                free(mFile);
+                mFile = nullptr;
             }
-            free(mFile);
-            mFile = nullptr;
         }
 
     private:
-        FILINFO mFileInfo;
-        FIL* mFile;
+        FIL *mFile;
 };
 
 class FATFileSystemDirectory : public Filesystem::Directory {
@@ -115,8 +117,41 @@ class FATFileSystemDirectory : public Filesystem::Directory {
         DIR* mDir;
 };
 
-Filesystem::File* FATFileSystem::open(const char* path, mode_t mode) {
+Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
     LOG_DEBUG("FatFs on drive %d is trying to open file %s", mFatFS.pdrv, path);
+    auto len = 4 + strlen(path);
+    char* fullpath = allocate<char>(len);
+    bzero((uint8_t*)&fullpath[0], len);
+    sprint(&fullpath[0], len, "%d:%s", mFatFS.pdrv, path);
+    auto fil = allocate<FIL>();
+    bzero((uint8_t*)fil, sizeof(fil));
+
+    {
+        delete_ptr<char> fullpath_delptr(fullpath);
+        delete_ptr<FIL> fil_delptr(fil);
+
+        auto realmode = 0;
+        if (mode & FILE_OPEN_READ) realmode |= FA_READ;
+        if (mode & FILE_OPEN_WRITE) realmode |= FA_WRITE;
+        if (mode & FILE_OPEN_NEW) realmode |= FA_CREATE_ALWAYS;
+        if (mode & FILE_NO_CREATE) realmode |= FA_OPEN_EXISTING;
+        if (mode & FILE_OPEN_APPEND) realmode |= FA_OPEN_APPEND;
+
+        LOG_DEBUG("VFS mode: %x, FatFS mode: %x", mode, realmode);
+
+        switch (f_open(fil, fullpath, realmode)) {
+            case FR_OK:
+                LOG_DEBUG("returning file handle %p for %s", fil, fullpath);
+                return new FATFileSystemFile(fil_delptr.reset());
+            default:
+                return nullptr;
+        }
+    }
+    
+}
+
+bool FATFileSystem::del(const char* path) {
+    LOG_DEBUG("FatFs on drive %d is trying to delete file %s", mFatFS.pdrv, path);
     auto len = 4 + strlen(path);
     char* fullpath = allocate<char>(len);
     bzero((uint8_t*)&fullpath[0], len);
@@ -130,28 +165,24 @@ Filesystem::File* FATFileSystem::open(const char* path, mode_t mode) {
 
         FILINFO fi;
         switch (f_stat(fullpath, &fi)) {
-            case FR_OK: break;
+            case FR_OK: {
+                switch (f_unlink(fullpath)) {
+                    case FR_OK: return true;
+                    default:
+                        LOG_WARNING("unable to erase file at path %s", fullpath);
+                        return false;
+                }
+            }
             default: {
                 LOG_WARNING("no file found at path %s", fullpath);
-                return nullptr;
+                return true;
             }
         }
-
-        LOG_DEBUG("found a valid FAT file at path %s - size was %u", fullpath, fi.fsize);
-
-        auto realmode = (mode == mode_t::read ? FA_READ : FA_CREATE_ALWAYS);
-        switch (f_open(fil, fullpath, realmode)) {
-            case FR_OK:
-                LOG_DEBUG("returning file handle %p for %s", fil, fullpath);
-                return new FATFileSystemFile(fil_delptr.reset(), fi);
-            default:
-                return nullptr;
-        }
     }
-    
 }
 
 void FATFileSystem::close(Filesystem::FilesystemObject* f) {
+    LOG_DEBUG("closing filesystem object %p", f);
     delete f;
 }
 

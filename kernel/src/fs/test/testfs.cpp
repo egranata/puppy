@@ -41,7 +41,7 @@ TestFS::TestFS() : mRAMFS(new RAMFS()) {
     mRAMFS->add(new StringBasedFile(gTestFSFilename, gTestFSContent, strlen(gTestFSContent) + 1));
 }
 
-Filesystem::File* TestFS::open(const char* path, mode_t mode) {
+Filesystem::File* TestFS::open(const char* path, uint32_t mode) {
     return mRAMFS->open(path, mode);
 }
 

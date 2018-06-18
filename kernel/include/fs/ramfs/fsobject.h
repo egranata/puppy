@@ -48,7 +48,7 @@ class RAMDirectory : public RAMObject {
 class RAMFileData {
     public:
         virtual size_t size() const = 0;
-        virtual bool read(size_t position, size_t length, uint8_t *dest) = 0;
+        virtual size_t read(size_t position, size_t length, uint8_t *dest) = 0;
         virtual uintptr_t ioctl(uintptr_t, uintptr_t) = 0;
         virtual ~RAMFileData() = default;
 };
@@ -61,7 +61,7 @@ class RAMFileBuffer : public RAMFileData {
         size_t size() const;
         uint8_t* buffer();
         const uint8_t* buffer() const;
-        bool read(size_t position, size_t length, uint8_t *dest);
+        size_t read(size_t position, size_t length, uint8_t *dest);
         uintptr_t ioctl(uintptr_t, uintptr_t);
     private:
         delete_ptr<uint8_t> mBuffer;

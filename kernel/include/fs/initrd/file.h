@@ -23,8 +23,8 @@
 class InitrdFile : public Filesystem::File, NOCOPY {
     public:
         bool seek(size_t) override;
-        bool read(size_t, char*) override;
-        bool write(size_t, char*) override;
+        size_t read(size_t, char*) override;
+        size_t write(size_t, char*) override;
         bool stat(stat_t&) override;
         InitrdFile(uint8_t *base, uint32_t size);
 

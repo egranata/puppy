@@ -116,10 +116,10 @@ fs_ident_t::mount_result_t VFS::mount(Volume* vol, const char* where) {
     return {false, nullptr};
 }
 
-VFS::filehandle_t VFS::open(const char* path, Filesystem::mode_t mode) {
+VFS::filehandle_t VFS::open(const char* path, uint32_t mode) {
     if (path == nullptr) return {nullptr, nullptr};
 
-    LOG_DEBUG("asked to open %s - mode = %u", path, mode);
+    LOG_DEBUG("asked to open %s - mode = %x", path, mode);
     if (path[0] == '/') ++path;
     auto b = mMounts.begin(), e = mMounts.end();
     for(; b != e; ++b) {
@@ -135,11 +135,30 @@ VFS::filehandle_t VFS::open(const char* path, Filesystem::mode_t mode) {
     return {nullptr, nullptr};
 }
 
+bool VFS::del(const char* path) {
+    if (path == nullptr || path[0] == 0) return false;
+
+    LOG_DEBUG("asked to delete %s", path);
+    if (path[0] == '/') ++path;
+    auto b = mMounts.begin(), e = mMounts.end();
+    for(; b != e; ++b) {
+        auto&& m = *b;
+        auto next = strprefix(m.path, path);
+        if (next != nullptr) {
+            LOG_DEBUG("found matching root fs %s (at %p) - forwarding del request of %s", m.path, m.fs, next);
+            return m.fs->del(next);
+        }
+    }
+
+    LOG_DEBUG("no matching filesystem found - failure");
+    return false;
+}
+
 // TODO: VFS should be itself a filesystem; for now this is just used
 // to cleanup instances of RootDirectory
 class VFSFilesystem : public Filesystem {
 public:
-        File* open(const char*, mode_t) {
+        File* open(const char*, uint32_t) {
             return nullptr;
         }
 

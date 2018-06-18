@@ -9,7 +9,7 @@
     {"number":10,    "name":"semwait",          "argc":1},
     {"number":11,    "name":"semsignal",        "argc":1},
     {"number":12,    "name":"getpid",           "argc":0},
-    {"number":13,    "name":"fopen",            "argtypes":["const char*", "filemode_t"]},
+    {"number":13,    "name":"fopen",            "argtypes":["const char*", "uint32_t"]},
     {"number":14,    "name":"fclose",           "argc":1},
     {"number":15,    "name":"fread",            "argc":3},
     {"number":16,    "name":"exec",             "argc":3},
@@ -33,6 +33,7 @@
     {"number":35,    "name":"trymount",         "argtypes":["uint32_t", "const char*"]},
     {"number":36,    "name":"collectany",       "argtypes":["uint16_t*", "process_exit_status_t*"]},
     {"number":37,    "name":"clone",            "argtypes":["uintptr_t"]},
+    {"number":38,    "name":"fdel",             "argtypes":["const char*"]},
     {"number":44,    "name":"mutextrylock",     "argtypes":["uint32_t"]},
     {"number":45,    "name":"vmcheckreadable",  "argtypes":["uintptr_t", "size_t"]},
     {"number":46,    "name":"vmcheckwritable",  "argtypes":["uintptr_t", "size_t"]}

@@ -38,7 +38,7 @@ extern syscall_response_t semsignal_syscall_handler(uint32_t arg1);
 extern syscall_response_t semsignal_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t getpid_syscall_handler();
 extern syscall_response_t getpid_syscall_helper(SyscallManager::Request&);
-extern syscall_response_t fopen_syscall_handler(const char* arg1,filemode_t arg2);
+extern syscall_response_t fopen_syscall_handler(const char* arg1,uint32_t arg2);
 extern syscall_response_t fopen_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t fclose_syscall_handler(uint32_t arg1);
 extern syscall_response_t fclose_syscall_helper(SyscallManager::Request& req);
@@ -86,6 +86,8 @@ extern syscall_response_t collectany_syscall_handler(uint16_t* arg1,process_exit
 extern syscall_response_t collectany_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t clone_syscall_handler(uintptr_t arg1);
 extern syscall_response_t clone_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t fdel_syscall_handler(const char* arg1);
+extern syscall_response_t fdel_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t mutextrylock_syscall_handler(uint32_t arg1);
 extern syscall_response_t mutextrylock_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t vmcheckreadable_syscall_handler(uintptr_t arg1,size_t arg2);
@@ -128,6 +130,7 @@ void SyscallManager::sethandlers() {
 	handle(35, trymount_syscall_helper, false); 
 	handle(36, collectany_syscall_helper, false); 
 	handle(37, clone_syscall_helper, false); 
+	handle(38, fdel_syscall_helper, false); 
 	handle(44, mutextrylock_syscall_helper, false); 
 	handle(45, vmcheckreadable_syscall_helper, false); 
 	handle(46, vmcheckwritable_syscall_helper, false); 
@@ -188,10 +191,10 @@ syscall_response_t getpid_syscall_helper(SyscallManager::Request&) {
 
 
 syscall_response_t fopen_syscall_helper(SyscallManager::Request& req) {
-	return fopen_syscall_handler((const char*)req.arg1,(filemode_t)req.arg2);
+	return fopen_syscall_handler((const char*)req.arg1,(uint32_t)req.arg2);
 }
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
-static_assert(sizeof(filemode_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t fclose_syscall_helper(SyscallManager::Request& req) {
 	return fclose_syscall_handler((uint32_t)req.arg1);
@@ -323,6 +326,11 @@ syscall_response_t clone_syscall_helper(SyscallManager::Request& req) {
 	return clone_syscall_handler((uintptr_t)req.arg1);
 }
 static_assert(sizeof(uintptr_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+
+syscall_response_t fdel_syscall_helper(SyscallManager::Request& req) {
+	return fdel_syscall_handler((const char*)req.arg1);
+}
+static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t mutextrylock_syscall_helper(SyscallManager::Request& req) {
 	return mutextrylock_syscall_handler((uint32_t)req.arg1);

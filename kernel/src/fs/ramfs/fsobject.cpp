@@ -79,11 +79,11 @@ void RAMDirectory::add(RAMObject* file) {
     mEntries.push_back(file);
 }
 
-bool RAMFileBuffer::read(size_t position, size_t length, uint8_t *dest) {
-    if (position + length >= size()) return false;
+size_t RAMFileBuffer::read(size_t position, size_t length, uint8_t *dest) {
+    if (position + length > size()) length = size() - position;
 
     memcpy(dest, buffer() + position, length);
-    return true;
+    return length;
 }
 
 RAMObject* RAMDirectory::get(const char* nm) {

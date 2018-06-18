@@ -30,7 +30,7 @@ class IDEVolumeFileData : public RAMFileData, NOCOPY {
     public:
         IDEVolumeFileData(IDEVolumeFile* file) : mFile(file) {}
         size_t size() const;
-        bool read(size_t position, size_t length, uint8_t *dest);
+        size_t read(size_t position, size_t length, uint8_t *dest);
         uintptr_t ioctl(uintptr_t, uintptr_t);
     private:
         IDEVolumeFile *mFile;
@@ -44,7 +44,7 @@ size_t IDEVolumeFileData::size() const {
     return mFile->mVolume->partition().size * 512;
 }
 
-bool IDEVolumeFileData::read(size_t position, size_t length, uint8_t *dest) {
+size_t IDEVolumeFileData::read(size_t position, size_t length, uint8_t *dest) {
     if (position % 512) {
         LOG_ERROR("cannot read at position %lu, it is not a multiple of sector size", position);
         return false;
@@ -55,7 +55,8 @@ bool IDEVolumeFileData::read(size_t position, size_t length, uint8_t *dest) {
         return false;
     }
 
-    return mFile->mVolume->controller()->read(mFile->mVolume->disk(), mFile->mVolume->partition().sector + position / 512, length / 512, dest);
+    return mFile->mVolume->controller()->read(mFile->mVolume->disk(), mFile->mVolume->partition().sector + position / 512, length / 512, dest) ?
+        length : 0;
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)

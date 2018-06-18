@@ -28,7 +28,7 @@ class IDEDiskFileData : public RAMFileData, NOCOPY {
     public:
         IDEDiskFileData(IDEDiskFile* file) : mFile(file) {}
         size_t size() const;
-        bool read(size_t position, size_t length, uint8_t *dest);
+        size_t read(size_t position, size_t length, uint8_t *dest);
         uintptr_t ioctl(uintptr_t, uintptr_t);
     private:
         IDEDiskFile *mFile;
@@ -42,7 +42,7 @@ size_t IDEDiskFileData::size() const {
     return mFile->mDisk.sectors * 512;
 }
 
-bool IDEDiskFileData::read(size_t position, size_t length, uint8_t *dest) {
+size_t IDEDiskFileData::read(size_t position, size_t length, uint8_t *dest) {
     if (position % 512) {
         LOG_ERROR("cannot read at position %lu, it is not a multiple of sector size", position);
         return false;
@@ -53,7 +53,8 @@ bool IDEDiskFileData::read(size_t position, size_t length, uint8_t *dest) {
         return false;
     }
 
-    return mFile->mController->read(mFile->mDisk, position / 512, length / 512, dest);
+    return mFile->mController->read(mFile->mDisk, position / 512, length / 512, dest) ?
+        length : 0;
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)

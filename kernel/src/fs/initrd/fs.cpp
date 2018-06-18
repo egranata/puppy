@@ -53,11 +53,12 @@ Initrd* Initrd::tryget(uintptr_t address) {
     return new Initrd(address);
 }
 
-Filesystem::File* Initrd::open(const char* path, mode_t mode) {
-    if (mode == mode_t::write) {
-        LOG_ERROR("initrd cannot open files for writing");
+Filesystem::File* Initrd::open(const char* path, uint32_t mode) {
+    if (mode & (FILE_OPEN_WRITE | FILE_OPEN_APPEND | FILE_OPEN_NEW)) {
+        LOG_ERROR("file mode %x not allowed for initrd", mode);
         return nullptr;
     }
+
     LOG_DEBUG("initrd asked to open %s", path);
     if (path[0] =='/') ++path;
     for (auto i = 0u; i < mFiles->count; ++i) {

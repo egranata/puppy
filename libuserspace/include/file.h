@@ -20,22 +20,27 @@
 #include <stdint.h>
 #include <kernel/syscalls/types.h>
 
-static constexpr filemode_t gModeRead = filemode_t::read;
-static constexpr filemode_t gModeWrite = filemode_t::write;
+static constexpr uint32_t gModeRead = FILE_OPEN_READ;
+static constexpr uint32_t gModeWrite = FILE_OPEN_WRITE;
+static constexpr uint32_t gModeAppend = FILE_OPEN_WRITE | FILE_OPEN_APPEND;
+static constexpr uint32_t gModeCreate = FILE_OPEN_NEW;
 
 static constexpr uint32_t gInvalidFd = -1;
 
 extern "C"
-uint32_t open(const char* path, filemode_t mode);
+uint32_t open(const char* path, uint32_t mode);
+
+extern "C"
+bool del(const char* path);
 
 extern "C"
 void close(uint32_t fid);
 
 extern "C"
-bool read(uint32_t fid, uint32_t size, unsigned char* buffer);
+size_t read(uint32_t fid, uint32_t size, unsigned char* buffer);
 
 extern "C"
-bool write(uint32_t fid, uint32_t size, unsigned char* buffer);
+size_t write(uint32_t fid, uint32_t size, unsigned char* buffer);
 
 extern "C"
 uintptr_t ioctl(uint32_t fid, uintptr_t, uintptr_t);

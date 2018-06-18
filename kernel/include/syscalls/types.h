@@ -41,9 +41,12 @@ enum {
     INCLUDE_LOCAL_INFO = 2,
 };
 
-enum class filemode_t {
-    read = 0,
-    write = 1
+enum {
+    FILE_OPEN_READ = 1, // allow reading
+    FILE_OPEN_WRITE = 2, // allow writing
+    FILE_OPEN_NEW = 4, // if the file exists, create a new one anyway
+    FILE_NO_CREATE = 8, // if the file does not exist, do not create it
+    FILE_OPEN_APPEND = 16 // append to the file, if it exists and has content
 };
 
 enum {
