@@ -87,7 +87,7 @@ static void timer(GPR&, InterruptStack& stack) {
         }
     }
 
-    if (!VirtualPageManager::iskernel(stack.eip)) {
+    if (ProcessManager::isinterruptible(stack.eip)) {
         ProcessManager::get().tick();
     }
 }

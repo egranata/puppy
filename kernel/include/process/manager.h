@@ -44,6 +44,10 @@ class ProcessManager : NOCOPY {
 
         static ProcessManager& get();
 
+        // returns true if this is an EIP address that the scheduler
+        // is allowed to interrupt
+        static bool isinterruptible(uintptr_t);
+
         // NB: implementation of this is in process/exceptions.h
         void installexceptionhandlers();
 

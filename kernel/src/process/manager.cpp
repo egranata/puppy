@@ -177,7 +177,7 @@ void task0() {
     }
 
     while(true) {
-        ProcessManager::get().yield();
+        haltforever();
     }
 }
 
@@ -509,6 +509,18 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
         ready(parent);
     } else {
         LOG_DEBUG("parent %u was not waiting to collect", parent->pid);
+    }
+}
+
+bool ProcessManager::isinterruptible(uintptr_t addr) {
+    static uintptr_t gHaltInstruction = (uintptr_t)&haltforever;
+    // the EIP value at *hlt* will be &hlt + 1
+    static uintptr_t gHaltEIP = gHaltInstruction + 1;
+
+    if (VirtualPageManager::iskernel(addr)) {
+        return ((addr == gHaltInstruction) || (addr == gHaltEIP));
+    } else {
+        return true;
     }
 }
 
