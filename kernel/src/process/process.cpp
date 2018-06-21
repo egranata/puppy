@@ -50,7 +50,7 @@ void process_t::clone(process_t* other) {
     other->priority = priority;
     other->usedticks = 0;
 
-    other->mmap.clone(&mmap);
+    mmap.clone(&other->mmap);
     // tty is cloned in ProcessManager
 
     other->flags.system = flags.system;

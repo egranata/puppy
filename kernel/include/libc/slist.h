@@ -29,12 +29,31 @@ private:
 	size_t size;
 	node *head;
 	node *tail;
+
+	void clone(const slist<T>& other) {
+		auto ob = other.begin();
+		auto oe = other.end();
+		while (ob != oe) {
+			add(*ob);
+			++ob;
+		}
+	}
 public:
 	slist() : size(0), head(nullptr), tail(nullptr) {}
 
-    bool empty() { return size == 0; }
+	explicit slist(const slist<T>& other) : size(0), head(nullptr), tail(nullptr) {
+		clone(other);
+	}
 
-	size_t count() { return size; }
+	slist<T>& operator=(const slist<T>& other) {
+		clear();
+		clone(other);
+		return *this;
+	}
+
+    bool empty() const { return size == 0; }
+
+	size_t count() const { return size; }
 
 	void add_head(T item) {
 		++size;
@@ -77,10 +96,33 @@ public:
 		
 		friend class slist;
 	};
-	
+
+	class const_iterator {
+	public:
+		const T& operator*() { return current->item; }
+		const_iterator& operator++() {
+			current = current->next;
+			return *this;
+		}
+		bool operator==(const const_iterator& i) {
+			return current == i.current;
+		}
+		bool operator!=(const const_iterator& i) {
+			return current != i.current;
+		}
+	private:
+		const_iterator(node *n) : current(n) {}
+		node* current;
+		
+		friend class slist;
+	};
+
 	iterator begin() { return iterator(head); }
 	iterator end() { return empty() ? begin() : iterator(tail->next); }
 	
+	const_iterator begin() const { return const_iterator(head); }
+	const_iterator end() const { return empty() ? begin() : const_iterator(tail->next); }
+
 	void clear() {
 		size = 0;
 		while (head != nullptr) {
@@ -88,6 +130,7 @@ public:
 			delete head;
 			head = m;
 		}
+		head = tail = nullptr;
 	}
 
 	void insert(iterator i, T item) {
@@ -149,6 +192,14 @@ public:
         auto t = n->item;
 		delete n;
         return t;
+	}
+
+	void foreach(bool(*f)(const T& item)) const {
+		auto b = begin(), e = end();
+		while(b != e) {
+			if (false == f(*b)) return;
+			++b;
+		}
 	}
 };
 

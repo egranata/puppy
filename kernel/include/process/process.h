@@ -17,6 +17,7 @@
 #ifndef PROCESS_PROCESS
 #define PROCESS_PROCESS
 
+#include <kernel/libc/bytesizes.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/i386/tss.h>
 #include <kernel/synch/semaphore.h>
@@ -34,6 +35,8 @@
 #include <kernel/syscalls/types.h>
 
 struct process_t {
+    static constexpr size_t gDefaultStackSize = 4_MB;
+
     enum class State : uint8_t {
         NEW,
         AVAILABLE,

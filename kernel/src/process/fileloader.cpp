@@ -28,8 +28,6 @@
 #include <kernel/libc/bytesizes.h>
 #include <kernel/syscalls/types.h>
 
-static constexpr uintptr_t gStackSize = 4_MB;
-
 #define UNHAPPY(cause, N) { \
     process_exit_status_t es(process_exit_status_t::reason_t::kernelError, N); \
     if (fhandle.first && file) { \
@@ -82,7 +80,7 @@ void fileloader(uintptr_t) {
 
     elf_header_t *header = (elf_header_t*)gInitialLoadAddress;
 
-    auto loadinfo = loadelf(header, gStackSize);
+    auto loadinfo = loadelf(header, process_t::gDefaultStackSize);
 
     vm.unmaprange(gInitialLoadAddress, gInitialLoadAddress + pages * VirtualPageManager::gPageSize);
 

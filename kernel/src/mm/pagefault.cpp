@@ -100,7 +100,7 @@ static bool cow_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     VirtualPageManager::map_options_t opts;
     if (vmm.mapped(vaddr, &opts)) {
         auto phys = vmm.clonePage(vaddr, opts);
-        LOG_DEBUG("faulting address was COW - remapped to %p", phys);
+        LOG_DEBUG("faulting address %p was COW - remapped to %p", vaddr, phys);
         if (0 == (phys & 1)) return true;
     }
 

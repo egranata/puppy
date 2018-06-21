@@ -16,6 +16,7 @@
 #include <kernel/sys/globals.h>
 #include <kernel/process/manager.h>
 #include <kernel/i386/primitives.h>
+#include <kernel/libc/enableif.h>
 #include <kernel/libc/memory.h>
 #include <kernel/log/log.h>
 #include <kernel/panic/panic.h>
@@ -24,6 +25,7 @@
 #include <kernel/process/process.h>
 #include <kernel/mm/virt.h>
 #include <kernel/process/fileloader.h>
+#include <kernel/process/clonestart.h>
 #include <kernel/process/reaper.h>
 #include <kernel/boot/phase.h>
 #include <kernel/libc/vec.h>
@@ -249,6 +251,17 @@ process_t* ProcessManager::setup(const char* path, const char* args, uint8_t pri
     return nullptr;
 }
 
+template<int16_t idx>
+static typename enable_if<idx >= 0, uint32_t*>::type stackpush(uint32_t* esp) {
+    return &esp[idx];
+}
+
+template<int16_t idx, typename T = uint32_t, typename... Q>
+static typename enable_if<idx >= 0, uint32_t*>::type stackpush(uint32_t *esp, T value, Q... values) {
+    esp[idx] = value;
+    return stackpush<idx-1>(esp, values...);
+}
+
 process_t* ProcessManager::spawn(const spawninfo_t& si) {
     auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
@@ -287,27 +300,20 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     // this is [0] thru [1023], where [1023] is the first element
     // because of x86 stack rules
     uint32_t* esp = (uint32_t*)esppage;
-    esp[1023] = si.argument;
+    esp = stackpush<1023>(esp, si.argument);
 
-    process->tss.esp = (uintptr_t)&esp[1022];
+    process->tss.esp = (uintptr_t)esp;
     process->espstart = esppage;
 
     LOG_DEBUG("esp = %p", process->tss.esp);
 
-    auto dtbl = gdt<uint64_t*>();
+    auto gdtval = fillGDT(process);
 
-    process->gdtidx = gGDTBitmap().next();
-
-    dtbl[process->gdtidx] = sizeof(process_t) & 0xFFFF;
-    dtbl[process->gdtidx] |= (((uint64_t)process) & 0xFFFFFFULL) << 16;
-    dtbl[process->gdtidx] |= 0xE90000000000ULL;
-    dtbl[process->gdtidx] |= (((uint64_t)process) & 0xFF000000ULL) << 32;
-
-    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llu",
+    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llx",
         process->ppid, process->pid,
         process->tss.eip, process->tss.cr3,
         process->tss.esp0, process->tss.esp,
-        process->gdtidx, dtbl[process->gdtidx]);
+        process->gdtidx, gdtval);
 
     gProcessTable().set(process);
     if (si.schedulable) {
@@ -319,15 +325,7 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         process->state = process_t::State::NEW;        
     }
 
-    {
-        size_t ttyfd;
-        bool ok = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd);
-        if (false == ok || 0 != ttyfd) {
-            PANIC("unable to forward TTY to new process");
-        } else {
-            LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, process->ttyinfo.ttyfile);
-        }
-    }
+    forwardTTY(process);
 
     gCurrentProcess->children.add(process);
 
@@ -654,7 +652,7 @@ begin:
     return result;
 }
 
-process_t* ProcessManager::cloneProcess() {
+process_t* ProcessManager::cloneProcess(uintptr_t eip) {
     auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
         PANIC("set process table location before spawning");
@@ -662,10 +660,13 @@ process_t* ProcessManager::cloneProcess() {
     auto&& vm(VirtualPageManager::get());
     auto processpage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
     auto esp0page = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    if ((processpage & 0x1) || (esp0page & 0x1)) {
+    auto esppage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
+    if ((processpage & 0x1) || (esp0page & 0x1) | (esppage & 0x1)) {
         PANIC("cannot find memory for a new process");
     }
     process_t *process = new ((void*)processpage) process_t();
+
+    LOG_DEBUG("cloned process_t page at %p", process);
     gCurrentProcess->clone(process);
 
     LOG_DEBUG("setup new process_t page at %p", process);
@@ -674,17 +675,38 @@ process_t* ProcessManager::cloneProcess() {
     process->pid = gPidBitmap().next();
     process->ppid = gCurrentProcess->pid;
     process->ttyinfo = gCurrentProcess->ttyinfo;
-    // TODO: sharing stack pointer is not ideal - the current process
-    // might have exhausted most of its stack already, and the new process
-    // would end up with not enough stack
-    process->tss.esp = gCurrentProcess->tss.esp;
-
     process->tss.esp0 = 4095 + esp0page;
     process->esp0start = esp0page;
-    process->espstart = 0;
+    process->espstart = esppage;
+    process->tss.eip = (uintptr_t)clone_start;
 
     LOG_DEBUG("esp0 = %p", process->tss.esp0);
 
+    uint32_t *esp = (uint32_t*)esppage;
+    esp = stackpush<1023>(esp, eip);
+    process->tss.esp = (uintptr_t)esp;
+
+    auto gdtval = fillGDT(process);
+
+    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llx",
+        process->ppid, process->pid,
+        process->tss.eip, process->tss.cr3,
+        process->tss.esp0, process->tss.esp,
+        process->gdtidx, gdtval);
+
+    gProcessTable().set(process);
+    LOG_DEBUG("process %u is schedulable", process->pid);
+    gReadyQueue().push_back(process);
+    process->state = process_t::State::AVAILABLE;
+
+    forwardTTY(process);
+
+    gCurrentProcess->children.add(process);
+
+    return process;
+}
+
+uint64_t ProcessManager::fillGDT(process_t* process) {
     auto dtbl = gdt<uint64_t*>();
 
     process->gdtidx = gGDTBitmap().next();
@@ -694,28 +716,15 @@ process_t* ProcessManager::cloneProcess() {
     dtbl[process->gdtidx] |= 0xE90000000000ULL;
     dtbl[process->gdtidx] |= (((uint64_t)process) & 0xFF000000ULL) << 32;
 
-    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llu",
-        process->ppid, process->pid,
-        process->tss.eip, process->tss.cr3,
-        process->tss.esp0, process->tss.esp,
-        process->gdtidx, dtbl[process->gdtidx]);
+    return dtbl[process->gdtidx];
+}
 
-    gProcessTable().set(process);
-    LOG_DEBUG("process %u is schedulable", process->pid);
-    gReadyQueue().push_back(process);
-    process->state = process_t::State::AVAILABLE;
-
-    {
-        size_t ttyfd;
-        bool ok = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd);
-        if (false == ok || 0 != ttyfd) {
-            PANIC("unable to forward TTY to new process");
-        } else {
-            LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, process->ttyinfo.ttyfile);
-        }
+void ProcessManager::forwardTTY(process_t* process) {
+    size_t ttyfd;
+    bool ok = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd);
+    if (false == ok || 0 != ttyfd) {
+        PANIC("unable to forward TTY to new process");
+    } else {
+        LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, process->ttyinfo.ttyfile);
     }
-
-    gCurrentProcess->children.add(process);
-
-    return process;
 }

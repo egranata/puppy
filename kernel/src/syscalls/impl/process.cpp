@@ -96,8 +96,7 @@ HANDLER2(prioritize,pid,prio) {
 syscall_response_t clone_syscall_handler(uintptr_t neweip) {
     auto&& pmm = ProcessManager::get();
 
-    auto newproc = pmm.cloneProcess();
-    newproc->tss.eip = neweip;
+    auto newproc = pmm.cloneProcess(neweip);
 
     return OK | (newproc->pid << 1);
 }

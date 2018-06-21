@@ -29,6 +29,7 @@ public:
     bool findFree(uint32_t size, T& range);
     bool add(uint32_t size, T& range);
     bool del(const T& i);
+    void foreach(bool(*f)(const T& i)) const;
 private:
     slist<T> mIntervals;
 };
@@ -131,6 +132,11 @@ bool IntervalList<T, max>::add(uint32_t size, T& range) {
 template<typename T, uint32_t max>
 bool IntervalList<T, max>::del(const T& i) {
     return mIntervals.remove(i);
+}
+
+template<typename T, uint32_t max>
+void IntervalList<T, max>::foreach(bool(*f)(const T& i)) const {
+    mIntervals.foreach(f);
 }
 
 #endif

@@ -20,22 +20,32 @@
 #include <libuserspace/exit.h>
 #include <libuserspace/clone.h>
 #include <libuserspace/collect.h>
+#include <libuserspace/sleep.h>
 
-static constexpr int gExitCode = 96;
-
-struct foo {
-    int value;
+static struct {
+    volatile uint32_t value;
 } gFoo;
 
-uint32_t doStuff(int a, int b) {
-    uint32_t *ptr = (uint32_t*)malloc(4);
-    *ptr = a + b;
-    return *ptr - gFoo.value;
+static void child1() {
+    sleep(1000);
+    exit(1);
 }
 
-static void newmain() {
-    gFoo.value = 1;
-    exit(gExitCode + doStuff(3,-2));
+static void child2() {
+    sleep(1000);
+    exit(2);
+}
+
+static void child3() {
+    gFoo.value = 234;
+    sleep(1000);
+    exit(3);
+}
+
+static void child4() {
+    sleep(1000);
+    __asm__ volatile ("hlt");
+    exit(4);
 }
 
 class TheTest : public Test {
@@ -44,17 +54,28 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            gFoo.value = 0; 
+            gFoo.value = 123;
 
-            uint16_t pid = clone(&newmain);
+            auto c1 = clone(child1);
+            auto c2 = clone(child2);
+            auto c3 = clone(child3);
+            auto c4 = clone(child4);
 
-            CHECK_NOT_EQ(pid, 0);
+            auto s1 = collect(c1);
+            auto s2 = collect(c2);
+            auto s3 = collect(c3);
+            auto s4 = collect(c4);
 
-            auto es = collect(pid);
+            CHECK_EQ(s1.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(s2.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(s3.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(s4.reason, process_exit_status_t::reason_t::exception);
 
-            CHECK_EQ(es.reason, process_exit_status_t::reason_t::cleanExit);
-            CHECK_EQ(es.status, gExitCode);
-            CHECK_EQ(gFoo.value, 0);
+            CHECK_EQ(s1.status, 1);
+            CHECK_EQ(s2.status, 2);
+            CHECK_EQ(s3.status, 3);
+
+            CHECK_EQ(gFoo.value, 123);
         }
 };
 
