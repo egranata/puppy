@@ -47,6 +47,10 @@ class dynqueue {
             }
         }
 
+        T peek() {
+            return mElements.front();
+        }
+
     private:
         vector<T> mElements;
 };

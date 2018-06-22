@@ -42,6 +42,7 @@ struct process_t {
         AVAILABLE,
         WAITSYNC, /** waiting for a synchronization object */
         WAITMSG,  /** waiting for a message */
+        WAITQUEUE, /** in a waitqueue */
         SLEEPING,
         EXITED,
         COLLECTED,
