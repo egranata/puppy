@@ -37,4 +37,4 @@ class WaitQueue : NOCOPY {
         dynqueue<process_t*> mProcesses;
 };
 
- #endif
+#endif

@@ -19,8 +19,8 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/synch/refcount.h>
-#include <kernel/libc/dynqueue.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/synch/waitqueue.h>
 
 struct process_t;
 
@@ -36,10 +36,12 @@ class Mutex : public refcounted<Mutex> {
         const char* key();
 
     private:
+        bool dolock(process_t*);
+
         char* mKey;
         bool mLocked;
         uint16_t mPid;
-        dynqueue<process_t*> mWaiters;
+        WaitQueue mWQ;
 
         friend class MutexManager;
 };

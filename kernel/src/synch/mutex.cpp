@@ -31,19 +31,20 @@ const char* Mutex::key() {
     return mKey;
 }
 
-void Mutex::lock() {
-    auto&& pm(ProcessManager::get());
+bool Mutex::dolock(process_t* task) {
+    mLocked = true;
+    mPid = task->pid;
+    LOG_DEBUG("letting process %u lock this mutex", mPid);
+    return true;
+}
 
+void Mutex::lock() {
     while(true) {
         if (mLocked) {
             LOG_DEBUG("yielding as this mutex is locked");
-            mWaiters.push(gCurrentProcess);
-            pm.deschedule(gCurrentProcess, process_t::State::WAITSYNC);
-            pm.yield();
+            mWQ.wait(gCurrentProcess);
         } else {
-            mLocked = true;
-            mPid = gCurrentProcess->pid;
-            LOG_DEBUG("letting process %u lock this mutex", mPid);
+            dolock(gCurrentProcess);
             return;
         }
     }
@@ -53,10 +54,7 @@ bool Mutex::trylock() {
     if (mLocked) {
         return false;
     } else {
-        mLocked = true;
-        mPid = gCurrentProcess->pid;
-        LOG_DEBUG("letting process %u lock this mutex", mPid);
-        return true;
+        return dolock(gCurrentProcess);
     }
 }
 
@@ -64,12 +62,6 @@ void Mutex::unlock() {
     if (mLocked && (mPid == gCurrentProcess->pid)) {
         mLocked = false;
         LOG_DEBUG("process %u unlocked this mutex", mPid);
-        mWaiters.foreach([] (process_t* &next) -> bool {
-            if (next->state == process_t::State::WAITSYNC) {
-                auto&& pm(ProcessManager::get());
-                pm.ready(next);
-            }
-            return true;
-        });
+        mWQ.wakeall();
     }
 }

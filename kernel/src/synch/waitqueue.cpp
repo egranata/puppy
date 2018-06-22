@@ -17,9 +17,12 @@
 #include <kernel/synch/waitqueue.h>
 #include <kernel/process/manager.h>
 #include <kernel/process/process.h>
+#include <kernel/log/log.h>
 
 void WaitQueue::wait(process_t* task) {
     auto&& pm(ProcessManager::get());
+
+    LOG_DEBUG("task %u entering wait queue %p", task->pid, this);
 
     mProcesses.push(task);
     pm.deschedule(task, process_t::State::WAITQUEUE);
@@ -30,7 +33,9 @@ bool WaitQueue::wake(process_t* task) {
     auto&& pm(ProcessManager::get());
 
     if (task) {
+        LOG_DEBUG("wait queue %p trying to wake task %u (state == %u)", this, task->pid, (uint8_t)task->state);
         if (task->state == process_t::State::WAITQUEUE) {
+            LOG_DEBUG("task wake happening");
             pm.ready(task);
             return true;
         }
@@ -42,7 +47,10 @@ bool WaitQueue::wake(process_t* task) {
 process_t* WaitQueue::wakeone() {
     while (!mProcesses.empty()) {
         auto next = mProcesses.pop();
-        if (wake(next)) return next;
+        if (wake(next)) {
+            LOG_DEBUG("wait queue %p woke up the one next %u", this, next->pid);
+            return next;
+        }
     }
 
     return nullptr;
@@ -50,7 +58,9 @@ process_t* WaitQueue::wakeone() {
 
 void WaitQueue::wakeall() {
     while (!mProcesses.empty()) {
-        wake(mProcesses.pop());
+        auto next = mProcesses.pop();
+        wake(next);
+        LOG_DEBUG("wait queue %p woke up %u", this, next->pid);
     }
 }
 
