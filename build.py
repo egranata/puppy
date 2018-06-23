@@ -128,7 +128,7 @@ def clearDir(path):
         shutil.rmtree(path)
     os.makedirs(path)
 
-def makeDir(path):
+def makeDir(path, sudo=False):
     if not os.path.isdir(path):
         cmdline = 'mkdir "%s"' % path
         shell(cmdline)
@@ -371,24 +371,27 @@ shell(CMDLINE)
 
 print("Generating os.img")
 
-CMDLINE="losetup -D"
-shell(CMDLINE)
+# the -D option does not seem to exist on Travis
+# but that's OK because in that case a new VM gets spawned
+# at every rebuild, so don't fail for that reason
+CMDLINE="sudo losetup -D"
+shell(CMDLINE, onerrignore=True)
 
 CMDLINE="dd if=/dev/zero of=out/os.img bs=1MB count=64"
 shell(CMDLINE)
 CMDLINE="fdisk out/os.img"
 shell(CMDLINE, stdin=open('build/fdisk.in'))
 
-CMDLINE="losetup --find --show out/os.img"
+CMDLINE="sudo losetup --find --show out/os.img"
 DISK_LO = shell(CMDLINE).splitlines()[0]
 
-CMDLINE="losetup --offset $((2048*512)) --show --find out/os.img"
+CMDLINE="sudo losetup --offset $((2048*512)) --show --find out/os.img"
 PART_LO = shell(CMDLINE).splitlines()[0]
 
-CMDLINE="mkfs.fat -F32 %s" % (PART_LO)
+CMDLINE="sudo mkfs.fat -F32 %s" % (PART_LO)
 shell(CMDLINE)
 
-CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
+CMDLINE="sudo mount -o loop %s out/mnt" % (PART_LO)
 shell(CMDLINE)
 
 makeDir("out/mnt/apps")
@@ -400,7 +403,7 @@ for app in APP_REFS:
 for test in TEST_REFS:
     copy(test, "out/mnt/tests/%s" % os.path.basename(test))
 
-CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
+CMDLINE="sudo grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
 shell(CMDLINE)
 
 copy("out/kernel", "out/mnt/boot/puppy")
@@ -410,7 +413,7 @@ copy("out/iso/boot/grub/grub.cfg", "out/mnt/boot/grub/grub.cfg")
 CMDLINE="df %s/out/mnt -BK --output=used" % (MYPATH)
 PART_USAGE = int(shell(CMDLINE).splitlines()[1][0:-1]) * 1024
 
-CMDLINE="umount out/mnt"
+CMDLINE="sudo umount out/mnt"
 shell(CMDLINE)
 
 print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat("out/os.img").st_size, PART_USAGE))
