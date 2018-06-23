@@ -25,7 +25,7 @@ void WaitQueue::wait(process_t* task) {
     LOG_DEBUG("task %u entering wait queue %p", task->pid, this);
 
     mProcesses.push(task);
-    pm.deschedule(task, process_t::State::WAITQUEUE);
+    pm.deschedule(task, process_t::State::WAITING);
     pm.yield();
 }
 
@@ -34,7 +34,7 @@ bool WaitQueue::wake(process_t* task) {
 
     if (task) {
         LOG_DEBUG("wait queue %p trying to wake task %u (state == %u)", this, task->pid, (uint8_t)task->state);
-        if (task->state == process_t::State::WAITQUEUE) {
+        if (task->state == process_t::State::WAITING) {
             LOG_DEBUG("task wake happening");
             pm.ready(task);
             return true;

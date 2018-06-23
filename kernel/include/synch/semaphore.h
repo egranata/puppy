@@ -18,7 +18,7 @@
 #define SYNCH_SEMAPHORE
 
 #include <kernel/sys/stdint.h>
-#include <kernel/libc/dynqueue.h>
+#include <kernel/synch/waitqueue.h>
 #include <kernel/synch/refcount.h>
 #include <kernel/sys/nocopy.h>
 
@@ -38,7 +38,7 @@ class Semaphore : public refcounted<Semaphore> {
         char* mKey;
         uint32_t mValue;
         uint32_t mMaxValue;
-        dynqueue<process_t*> mWaiters;
+        WaitQueue mWQ;
 
         friend class SemaphoreManager;
 };

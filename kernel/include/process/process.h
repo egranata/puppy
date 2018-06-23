@@ -38,15 +38,14 @@ struct process_t {
     static constexpr size_t gDefaultStackSize = 4_MB;
 
     enum class State : uint8_t {
-        NEW,
-        AVAILABLE,
-        WAITSYNC, /** waiting for a synchronization object */
-        WAITMSG,  /** waiting for a message */
-        WAITQUEUE, /** in a waitqueue */
-        SLEEPING,
-        EXITED,
-        COLLECTED,
-        COLLECTING,
+        NEW, /** created and not schedulable */
+        AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */
+        WAITING, /** in a waitqueue */
+        WAITMSG, /** waiting to receive a message */
+        SLEEPING, /** waiting to be woken up at sleeptill */
+        EXITED, /** waiting for parent to collect */
+        COLLECTED, /** waiting to be torn down by the system */
+        COLLECTING, /** waiting to collect a child */
     };
     typedef uint16_t pid_t;
 
