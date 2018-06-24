@@ -19,7 +19,7 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/i386/tss.h>
-#include <kernel/synch/message.h>
+#include <kernel/syscalls/types.h>
 #include <kernel/synch/semaphore.h>
 #include <kernel/libc/slist.h>
 #include <kernel/libc/queue.h>

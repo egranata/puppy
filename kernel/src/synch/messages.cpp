@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 
-#ifndef LIBUSERSPACE_MESSAGE
-#define LIBUSERSPACE_MESSAGE
+#include <kernel/synch/messages.h>
+#include <kernel/process/current.h>
 
-#include <stdint.h>
-#include <kernel/syscalls/types.h>
+message_t messages_t::receive() {
+    while (msgs.empty()) {
+        wq.wait(gCurrentProcess);
+    }
 
-struct message : public message_t {
-    public:
-        message() = default;
-        
-        static message receive();
-        static bool receive(message_t*);
+    auto msg = msgs.back();
+    msgs.pop_back();
+    return msg;
+}
 
-        static void send(uint16_t dest, uint32_t a1, uint32_t a2);
-};
+bool messages_t::receive(message_t* msg) {
+    if (msgs.empty()) {
+        return false;
+    }
 
-#endif
+    if (msg) {
+        *msg = msgs.back();
+    }
+
+    msgs.pop_back();
+    return true;
+}
+
+void messages_t::deliver(const message_t& msg) {
+    msgs.push_back(msg);
+    wq.wakeone();
+}

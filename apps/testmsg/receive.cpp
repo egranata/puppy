@@ -20,13 +20,8 @@
 void waitForReceive() {
     printf("[pid %u] Will be waiting for a message\n", getpid());
 
-    message_t msg;
-    msg.time = 0;
-
-    while(msg.time == 0) {
-        msg.receive(true);
-    }
+    auto msg = message::receive();
 
     printf("At time %llu, %u received a message from %u; it says %x %x\n",
-        msg.time, getpid(), msg.sender, msg.a1, msg.a2);
+        msg.time, getpid(), msg.sender, msg.arg1, msg.arg2);
 }

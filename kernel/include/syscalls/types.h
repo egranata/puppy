@@ -84,4 +84,11 @@ enum class blockdevice_ioctl_t {
     IOCTL_GET_VOLUME,        // (a=IOCTL_, b=0), returns a Volume* suitable for mounting
 };
 
+struct message_t {
+    uint64_t time;
+    uint32_t sender;
+    uint32_t arg1;
+    uint32_t arg2;
+};
+
 #endif

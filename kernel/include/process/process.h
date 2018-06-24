@@ -20,9 +20,7 @@
 #include <kernel/libc/bytesizes.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/i386/tss.h>
-#include <kernel/synch/semaphore.h>
-#include <kernel/synch/mutex.h>
-#include <kernel/synch/message.h>
+#include <kernel/synch/messages.h>
 #include <kernel/tty/tty.h>
 #include <kernel/tty/file.h>
 #include <kernel/fs/handletable.h>
@@ -33,6 +31,10 @@
 #include <kernel/libc/slist.h>
 #include <kernel/mm/memmgr.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/synch/waitqueue.h>
+
+class Semaphore;
+class Mutex;
 
 struct process_t {
     static constexpr size_t gDefaultStackSize = 4_MB;
@@ -41,7 +43,6 @@ struct process_t {
         NEW, /** created and not schedulable */
         AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */
         WAITING, /** in a waitqueue */
-        WAITMSG, /** waiting to receive a message */
         SLEEPING, /** waiting to be woken up at sleeptill */
         EXITED, /** waiting for parent to collect */
         COLLECTED, /** waiting to be torn down by the system */
@@ -58,9 +59,7 @@ struct process_t {
     const char* args;
     State state;
     uint64_t sleeptill;
-    struct {
-        vector<message_t> q;
-    } msg;
+    messages_t msg;
     MemoryManager mmap;
     struct ttyinfo_t {
         TTY* tty;

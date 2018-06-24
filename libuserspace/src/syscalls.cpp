@@ -40,7 +40,7 @@ syscall_response_t sleep_syscall(uint32_t arg1) {
 syscall_response_t msgsend_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 	return syscall3(msgsend_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
 }
-syscall_response_t msgrecv_syscall(uint32_t arg1,uint32_t arg2) {
+syscall_response_t msgrecv_syscall(message_t* arg1,bool arg2) {
 	return syscall2(msgrecv_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
 syscall_response_t exit_syscall(uint8_t arg1) {

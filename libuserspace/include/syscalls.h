@@ -25,7 +25,7 @@ syscall_response_t sleep_syscall(uint32_t arg1);
 constexpr uint8_t sleep_syscall_id = 0x3;
 syscall_response_t msgsend_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 constexpr uint8_t msgsend_syscall_id = 0x4;
-syscall_response_t msgrecv_syscall(uint32_t arg1,uint32_t arg2);
+syscall_response_t msgrecv_syscall(message_t* arg1,bool arg2);
 constexpr uint8_t msgrecv_syscall_id = 0x5;
 syscall_response_t exit_syscall(uint8_t arg1);
 constexpr uint8_t exit_syscall_id = 0x6;

@@ -15,9 +15,17 @@
 #include <libuserspace/syscalls.h>
 #include <libuserspace/message.h>
 
-void message_t::send() {
-    msgsend_syscall(sender, a1, a2);
+void message::send(uint16_t dest, uint32_t a1, uint32_t a2) {
+    msgsend_syscall(dest, a1, a2);
 }
-void message_t::receive(bool wait) {
-    msgrecv_syscall((uint32_t)this, wait ? 1 : 0);
+
+message message::receive() {
+    message msg;
+    msgrecv_syscall(&msg, true);
+    return msg;
+}
+
+bool message::receive(message_t* msg) {
+    auto ok = msgrecv_syscall(msg, false);
+    return ok == 0;
 }

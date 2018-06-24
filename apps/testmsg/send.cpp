@@ -18,12 +18,6 @@
 
 void send(uint16_t pid) {
     printf("[pid %u] Will be sending a message to %u\n", getpid(), pid);
-    message_t msg{
-        time : 0,
-        sender : pid,
-        a1 : 0xbeef,
-        a2 : 0xf00d
-    };
 
-    msg.send();
+    message::send(pid, 0xbeef, 0xf00d);
 }

@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef SYNCH_MESSAGE
-#define SYNCH_MESSAGE
+#ifndef SYNCH_MESSAGES
+#define SYNCH_MESSAGES
 
-#include <kernel/sys/stdint.h>
+#include <kernel/libc/vec.h>
+#include <kernel/syscalls/types.h>
+#include <kernel/synch/waitqueue.h>
 
-struct message_t {
-    uint64_t time;
-    uint32_t sender;
-    uint32_t arg1;
-    uint32_t arg2;
+struct messages_t {
+    vector<message_t> msgs;
+    WaitQueue wq;
+
+    message_t receive();
+    bool receive(message_t*);
+    void deliver(const message_t&);
 };
 
 #endif

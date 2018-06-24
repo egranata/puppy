@@ -2,7 +2,7 @@
     {"number":1,     "name":"yield",            "argc":0},
     {"number":3,     "name":"sleep",            "argtypes":["uint32_t"]},
     {"number":4,     "name":"msgsend",          "argc":3},
-    {"number":5,     "name":"msgrecv",          "argc":2},
+    {"number":5,     "name":"msgrecv",          "argtypes":["message_t*", "bool"]},
     {"number":6,     "name":"exit",             "argtypes":["uint8_t"]},
     {"number":7,     "name":"reboot",           "argc":0},
     {"number":8,     "name":"sysinfo",          "argtypes":["sysinfo_t*", "uint32_t"]},

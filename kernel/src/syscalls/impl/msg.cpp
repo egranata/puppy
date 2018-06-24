@@ -14,42 +14,31 @@
 
 #include <kernel/syscalls/handlers.h>
 #include <kernel/process/manager.h>
-#include <kernel/synch/message.h>
+#include <kernel/syscalls/types.h>
 #include <kernel/synch/semaphore.h>
 #include <kernel/drivers/pit/pit.h>
 #include <kernel/process/process.h>
 
-HANDLER3(msgsend, destpid, msg1, msg2) {
+syscall_response_t msgsend_syscall_handler(uint32_t pid, uint32_t a1, uint32_t a2) {
     auto&& pmm(ProcessManager::get());
-    auto dest = pmm.getprocess(destpid);
+    auto dest = pmm.getprocess(pid);
     if (dest == nullptr) {
         return ERR(NO_SUCH_PROCESS);
     }
 
-    auto msg = message_t{PIT::getUptime(), gCurrentProcess->pid, msg1, msg2};
+    auto msg = message_t{PIT::getUptime(), gCurrentProcess->pid, a1, a2};
 
-    dest->msg.q.push_back(msg);
-    if (dest->state == process_t::State::WAITMSG) {
-        pmm.ready(dest);
-    }
+    dest->msg.deliver(msg);
 
     return OK;
 }
 
-HANDLER2(msgrecv,msgptr,wait) {
-    auto&& pmm(ProcessManager::get());
-
-    while (gCurrentProcess->msg.q.empty()) {
-        if (wait) {
-            pmm.deschedule(gCurrentProcess, process_t::State::WAITMSG);
-            pmm.yield();
-        } else {
-            return ERR(MSG_QUEUE_EMPTY);
-        }
+syscall_response_t msgrecv_syscall_handler(message_t *msg, bool wait) {
+    if (wait) {
+        *msg = gCurrentProcess->msg.receive();
+        return OK;
+    } else {
+        bool any = gCurrentProcess->msg.receive(msg);
+        return any ? OK : ERR(MSG_QUEUE_EMPTY);
     }
-    
-    message_t *dest = (message_t*)msgptr;
-    *dest = gCurrentProcess->msg.q.back();
-    gCurrentProcess->msg.q.pop_back();
-    return OK;
 }
