@@ -21,6 +21,7 @@
 #include <libuserspace/string.h>
 #include <kernel/sys/osinfo.h>
 #include <libuserspace/collect.h>
+#include <libuserspace/syscalls.h>
 
 template<typename T>
 T* zero(T* thing, size_t size) {
@@ -67,10 +68,13 @@ void tryCollect() {
 }
 
 int main(int, const char**) {
+    static char buffer[512] = {0};
+    
     printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
-    char buffer[512];
+    klog_syscall("init is up and running");
+
     while(true) {
-        zero(buffer, 512);
+        bzero(&buffer[0], 512);
         printf("init %u> ", getpid());
         getline(&buffer[0], 511);
         char* program = &buffer[0];

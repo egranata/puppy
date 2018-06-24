@@ -90,6 +90,8 @@ extern syscall_response_t fdel_syscall_handler(const char* arg1);
 extern syscall_response_t fdel_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t mkdir_syscall_handler(const char* arg1);
 extern syscall_response_t mkdir_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t klog_syscall_handler(const char* arg1);
+extern syscall_response_t klog_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t mutextrylock_syscall_handler(uint32_t arg1);
 extern syscall_response_t mutextrylock_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t vmcheckreadable_syscall_handler(uintptr_t arg1,size_t arg2);
@@ -134,6 +136,7 @@ void SyscallManager::sethandlers() {
 	handle(37, clone_syscall_helper, false); 
 	handle(38, fdel_syscall_helper, false); 
 	handle(39, mkdir_syscall_helper, false); 
+	handle(40, klog_syscall_helper, false); 
 	handle(44, mutextrylock_syscall_helper, false); 
 	handle(45, vmcheckreadable_syscall_helper, false); 
 	handle(46, vmcheckwritable_syscall_helper, false); 
@@ -337,6 +340,11 @@ static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass
 
 syscall_response_t mkdir_syscall_helper(SyscallManager::Request& req) {
 	return mkdir_syscall_handler((const char*)req.arg1);
+}
+static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
+
+syscall_response_t klog_syscall_helper(SyscallManager::Request& req) {
+	return klog_syscall_handler((const char*)req.arg1);
 }
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 

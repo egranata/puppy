@@ -91,6 +91,8 @@ syscall_response_t fdel_syscall(const char* arg1);
 constexpr uint8_t fdel_syscall_id = 0x26;
 syscall_response_t mkdir_syscall(const char* arg1);
 constexpr uint8_t mkdir_syscall_id = 0x27;
+syscall_response_t klog_syscall(const char* arg1);
+constexpr uint8_t klog_syscall_id = 0x28;
 syscall_response_t mutextrylock_syscall(uint32_t arg1);
 constexpr uint8_t mutextrylock_syscall_id = 0x2c;
 syscall_response_t vmcheckreadable_syscall(uintptr_t arg1,size_t arg2);

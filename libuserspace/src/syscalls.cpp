@@ -139,6 +139,9 @@ syscall_response_t fdel_syscall(const char* arg1) {
 syscall_response_t mkdir_syscall(const char* arg1) {
 	return syscall1(mkdir_syscall_id,(uint32_t)arg1);
 }
+syscall_response_t klog_syscall(const char* arg1) {
+	return syscall1(klog_syscall_id,(uint32_t)arg1);
+}
 syscall_response_t mutextrylock_syscall(uint32_t arg1) {
 	return syscall1(mutextrylock_syscall_id,(uint32_t)arg1);
 }
