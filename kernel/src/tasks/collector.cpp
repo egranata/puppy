@@ -20,14 +20,19 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(COLLECTOR, 0);
+
 namespace tasks::collector {    
     void task() {
         auto&& pmm(ProcessManager::get());
         while(true) {
             auto&& children = gCurrentProcess->children;
             if (!children.empty()) {
+                TAG_DEBUG(COLLECTOR, "child list for pid %u is not empty", gCurrentProcess->pid);
                 auto child = children.top();
+                TAG_DEBUG(COLLECTOR, "child is %p %u", child, child->pid);
                 pmm.collect(child->pid);
+                TAG_DEBUG(COLLECTOR, "collection done");
             }
             pmm.yield();
         }

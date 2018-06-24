@@ -150,6 +150,7 @@ public:
 		if (i.current) {
 			if (i.current == head) {
 				head = head->next;
+				--size;
 			} else {
 				node *n = head;
 				for (; n->next != i.current; n = n->next);
