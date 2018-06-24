@@ -14,6 +14,7 @@
 
 #include <kernel/sys/globals.h>
 #include <kernel/log/log.h>
+#include <kernel/boot/kmain.h>
 #include <kernel/boot/phase.h>
 #include <kernel/boot/earlyboot.h>
 #include <kernel/mm/phys.h>
@@ -72,21 +73,18 @@ static void _runBootPhases() {
 }
 
 extern "C"
-void _kmain(uintptr_t multiboot_data, uint32_t multiboot_magic) {
-	// TODO: it is earlyBoot that should call kmain, not viceversa
-	_earlyBoot(multiboot_data, multiboot_magic);
+void _kmain() {
 	_runGlobalConstructors();
 	_runBootPhases();
 
 	auto &phys(PhysicalPageManager::get());
 
-	LOG_DEBUG("multiboot magic is valid; multiboot_data at physical address %p", multiboot_data);
 	LOG_INFO("kernel start at %p, kernel end at %p", kernel_start(), kernel_end());
 
-	bootphase_t::printf("Total RAM size: %lu KB (aka %lu pages)\n", phys.gettotalmem() / 1024, phys.gettotalpages());
-	bootphase_t::printf("Free  RAM size: %lu KB (aka %lu pages)\n", phys.getfreemem() / 1024, phys.getfreepages());
+	bootphase_t::printf("Total RAM size: %u KB (aka %u pages)\n", phys.gettotalmem() / 1024, phys.gettotalpages());
+	bootphase_t::printf("Free  RAM size: %u KB (aka %u pages)\n", phys.getfreemem() / 1024, phys.getfreepages());
 
-	bootphase_t::printf("Kernel image: [%p - %p] (%u bytes)\n", kernel_start<void*>(), kernel_end<void*>(), kernel_end() - kernel_start() + 1);
+	bootphase_t::printf("Kernel image: [%p - %p] (%lu bytes)\n", kernel_start<void*>(), kernel_end<void*>(), kernel_end() - kernel_start() + 1);
 
 	LOG_INFO("out of boot");
 	task0();

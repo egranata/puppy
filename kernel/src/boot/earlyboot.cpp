@@ -23,6 +23,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/i386/idt.h>
 #include <kernel/panic/panic.h>
+#include <kernel/boot/kmain.h>
 
 static constexpr uint32_t gMultibootValid = 0x2BADB002;
 
@@ -228,5 +229,10 @@ void _earlyBoot(uintptr_t multiboot_data, uint32_t multiboot_magic) {
 	{
 		PhysicalPageManager &phys(PhysicalPageManager::get());	
 		LOG_INFO("free memory is %u pages, aka %u bytes", phys.getfreepages(), phys.getfreemem());
+	}
+
+	{
+		LOG_DEBUG("multiboot magic is valid; multiboot_data at physical address %p", multiboot_data);
+		_kmain();
 	}
 }

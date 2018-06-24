@@ -13,7 +13,7 @@
 ; limitations under the License.
 
 global loader                          ; Make entry point visible to linker.
-extern _kmain                            ; _main is defined elsewhere
+extern _earlyBoot                      ; Entry point for C++ code
 global __bootpagedir
 global __bootpagetbl
 global __gdt
@@ -66,10 +66,9 @@ __bootpagedir:
     ; enabled because it can't fetch the next instruction! It's ok to unmap this page later.
     dd 0x00000083
     times (KERNEL_PAGE_NUMBER - 1) dd 0                 ; Pages before kernel space.
-    ; This page directory entry defines a 4MB page containing the kernel.
+    ; Map the kernel again in higher half
     dd 0x00000083
-    times (1024 - KERNEL_PAGE_NUMBER - 2) dd 0
-	dd __bootpagedir - KERNEL_VIRTUAL_BASE ; we will replace this mapping in _loader
+    times (1024 - KERNEL_PAGE_NUMBER - 1) dd 0 ; loader will overwrite the last entry here
 
 ; change this value here if system entries are added to the GDT
 __numsysgdtentries:
@@ -110,13 +109,14 @@ __gdtinfo:
 STACKSIZE equ 0x10000
  
 loader:
-    ; NOTE: Until paging is set up, the code must be position-independent and use physical
-    ; addresses, not virtual ones!
-	mov ecx, (__bootpagetbl - KERNEL_VIRTUAL_BASE)
-	or ecx, 3
-	mov [__bootpagedir - KERNEL_VIRTUAL_BASE + 4092], ecx
+    ; map the last entry to the page tables - this allows the VMM setup phase
+    ; to see the provisional page tables and setup scratch mappings as needed
+    mov ecx, (__bootpagetbl - KERNEL_VIRTUAL_BASE)
+    or ecx, 3
+    mov [__bootpagedir - KERNEL_VIRTUAL_BASE + 4092], ecx
+    
     mov ecx, (__bootpagedir - KERNEL_VIRTUAL_BASE)
-    mov cr3, ecx                                        ; Load Page Directory Base Register.
+    mov cr3, ecx
  
     mov ecx, cr4
     or ecx,  0x00000010                          ; Set PSE bit in CR4 to enable 4MB pages.
@@ -140,14 +140,13 @@ loader:
     jmp ecx                                                     ; NOTE: Must be absolute jump!
  
 StartInHigherHalf:
-    ; Unmap the identity-mapped first 4MB of physical address space. It should not be needed
-    ; anymore.
-    mov dword [__bootpagedir], 0
+    mov dword [__bootpagedir], 0 ; remove the page 0 mapping
     invlpg [0]
 
-	lgdt [__gdtinfo]
-	jmp 0x8:StartSegmentation
 StartSegmentation:
+	lgdt [__gdtinfo]
+	jmp 0x8:SegmentsOn
+SegmentsOn:
 	mov ecx,0x10
 	mov ds,ecx
 	mov es,ecx
@@ -164,10 +163,11 @@ StartSegmentation:
     push ebx
 
     xor ebp, ebp
-    call _kmain
-kmainReturn:
-        hlt
-       jmp kmainReturn
+    call _earlyBoot ; hand off to the rest of the kernel
+WhyHere: ; TODO: could _earlyBoot and/or _kmain return a code to tell us what happened, and what to do?
+    cli ; can't assume much about the state.. try to hang and hope for the best
+    hlt
+    jmp WhyHere
 
 section .bss
 align 32
