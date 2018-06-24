@@ -1,22 +1,26 @@
 # The Puppy Kernel
 
-Welcome to Puppy. This project aims to produce a simple-yet-functional operating system for x86 computers.
+Welcome to Puppy. Our current build status is: [![](https://travis-ci.org/egranata/puppy.svg?branch=master)](https://travis-ci.org/egranata/puppy)
 
-Explicit goals of the project include providing:
+The Puppy project aims to build an operating system for x86 computers.
 
-- preemptive multitasking of userspace processes (but not a preemptive kernel);
-- support for memory protection;
+More specifically, project goals include providing:
+
+- preemptive multitasking of userspace processes (but not a preemptive kernel); ✅
+- support for memory protection; ✅
+- system call interface to userspace; ✅
+- booting on emulators **AND** real hardware; ✅
 - FAT filesystem on hard disks;
-- system call interface to userspace;
 - program launcher (aka, shell);
 - a C/C++ standard library.
 
-Developing a graphical UI, or providing network connectivity, or ports to any architecture other than x86 (including x86_64) are non-goals of the project.
+Development of a GUI or porting to architectures other than 32-bit Intel (including but not limited to x86_64 or any ARM flavor) are explicit non-goals. It is also not a goal to develop a custom bootloader, Puppy just uses GRUB.
 
-Puppy currently runs on real hardware (assuming it has a *real* PS/2 keyboard), detects IDE hard disks, and can mount FAT filesystems off of them.
-It also supports booting QEMU and Bochs.
+Support for network connectivity, USB, or other interesting hardware would be nice to have.
 
-GRUB is assumed to be the bootloader of choice for Puppy. Writing a bootloader is not a goal of Puppy.
+# Hardware requirements
+
+Most Puppy development and testing happens on QEMU, but the OS can also boot Bochs and - assuming a few hardware requirements are met - it will work on a real computer. If your hardware has a PS/2 keyboard and an IDE hard disk (or proper emulation of both...), then Puppy should boot. Feel free to test it out! I haven't tried other virtualizers, e.g. VirtualBox, VMWare, ..., but testing on those is definitely welcome.
 
 ## Getting Started
 
@@ -28,16 +32,22 @@ Puppy is a C++ codebase. To build the OS into a bootable image, one needs:
 - GRUB 2;
 - Xorriso.
 
-Once the dependencies are satisfied, to compile the project, just type
+A reasonable approximation of the dependencies required and how to get them in place is described at `build/deps.sh`.
+
+Assuming those are in place, to compile the project, just type
 
 ```
 $ ./build.py
 ```
 
-in a shell. This will compile the system and produce a:
+in a shell. This will churn for a while (should be under a minute) and produce two main outputs:
 - a bootable ISO image `out/os.iso`;
 - a bootable HD image `out/os.img`.
 
-QEMU and Bochs can be used to test the deployed image. A sample bochs configuration and QEMU launcher script are provided in the `build` directory.
+The HD image includes the kernel, as well as a fairly minimal userspace + suite of tests. It can be used to boot an emulator, or bit-blasted to a real hard disk.
+
+The ISO image doesn't include any of the userspace, but the kernel should be bootable to a minimal shell.
+
+A sample configuration for Bochs and QEMU launcher script can be found in the `build` directory.
 
 Please be aware that **this is not an officially supported Google product**.
