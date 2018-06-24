@@ -20,4 +20,7 @@
 extern "C"
 int printf( char const * fmt, ... );
 
+extern "C"
+int snprintf(const char* buf, int count, const char* fmt, ...);
+
 #endif

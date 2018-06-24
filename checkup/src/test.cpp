@@ -19,6 +19,7 @@
 
 #include <libuserspace/memory.h>
 #include <libuserspace/printf.h>
+#include <libuserspace/syscalls.h>
 
 #include <muzzle/string.h>
 #include <muzzle/stdlib.h>
@@ -39,6 +40,8 @@ bool Test::setup() {
 void Test::teardown() {}
 
 void Test::test() {
+    char buffer[64] = {0};
+
     if (false == setup()) {
         FAIL("setup failed");
     }
@@ -47,7 +50,9 @@ void Test::test() {
 
     teardown();
 
-    printf("TEST[%s] passed!\n", name());
+    snprintf(&buffer[0], 64, "TEST[%s] PASS", name());
+    printf("%s\n", &buffer[0]);
+    klog_syscall(&buffer[0]);
 }
 
 Test::~Test() {

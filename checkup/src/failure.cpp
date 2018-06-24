@@ -17,8 +17,14 @@
 #include <checkup/failure.h>
 #include <libuserspace/printf.h>
 #include <libuserspace/exit.h>
+#include <libuserspace/syscalls.h>
 
 void __failed(const char* test, const char* file, int line, const char* condition) {
-    printf("TEST[%s] condition failed: %s at %s:%d\n", test, condition, file, line);
+    char buffer[512] = {0};
+    snprintf(&buffer[0], 512, "TEST[%s] FAIL condition failed: %s at %s:%d", test, condition, file, line);
+
+    printf("%s\n", &buffer[0]);
+    klog_syscall(&buffer[0]);
+
     exit(1);
 }

@@ -178,6 +178,8 @@ PERFORMANCE vs MSVC 2008 32-/64-bit (GCC is even slower than MSVC):
 #endif
 typedef char *STBSP_SPRINTFCB(char *buf, void *user, int len);
 
+#define STB_SPRINTF_DECORATE(name) name
+
 #ifndef STB_SPRINTF_DECORATE
 #define STB_SPRINTF_DECORATE(name) stbsp_##name // define this before including if you want to change the names
 #endif
@@ -1855,7 +1857,7 @@ int printf( char const * fmt, ... ) {
     char result[768];
     va_list argptr;
     va_start( argptr, fmt );
-    auto ret = stbsp_vsnprintf(&result[0], 2048, fmt, argptr);
+    auto ret = vsnprintf(&result[0], 2048, fmt, argptr);
     va_end ( argptr );
     cwrite(&result[0]);
     return ret;
