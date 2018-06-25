@@ -67,6 +67,11 @@ void tryCollect() {
     }
 }
 
+static const char* trim(const char* s) {
+    while(s && *s == ' ') ++s;
+    return s;
+}
+
 int main(int, const char**) {
     static char buffer[512] = {0};
     
@@ -77,7 +82,8 @@ int main(int, const char**) {
         bzero(&buffer[0], 512);
         printf("init %u> ", getpid());
         getline(&buffer[0], 511);
-        char* program = &buffer[0];
+        const char* program = trim(&buffer[0]);
+        if (program == 0 || *program == 0) continue;
         bool letgo = ('&' == *program);
         if (letgo) ++program;
         char* args = (char*)strchr(program, ' ');
