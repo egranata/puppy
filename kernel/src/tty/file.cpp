@@ -15,6 +15,7 @@
 #include <kernel/tty/file.h>
 #include <kernel/process/manager.h>
 #include <kernel/log/log.h>
+#include <kernel/syscalls/types.h>
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {}
 
@@ -59,6 +60,16 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             uint16_t row = a2 & 0xFFFF;
             uint16_t col = a2 >> 16;
             mTTY->setPosition(row, col);
+            return 1;
+        }
+        case IOCTL_VISIBLE_AREA: {
+            uint16_t *pi = (uint16_t*)a2;
+            mTTY->getSize(pi, pi+1);
+            return 1;
+        }
+        case IOCTL_CURSOR_POS: {
+            uint16_t *pi = (uint16_t*)a2;
+            mTTY->getPosition(pi, pi+1);
             return 1;
         }
         default:

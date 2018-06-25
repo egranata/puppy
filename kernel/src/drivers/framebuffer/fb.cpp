@@ -87,6 +87,13 @@ uint16_t Framebuffer::columns() const {
 	return mWidth / FONT_WIDTH;
 }
 
+uint16_t Framebuffer::row() const {
+	return mX;
+}
+uint16_t Framebuffer::column() const {
+	return mY;
+}
+
 void Framebuffer::setfg(Framebuffer::color_t c) {
 	mForeground = c;
 }
@@ -103,6 +110,12 @@ void Framebuffer::setCol(uint16_t c) {
 	auto x = c * FONT_WIDTH;
 	if (x > mWidth) x = mWidth;
 	mX = x;
+}
+
+void Framebuffer::cls() {
+	bzero((void*)base(), size());
+	setRow(0);
+	setCol(0);
 }
 
 uint8_t* Framebuffer::row(int16_t n) const {

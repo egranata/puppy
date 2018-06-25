@@ -22,10 +22,6 @@
 
 class TTYFile : public Filesystem::File {
     public:
-        static constexpr uint32_t IOCTL_FOREGROUND = 1; // a2 = pid
-        static constexpr uint32_t IOCTL_BACKGROUND = 2; // a2 = reserved
-        static constexpr uint32_t IOCTL_MOVECURSOR = 3; // a2 = low = row, high = col
-
         TTYFile(TTY* tty);
 
         bool seek(size_t) override;

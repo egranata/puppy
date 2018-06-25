@@ -22,7 +22,7 @@
 
 static struct keyb_buffer_t {
     static constexpr uint8_t gBufferSize = 128;
-    PS2Keyboard::key_event_t mBuffer[gBufferSize] = {0,false};
+    PS2Keyboard::key_event_t mBuffer[gBufferSize] = {false, false, 0,false};
     uint8_t mWriteIdx = 0;
     uint8_t mReadIdx = 0;
 } gKeyboardBuffer;
@@ -120,6 +120,8 @@ static void keyboard_irq_handler() {
     LOG_DEBUG("in keyboard IRQ");
     auto b = inb(0x60);
 
+    LOG_DEBUG("b = %x", b);
+
     if (b == 0xE0) {
         gIsLong = true;
     } else if (b == 0xF0) {
@@ -130,6 +132,8 @@ static void keyboard_irq_handler() {
         event.keycode = (gIsLong ? gLongScancodeMap :
             gShift ? gShiftScancodeMap :
             gCapsLock ? gCapslockScancodeMap : gLowercaseScancodeMap)[b];
+        event.ctrldown = gCtrlDown;
+        event.altdown = gAltDown;
 
         LOG_DEBUG("event keycode: %u", event.keycode);
 
@@ -147,9 +151,11 @@ static void keyboard_irq_handler() {
                 break;
             case 0x14:
                 gCtrlDown = !gIsBreakCode;
+                LOG_DEBUG("CTRL down: %d", gCtrlDown);
                 break;
             case 0x11:
                 gAltDown = !gIsBreakCode;
+                LOG_DEBUG("ALT down: %d", gAltDown);
                 break;
             case 0x71:
                 gDeleteDown = gIsLong && !gIsBreakCode;
@@ -202,5 +208,5 @@ PS2Keyboard::key_event_t PS2Keyboard::next() {
         if(keyb_buffer_t::gBufferSize == ++gKeyboardBuffer.mReadIdx) gKeyboardBuffer.mReadIdx = 0;
         return evt;
     }
-    return {0,false};
+    return {false, false, 0, false};
 }

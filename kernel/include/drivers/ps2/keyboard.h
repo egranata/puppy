@@ -31,6 +31,8 @@ class PS2Keyboard : public PS2Controller::Device {
             static constexpr uint8_t DELETE = 7;
             static constexpr uint8_t BACKSPACE = 8;
 
+            bool ctrldown;
+            bool altdown;
             uint8_t keycode;
             bool down;
         };

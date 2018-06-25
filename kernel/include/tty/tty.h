@@ -23,6 +23,7 @@
 #include <kernel/libc/atomic.h>
 #include <kernel/libc/fixstack.h>
 #include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/drivers/ps2/keyboard.h>
 
 class TTY {
     public:
@@ -34,9 +35,15 @@ class TTY {
         uint16_t popfg();
 
         void setPosition(uint16_t row, uint16_t col);
+        void getPosition(uint16_t *row, uint16_t* col);
+
+        void getSize(uint16_t *rows, uint16_t* cols);
 
     private:
         static constexpr size_t gQueueSize = 1024;
+
+        // true means the chord is handled, false means bubble it upwards
+        bool interceptChords(const PS2Keyboard::key_event_t&);
 
         Semaphore mWriteSemaphore;
         FixSizeStack<uint16_t, 32> mForeground;

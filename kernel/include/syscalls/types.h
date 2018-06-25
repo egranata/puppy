@@ -84,6 +84,15 @@ enum class blockdevice_ioctl_t {
     IOCTL_GET_VOLUME,        // (a=IOCTL_, b=0), returns a Volume* suitable for mounting
 };
 
+// IOCTL operations that one can run on a TTY
+enum tty_ioctl_t {
+        IOCTL_FOREGROUND = 1, // a2 = pid
+        IOCTL_BACKGROUND = 2, // a2 = reserved
+        IOCTL_MOVECURSOR = 3, // a2 = low = row, high = col
+        IOCTL_VISIBLE_AREA = 4, // a2 = pointer to 0xRRRRCCCC
+        IOCTL_CURSOR_POS = 5 // a2 = pointer to 0xRRRRCCCC
+};
+
 struct message_t {
     uint64_t time;
     uint32_t sender;

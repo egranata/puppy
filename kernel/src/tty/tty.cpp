@@ -14,7 +14,6 @@
 
 #include <kernel/tty/tty.h>
 #include <kernel/drivers/ps2/controller.h>
-#include <kernel/drivers/ps2/keyboard.h>
 #include <kernel/process/manager.h>
 #include <kernel/log/log.h>
 
@@ -55,6 +54,15 @@ uint16_t TTY::popfg() {
     return mForeground.push(pmm.initpid()), mForeground.peek();
 }
 
+bool TTY::interceptChords(const PS2Keyboard::key_event_t& evt) {
+    if (evt.down) return false;
+    if (evt.ctrldown && evt.altdown && evt.keycode == 'k') {
+        mFramebuffer.cls();
+        return true;
+    }
+    return false;
+}
+
 int TTY::read() {
     // TODO: TTY spawns a kernel thread that reads and buffers keyboard events    
 
@@ -76,15 +84,24 @@ int TTY::read() {
     // TODO: make a global input queue
     auto d1 = PS2Controller::get().getDevice1();
     if (d1 && d1->getType() == PS2Controller::Device::Type::KEYBOARD) {
-        auto c = ((PS2Keyboard*)d1)->next();
-        if (c.down == false) {
-            switch (c.keycode) {
+        PS2Keyboard::key_event_t evt;
+        while (true) {
+            evt = ((PS2Keyboard*)d1)->next();
+            if (evt.keycode == 0) return -1; // out of input
+            if (interceptChords(evt)) {
+                continue;
+            } else {
+                break;
+            }
+        }
+        if (evt.down == false) {
+            switch (evt.keycode) {
                 case '\b':
                 case '\n':
-                    return c.keycode;
+                    return evt.keycode;
                 default:
-                    if (c.keycode >= ' ')
-                        return c.keycode;
+                    if (evt.keycode >= ' ')
+                        return evt.keycode;
             }
         }
     }
@@ -95,4 +112,14 @@ int TTY::read() {
 void TTY::setPosition(uint16_t row, uint16_t col) {
     mFramebuffer.setRow(row);
     mFramebuffer.setCol(col);
+}
+
+void TTY::getPosition(uint16_t *row, uint16_t* col) {
+    *row = mFramebuffer.row();
+    *col = mFramebuffer.column();
+}
+
+void TTY::getSize(uint16_t *rows, uint16_t* cols) {
+    *rows = mFramebuffer.rows();
+    *cols = mFramebuffer.columns();
 }

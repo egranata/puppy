@@ -52,6 +52,9 @@ class Framebuffer : NOCOPY {
         uint16_t rows() const;
         uint16_t columns() const;
 
+        uint16_t row() const;
+        uint16_t column() const;
+
         void setRow(uint16_t);
         void setCol(uint16_t);
 
@@ -62,6 +65,8 @@ class Framebuffer : NOCOPY {
         void setbg(color_t c);
 
         uintptr_t map(uintptr_t base);
+
+        void cls();
 
     private:
         Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);
