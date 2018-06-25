@@ -18,6 +18,7 @@
 #include <libuserspace/stdio.h>
 
 #include <muzzle/string.h>
+#include <muzzle/stdlib.h>
 
 int main(int argc, char** argv);
 
@@ -26,30 +27,76 @@ static void initheap() {
     gSbrkPointer = (uint8_t*)mapregion(128 * 1024 * 1024, writable);
 }
 
+// not all spaces are argument separators, but all spaces are
+// an upper bound on the number of arguments
+static size_t maxArgc(const char* s) {
+    size_t argc = 0;
+    while (s && *s) {
+        if (*s == ' ') ++argc;
+        ++s;
+    }
+    return argc;
+}
+
+static size_t parseArgs(char* s, char** argv) {
+    size_t argn = 0;
+    bool inQuoted = false;
+    const char* start = s;
+    
+    while(s && *s) {
+        switch(*s) {
+            case '"':
+                if (!inQuoted) {
+                    ++start;
+                    ++s;
+                    inQuoted = true;
+                }
+                else {
+                    *s = 0;
+                    argv[argn] = (char*)malloc(strlen(start) + 1);
+                    strcpy(argv[argn], start);
+                    start = ++s;
+                    ++argn;
+                    inQuoted = false;
+                }
+                continue;
+            case ' ':
+                if (s == start) {
+                    start = ++s; continue;
+                }
+                if (!inQuoted) {
+                    *s = 0;
+                    argv[argn] = (char*)malloc(strlen(start) + 1);
+                    strcpy(argv[argn], start);
+                    start = ++s;
+                    ++argn;
+                    continue;
+                }
+                ++s; continue;
+            default: ++s; continue;
+        }
+    }
+
+    if (start != s) {
+        argv[argn] = (char*)malloc(strlen(start) + 1);
+        strcpy(argv[argn], start);
+        ++argn;
+    }
+    
+    return argn;
+}
+
 extern "C"
-void __app_entry(char* args) {
+void __app_entry(char* cmdline) {
     initheap();
     echomode(true);
 
-    if (args == nullptr) {
+    if (cmdline == nullptr) {
         exit(main(0, nullptr));
     } else {
-        int num = 1;
-        int len = 0;
-        for(int i = 0;args[i];++i) {
-            if (args[i] == ' ') ++num;
-            ++len;
-        }
-        char** argv = (char**)malloc(sizeof(char*) * num);
-        char* tok = nullptr;
-        char* saveptr;
-        tok = strtok_r(args, " ", &saveptr);
-        int i = 0;
-        while ((tok != nullptr) && (i < num)) {
-            argv[i] = strdup(tok);
-            tok = strtok_r(nullptr, " ", &saveptr);
-            ++i;
-        }
-        exit(main(i, argv));
+        size_t maxargc = maxArgc(cmdline);
+        char** args = (char**)calloc(sizeof(char*), maxargc);
+        size_t argcnt = parseArgs(cmdline, args);
+        exit(main(argcnt, args));
     }
 }
