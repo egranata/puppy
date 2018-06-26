@@ -100,4 +100,19 @@ struct message_t {
     uint32_t arg2;
 };
 
+struct process_info_t {
+    using pid_t = uint16_t;
+    static constexpr size_t gMaxPathSize = 256;
+    static constexpr size_t gMaxCommandLineSize = 128;
+
+    pid_t pid;
+    pid_t ppid;
+    char path[gMaxPathSize];
+    char args[gMaxCommandLineSize];
+
+    uintptr_t vmspace;
+    uintptr_t pmspace;
+    uint64_t runtime;
+};
+
 #endif

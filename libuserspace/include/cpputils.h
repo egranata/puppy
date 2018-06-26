@@ -21,6 +21,8 @@
 
 void* operator new(unsigned long);
 
+void* operator new[](unsigned long);
+
 extern "C"
 void __cxa_pure_virtual();
 

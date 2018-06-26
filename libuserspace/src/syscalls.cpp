@@ -142,6 +142,9 @@ syscall_response_t mkdir_syscall(const char* arg1) {
 syscall_response_t klog_syscall(const char* arg1) {
 	return syscall1(klog_syscall_id,(uint32_t)arg1);
 }
+syscall_response_t proctable_syscall(process_info_t* arg1,size_t arg2) {
+	return syscall2(proctable_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
+}
 syscall_response_t mutextrylock_syscall(uint32_t arg1) {
 	return syscall1(mutextrylock_syscall_id,(uint32_t)arg1);
 }

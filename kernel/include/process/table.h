@@ -19,6 +19,8 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/panic/panic.h>
+#include <muzzle/string.h>
+#include <kernel/libc/function.h>
 
 class process_t;
 
@@ -27,6 +29,7 @@ class ProcessTable {
     public:
         ProcessTable() {
             bzero((uint8_t*)&mTable[0], sizeof(mTable));
+            mSize = 0;
         }
 
         void set(process_t* proc) {
@@ -37,16 +40,31 @@ class ProcessTable {
                 PANIC("process slot already occupied");
             }
             mTable[proc->pid] = proc;
+            ++mSize;
         }
 
         void free(process_t* proc) {
+            --mSize;
             mTable[proc->pid] = nullptr;
         }
 
         process_t* get(PidType pid) {
             return mTable[pid];
         }
+
+        size_t size() {
+            return mSize;
+        }
+
+        void foreach(function<bool(const process_t*)> f) {
+            for (auto i = 0u; i < NumProcesses; ++i) {
+                if (auto p = mTable[i]) {
+                    if (false == f(p)) break;
+                }
+            }
+        }
     private:
+        size_t mSize;
         process_t* mTable[NumProcesses];
 };
 

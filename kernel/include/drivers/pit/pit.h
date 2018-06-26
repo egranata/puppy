@@ -28,6 +28,8 @@ class PIT {
         static constexpr uint8_t gDataPort = 0x40;
         static constexpr uint8_t gCommandPort = 0x43;
 
+        static constexpr uint32_t gTickDuration = 10;
+
         static PIT& get();
 
         static uint64_t getUptime();

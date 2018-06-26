@@ -23,6 +23,10 @@ void* operator new(unsigned long size) {
     return malloc(size);
 }
 
+void* operator new[](unsigned long size) {
+    return malloc(size);
+}
+
 extern "C"
 void __cxa_pure_virtual() {
     printf("pure virtual function called!\n");

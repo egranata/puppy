@@ -75,7 +75,7 @@ uint64_t PIT::getUptime() {
 
 static void timer(GPR&, InterruptStack& stack) {
     // TODO: do not hardcode frequency to 100Hz
-    auto now = __sync_add_and_fetch(&gUptimeMs, 10);
+    auto now = __sync_add_and_fetch(&gUptimeMs, PIT::gTickDuration);
 
     PIC::eoi(0);
 

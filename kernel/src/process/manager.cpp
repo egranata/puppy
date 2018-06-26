@@ -36,6 +36,8 @@
 #include <kernel/tasks/collector.h>
 #include <kernel/tasks/deleter.h>
 
+LOG_TAG(TIMING, 2);
+
 // this is THE current process information
 process_t *gCurrentProcess;
 
@@ -127,7 +129,8 @@ void task0() {
         priority : 0,
         argument : 0,
         schedulable : false,
-        system : true
+        system : true,
+        name : "scheduler",
     };
 
     const ProcessManager::spawninfo_t collector_task {
@@ -136,7 +139,8 @@ void task0() {
         priority : 1,
         argument : 0,
         schedulable : true,
-        system : true
+        system : true,
+        name : "collector",
     };
 
     const ProcessManager::spawninfo_t awaker_task {
@@ -145,7 +149,8 @@ void task0() {
         priority : 1,
         argument : 0,
         schedulable : true,
-        system : true
+        system : true,
+        name : "awaker"
     };
 
     const ProcessManager::spawninfo_t deleter_task {
@@ -154,7 +159,8 @@ void task0() {
         priority : 1,
         argument : 0,
         schedulable : true,
-        system : true
+        system : true,
+        name : "deleter"
     };
 
     {
@@ -239,11 +245,11 @@ process_t* ProcessManager::setup(const char* path, const char* args, uint8_t pri
         priority : prio,
         argument : argp,
         schedulable : true,
-        system : false
+        system : false,
+        name : path
     };
 
     if (auto process = spawn(si)) {
-        process->path = strdup(path);
         if (args) process->args = strdup(args);
         return process;
     }
@@ -262,6 +268,14 @@ static typename enable_if<idx >= 0, uint32_t*>::type stackpush(uint32_t *esp, T 
     return stackpush<idx-1>(esp, values...);
 }
 
+size_t ProcessManager::numProcesses() {
+    return gProcessTable().size();
+}
+
+void ProcessManager::foreach(function<bool(const process_t*)> f) {
+    gProcessTable().foreach(f);
+}
+
 process_t* ProcessManager::spawn(const spawninfo_t& si) {
     auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
@@ -277,6 +291,8 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     process_t *process = new ((void*)processpage) process_t();
 
     LOG_DEBUG("setup new process_t page at %p", process);
+
+    if (si.name) process->path = strdup(si.name);
 
     process->tss.cr3 = si.cr3;
     process->tss.eip = si.eip;
@@ -341,6 +357,12 @@ process_t* ProcessManager::kspawn(const spawninfo_t& si) {
 
 #define PID_TO_TSS_ENTRY(pid) ((((pid + 6)*8) << 16) | 0x1E50000000000ULL)
 
+static inline void doGDTSwitch(uint16_t pid) {
+    auto dtbl = gdt<uint64_t*>();
+    dtbl[5] = PID_TO_TSS_ENTRY(pid);
+    ::ctxswitch();
+}
+
 void ProcessManager::ctxswitch(process_t* task) {
     auto cr0 = gCurrentProcess->cr0;
     if (0 == (cr0 & 0x8)) {
@@ -351,32 +373,14 @@ void ProcessManager::ctxswitch(process_t* task) {
         fpsave((uintptr_t)&gCurrentProcess->fpstate[0]);
     }
 
-    auto now = PIT::getUptime();
-    gCurrentProcess->runtimestats.runtime += (now - gCurrentProcess->runtimestats.runbegin);
-    task->runtimestats.runbegin = now;
     gCurrentProcess = task;
-
-    auto dtbl = gdt<uint64_t*>();
-    dtbl[5] = PID_TO_TSS_ENTRY(task->pid);
-
-    #if LOG_SCHEDULER
-    LOG_DEBUG("gCurrentProcess equals %p", gCurrentProcess);
-    #endif
-
-    ::ctxswitch();
+    doGDTSwitch(task->pid);
 }
 
 void ProcessManager::switchtoscheduler() {
     // cr0 is not part of the hardware context switch, save it upon switching to scheduler
     gCurrentProcess->cr0 = readcr0();
-    auto dtbl = gdt<uint64_t*>();
-    dtbl[5] = PID_TO_TSS_ENTRY(gSchedulerPid);
-
-    #if LOG_SCHEDULER
-    LOG_DEBUG("scheduler entry pointer is %llu", dtbl[5]);
-    #endif
-
-    ::ctxswitch();
+    doGDTSwitch(gSchedulerPid);
 }
 
 void ProcessManager::ctxswitch(pid_t task) {
@@ -526,13 +530,15 @@ void ProcessManager::tick() {
     auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.prio, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
+        gCurrentProcess->runtimestats.runtime += PIT::gTickDuration;
         if (usedticks >= allowedticks) {
-            yield();
+            yield(true);
         }
     }
 }
 
-void ProcessManager::yield() {
+void ProcessManager::yield(bool bytimer) {
+    if (!bytimer) gCurrentProcess->runtimestats.runtime += PIT::gTickDuration / 2;
     switchtoscheduler();
 }
 

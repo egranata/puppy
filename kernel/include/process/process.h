@@ -94,13 +94,13 @@ struct process_t {
     } flags;
 
     struct memstats_t {
+        uint32_t available; /** size of all regions mapped by this process */
         uint32_t allocated; /** size of all memory allocated by this process */
         uint32_t pagefaults; /** number of page faults triggered by this process */
     } memstats;
 
     struct runtimestats_t {
-        uint64_t runbegin; /** tick value at which this process started running */
-        uint64_t runtime; /** total time that this process has been running */
+        uint64_t runtime; /** time that this process has been running */
     } runtimestats;
 
     static_assert(sizeof(flags_t) == sizeof(uint16_t), "process_t::flags_t must fit in 2 bytes");

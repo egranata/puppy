@@ -15,6 +15,7 @@
 #include <kernel/mm/memmgr.h>
 #include <kernel/log/log.h>
 #include <kernel/process/process.h>
+#include <kernel/process/current.h>
 
 static constexpr uintptr_t gKernelInitial = 0xC0000000;
 static constexpr uintptr_t gKernelFinal =   0xFFFFFFFF;
@@ -115,6 +116,7 @@ void MemoryManager::removeRegion(region_t region) {
     if (mRegions.del(region)) {
         LOG_DEBUG("region [%p - %p] deleted, unmapping all pages", region.from, region.to);
         mAllRegionsSize -= region.size();
+        gCurrentProcess->memstats.available -= region.size();
         for (auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.unmap(base);
         }
@@ -126,6 +128,7 @@ void MemoryManager::removeRegion(region_t region) {
 MemoryManager::region_t MemoryManager::addRegion(const MemoryManager::region_t& region) {
     LOG_DEBUG("adding a memory region [%x - %x]", region.from, region.to);
     mAllRegionsSize += region.size();
+    gCurrentProcess->memstats.available += region.size();
     return mRegions.add(region), region;
 }
 

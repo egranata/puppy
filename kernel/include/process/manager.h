@@ -30,6 +30,7 @@
 #include <kernel/process/bitmap.h>
 #include <kernel/libc/pqueue.h>
 #include <kernel/libc/pair.h>
+#include <kernel/libc/function.h>
 
 namespace boot::task {
     uint32_t init();
@@ -60,6 +61,7 @@ class ProcessManager : NOCOPY {
             uintptr_t argument;
             bool schedulable;
             bool system;
+            const char* name;
         };
 
         process_t *spawn(const spawninfo_t&);
@@ -74,7 +76,7 @@ class ProcessManager : NOCOPY {
         void resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uint16_t cs, uint16_t ss);
 
         pid_t getpid();
-        void yield();
+        void yield(bool bytimer=false);
         void sleep(uint32_t durationMs);
         void exit(process_exit_status_t);
         void kill(pid_t);
@@ -107,6 +109,9 @@ class ProcessManager : NOCOPY {
         static pqueue<process_t*, processcomparator>& gSleepQueue();
 
         process_t* cloneProcess(uintptr_t eip);
+
+        size_t numProcesses();
+        void foreach(function<bool(const process_t*)>);
 
     private:
         ProcessManager();

@@ -100,3 +100,36 @@ syscall_response_t clone_syscall_handler(uintptr_t neweip) {
 
     return OK | (newproc->pid << 1);
 }
+
+// LSB 0 == OK, process table filled; LSB 1 == ERR, process table incomplete
+// if LSB == 1, bits[1:31] == required entries in process table
+syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count) {
+    auto&& pmm = ProcessManager::get();
+
+    if (count == 0 || info == nullptr || count < pmm.numProcesses()) {
+        return 1 | (pmm.numProcesses() << 1);
+    }
+
+    size_t i = 0;
+    pmm.foreach([info, &i] (const process_t* p) -> bool {
+        process_info_t& pi = info[i++];
+        pi.pid = p->pid;
+        pi.ppid = p->ppid;
+        if (p->path) {
+            strncpy(&pi.path[0], p->path, sizeof(pi.path));
+        } else {
+            bzero(&pi.path[0], sizeof(pi.path));
+        }
+        if (p->args) {
+            strncpy(&pi.args[0], p->args, sizeof(pi.args));
+        } else {
+            bzero(&pi.args[0], sizeof(pi.args));
+        }
+        pi.vmspace = p->memstats.available;
+        pi.pmspace = p->memstats.allocated;
+        pi.runtime = p->runtimestats.runtime;
+        return true;
+    });
+
+    return OK;
+}

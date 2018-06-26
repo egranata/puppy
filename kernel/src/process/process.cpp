@@ -55,9 +55,9 @@ void process_t::clone(process_t* other) {
 
     other->flags.system = flags.system;
 
+    other->memstats.allocated = memstats.allocated;
     other->memstats.allocated = 0;
     other->memstats.pagefaults = 0;
 
-    other->runtimestats.runbegin = 0;
     other->runtimestats.runtime = 0;
 }
