@@ -87,5 +87,7 @@ make install-target-libgcc 2>&1
 # Alternative: Add the $prefix/bin directory to your $PATH.
 sudo ln -s -f $prefix/bin/* /usr/local/bin/
 
-sudo apt-get install python3 genisoimage xorriso nasm qemu
+sudo apt-get --update
+sudo apt-get install python3 genisoimage xorriso nasm
+sudo apt-get install qemu
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc grub2
