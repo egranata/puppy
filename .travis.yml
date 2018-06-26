@@ -3,4 +3,5 @@ sudo: enabled
 git:
   depth: 1
   submodules: false
-script: ./build/deps.sh && ./build/travis.sh
+script: ./build/deps.sh && ./build/travis.sh && ./build/test.py
+
