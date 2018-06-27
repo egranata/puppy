@@ -55,13 +55,15 @@ class ProcessManager : NOCOPY {
         using pid_t = process_t::pid_t;
 
         struct spawninfo_t {
-            uintptr_t cr3;
-            uintptr_t eip;
-            uint8_t priority;
-            uintptr_t argument;
-            bool schedulable;
-            bool system;
+            uintptr_t cr3; /** the root of the address space */
+            uintptr_t eip; /** what address to start running from */
+            uint8_t priority; /** initial process priority */
+            uintptr_t argument; /** a pointer to be pushed onto the stack for the entry point to consume */
             const char* name;
+
+            bool schedulable; /** should this process be scheduled */
+            bool system; /** is this a system process */
+            bool clone; /** is this process a clone of its parent */
         };
 
         process_t *spawn(const spawninfo_t&);

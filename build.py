@@ -29,7 +29,7 @@ print("Building OS image from %s" % MYPATH)
 
 BUILD_START = time.time()
 
-BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Wno-main -Werror -Wno-error=format -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
+BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Wno-main -Wno-missing-field-initializers -Werror -Wno-error=format -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
 BASIC_CPPFLAGS = " -std=c++14 -fno-exceptions -fno-rtti "
 BASIC_ASFLAGS = "-f elf"
 BASIC_LDFLAGS = ""

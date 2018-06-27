@@ -128,9 +128,9 @@ void task0() {
         eip : (uintptr_t)&tasks::scheduler::task,
         priority : 0,
         argument : 0,
+        name : "scheduler",
         schedulable : false,
         system : true,
-        name : "scheduler",
     };
 
     const ProcessManager::spawninfo_t collector_task {
@@ -138,9 +138,9 @@ void task0() {
         eip : (uintptr_t)&tasks::collector::task,
         priority : 1,
         argument : 0,
+        name : "collector",
         schedulable : true,
         system : true,
-        name : "collector",
     };
 
     const ProcessManager::spawninfo_t awaker_task {
@@ -148,9 +148,9 @@ void task0() {
         eip : (uintptr_t)&tasks::awaker::task,
         priority : 1,
         argument : 0,
+        name : "awaker",
         schedulable : true,
         system : true,
-        name : "awaker"
     };
 
     const ProcessManager::spawninfo_t deleter_task {
@@ -158,9 +158,9 @@ void task0() {
         eip : (uintptr_t)&tasks::deleter::task,
         priority : 1,
         argument : 0,
+        name : "deleter",
         schedulable : true,
         system : true,
-        name : "deleter"
     };
 
     {
@@ -244,9 +244,8 @@ process_t* ProcessManager::setup(const char* path, const char* args, uint8_t pri
         eip : (uintptr_t)&fileloader,
         priority : prio,
         argument : argp,
+        name : path,
         schedulable : true,
-        system : false,
-        name : path
     };
 
     if (auto process = spawn(si)) {
@@ -268,6 +267,58 @@ static typename enable_if<idx >= 0, uint32_t*>::type stackpush(uint32_t *esp, T 
     return stackpush<idx-1>(esp, values...);
 }
 
+namespace {
+    class process_pages_t {
+        public:
+            const uintptr_t proc;
+            const uintptr_t esp0;
+            const uintptr_t esp;
+
+            static process_pages_t find(uintptr_t low, uintptr_t high, bool& ok) {
+                auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
+                auto&& vm(VirtualPageManager::get());
+
+                auto pp = vm.mapPageWithinRange(low, high, mapopts);
+                auto e0 = vm.mapPageWithinRange(low, high, mapopts);
+                auto ep = vm.mapPageWithinRange(low, high, mapopts);
+
+                if (pp & 1) {
+                    ok = false;
+                } else if (e0 & 1) {
+                    ok = false;
+                } else if (ep & 1) {
+                    ok = false;
+                } else {
+                    ok = true;
+                }
+
+                return process_pages_t(pp, e0, ep);
+            }
+
+            template<typename T = uint32_t>
+            T* getesp() {
+                return (T*)esp;
+            }
+
+            template<typename T = uint32_t>
+            T* getesp0() {
+                return (T*)esp0;
+            }
+
+            process_t *makeProcess() {
+                process_t *task = new ((void*)proc) process_t();
+
+                task->espstart = esp;
+                task->esp0start = esp0;
+
+                return task;
+            }
+
+        private:
+            process_pages_t(uintptr_t proc, uintptr_t esp0, uintptr_t esp) : proc(proc), esp0(esp0), esp(esp) {}
+    };
+}
+
 size_t ProcessManager::numProcesses() {
     return gProcessTable().size();
 }
@@ -277,20 +328,22 @@ void ProcessManager::foreach(function<bool(const process_t*)> f) {
 }
 
 process_t* ProcessManager::spawn(const spawninfo_t& si) {
-    auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
         PANIC("set process table location before spawning");
     }
-    auto&& vm(VirtualPageManager::get());
-    auto processpage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    auto esp0page = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    auto esppage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    if ((processpage & 0x1) || (esp0page & 0x1) | (esppage & 0x1)) {
-        PANIC("cannot find memory for a new process");
-    }
-    process_t *process = new ((void*)processpage) process_t();
 
+    bool ok = false;
+    auto pages = process_pages_t::find(mProcessPagesLow, mProcessPagesHigh, ok);
+    if (!ok) {
+        PANIC("unable to find memory for a new process");
+    }
+    auto process = pages.makeProcess();
     LOG_DEBUG("setup new process_t page at %p", process);
+
+    if (si.clone) {
+        LOG_DEBUG("new process is cloned");
+        gCurrentProcess->clone(process);
+    }
 
     if (si.name) process->path = strdup(si.name);
 
@@ -305,21 +358,16 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     process->tss.cs = 0x08;
     process->tss.ss = process->tss.ds = process->tss.es = process->tss.fs = process->tss.gs = 0x10;
     process->tss.ss0 = 0x10;
-    process->tss.esp0 = 4095 + esp0page;
-    process->esp0start = esp0page;
-
-    LOG_DEBUG("esp0 = %p", process->tss.esp0);
+    process->tss.esp0 = VirtualPageManager::gPageSize - 1 + pages.esp0;
 
     process->tss.eflags = 512; // enable IRQ
 
     // TODO: is one page enough? factor this out to a global anyway
     // this is [0] thru [1023], where [1023] is the first element
     // because of x86 stack rules
-    uint32_t* esp = (uint32_t*)esppage;
+    uint32_t* esp = pages.getesp();
     esp = stackpush<1023>(esp, si.argument);
-
     process->tss.esp = (uintptr_t)esp;
-    process->espstart = esppage;
 
     LOG_DEBUG("esp = %p", process->tss.esp);
 
@@ -659,57 +707,20 @@ begin:
 }
 
 process_t* ProcessManager::cloneProcess(uintptr_t eip) {
-    auto mapopts = VirtualPageManager::map_options_t().clear(true).user(false).rw(true);
-    if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
-        PANIC("set process table location before spawning");
-    }
     auto&& vm(VirtualPageManager::get());
-    auto processpage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    auto esp0page = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    auto esppage = vm.mapPageWithinRange(mProcessPagesLow, mProcessPagesHigh, mapopts);
-    if ((processpage & 0x1) || (esp0page & 0x1) | (esppage & 0x1)) {
-        PANIC("cannot find memory for a new process");
-    }
-    process_t *process = new ((void*)processpage) process_t();
 
-    LOG_DEBUG("cloned process_t page at %p", process);
-    gCurrentProcess->clone(process);
+    spawninfo_t si {
+        cr3 : vm.cloneAddressSpace(),
+        eip : (uintptr_t)clone_start,
+        priority : gCurrentProcess->priority.prio,
+        argument : eip,
+        name : gCurrentProcess->path,
+        schedulable : true,
+        system : gCurrentProcess->flags.system,
+        clone : true
+    };
 
-    LOG_DEBUG("setup new process_t page at %p", process);
-
-    process->tss.cr3 = vm.cloneAddressSpace();
-    process->pid = gPidBitmap().next();
-    process->ppid = gCurrentProcess->pid;
-    process->ttyinfo = gCurrentProcess->ttyinfo;
-    process->tss.esp0 = 4095 + esp0page;
-    process->esp0start = esp0page;
-    process->espstart = esppage;
-    process->tss.eip = (uintptr_t)clone_start;
-
-    LOG_DEBUG("esp0 = %p", process->tss.esp0);
-
-    uint32_t *esp = (uint32_t*)esppage;
-    esp = stackpush<1023>(esp, eip);
-    process->tss.esp = (uintptr_t)esp;
-
-    auto gdtval = fillGDT(process);
-
-    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llx",
-        process->ppid, process->pid,
-        process->tss.eip, process->tss.cr3,
-        process->tss.esp0, process->tss.esp,
-        process->gdtidx, gdtval);
-
-    gProcessTable().set(process);
-    LOG_DEBUG("process %u is schedulable", process->pid);
-    gReadyQueue().push_back(process);
-    process->state = process_t::State::AVAILABLE;
-
-    forwardTTY(process);
-
-    gCurrentProcess->children.add(process);
-
-    return process;
+    return spawn(si);
 }
 
 uint64_t ProcessManager::fillGDT(process_t* process) {
