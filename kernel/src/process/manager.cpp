@@ -93,15 +93,13 @@ PM_GLOBAL(vector<process_t*>, gReadyQueue);
 
 #undef PM_GLOBAL
 
-#define LOG_SCHEDULER 0
-
-static ProcessManager::pid_t gSchedulerPid;
-static ProcessManager::pid_t gInitPid;
-static ProcessManager::pid_t gAwakerPid;
-static ProcessManager::pid_t gDeleterPid;
-
 static process_t gDummyProcess;
-static process_t *gCollectorProcess;
+
+static process_t *gSchedulerTask;
+static process_t *gCollectorTask;
+static process_t *gAwakerTask;
+static process_t *gDeleterTask;
+static process_t *gInitTask;
 
 int ProcessManager::processcomparator::compare(process_t* p1, process_t* p2) {
     return p1->sleeptill >= p2->sleeptill ? -1 : +1;
@@ -121,67 +119,62 @@ static void enqueueForCollection(process_t* task) {
     ProcessManager::gCollectedProcessList().add(task);
 }
 
+namespace {
+    struct system_task_t {
+        ProcessManager::spawninfo_t si;
+        process_t **newProcess;
+    };
+}
+
+#define SYSTEM_TASK(entry, sched, nm, dest) system_task_t { \
+    si : ProcessManager::spawninfo_t { \
+        cr3 : 0, \
+        eip : (uintptr_t)&entry, \
+        priority : sched ? 1 : 0, \
+        argument : 0, \
+        name : nm, \
+        schedulable : sched, \
+        system : true, \
+    }, \
+    newProcess : dest, \
+}
+
+static system_task_t gSystemTasks[] = {
+    SYSTEM_TASK(tasks::scheduler::task, false, "scheduler", &gSchedulerTask),
+    SYSTEM_TASK(tasks::collector::task, true,  "collector", &gCollectorTask),
+    SYSTEM_TASK(tasks::awaker::task,    true,  "awaker",    &gAwakerTask),
+    SYSTEM_TASK(tasks::deleter::task,   true,  "deleter",   &gDeleterTask),
+};
+
+#undef SYSTEM_TASK
+
+template<size_t N, typename T = system_task_t>
+static void spawnSystemTasks(T (&tasks)[N]) {
+    auto& pmm(ProcessManager::get());
+
+    for(auto i = 0u; i < N; ++i) {
+        const auto& task = tasks[i];
+        auto process = pmm.kspawn(task.si);
+        if (process) {
+            *task.newProcess = process;
+            LOG_INFO("spawned system process %s as %p %u", task.si.name, process, (uint32_t)process->pid);
+        } else {
+            LOG_ERROR("failed to spawn system process %s", task.si.name);
+            PANIC("system process setup failed");
+        }
+    }
+}
+
 extern "C"
 void task0() {
-    const ProcessManager::spawninfo_t scheduler_task {
-        cr3 : 0,
-        eip : (uintptr_t)&tasks::scheduler::task,
-        priority : 0,
-        argument : 0,
-        name : "scheduler",
-        schedulable : false,
-        system : true,
-    };
-
-    const ProcessManager::spawninfo_t collector_task {
-        cr3 : 0,
-        eip : (uintptr_t)&tasks::collector::task,
-        priority : 1,
-        argument : 0,
-        name : "collector",
-        schedulable : true,
-        system : true,
-    };
-
-    const ProcessManager::spawninfo_t awaker_task {
-        cr3 : 0,
-        eip : (uintptr_t)&tasks::awaker::task,
-        priority : 1,
-        argument : 0,
-        name : "awaker",
-        schedulable : true,
-        system : true,
-    };
-
-    const ProcessManager::spawninfo_t deleter_task {
-        cr3 : 0,
-        eip : (uintptr_t)&tasks::deleter::task,
-        priority : 1,
-        argument : 0,
-        name : "deleter",
-        schedulable : true,
-        system : true,
-    };
+    spawnSystemTasks(gSystemTasks);
 
     {
         auto&& pmm(ProcessManager::get());
-        gSchedulerPid = pmm.kspawn(scheduler_task)->pid;
-        LOG_DEBUG("scheduler task prepared as pid %u", gSchedulerPid);
-
-        gCollectorProcess = pmm.kspawn(collector_task);
-        LOG_DEBUG("collector task prepared as pid %u", gCollectorProcess->pid);
-
-        gAwakerPid = pmm.kspawn(awaker_task)->pid;
-        LOG_DEBUG("awaker task prepared as pid %u", gAwakerPid);
-
-        gDeleterPid = pmm.kspawn(deleter_task)->pid;
-        LOG_DEBUG("deleter task prepared as pid %u", gDeleterPid);
-
-        auto init = pmm.setup("/initrd/init", nullptr);
-        init->flags.system = true;
-        gInitPid = init->pid;
-        LOG_DEBUG("init task prepared as pid %u", gInitPid);
-        init->ttyinfo.tty->pushfg(gInitPid);
+        gInitTask = pmm.setup("/initrd/init", nullptr);
+        gInitTask->flags.system = true;
+        gInitTask->ttyinfo.tty->pushfg(gInitTask->pid);
+        LOG_DEBUG("init process ready as %p %u", gInitTask, (uint32_t)gInitTask->pid);
     }
 
     while(true) {
@@ -196,8 +189,6 @@ ProcessManager::ProcessManager() {
     gGDTBitmap().reserve(3);
     gGDTBitmap().reserve(4);
     gGDTBitmap().reserve(5);
-
-    gSchedulerPid = 0;
 
     // prepare the initial dummy task
     gDummyProcess.tss.cr3 = readcr3();
@@ -331,6 +322,9 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
         PANIC("set process table location before spawning");
     }
+    if (si.cr3 == 0) {
+        PANIC("set a valid non-zero CR3 before spawning");
+    }
 
     bool ok = false;
     auto pages = process_pages_t::find(mProcessPagesLow, mProcessPagesHigh, ok);
@@ -414,9 +408,7 @@ static inline void doGDTSwitch(uint16_t pid) {
 void ProcessManager::ctxswitch(process_t* task) {
     auto cr0 = gCurrentProcess->cr0;
     if (0 == (cr0 & 0x8)) {
-        #if LOG_SCHEDULER
         LOG_DEBUG("saving FP state for process %u", gCurrentProcess->pid);
-        #endif
         cleartaskswitchflag();
         fpsave((uintptr_t)&gCurrentProcess->fpstate[0]);
     }
@@ -428,7 +420,7 @@ void ProcessManager::ctxswitch(process_t* task) {
 void ProcessManager::switchtoscheduler() {
     // cr0 is not part of the hardware context switch, save it upon switching to scheduler
     gCurrentProcess->cr0 = readcr0();
-    doGDTSwitch(gSchedulerPid);
+    doGDTSwitch(gSchedulerTask->pid);
 }
 
 void ProcessManager::ctxswitch(pid_t task) {
@@ -499,9 +491,9 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
         auto end = task->children.end();
 
         while (c0 != end) {
-            LOG_DEBUG("child %u going to collector process %u", (*c0)->pid, gCollectorProcess->pid);
-            (*c0)->ppid = gCollectorProcess->pid;
-            gCollectorProcess->children.add(*c0);
+            LOG_DEBUG("child %u going to collector process %u", (*c0)->pid, gCollectorTask->pid);
+            (*c0)->ppid = gCollectorTask->pid;
+            gCollectorTask->children.add(*c0);
             ++c0;
         }
 
@@ -591,10 +583,10 @@ void ProcessManager::yield(bool bytimer) {
 }
 
 process_t::pid_t ProcessManager::initpid() {
-    return gInitPid;
+    return gInitTask->pid;
 }
 process_t::pid_t schedulerpid() {
-    return gSchedulerPid;
+    return gSchedulerTask->pid;
 }
 
 void ProcessManager::ready(process_t* task) {
