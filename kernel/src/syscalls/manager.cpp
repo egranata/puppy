@@ -70,7 +70,7 @@ static syscall_handler_info_t gHandlers[256];
 
 #define ERR(name) SyscallManager::SYSCALL_ERR_ ## name
 
-static void syscall_irq_handler(GPR& gpr, InterruptStack& stack) {
+static void syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
     SyscallManager::Request req = {
         .code = (uint8_t)(gpr.eax & 0xFF),
         .arg1 = gpr.ebx,

@@ -25,7 +25,12 @@ void interrupt_handler(GPR gpr, InterruptStack stack);
 
 class Interrupts {
 public:
-	typedef void(*Handler)(GPR& gpr, InterruptStack& stack);
+	struct handler_t {
+		using irq_handler_f = void(*)(GPR&, InterruptStack&, void*);
+		irq_handler_f func;
+		void* payload;
+		explicit operator bool();
+	};
 	
 	static Interrupts& get();
 	
@@ -34,7 +39,7 @@ public:
 	void enable();
 	void disable();
 	
-	void sethandler(uint8_t irq, Handler handler = nullptr);
+	void sethandler(uint8_t irq, handler_t::irq_handler_f = nullptr, void* = nullptr);
 	
 private:	
 	Interrupts();
@@ -62,7 +67,7 @@ private:
 		}
 	} __attribute__((packed)) mEntries[256];
 	
-	Handler mHandlers[256];
+	handler_t mHandlers[256];
 	
 	friend void interrupt_handler(GPR, InterruptStack);
 	

@@ -107,7 +107,7 @@ static bool cow_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     return false;
 }
 
-void pageflt_handler(GPR& gpr, InterruptStack& stack) {
+void pageflt_handler(GPR& gpr, InterruptStack& stack, void*) {
     if (gCurrentProcess) ++gCurrentProcess->memstats.pagefaults;
 
     auto&& vmm(VirtualPageManager::get());

@@ -114,7 +114,7 @@ uint64_t RTC::cmos_now_t::timestamp() const {
 static uint64_t gTimestamp = 0;
 static uint8_t gIncrement = 0;
 
-static void rtchandler(GPR&, InterruptStack&) {
+static void rtchandler(GPR&, InterruptStack&, void*) {
     outb(RTC::gSelectPort, RTC::gNMI | RTC::gStatusRegisterC);
     inb(RTC::gDataPort);
 

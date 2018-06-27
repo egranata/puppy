@@ -116,7 +116,7 @@ static bool gCtrlDown;
 static bool gAltDown;
 static bool gDeleteDown;
 
-static void keyboard_irq_handler() {
+static void parse_scan_code() {
     LOG_DEBUG("in keyboard IRQ");
     auto b = inb(0x60);
 
@@ -173,14 +173,9 @@ static void keyboard_irq_handler() {
     LOG_DEBUG("seen keyboard input %u - mWriteIdx = %u", b, gKeyboardBuffer.mWriteIdx);
 }
 
-static void keyboard_irq_handler_1(GPR&, InterruptStack&) {
-    keyboard_irq_handler();
-    PIC::eoi(1);
-}
-
-static void keyboard_irq_handler_12(GPR&, InterruptStack&) {
-    keyboard_irq_handler();
-    PIC::eoi(12);
+static void keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
+    parse_scan_code();
+    PIC::eoi((uint32_t)id);
 }
 
 PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
@@ -189,8 +184,9 @@ PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
     gCapsLock = false;
     gShift = false;
 
-    auto cpu_irq = PIC::gIRQNumber(devid == 1 ? 1 : 12);
-    Interrupts::get().sethandler(cpu_irq, devid == 1 ? keyboard_irq_handler_1 : keyboard_irq_handler_12);
+    auto pic_irq = devid == 1 ? 1 : 12;
+    auto cpu_irq = PIC::gIRQNumber(pic_irq);
+    Interrupts::get().sethandler(cpu_irq, keyboard_irq_handler, (void*)pic_irq);
     LOG_DEBUG("setup keyboard IRQ handler for irq %u - device %u", cpu_irq, devid);
 }
 

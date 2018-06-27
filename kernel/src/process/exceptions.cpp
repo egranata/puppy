@@ -55,7 +55,7 @@ static bool iskernelbug(const InterruptStack& stack) {
 }
 
 #define EXCEPTIONHANDLER(name, description) \
-static void name ## _handler (GPR& gpr, InterruptStack& stack) { \
+static void name ## _handler (GPR& gpr, InterruptStack& stack, void*) { \
     if (iskernelbug(stack)) { \
         PANICFORWARD( description, gpr, stack ); \
     } else { \
@@ -63,7 +63,7 @@ static void name ## _handler (GPR& gpr, InterruptStack& stack) { \
     } \
 }
 
-static void fpuerror(GPR&, InterruptStack&) {
+static void fpuerror(GPR&, InterruptStack&, void*) {
     cleartaskswitchflag();
     // restore FPU state for this process
     fprestore((uintptr_t)&gCurrentProcess->fpstate[0]);
