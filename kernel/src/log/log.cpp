@@ -20,6 +20,8 @@
 
 extern "C"
 void __really_log(const char* tag, const char* filename, unsigned long line, const char* fmt, va_list args) {
+    if (gKernelConfiguration()->logging.value == kernel_config_t::config_logging::gNoLogging) return;
+
     static constexpr size_t gBufferSize = 1024;    
     static char gBuffer[gBufferSize];
     size_t n = 0;
