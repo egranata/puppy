@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, subprocess, time, sys
+import json, os, subprocess, time, sys
 
 CMDLINE='qemu-system-i386 -drive format=raw,media=disk,file=out/os.img -display none -serial file:out/kernel.log -m 768 -d guest_errors ' + \
         '-rtc base=localtime -monitor stdio -smbios type=0,vendor="Puppy" -smbios type=1,manufacturer="Puppy",product="Puppy System",serial="P0PP1"'
@@ -36,9 +36,9 @@ def checkAlive():
     log = readLog()
     return log.find("init is up and running") > 0
 
-def checkTestPass():
+def checkTestPass(tid):
     log = readLog()
-    return log.find("TEST[tests/malloc/test.cpp] PASS") > 0
+    return log.find("TEST[%s] PASS" % tid) > 0
 
 def say(qemu, msg):
     qemu.stdin.write(bytes("%s\n" % msg, 'ascii'))
@@ -68,14 +68,21 @@ else:
     print("\n\nerror: no OS alive")
     sys.exit(1)
 
-sendString(qemu, "&/mainfs/tests/malloc")
-time.sleep(10)
+TEST_PLAN = json.load(open(sys.argv[1], "r"))
+print(TEST_PLAN)
 
-if checkTestPass():
-    print("\n\nmalloc test passed!")
-else:
-    print("\n\nmalloc test not passed")
-    sys.exit(1)
+for tid in TEST_PLAN:
+    TEST = TEST_PLAN[tid]
+    path = "&%s" % TEST["path"]
+    wait = int(TEST["wait"])
+    sendString(qemu, path)
+    time.sleep(wait)
+    if checkTestPass(tid):
+        print("\n\%s test passed!" % tid)
+    else:
+        print("\n\n%s test not passed" % tid)
+        sys.exit(1)
+
 
 say(qemu, "q")
 qemu.communicate()

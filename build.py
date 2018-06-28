@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import glob
+import json
 from multiprocessing import Pool
 import os
 import os.path
@@ -318,9 +319,13 @@ for app in APP_DIRS:
     if config["mainfs"]: APP_REFS.append(app_o)
     if config["initrd"]: INITRD_REFS.append(app_o)
 
+TEST_PLAN = {}
+KNOWN_FAIL_TESTS = ["tests_mutexkill"]
+
 TEST_DIRS = findSubdirectories("tests", self=False)
 for test in TEST_DIRS:
-    test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test.replace('/','_')
+    test_name = test.replace('/','_')
+    test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
     test_p = Project(name = os.path.basename(test),
                     srcdir = test,
                     cflags = BASIC_CFLAGS + test_name_define + " -Iinclude",
@@ -336,6 +341,16 @@ for test in TEST_DIRS:
     test_o = test_p.build()
     TESTS.append(test_o)
     TEST_REFS.append(test_o)
+    test_ref = "/mainfs/%s" % (test_o.replace("out/", "")) # this is a bit hacky..
+    if test_name not in KNOWN_FAIL_TESTS:
+        TEST_PLAN[test_name] = {
+            "path" : test_ref,
+            "id" : test_name,
+            "wait" : "10" # allow tests to wait for more or less than 10 seconds
+        }
+
+with open("out/testplan.json", "w") as f:
+    json.dump(TEST_PLAN, f)
 
 USER_CONTENT_END = time.time()
 USER_CONTENT_DURATION = int(USER_CONTENT_END - USER_CONTENT_BEGIN)
