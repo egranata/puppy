@@ -53,7 +53,7 @@ void child3() {
 
 class TheTest : public Test {
     public:
-        TheTest() : Test(__FILE__) {}
+        TheTest() : Test(TEST_NAME) {}
     
     protected:
         void run() override {

@@ -320,10 +320,11 @@ for app in APP_DIRS:
 
 TEST_DIRS = findSubdirectories("tests", self=False)
 for test in TEST_DIRS:
+    test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test.replace('/','_')
     test_p = Project(name = os.path.basename(test),
                     srcdir = test,
-                    cflags = BASIC_CFLAGS + " -Iinclude",
-                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
+                    cflags = BASIC_CFLAGS + test_name_define + " -Iinclude",
+                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + test_name_define + " -Iinclude",
                     asmflags = "-f elf",
                     ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry -Wl,--as-needed",
                     assembler="nasm",

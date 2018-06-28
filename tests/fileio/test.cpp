@@ -38,7 +38,7 @@
 
 class TheTest : public Test {
     public:
-        TheTest() : Test(__FILE__) {}
+        TheTest() : Test(TEST_NAME) {}
 
     private:
         size_t writeString(int fd, const char* s) {
