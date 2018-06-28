@@ -54,6 +54,10 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace ioapic {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
     namespace task {
         uint32_t init();
         bool fail(uint32_t);
@@ -167,6 +171,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "APIC discovery",
         visible : false,
         operation : boot::apic::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "IO APIC discovery",
+        visible : false,
+        operation : boot::ioapic::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
