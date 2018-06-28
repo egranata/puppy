@@ -167,10 +167,10 @@ template<typename T>
 T* scratchMap(uintptr_t physical, uint16_t page) {
 	uintptr_t gLogicalMapping = 0xFFC00000 + 4096*page;
 	uintptr_t newmapping = 0x3 | physical;
-	uintptr_t oldmapping = bootpagetable<uintptr_t*>()[page];
+	uintptr_t oldmapping = addr_bootpagetable<uintptr_t*>()[page];
 	// idempotent and with no unnecessary slowdowns
 	if (newmapping != oldmapping) {
-		bootpagetable<uintptr_t*>()[page] = newmapping;
+		addr_bootpagetable<uintptr_t*>()[page] = newmapping;
 		invtlb(gLogicalMapping);
 	}
 	return (T*)gLogicalMapping;
@@ -677,7 +677,7 @@ void VirtualPageManager::setheap(uintptr_t heap, size_t size) {
 	// now that we have a heap - it's a good time to setup kernel regions!
 	// make one mega region for the kernel image + the kernel heap (we could split them
 	// but it wouldn't be very useful..)
-	auto ks = kernel_start();
+	auto ks = addr_kernel_start();
 	auto he = mKernelHeap->high();
 	addKernelRegion(ks, he);
 
@@ -819,7 +819,7 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 	uint32_t *pde = scratchMap<uint32_t>(pPde, 0);
 	LOG_DEBUG("pde physical address %p, virrtual address %p", pPde, pde);
 	
-	PagingIndices kernelidx(kernel_start());
+	PagingIndices kernelidx(addr_kernel_start());
 	LOG_DEBUG("kernel mapping starts at dir %u page %u", kernelidx.dir, kernelidx.tbl);
 
 	// map all page directories as present / writable / user - we will enforce actual permissions at the page table level	
@@ -836,8 +836,8 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 		bzero(pq, PhysicalPageManager::gPageSize);
 	}
 	// all kernel memory is shared
-	uintptr_t cur = kernel_start() - gBootVirtualOffset;
-	uintptr_t end = kernel_end() - gBootVirtualOffset;
+	uintptr_t cur = addr_kernel_start() - gBootVirtualOffset;
+	uintptr_t end = addr_kernel_end() - gBootVirtualOffset;
 	uint32_t *pt = nullptr;
 	while(cur < end) {
 		pt = scratchMap<uint32_t>(pde[kernelidx.dir] & ~pagedirAttrib, 1);

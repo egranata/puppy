@@ -183,12 +183,14 @@ void task0() {
 }
 
 ProcessManager::ProcessManager() {
-    gGDTBitmap().reserve(0);
-    gGDTBitmap().reserve(1);
-    gGDTBitmap().reserve(2);
-    gGDTBitmap().reserve(3);
-    gGDTBitmap().reserve(4);
-    gGDTBitmap().reserve(5);
+    {
+        const auto num_reserved_gdt_selectors = val_numsysgdtentries<uint32_t>();
+        auto& gdt_bitmap(gGDTBitmap());
+        LOG_DEBUG("system reserved %u GDT selectors", num_reserved_gdt_selectors);
+        for (auto i = 0u; i < num_reserved_gdt_selectors; ++i) {
+            gdt_bitmap.reserve(i);
+        }
+    }
 
     // prepare the initial dummy task
     gDummyProcess.tss.cr3 = readcr3();
@@ -205,7 +207,7 @@ ProcessManager::ProcessManager() {
     gDummyProcess.gdtidx = gGDTBitmap().next();
     gDummyProcess.ttyinfo = process_t::ttyinfo_t(new TTY());
 
-    auto dtbl = gdt<uint64_t*>();
+    auto dtbl = addr_gdt<uint64_t*>();
 
     LOG_DEBUG("dtbl = %p, sizeof(TSS) = %u, gDummyTaskSegment = %p", dtbl, sizeof(process_t), &gDummyProcess);
     LOG_DEBUG("msb is %p", ((uint64_t)&gDummyProcess) & 0xFF000000);
@@ -400,7 +402,7 @@ process_t* ProcessManager::kspawn(const spawninfo_t& si) {
 #define PID_TO_TSS_ENTRY(pid) ((((pid + 6)*8) << 16) | 0x1E50000000000ULL)
 
 static inline void doGDTSwitch(uint16_t pid) {
-    auto dtbl = gdt<uint64_t*>();
+    auto dtbl = addr_gdt<uint64_t*>();
     dtbl[5] = PID_TO_TSS_ENTRY(pid);
     ::ctxswitch();
 }
@@ -716,7 +718,7 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip) {
 }
 
 uint64_t ProcessManager::fillGDT(process_t* process) {
-    auto dtbl = gdt<uint64_t*>();
+    auto dtbl = addr_gdt<uint64_t*>();
 
     process->gdtidx = gGDTBitmap().next();
 

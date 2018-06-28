@@ -22,9 +22,13 @@
 
 #define GLOBAL_ITEM(varname, apiname) extern uintptr_t varname; \
 template<typename T = uintptr_t> \
-static T apiname () { \
+static T addr_ ## apiname () { \
 	return (T)& varname; \
-}
+} \
+template<typename T = uintptr_t> \
+static T val_ ## apiname () { \
+	return *(addr_ ## apiname<T*>()); \
+} \
 
 GLOBAL_ITEM(__kernel_start, 			 kernel_start);
 GLOBAL_ITEM(__ctors_start,  		     ctors_start);

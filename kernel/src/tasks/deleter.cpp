@@ -38,8 +38,8 @@ namespace tasks::deleter {
                 if (proc->path) free((void*)proc->path);
                 if (proc->args) free((void*)proc->args);
 
-                auto dtbl = gdt<uint64_t*>();
-                dtbl[proc->pid + numsysgdtentries<uint32_t>()] = 0;
+                auto dtbl = addr_gdt<uint64_t*>();
+                dtbl[proc->pid + val_numsysgdtentries<uint32_t>()] = 0;
 
                 pidBitmap.free(proc->pid);
                 gdtBitmap.free(proc->gdtidx);

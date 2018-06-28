@@ -102,7 +102,7 @@ static void setupPhysicalMemory(multiboot_info* multiboot) {
 static void reserveMemory(multiboot_info* multiboot) {
 	PhysicalPageManager &phys(PhysicalPageManager::get());	
 
-	phys.reserve(kernel_start() - gBootVirtualOffset, kernel_end() - gBootVirtualOffset);
+	phys.reserve(addr_kernel_start() - gBootVirtualOffset, addr_kernel_end() - gBootVirtualOffset);
 
 	grub_modules_info_t* bootmodules = bootmodinfo();
 	if (multiboot->mods_count > grub_modules_info_t::gMaxModules) {
@@ -136,7 +136,7 @@ static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot
 
 	auto mbpage = fourMBPageForMultiboot(multiboot_data);
 	LOG_DEBUG("mapping multiboot at %p", mbpage);
-	bootpagedirectory<uintptr_t*>()[mbpage] = 0x83 | (multiboot_data & 0xFFC00000);
+	addr_bootpagedirectory<uintptr_t*>()[mbpage] = 0x83 | (multiboot_data & 0xFFC00000);
 	invtlb(mbpage);
 	auto multiboot_hdr = (multiboot_info*)(mbpage+multibootOffset(multiboot_data));
 
@@ -151,7 +151,7 @@ static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot
 static void setupKernelHeap() {
 	auto&& vmm(VirtualPageManager::get());
 
-	auto kernel_high = kernel_end();
+	auto kernel_high = addr_kernel_end();
 	// round up to the end of page - this is >= the actual end of the kernel image
 	kernel_high = VirtualPageManager::page(kernel_high) + VirtualPageManager::gPageSize - 1;
 

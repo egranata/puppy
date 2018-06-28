@@ -23,8 +23,8 @@
 
 static void _runGlobalConstructors() {
 	typedef void(**ctorf)();
-	ctorf begin = ctors_start<ctorf>();
-	ctorf end = ctors_end<ctorf>();
+	ctorf begin = addr_ctors_start<ctorf>();
+	ctorf end = addr_ctors_end<ctorf>();
 
 	while(begin != end) {
 		if (nullptr == begin || nullptr == *begin) break;
@@ -79,12 +79,12 @@ void _kmain() {
 
 	auto &phys(PhysicalPageManager::get());
 
-	LOG_INFO("kernel start at %p, kernel end at %p", kernel_start(), kernel_end());
+	LOG_INFO("kernel start at %p, kernel end at %p", addr_kernel_start(), addr_kernel_end());
 
 	bootphase_t::printf("Total RAM size: %u KB (aka %u pages)\n", phys.gettotalmem() / 1024, phys.gettotalpages());
 	bootphase_t::printf("Free  RAM size: %u KB (aka %u pages)\n", phys.getfreemem() / 1024, phys.getfreepages());
 
-	bootphase_t::printf("Kernel image: [%p - %p] (%lu bytes)\n", kernel_start<void*>(), kernel_end<void*>(), kernel_end() - kernel_start() + 1);
+	bootphase_t::printf("Kernel image: [%p - %p] (%lu bytes)\n", addr_kernel_start<void*>(), addr_kernel_end<void*>(), addr_kernel_end() - addr_kernel_start() + 1);
 
 	LOG_INFO("out of boot");
 	task0();
