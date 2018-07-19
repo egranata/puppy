@@ -39,6 +39,12 @@ class TTY {
 
         void getSize(uint16_t *rows, uint16_t* cols);
 
+        void getForegroundColor(uint32_t *color);
+        void getBackgroundColor(uint32_t *color);
+
+        void setForegroundColor(uint32_t color);
+        void setBackgroundColor(uint32_t color);
+
     private:
         static constexpr size_t gQueueSize = 1024;
 

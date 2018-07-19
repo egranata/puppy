@@ -123,3 +123,19 @@ void TTY::getSize(uint16_t *rows, uint16_t* cols) {
     *rows = mFramebuffer.rows();
     *cols = mFramebuffer.columns();
 }
+
+void TTY::getForegroundColor(uint32_t *color) {
+    *color = (uint32_t)mFramebuffer.getfg();
+}
+
+void TTY::getBackgroundColor(uint32_t *color) {
+    *color = (uint32_t)mFramebuffer.getbg();
+}
+
+void TTY::setForegroundColor(uint32_t color) {
+    mFramebuffer.setfg(Framebuffer::color_t(color));
+}
+
+void TTY::setBackgroundColor(uint32_t color) {
+    mFramebuffer.setbg(Framebuffer::color_t(color));
+}

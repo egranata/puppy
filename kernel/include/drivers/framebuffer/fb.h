@@ -32,6 +32,11 @@ class Framebuffer : NOCOPY {
             static color_t red();
             static color_t green();
             static color_t blue();
+
+            explicit color_t(uint32_t);
+            color_t(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0);
+
+            explicit operator uint32_t() const;
         };
 
         static Framebuffer& get();

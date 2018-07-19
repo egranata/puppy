@@ -72,6 +72,24 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             mTTY->getPosition(pi, pi+1);
             return 1;
         }
+        case IOCTL_GET_FG_COLOR: {
+            uint32_t *clr = (uint32_t*)a2;
+            mTTY->getForegroundColor(clr);
+            return 1;
+        }
+        case IOCTL_GET_BG_COLOR: {
+            uint32_t *clr = (uint32_t*)a2;
+            mTTY->getBackgroundColor(clr);
+            return 1;
+        }
+        case IOCTL_SET_FG_COLOR: {
+            mTTY->setForegroundColor(a2);
+            return 1;
+        }
+        case IOCTL_SET_BG_COLOR: {
+            mTTY->setBackgroundColor(a2);
+            return 1;
+        }
         default:
             return 0;
     }

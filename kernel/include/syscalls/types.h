@@ -90,7 +90,11 @@ enum tty_ioctl_t {
         IOCTL_BACKGROUND = 2, // a2 = reserved
         IOCTL_MOVECURSOR = 3, // a2 = low = row, high = col
         IOCTL_VISIBLE_AREA = 4, // a2 = pointer to 0xRRRRCCCC
-        IOCTL_CURSOR_POS = 5 // a2 = pointer to 0xRRRRCCCC
+        IOCTL_CURSOR_POS = 5, // a2 = pointer to 0xRRRRCCCC
+        IOCTL_GET_FG_COLOR = 6, // a2 = pointer to 0x00RRGGBB
+        IOCTL_SET_FG_COLOR = 7, // a2 = 0x00RRGGBB
+        IOCTL_GET_BG_COLOR = 8, // a2 = pointer to 0x00RRGGBB
+        IOCTL_SET_BG_COLOR = 9, // a2 = 0x00RRGGBB
 };
 
 struct message_t {

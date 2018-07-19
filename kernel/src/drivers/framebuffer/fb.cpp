@@ -29,6 +29,19 @@ Framebuffer::color_t Framebuffer::color_t::red() { return color_t{255,0,0}; }
 Framebuffer::color_t Framebuffer::color_t::green() { return color_t{0,255,0}; }
 Framebuffer::color_t Framebuffer::color_t::blue(){ return color_t{0,0,255}; }
 
+Framebuffer::color_t::operator uint32_t() const {
+	return (r << 16) | (g << 8) | b;
+}
+
+Framebuffer::color_t::color_t(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
+
+Framebuffer::color_t::color_t(uint32_t clr) {
+	clr &= 0xFFFFFF;
+	r = (clr & 0xFF0000) >> 16;
+	g = (clr & 0xFF00) >> 8;
+	b = (clr & 0xFF);
+}
+
 Framebuffer& Framebuffer::get() {
     return *gFramebuffer;
 }
