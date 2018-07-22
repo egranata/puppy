@@ -23,6 +23,8 @@ void cwrite(const char* s);
 extern "C"
 int getchar();
 
+void putchar(char s);
+
 extern "C"
 unsigned int getline(char* buffer, unsigned int len);
 

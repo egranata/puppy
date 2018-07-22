@@ -286,6 +286,7 @@ APPS_CONFIG = {
     "out/apps/init"  : {"initrd": True, "mainfs":False},
     "out/apps/mount" : {"initrd": True, "mainfs":False},
     "out/apps/ls"    : {"initrd": True, "mainfs":True},
+    "out/apps/klog"  : {"initrd": True, "mainfs":True},
 }
 
 APPS = []

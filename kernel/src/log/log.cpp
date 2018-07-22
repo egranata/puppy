@@ -17,10 +17,35 @@
 #include <kernel/drivers/serial/serial.h>
 #include <kernel/drivers/pit/pit.h>
 #include <kernel/sys/config.h>
+#include <kernel/libc/bytesizes.h>
+
+namespace {
+    LogBuffer* gInitialRingBuffer() {
+        // TODO: larger? smaller? configurable?
+        static constexpr size_t gBufferSize = 64_KB;
+
+        static char gMemory[gBufferSize] = {0};
+        static LogBuffer gLogBuffer(&gMemory[0], gBufferSize);
+        return &gLogBuffer;
+    }
+}
+
+LogBuffer* get_log_buffer(LogBuffer* buffer) {
+    static LogBuffer *gBuffer = nullptr;
+    if (buffer != nullptr) {
+        gBuffer = buffer;
+    }
+    if (gBuffer == nullptr) {
+        gBuffer = gInitialRingBuffer();
+    }
+    return gBuffer;
+}
 
 extern "C"
 void __really_log(const char* tag, const char* filename, unsigned long line, const char* fmt, va_list args) {
     if (gKernelConfiguration()->logging.value == kernel_config_t::config_logging::gNoLogging) return;
+
+    LogBuffer* the_log_buffer = get_log_buffer();
 
     static constexpr size_t gBufferSize = 1024;    
     static char gBuffer[gBufferSize];
@@ -30,6 +55,9 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     } else {
 		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
     }
-	  vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
+	vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
     Serial::get().write(gBuffer).write("\n");
+
+    the_log_buffer->write(gBuffer);
+    the_log_buffer->write("\n");
 }

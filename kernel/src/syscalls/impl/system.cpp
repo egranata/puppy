@@ -22,8 +22,6 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/log/log.h>
 
-LOG_TAG(USERSPACE, 0);
-
 HANDLER0(reboot) {
     reboot();
     return OK; // we should never return from here
@@ -49,14 +47,5 @@ syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
         dest->local.allocated = gCurrentProcess->getMemoryManager()->getTotalRegionsSize();
     }
     
-    return OK;
-}
-
-syscall_response_t klog_syscall_handler(const char* msg) {
-    static constexpr size_t gBufferSize = 300;
-    char buffer[gBufferSize] = {0};
-
-    sprint(&buffer[0], gBufferSize, "(pid=%u) %s", gCurrentProcess->pid, msg);
-    TAG_ERROR(USERSPACE, "%s", &buffer[0]);    
     return OK;
 }

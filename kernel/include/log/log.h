@@ -20,11 +20,16 @@
 #include <stdarg.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/enableif.h>
+#include <kernel/libc/ringbuffer.h>
 
 #ifdef LOG_NODEBUG
 #warning define a proper logging level instead of relying on LOG_NODEBUG
 #define LOG_LEVEL 1
 #endif
+
+using LogBuffer = RingBuffer<char>;
+
+LogBuffer* get_log_buffer(LogBuffer* buffer = nullptr);
 
 extern "C"
 void __really_log(const char* tag, const char* filename, unsigned long line, const char* fmt, va_list args);

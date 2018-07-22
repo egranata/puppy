@@ -36,7 +36,8 @@
     {"number":38,    "name":"fdel",             "argtypes":["const char*"]},
     {"number":39,    "name":"mkdir",            "argtypes":["const char*"]},
     {"number":40,    "name":"klog",             "argtypes":["const char*"]},
-    {"number":41,    "name":"proctable",        "argtypes":["process_info_t*", "size_t"]},
+    {"number":41,    "name":"klogread",         "argtypes":["char*", "size_t"]},
+    {"number":42,    "name":"proctable",        "argtypes":["process_info_t*", "size_t"]},
     {"number":44,    "name":"mutextrylock",     "argtypes":["uint32_t"]},
     {"number":45,    "name":"vmcheckreadable",  "argtypes":["uintptr_t", "size_t"]},
     {"number":46,    "name":"vmcheckwritable",  "argtypes":["uintptr_t", "size_t"]}
