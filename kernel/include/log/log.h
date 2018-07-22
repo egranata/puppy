@@ -31,6 +31,14 @@ using LogBuffer = RingBuffer<char>;
 
 LogBuffer* get_log_buffer(LogBuffer* buffer = nullptr);
 
+struct log_stats_t {
+    uint64_t num_log_entries;
+    uint64_t total_log_size;
+    size_t max_log_entry_size;
+};
+
+log_stats_t read_log_stats();
+
 extern "C"
 void __really_log(const char* tag, const char* filename, unsigned long line, const char* fmt, va_list args);
 

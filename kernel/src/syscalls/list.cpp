@@ -92,7 +92,7 @@ extern syscall_response_t mkdir_syscall_handler(const char* arg1);
 extern syscall_response_t mkdir_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t klog_syscall_handler(const char* arg1);
 extern syscall_response_t klog_syscall_helper(SyscallManager::Request& req);
-extern syscall_response_t klogread_syscall_handler(char* arg1,size_t arg2);
+extern syscall_response_t klogread_syscall_handler(char* arg1,size_t arg2,klog_stats_t* arg3);
 extern syscall_response_t klogread_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t proctable_syscall_handler(process_info_t* arg1,size_t arg2);
 extern syscall_response_t proctable_syscall_helper(SyscallManager::Request& req);
@@ -355,10 +355,11 @@ syscall_response_t klog_syscall_helper(SyscallManager::Request& req) {
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t klogread_syscall_helper(SyscallManager::Request& req) {
-	return klogread_syscall_handler((char*)req.arg1,(size_t)req.arg2);
+	return klogread_syscall_handler((char*)req.arg1,(size_t)req.arg2,(klog_stats_t*)req.arg3);
 }
 static_assert(sizeof(char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(size_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(klog_stats_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t proctable_syscall_helper(SyscallManager::Request& req) {
 	return proctable_syscall_handler((process_info_t*)req.arg1,(size_t)req.arg2);

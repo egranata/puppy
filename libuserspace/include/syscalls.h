@@ -93,7 +93,7 @@ syscall_response_t mkdir_syscall(const char* arg1);
 constexpr uint8_t mkdir_syscall_id = 0x27;
 syscall_response_t klog_syscall(const char* arg1);
 constexpr uint8_t klog_syscall_id = 0x28;
-syscall_response_t klogread_syscall(char* arg1,size_t arg2);
+syscall_response_t klogread_syscall(char* arg1,size_t arg2,klog_stats_t* arg3);
 constexpr uint8_t klogread_syscall_id = 0x29;
 syscall_response_t proctable_syscall(process_info_t* arg1,size_t arg2);
 constexpr uint8_t proctable_syscall_id = 0x2a;

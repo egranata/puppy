@@ -29,10 +29,21 @@ syscall_response_t klog_syscall_handler(const char* msg) {
     return OK;
 }
 
-syscall_response_t klogread_syscall_handler(char *dest, size_t size) {
+
+log_stats_t read_log_stats();
+
+syscall_response_t klogread_syscall_handler(char *dest, size_t size, klog_stats_t* stats) {
+    if (stats) {
+        log_stats_t ls = read_log_stats();
+        stats->numentries = ls.num_log_entries;
+        stats->totalwritten = ls.total_log_size;
+        stats->largestentry = ls.max_log_entry_size;
+    }
     LogBuffer *logbuf = get_log_buffer();
     if (logbuf) {
-        logbuf->read(dest, size);
+        if (dest && size) {
+            logbuf->read(dest, size);
+        }
         return OK;
     } else {
         return ERR(NO_SUCH_OBJECT);

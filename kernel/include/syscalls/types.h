@@ -119,4 +119,10 @@ struct process_info_t {
     uint64_t runtime;
 };
 
+struct klog_stats_t {
+    uint64_t numentries;
+    uint64_t totalwritten;
+    size_t   largestentry;
+};
+
 #endif
