@@ -63,7 +63,7 @@ RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
 
         if (0 == strncmp(gFADTSignature, mTable[i].header.sig, 4)) {
             mFADT = (acpi_fadt_table_t*)&mTable[i];
-            LOG_DEBUG("found FADT rev %u at %p - DSDT at %p", mFADT->hdr.rev, mFADT, mFADT->fadt->dsdtptr);
+            LOG_DEBUG("found FADT rev %u at %p - DSDT at %p, timer block at %x", mFADT->hdr.rev, mFADT, mFADT->fadt->dsdtptr, mFADT->fadt->pmtmrblk);
         }
 
         if (0 == strncmp(gMADTSignature, mTable[i].header.sig, 4)) {
