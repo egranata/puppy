@@ -43,6 +43,8 @@ class ProcessManager : NOCOPY {
         // this is tied to the size of the GDT table prepared in loader.s
         static constexpr size_t gNumProcesses = 2000;
 
+        static constexpr uint8_t gDefaultBasePriority = 10;
+
         static ProcessManager& get();
 
         // returns true if this is an EIP address that the scheduler
@@ -69,7 +71,7 @@ class ProcessManager : NOCOPY {
         process_t *spawn(const spawninfo_t&);
         process_t *kspawn(const spawninfo_t&);
 
-        process_t *setup(const char* path, const char* args, uint8_t prio = 2, uintptr_t argp = 0);
+        process_t *setup(const char* path, const char* args, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0);
         void tick();
 
         void ctxswitch(pid_t task);
