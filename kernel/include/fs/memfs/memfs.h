@@ -69,14 +69,11 @@ public:
 
     Directory* root();
 
+    Filesystem::File* open(const char* path, uint32_t mode) override;
     Filesystem::Directory* opendir(const char* path) override;
     void close(FilesystemObject*) override;
     bool del(const char* path) override;
     bool mkdir(const char* path) override;
-
-#if 0
-    Filesystem::File* open(const char* path, uint32_t mode) override;
-#endif
 
 private:
     Directory mRootDirectory;
