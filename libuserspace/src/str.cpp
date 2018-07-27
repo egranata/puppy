@@ -80,6 +80,10 @@ char& string::operator[](size_t idx) {
     return *(mBuffer + idx);
 }
 
+const char& string::operator[](size_t idx) const {
+    return *(mBuffer + idx);
+}
+
 string& string::operator=(const char* buffer) {
     free(mBuffer);
     reset(buffer);
@@ -98,7 +102,7 @@ string& string::operator=(string&& str) {
     return *this;
 }
 
-bool string::operator==(const string& str) {
+bool string::operator==(const string& str) const {
     if (mBuffer) {
         if (str.mBuffer) {
             return 0 == strcmp(mBuffer, str.mBuffer);

@@ -40,12 +40,13 @@ class string {
         const_iterator end() const;
 
         char& operator[](size_t idx);
+        const char& operator[](size_t idx) const;
 
         string& operator=(const char*);
         string& operator=(const string&);
         string& operator=(string&&);
 
-        bool operator==(const string&);
+        bool operator==(const string&) const;
 
         string operator+(const string&);
 

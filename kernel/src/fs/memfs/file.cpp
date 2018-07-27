@@ -14,29 +14,6 @@
  * limitations under the License.
  */
 
-// TODO: replace RamFS with MemFS
+#include <kernel/fs/memfs/memfs.h>
 
-#ifndef FS_RAMFS_RAMFS
-#define FS_RAMFS_RAMFS
-
-#include <kernel/fs/filesystem.h>
-#include <kernel/libc/deleteptr.h>
-
-class RAMObject;
-class RAMFile;
-class RAMDirectory;
-
-class RAMFS : public Filesystem {
-    public:
-        RAMFS();
-        void add(RAMObject*);
-
-        File* open(const char* path, uint32_t mode) override;
-        Directory* opendir(const char* path) override;
-        void close(FilesystemObject*) override;
-    private:
-        RAMObject* get(char* path);
-        delete_ptr<RAMDirectory> mRoot;
-};
-
-#endif
+MemFS::File::File(const char* name) : Entity(Filesystem::FilesystemObject::kind_t::file, name) {}
