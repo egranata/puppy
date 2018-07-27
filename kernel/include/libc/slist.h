@@ -80,6 +80,7 @@ public:
 	class iterator {
 	public:
 		const T& operator*() { return current->item; }
+		T& operator->() { return current->item; }
 		iterator& operator++() {
 			current = current->next;
 			return *this;
@@ -100,6 +101,7 @@ public:
 	class const_iterator {
 	public:
 		const T& operator*() { return current->item; }
+		T& operator->() { return current->item; }
 		const_iterator& operator++() {
 			current = current->next;
 			return *this;

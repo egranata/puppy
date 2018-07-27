@@ -21,7 +21,7 @@
 #include <kernel/libc/str.h>
 #include <kernel/libc/hash.h>
 
-class MemFS {
+class MemFS : public Filesystem {
 protected:
     class Entity {
         public:
@@ -34,6 +34,8 @@ protected:
             string mName;
     };
 public:
+    MemFS();
+
     class File : public Entity {
         public:
             File(const char* name);
@@ -44,7 +46,12 @@ public:
         public:
             Directory(const char* name);
             Entity* get(char* path);
-            void add(Entity* entity);
+            bool add(Entity* entity);
+            void lock();
+            void unlock();
+
+            slist<Entity*>::iterator begin();
+            slist<Entity*>::iterator end();
         private:
             struct string_hash_funcs {
                 static size_t index(const string& key) {
@@ -56,7 +63,23 @@ public:
                 }
             };
             hash<string, Entity*, string_hash_funcs, string_hash_funcs, 256> mContent;
+            slist<Entity*> mIterableContent;
+            uint32_t mLocked;
     };
+
+    Directory* root();
+
+    Filesystem::Directory* opendir(const char* path) override;
+    void close(FilesystemObject*) override;
+    bool del(const char* path) override;
+    bool mkdir(const char* path) override;
+
+#if 0
+    Filesystem::File* open(const char* path, uint32_t mode) override;
+#endif
+
+private:
+    Directory mRootDirectory;
 };
 
 #endif

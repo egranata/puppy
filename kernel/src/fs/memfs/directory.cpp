@@ -17,10 +17,13 @@
 #include <kernel/fs/memfs/memfs.h>
 #include <muzzle/string.h>
 
-MemFS::Directory::Directory(const char* name) : Entity(Filesystem::FilesystemObject::kind_t::directory, name) {}
+MemFS::Directory::Directory(const char* name) : Entity(Filesystem::FilesystemObject::kind_t::directory, name), mLocked(0) {}
 
-void MemFS::Directory::add(MemFS::Entity* entity) {
+bool MemFS::Directory::add(MemFS::Entity* entity) {
+    if (mLocked) return false;
     mContent.insert(string(entity->name()), entity);
+    mIterableContent.add(entity);
+    return true;
 }
 
 MemFS::Entity* MemFS::Directory::get(char* path) {
@@ -39,4 +42,20 @@ MemFS::Entity* MemFS::Directory::get(char* path) {
         if (*stringp == nullptr) break;
     }
     return result;
+}
+
+void MemFS::Directory::lock() {
+    ++mLocked;
+}
+
+void MemFS::Directory::unlock() {
+    if (mLocked != 0) --mLocked;
+}
+
+slist<MemFS::Entity*>::iterator MemFS::Directory::begin() {
+    return mIterableContent.begin();
+}
+
+slist<MemFS::Entity*>::iterator MemFS::Directory::end() {
+    return mIterableContent.end();
 }

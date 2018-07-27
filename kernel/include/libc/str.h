@@ -30,6 +30,8 @@ class string {
         const char* c_str() const;
         size_t size() const;
 
+        char* buf();
+
         typedef char* iterator;
         typedef const char* const_iterator;
 

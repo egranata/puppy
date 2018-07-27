@@ -61,6 +61,10 @@ size_t string::size() const {
     return mBuffer ? strlen(mBuffer) : 0;
 }
 
+char* string::buf() {
+    return mBuffer;
+}
+
 string::iterator string::begin() {
     if (mBuffer) {
         return (iterator)&mBuffer[0];
