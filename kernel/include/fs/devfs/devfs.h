@@ -17,11 +17,16 @@
 #ifndef FS_DEVFS_DEVFS
 #define FS_DEVFS_DEVFS
 
-#include <kernel/fs/ramfs/ramfs.h>
+#include <kernel/fs/memfs/memfs.h>
+#include <kernel/sys/nocopy.h>
 
-class DevFS : public RAMFS {
+class DevFS : NOCOPY {
     public:
-        DevFS();
+        static DevFS& get();
+        MemFS::Directory* getDeviceDirectory(const char* device);
+        MemFS* getMemFS();
+    private:
+        MemFS mFilesystem;
 };
 
 #endif

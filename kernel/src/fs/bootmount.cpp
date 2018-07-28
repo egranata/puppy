@@ -21,6 +21,7 @@
 #include <kernel/drivers/pci/diskfile.h>
 #include <kernel/drivers/pci/volumefile.h>
 #include <kernel/fs/devfs/devfs.h>
+#include <kernel/fs/memfs/memfs.h>
 #include <kernel/panic/panic.h>
 #include <kernel/sys/config.h>
 #include <muzzle/string.h>
@@ -32,10 +33,8 @@ namespace boot::mount {
 
         auto path2mainfs = gKernelConfiguration()->mainfs.value;
 
-        DevFS *devfs = (DevFS*)vfs.findfs("devices");
-        if (devfs == nullptr) {
-            PANIC("cannot found /devices");
-        }
+        DevFS& devfs(DevFS::get());
+        auto ide_disk_dir(devfs.getDeviceDirectory("idedisk"));
 
         auto ctrlid = 0u;
 
@@ -56,20 +55,20 @@ namespace boot::mount {
                             if (!addedDisk) {
                                 auto diskFile = new IDEDiskFile(scanner.controller(), vol->disk(), ctrlid);
                                 LOG_DEBUG("adding disk block file %s", diskFile->name());
-                                devfs->add(diskFile);
+                                ide_disk_dir->add(diskFile);
                                 addedDisk = true;
                             }
                             auto volumeFile = new IDEVolumeFile(vol, ctrlid);
                             LOG_DEBUG("adding partition block file %s", volumeFile->name());
-                            bootphase_t::printf("Found new volume /devices/%s\n", volumeFile->name());
-                            devfs->add(volumeFile);
+                            bootphase_t::printf("Found new volume /devices/%s/%s\n", ide_disk_dir->name(), volumeFile->name());
+                            ide_disk_dir->add(volumeFile);
 
                             if (path2mainfs && 0 == strcmp(volumeFile->name(), path2mainfs)) {
                                 auto ok = vfs.mount(vol, "mainfs").first;
                                 if (false == ok) {
                                     LOG_ERROR("could not mount %s as mainfs", volumeFile->name());
                                 } else {
-                                    bootphase_t::printf("mainfs mounted from /devices/%s as /mainfs\n", volumeFile->name());
+                                    bootphase_t::printf("mainfs mounted from /devices/%s/%s as /mainfs\n", ide_disk_dir->name(), volumeFile->name());
                                     LOG_DEBUG("%s was mounted as mainfs", volumeFile->name());
                                 }
                             }

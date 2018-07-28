@@ -29,6 +29,7 @@ protected:
             const char* name() const;
         protected:
             Entity(Filesystem::FilesystemObject::kind_t k, const char* name);
+            void name(const char* buf);
         private:
             Filesystem::FilesystemObject::kind_t mKind;
             string mName;
@@ -40,6 +41,7 @@ public:
         public:
             File(const char* name);
             virtual string content() = 0;
+            virtual uintptr_t ioctl(uintptr_t, uintptr_t);
     };
 
     class Directory : public Entity {

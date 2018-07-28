@@ -21,6 +21,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     class FileStream : public Filesystem::File {
         public:
             FileStream(MemFS::File* file) {
+                mFile = file;
                 mContent = file->content();
                 mIndex = 0;
             }
@@ -45,6 +46,10 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
                 return r;
             }
 
+            uintptr_t ioctl(uintptr_t a, uintptr_t b) {
+                return mFile->ioctl(a,b);
+            }
+
             size_t write(size_t, char*) {
                 return 0;
             }
@@ -54,6 +59,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
                 return true;
             }
         private:
+            MemFS::File* mFile;
             string mContent;
             size_t mIndex;
     };

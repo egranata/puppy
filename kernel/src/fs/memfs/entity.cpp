@@ -24,3 +24,7 @@ const char* MemFS::Entity::name() const {
 }
 
 MemFS::Entity::Entity(Filesystem::FilesystemObject::kind_t k, const char* name) : mKind(k), mName(name) {}
+
+void MemFS::Entity::name(const char* buf) {
+    mName.reset(buf);
+}

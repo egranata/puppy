@@ -17,3 +17,7 @@
 #include <kernel/fs/memfs/memfs.h>
 
 MemFS::File::File(const char* name) : Entity(Filesystem::FilesystemObject::kind_t::file, name) {}
+
+uintptr_t MemFS::File::ioctl(uintptr_t, uintptr_t) {
+    return 0;
+}

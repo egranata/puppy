@@ -13,5 +13,23 @@
 // limitations under the License.
 
 #include <kernel/fs/devfs/devfs.h>
+#include <kernel/libc/str.h>
 
-DevFS::DevFS() : RAMFS() {}
+DevFS& DevFS::get() {
+    static DevFS gDevFS;
+    return gDevFS;
+}
+
+MemFS::Directory* DevFS::getDeviceDirectory(const char* device) {
+    string _devices(device);
+    auto found = mFilesystem.root()->get(_devices.buf());
+    if (found != nullptr && found->kind() != Filesystem::FilesystemObject::kind_t::directory) {
+        return (MemFS::Directory*)found;
+    }
+    auto newdir = new MemFS::Directory(device);
+    return mFilesystem.root()->add(newdir), newdir;
+}
+
+MemFS* DevFS::getMemFS() {
+    return &mFilesystem;
+}

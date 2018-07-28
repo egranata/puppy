@@ -29,7 +29,7 @@ namespace boot::vfs {
         auto& vfs(VFS::get());
 
         vfs.mount("test", new TestFS());
-        vfs.mount("devices", new DevFS());
+        vfs.mount("devices", DevFS::get().getMemFS());
 
         bool anyfs = false;
 

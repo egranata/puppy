@@ -18,13 +18,14 @@
 #define DRIVERS_PCI_VOLUMEFILE
 
 #include <kernel/drivers/pci/ide.h>
-#include <kernel/fs/ramfs/fsobject.h>
+#include <kernel/fs/memfs/memfs.h>
 #include <kernel/fs/vol/volume.h>
 
-class IDEVolumeFile : public RAMFile {
+class IDEVolumeFile : public MemFS::File {
     public:
         IDEVolumeFile(Volume* vol, uint32_t ctrlid);
-        RAMFileData* buffer() override;
+        string content() override;
+        uintptr_t ioctl(uintptr_t, uintptr_t) override;
     private:
         Volume* mVolume;
 

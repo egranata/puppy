@@ -18,17 +18,17 @@
 #define DRIVERS_PCI_DISKFILE
 
 #include <kernel/drivers/pci/ide.h>
-#include <kernel/fs/ramfs/fsobject.h>
+#include <kernel/fs/memfs/memfs.h>
 
-class IDEDiskFile : public RAMFile {
+class IDEDiskFile : public MemFS::File {
     public:
         IDEDiskFile(IDEController*, const IDEController::disk_t&, uint32_t ctrlid);
-        RAMFileData* buffer() override;
+        string content() override;
+        uintptr_t ioctl(uintptr_t, uintptr_t) override;
+
     private:
         IDEController *mController;
         IDEController::disk_t mDisk;
-
-        friend class IDEDiskFileData;
 };
 
 #endif

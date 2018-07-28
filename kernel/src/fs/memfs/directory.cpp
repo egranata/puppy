@@ -16,6 +16,7 @@
 
 #include <kernel/fs/memfs/memfs.h>
 #include <muzzle/string.h>
+#include <kernel/log/log.h>
 
 MemFS::Directory::Directory(const char* name) : Entity(Filesystem::FilesystemObject::kind_t::directory, name), mLocked(0) {}
 
@@ -27,11 +28,12 @@ bool MemFS::Directory::add(MemFS::Entity* entity) {
 }
 
 MemFS::Entity* MemFS::Directory::get(char* path) {
+    Entity* result = this;
     string _paths(path);
     char* _path = (char*)_paths.c_str();
     if (_path[0] == '/') ++_path;
+    if (_path[0] == 0) return result;
     char** stringp = &_path;
-    Entity* result = this;
     while(true) {
         auto tok = strsep(stringp, "/");
         if (result->kind() != Filesystem::FilesystemObject::kind_t::directory) return nullptr;
