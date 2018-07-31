@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef DRIVERS_PCI_DISKFILE
-#define DRIVERS_PCI_DISKFILE
-
-#include <kernel/drivers/pci/ide.h>
 #include <kernel/fs/memfs/memfs.h>
-#include <kernel/libc/deleteptr.h>
 
-class IDEDiskFile : public MemFS::File {
-    public:
-        IDEDiskFile(IDEController*, const IDEController::disk_t&, uint32_t ctrlid);
-        delete_ptr<MemFS::FileBuffer> content() override;
-        uintptr_t ioctl(uintptr_t, uintptr_t) override;
+MemFS::StringBuffer::StringBuffer(string buf) : mData(buf) {}
 
-    private:
-        IDEController *mController;
-        IDEController::disk_t mDisk;
-};
+size_t MemFS::StringBuffer::len() {
+    return mData.size();
+}
 
-#endif
+bool MemFS::StringBuffer::at(size_t idx, uint8_t *dest) {
+    if (idx >= mData.size()) return false;
+    *dest = mData[idx];
+    return true;
+}

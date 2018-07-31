@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef DRIVERS_PCI_DISKFILE
-#define DRIVERS_PCI_DISKFILE
+#ifndef LIBC_MOVE
+#define LIBC_MOVE
 
-#include <kernel/drivers/pci/ide.h>
-#include <kernel/fs/memfs/memfs.h>
-#include <kernel/libc/deleteptr.h>
+#include <kernel/libc/forward.h>
 
-class IDEDiskFile : public MemFS::File {
-    public:
-        IDEDiskFile(IDEController*, const IDEController::disk_t&, uint32_t ctrlid);
-        delete_ptr<MemFS::FileBuffer> content() override;
-        uintptr_t ioctl(uintptr_t, uintptr_t) override;
-
-    private:
-        IDEController *mController;
-        IDEController::disk_t mDisk;
-};
+template<typename T>
+typename remove_ref<T>::type&& move(T&& val) {
+    return static_cast<typename remove_ref<T>::type&&>(val);
+}
 
 #endif

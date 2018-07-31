@@ -26,8 +26,50 @@ IDEVolumeFile::IDEVolumeFile(Volume* vol, uint32_t ctrlid) : MemFS::File(""), mV
     name(&buf[0]);
 }
 
-string IDEVolumeFile::content() {
-    return string("");
+delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
+    class Buffer : public MemFS::FileBuffer {
+        public:
+            Buffer(Volume* vol) : mVolume(vol) {}
+            ~Buffer() {
+                free(mBuffer);
+            }
+            size_t len() override {
+                return 512 * mVolume->numsectors();
+            }
+            bool at(size_t idx, uint8_t *val) override {
+                size_t sec = idx / 512;
+                size_t pos = idx % 512;
+
+                if (sec >= mVolume->numsectors()) return false;
+                sec += mVolume->partition().sector;
+
+                if (mBuffer) {
+                    if (mBufferSector == sec) {
+                        *val = mBuffer[pos];
+                        return true;
+                    } else {
+                        free(mBuffer);
+                        mBuffer = nullptr;
+                    }
+                }
+
+                mBuffer = (uint8_t*)calloc(512, 0);
+                if (mVolume->controller()->read(mVolume->disk(), sec, 1, &mBuffer[0])) {
+                    *val = mBuffer[pos];
+                    mBufferSector = sec;
+                    return true;
+                } else {
+                    free(mBuffer);
+                    mBuffer = nullptr;
+                    return false;
+                }
+            }
+        private:
+            Volume *mVolume;
+            uint8_t *mBuffer;
+            size_t mBufferSector;
+    };
+    return delete_ptr<MemFS::FileBuffer>(new Buffer(mVolume));
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)

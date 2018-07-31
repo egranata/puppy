@@ -22,12 +22,12 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
         public:
             FileStream(MemFS::File* file) {
                 mFile = file;
-                mContent = file->content();
+                mContent.reset(file->content().reset());
                 mIndex = 0;
             }
 
             bool seek(size_t index) {
-                if (index < mContent.size()) {
+                if (index < mContent->len()) {
                     mIndex = index;
                     return true;
                 }
@@ -37,8 +37,9 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             size_t read(size_t n, char* dest) {
                 size_t r = 0;
                 while(true) {
-                    if (mIndex >= mContent.size()) break;
-                    dest[r] = mContent[mIndex + r];
+                    uint8_t val = 0;
+                    if (mContent->at(mIndex+r, &val) == false) break;
+                    dest[r] = val;
                     if (--n == 0) break;
                     if (++r == n) break;
                     ++mIndex;
@@ -55,12 +56,12 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             }
 
             bool stat(stat_t& stat) {
-                stat.size = mContent.size();
+                stat.size = mContent->len();
                 return true;
             }
         private:
             MemFS::File* mFile;
-            string mContent;
+            delete_ptr<MemFS::FileBuffer> mContent;
             size_t mIndex;
     };
     if (mode != FILE_OPEN_READ) return nullptr;

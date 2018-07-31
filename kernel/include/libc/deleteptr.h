@@ -25,8 +25,14 @@ class delete_ptr : NOCOPY {
     public:
         typedef void(*deletef)(T* ptr);
 
-    delete_ptr(T* stuff) { reset(stuff); }
-    delete_ptr(T stuff, deletef del) { reset(stuff, del); }
+    delete_ptr(T* stuff = nullptr) { reset(stuff); }
+    delete_ptr(T* stuff, deletef del) { reset(stuff, del); }
+
+    delete_ptr(delete_ptr<T>&& rhs) {
+        mData = rhs.mData;
+        mDeleter = rhs.mDeleter;
+        rhs.reset(nullptr, nullptr);
+    }
 
     T* operator->() { return mData; }
 

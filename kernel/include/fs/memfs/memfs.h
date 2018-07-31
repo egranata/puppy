@@ -20,6 +20,7 @@
 #include <kernel/fs/filesystem.h>
 #include <kernel/libc/str.h>
 #include <kernel/libc/hash.h>
+#include <kernel/libc/deleteptr.h>
 
 class MemFS : public Filesystem {
 protected:
@@ -37,10 +38,26 @@ protected:
 public:
     MemFS();
 
+    class FileBuffer {
+        public:
+            virtual ~FileBuffer() = default;
+            virtual size_t len() = 0;
+            virtual bool at(size_t idx, uint8_t *dest) = 0;
+    };
+
+    class StringBuffer : public FileBuffer {
+        public:
+            StringBuffer(string buf);
+            size_t len() override;
+            bool at(size_t idx, uint8_t *dest) override;
+        private:
+            string mData;
+    };
+
     class File : public Entity {
         public:
             File(const char* name);
-            virtual string content() = 0;
+            virtual delete_ptr<FileBuffer> content() = 0;
             virtual uintptr_t ioctl(uintptr_t, uintptr_t);
     };
 

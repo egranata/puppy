@@ -17,6 +17,8 @@
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/libc/move.h>
+#include <muzzle/stdlib.h>
 
 IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d, uint32_t ctrlid) : MemFS::File(""), mController(ctrl), mDisk(d) {
     char buf[64] = {0};
@@ -24,8 +26,52 @@ IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d, ui
     name(((const char*)&buf[0]));
 }
 
-string IDEDiskFile::content() {
-    return string();
+delete_ptr<MemFS::FileBuffer> IDEDiskFile::content() {
+    class Buffer : public MemFS::FileBuffer {
+        public:
+            Buffer(IDEController* ide, IDEController::disk_t dsk) : mController(ide), mDisk(dsk) {}
+            ~Buffer() {
+                free(mBuffer);
+            }
+            size_t len() override {
+                return mDisk.present ? 512 *  mDisk.sectors : 0;
+            }
+            bool at(size_t idx, uint8_t *val) override {
+                if (!mDisk.present) return false;
+
+                size_t sec = idx / 512;
+                size_t pos = idx % 512;
+
+                if (sec >= mDisk.sectors) return false;
+
+                if (mBuffer) {
+                    if (mBufferSector == sec) {
+                        *val = mBuffer[pos];
+                        return true;
+                    } else {
+                        free(mBuffer);
+                        mBuffer = nullptr;
+                    }
+                }
+
+                mBuffer = (uint8_t*)calloc(512, 0);
+                if (mController->read(mDisk, sec, 1, &mBuffer[0])) {
+                    *val = mBuffer[pos];
+                    mBufferSector = sec;
+                    return true;
+                } else {
+                    free(mBuffer);
+                    mBuffer = nullptr;
+                    return false;
+                }
+            }
+        private:
+            IDEController *mController;
+            IDEController::disk_t mDisk;
+            uint8_t *mBuffer;
+            size_t mBufferSector;
+    };
+    return delete_ptr<MemFS::FileBuffer>(new Buffer(mController, mDisk));
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
