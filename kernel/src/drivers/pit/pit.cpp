@@ -19,11 +19,27 @@
 #include <kernel/process/manager.h>
 #include <kernel/mm/virt.h>
 #include <kernel/log/log.h>
+#include <kernel/fs/memfs/memfs.h>
+#include <kernel/libc/sprint.h>
+#include <kernel/fs/devfs/devfs.h>
+
+class PIT_UptimeFile : public MemFS::File {
+    public:
+        PIT_UptimeFile() : MemFS::File("uptime") {}
+        delete_ptr<MemFS::FileBuffer> content() override {
+            string buf('\0', 24);
+            sprint(&buf[0], 24, "%llu", PIT::getUptime());
+            return new MemFS::StringBuffer(buf);
+        }
+};
 
 namespace boot::pit {
         uint32_t init() {
             PIT::get();
             PIC::get().accept(PIT::gIRQNumber);
+
+            auto timer_dir = DevFS::get().getDeviceDirectory("timer");
+            timer_dir->add(new PIT_UptimeFile());
 
             return 0;
         }
