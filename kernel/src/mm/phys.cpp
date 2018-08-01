@@ -26,7 +26,7 @@ PhysicalPageManager& PhysicalPageManager::get() {
 	return gAllocator;
 }
 
-PhysicalPageManager::PhysicalPageManager() : mLastChecked(0), mTotalPages(0), mFreePages(0) {
+PhysicalPageManager::PhysicalPageManager() : mLastChecked(0), mTotalPages(0), mLowestPage(0), mHighestPage(0), mFreePages(0) {
 	bzero((uint8_t*)&mPages[0],sizeof(mPages));
 }
 
@@ -58,10 +58,15 @@ static size_t index(uintptr_t addr) {
 }
 
 void PhysicalPageManager::addpage(uintptr_t base) {
-	mPages[index(base)].usable = true;
+	auto i = index(base);
+	if (i < mLowestPage) mLowestPage = i;
+	if (i > mHighestPage) mHighestPage = i;
+	mPages[i].usable = true;
 	++mTotalPages;
 	++mFreePages;
+	LOG_DEBUG("added a new physical page, base = %p, index = %u (lowest page = %u, highest page = %u)", base, i, mLowestPage, mHighestPage);
 }
+
 void PhysicalPageManager::addpages(uintptr_t base, size_t len) {
 	auto offset = offalignment(base);
 	if (offset > 0) {
@@ -141,6 +146,34 @@ void PhysicalPageManager::dealloc(uintptr_t base) {
 	auto rc = mPages[idx].decref();
 	if (0 == rc) ++mFreePages;
 	LOG_DEBUG("deallocated page at %p (idx = %u) - rc = %u", base, idx, rc);
+}
+
+bool PhysicalPageManager::allocContiguousPages(size_t num, uintptr_t *base) {
+	auto page_idx = mLowestPage;
+	while(true) {
+		bool all_free = true;
+		for (auto u = 0u; u < num; ++u) {
+			const bool usable = mPages[page_idx + u].usable;
+			const bool free = mPages[page_idx + u].free();
+			if (!usable || !free) {
+				// start again right after the unavailable page
+				page_idx = page_idx + u + 1;
+				all_free = false;
+				break;
+			}
+		}
+		if (all_free) {
+			for (auto u = 0u; u < num; ++u) {
+				alloc( (page_idx + u) * gPageSize );
+			}
+			*base = page_idx * gPageSize;
+			return true;
+		}
+		if (page_idx > mHighestPage) {
+			*base = 0;
+			return false;
+		}
+	}
 }
 
 size_t PhysicalPageManager::gettotalpages() const {

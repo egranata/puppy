@@ -38,6 +38,11 @@ public:
 	uintptr_t alloc(uintptr_t base);
 	void dealloc(uintptr_t base);
 
+	// allocate "num" contiguous pages of physical memory; return true if found and
+	// *base == initial allocated byte (so it's [base, base+num*gPageSize-1])
+	// if false, nothing was allocated
+	bool allocContiguousPages(size_t num, uintptr_t *base);
+
 	size_t gettotalpages() const;
 	size_t getfreepages() const;
 	
@@ -58,6 +63,8 @@ private:
 	phys_page_t mPages[gNumPages];
 	size_t mLastChecked;
 	size_t mTotalPages;
+	size_t mLowestPage; // lowest page index that exists
+	size_t mHighestPage; // highest page index that exists
 	atomic<size_t> mFreePages;
 };
 
