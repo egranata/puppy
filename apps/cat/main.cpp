@@ -16,13 +16,14 @@
 #include <libuserspace/file.h>
 #include <libuserspace/exit.h>
 #include <libuserspace/memory.h>
+#include <muzzle/stdlib.h>
 
 const unsigned char* read(uint32_t fd, uint32_t& size) {
     size = 0;
     if (!fsize(fd, size)) {
         return nullptr;
     }
-    auto buffer = (unsigned char*)malloc(size);
+    auto buffer = (unsigned char*)calloc(size, 1);
     if (read(fd, size, buffer)) return buffer;
     return nullptr;
 }
