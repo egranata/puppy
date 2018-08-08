@@ -30,10 +30,34 @@ print("Building OS image from %s" % MYPATH)
 
 BUILD_START = time.time()
 
-BASIC_CFLAGS = " -O2 -fno-omit-frame-pointer -march=i686 -masm=intel -m32 -nostdlib -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Wno-main -Wno-missing-field-initializers -Werror -Wno-error=format -funsigned-char -fno-exceptions -fdiagnostics-color=always -c "
-BASIC_CPPFLAGS = " -std=c++14 -fno-exceptions -fno-rtti "
-BASIC_ASFLAGS = "-f elf"
-BASIC_LDFLAGS = ""
+BASIC_CFLAGS = [
+    '-c',
+    '-fdiagnostics-color=always',
+    '-ffreestanding',
+    '-fno-builtin',
+    '-fno-exceptions',
+    '-fno-omit-frame-pointer',
+    '-fno-stack-protector',
+    '-funsigned-char',
+    '-m32',
+    '-march=i686',
+    '-masm=intel',
+    '-nodefaultlibs',
+    '-nostartfiles',
+    '-nostdlib',
+    '-O2',
+    '-Wall',
+    '-Werror',
+    '-Wextra',
+    '-Wno-error=format',
+    '-Wno-main',
+    '-Wno-missing-field-initializers']
+BASIC_CPPFLAGS = [
+    '-fno-exceptions',
+    '-fno-rtti',
+    '-std=c++14']
+BASIC_ASFLAGS = ["-f elf"]
+BASIC_LDFLAGS = ["-ffreestanding", "-nostdlib"]
 
 def findSubdirectories(dir, self=True):
     if self:
@@ -161,14 +185,14 @@ class _BuildCpp(object):
 THE_POOL = Pool(5)
 
 class Project(object):
-    def __init__(self, name, srcdir, cflags, cppflags, asmflags, ldflags, ipaths=None, assembler="nasm", linkerdeps=None, outwhere="out", announce=True):
+    def __init__(self, name, srcdir, cflags=None, cppflags=None, asmflags=None, ldflags=None, ipaths=None, assembler="nasm", linkerdeps=None, outwhere="out", announce=True):
         self.name = name
         self.srcdir = srcdir
-        self.cflags = cflags
-        self.cppflags = cppflags
-        self.asmflags = asmflags
+        self.cflags = ' '.join(cflags if cflags else BASIC_CFLAGS)
+        self.cppflags = ' '.join(cppflags if cppflags else (BASIC_CFLAGS + BASIC_CPPFLAGS))
+        self.asmflags = ' '.join(asmflags if asmflags else BASIC_ASFLAGS)
+        self.ldflags = ' '.join(ldflags if ldflags else BASIC_LDFLAGS)
         self.assembler = assembler
-        self.ldflags = ldflags
         self.ipaths = ipaths if ipaths else ["include"]
         self.linkerdeps = linkerdeps if linkerdeps else []
         self.outwhere = outwhere
@@ -227,48 +251,32 @@ class Project(object):
 
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
-    cflags=BASIC_CFLAGS, 
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
-    asmflags=BASIC_ASFLAGS,
-    ldflags="-ffreestanding -nostdlib",
     assembler="nasm")
 FatFS.link = FatFS.linkAr
 
 Muzzle = Project(name="Muzzle",
     srcdir="third_party/muzzle/src",
-    cflags=BASIC_CFLAGS,
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
-    asmflags="-nostartfiles -nodefaultlibs -Wall -Wextra -fdiagnostics-color=always -nostdlib -c",
-    ldflags="-ffreestanding -nostdlib",
+    asmflags=["-nostartfiles", "-nodefaultlibs", "-Wall", "-Wextra", "-fdiagnostics-color=always", "-nostdlib", "-c"],
     assembler="i686-elf-gcc")
 Muzzle.link = Muzzle.linkAr
 
 Kernel = Project(name="Kernel",
     srcdir="kernel/src",
-    cflags=BASIC_CFLAGS + " -mgeneral-regs-only",
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + " -mgeneral-regs-only",
-    asmflags="-f elf",
-    ldflags="-T build/linker.ld -ffreestanding -nostdlib",
+    cflags=BASIC_CFLAGS + ["-mgeneral-regs-only"],
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + ["-mgeneral-regs-only"],
+    ldflags=BASIC_LDFLAGS + ["-T build/kernel.ld"],
     assembler="nasm",
     linkerdeps=["out/libmuzzle.a", "out/libfatfs.a"])
 Kernel.link = Kernel.linkGcc
 
 Userspace = Project(name="Userspace",
     srcdir="libuserspace/src",
-    cflags=BASIC_CFLAGS,
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
-    asmflags="-f elf",
-    ldflags="-ffreestanding -nostdlib",
     assembler="nasm",
     linkerdeps=["out/libmuzzle.a"])
 Userspace.link = Userspace.linkAr
 
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
-    cflags=BASIC_CFLAGS,
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
-    asmflags="-f elf",
-    ldflags="-ffreestanding -nostdlib",
     assembler="nasm",
     linkerdeps=["out/libuserspace.a"])
 Checkup.link = Checkup.linkAr
@@ -304,10 +312,7 @@ APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
     app_p = Project(name = os.path.basename(app),
                     srcdir = app,
-                    cflags = BASIC_CFLAGS + " -Iinclude",
-                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + " -Iinclude",
-                    asmflags = "-f elf",
-                    ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry",
+                    ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"],
                     assembler="nasm",
                     linkerdeps = ["out/libuserspace.a", "out/libmuzzle.a"],
                     outwhere="out/apps",
@@ -329,10 +334,9 @@ for test in TEST_DIRS:
     test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
     test_p = Project(name = os.path.basename(test),
                     srcdir = test,
-                    cflags = BASIC_CFLAGS + test_name_define + " -Iinclude",
-                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + test_name_define + " -Iinclude",
-                    asmflags = "-f elf",
-                    ldflags = "-T build/app.ld -ffreestanding -nostdlib -e__app_entry -Wl,--as-needed",
+                    cflags = BASIC_CFLAGS + [test_name_define],
+                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + [test_name_define],
+                    ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"],
                     assembler="nasm",
                     linkerdeps = ["out/libcheckup.a", "out/libuserspace.a", "out/libmuzzle.a"],
                     outwhere="out/tests",
