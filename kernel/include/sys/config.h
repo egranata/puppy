@@ -36,7 +36,7 @@ struct kernel_config_t : NOCOPY {
     } logging;
 
     /**
-     * Name of the /devices entry to be mounted under /mainfs
+     * Name of the /devices entry to be mounted under /system
      * e.g. mainfs=ide0disk0part2048
      */
     struct config_mainfs {

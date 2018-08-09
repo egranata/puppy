@@ -346,7 +346,7 @@ for test in TEST_DIRS:
     test_o = test_p.build()
     TESTS.append(test_o)
     TEST_REFS.append(test_o)
-    test_ref = "/mainfs/%s" % (test_o.replace("out/", "")) # this is a bit hacky..
+    test_ref = "/system/%s" % (test_o.replace("out/", "")) # this is a bit hacky..
     if test_name not in KNOWN_FAIL_TESTS:
         TEST_PLAN[test_name] = {
             "path" : test_ref,

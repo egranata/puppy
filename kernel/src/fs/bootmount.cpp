@@ -64,11 +64,11 @@ namespace boot::mount {
                             ide_disk_dir->add(volumeFile);
 
                             if (path2mainfs && 0 == strcmp(volumeFile->name(), path2mainfs)) {
-                                auto ok = vfs.mount(vol, "mainfs").first;
+                                auto ok = vfs.mount(vol, "system").first;
                                 if (false == ok) {
                                     LOG_ERROR("could not mount %s as mainfs", volumeFile->name());
                                 } else {
-                                    bootphase_t::printf("mainfs mounted from /devices/%s/%s as /mainfs\n", ide_disk_dir->name(), volumeFile->name());
+                                    bootphase_t::printf("mainfs mounted from /devices/%s/%s as /system\n", ide_disk_dir->name(), volumeFile->name());
                                     LOG_DEBUG("%s was mounted as mainfs", volumeFile->name());
                                 }
                             }

@@ -22,7 +22,7 @@
 #include <libuserspace/printf.h>
 #include <libuserspace/exit.h>
 
-#define TEST_FILE "/mainfs/test.txt"
+#define TEST_FILE "/system/test.txt"
 
 #define VERY_LONG_STRING \
 "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" \
