@@ -21,8 +21,9 @@
 #include <kernel/drivers/pci/ide.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/vol/basevolume.h>
 
-class Volume : NOCOPY {
+class Volume : BaseVolume {
     public:
         Volume(IDEController*, IDEController::disk_t, diskpart_t);
 

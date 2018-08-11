@@ -23,6 +23,7 @@
 #include <kernel/libc/slist.h>
 #include <kernel/fs/vol/volume.h>
 #include <kernel/libc/pair.h>
+#include <kernel/fs/fsidents.h>
 
 class VFS : NOCOPY {
     public:

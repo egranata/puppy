@@ -52,18 +52,4 @@ struct x86_mbr_t {
 } __attribute__((packed));
 static_assert(sizeof(x86_mbr_t) == 512);
 
-class Volume;
-
-struct fs_ident_t {
-    typedef pair<bool, const char*> mount_result_t;
-    typedef mount_result_t(*trymount_t)(Volume*, const char*);
-    uint8_t sysid;
-    const char* type;
-    trymount_t fmount;
-};
-
-// this is not a complete exhaustive list, just a subset that we may care to
-// recognize - or at least pretty print
-extern fs_ident_t gKnownFilesystemTypes[];
-
 #endif

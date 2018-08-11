@@ -15,6 +15,7 @@
 #include <kernel/fs/vol/diskscanner.h>
 #include <kernel/log/log.h>
 #include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/fsidents.h>
 
 DiskScanner::DiskScanner(IDEController* ide) : mDiskController(ide) {}
 

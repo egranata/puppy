@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/fsidents.h>
 #include <kernel/fs/fatfs/trymount.h>
 
 fs_ident_t gKnownFilesystemTypes[] = {
