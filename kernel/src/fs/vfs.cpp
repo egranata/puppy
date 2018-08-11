@@ -18,7 +18,6 @@
 #include <kernel/libc/memory.h>
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/boot/phase.h>
-#include <kernel/fs/test/testfs.h>
 #include <kernel/fs/initrd/fs.h>
 #include <kernel/boot/bootinfo.h>
 #include <kernel/fs/devfs/devfs.h>
@@ -28,7 +27,6 @@ namespace boot::vfs {
     	auto bootmodules(bootmodinfo());        
         auto& vfs(VFS::get());
 
-        vfs.mount("test", new TestFS());
         vfs.mount("devices", DevFS::get().getMemFS());
 
         bool anyfs = false;
