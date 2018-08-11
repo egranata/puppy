@@ -21,6 +21,10 @@ IDEController* Volume::controller() const {
     return mController;
 }
 
+uint8_t Volume::sysid() {
+    return partition().sysid;
+}
+
 bool Volume::read(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;

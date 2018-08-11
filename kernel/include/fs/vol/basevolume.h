@@ -28,6 +28,8 @@ class BaseVolume : NOCOPY {
         virtual bool read(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
         virtual bool write(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
 
+        virtual uint8_t sysid() = 0;
+
         virtual size_t numsectors() const = 0;
         virtual size_t sectorsize() const { return 512; }
 };
