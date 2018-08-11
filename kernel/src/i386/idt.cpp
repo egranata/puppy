@@ -16,9 +16,12 @@
 #include <kernel/i386/cpustate.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/libc/string.h>
-
-#define LOG_LEVEL 2
 #include <kernel/log/log.h>
+
+LOG_TAG(INIRQ, 2);
+LOG_TAG(IRQSETUP, 1);
+
+Interrupts::handler_t::handler_t() : func(nullptr), payload(nullptr), count(0) {}
 
 Interrupts::handler_t::operator bool() {
     return func != nullptr;
@@ -26,11 +29,14 @@ Interrupts::handler_t::operator bool() {
 
 extern "C"
 void interrupt_handler(GPR gpr, InterruptStack stack) {
-    LOG_DEBUG("received IRQ %u", stack.irqnumber);
-	if (auto& handler = Interrupts::get().mHandlers[stack.irqnumber]) {
+    TAG_DEBUG(INIRQ, "received IRQ %u", stack.irqnumber);
+    auto& handler = Interrupts::get().mHandlers[stack.irqnumber];
+    handler.count += 1;
+    TAG_DEBUG(INIRQ, "IRQ %u occurred %llu times", stack.irqnumber, handler.count);
+	if (handler) {
 		handler.func(gpr, stack, handler.payload);
 	} else {
-        LOG_INFO("IRQ %u received - no handler", stack.irqnumber);
+        TAG_DEBUG(INIRQ, "IRQ %u received - no handler", stack.irqnumber);
     }
 }
 
@@ -38,6 +44,10 @@ Interrupts& Interrupts::get() {
 	static Interrupts gInterrupts;
 	
 	return gInterrupts;
+}
+
+uint64_t Interrupts::getNumOccurrences(uint8_t irq) {
+    return mHandlers[irq].count;
 }
 
 static struct {
@@ -62,7 +72,7 @@ void Interrupts::disable() {
 }
 
 void Interrupts::sethandler(uint8_t irq, handler_t::irq_handler_f f, void* payload) {
-    LOG_INFO("function at %p set as handler for irq %d", handler, irq);
+    TAG_INFO(IRQSETUP, "function at %p set as handler for irq %d", handler, irq);
 	mHandlers[irq].func = f;
     mHandlers[irq].payload = payload;
 }

@@ -80,6 +80,10 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace irqcount {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -217,6 +221,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::syscalls::init,
         onSuccess : nullptr,
         onFailure : boot::syscalls::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Forward interrupt counters to userspace",
+        visible : false,
+        operation : boot::irqcount::init,
+        onSuccess : nullptr,
+        onFailure : boot::irqcount::fail
     });
 
     registerBootPhase(bootphase_t{

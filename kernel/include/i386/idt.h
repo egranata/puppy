@@ -29,7 +29,9 @@ public:
 		using irq_handler_f = void(*)(GPR&, InterruptStack&, void*);
 		irq_handler_f func;
 		void* payload;
+		uint64_t count;
 		explicit operator bool();
+		handler_t();
 	};
 	
 	static Interrupts& get();
@@ -40,6 +42,8 @@ public:
 	void disable();
 	
 	void sethandler(uint8_t irq, handler_t::irq_handler_f = nullptr, void* = nullptr);
+
+	uint64_t getNumOccurrences(uint8_t irq);
 	
 private:	
 	Interrupts();
