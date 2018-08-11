@@ -45,6 +45,12 @@ public:
             virtual bool at(size_t idx, uint8_t *dest) = 0;
     };
 
+    class EmptyBuffer : public FileBuffer {
+        public:
+            size_t len() override { return 0; }
+            bool at (size_t, uint8_t*) override { return false; }
+    };
+
     class StringBuffer : public FileBuffer {
         public:
             StringBuffer(string buf);
