@@ -18,7 +18,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/log/log.h>
 
-LOG_TAG(MEMFS, 0);
+LOG_TAG(MEMFS, 1);
 
 Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     class FileStream : public Filesystem::File {
@@ -38,15 +38,16 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             }
 
             size_t read(size_t n, char* dest) {
+                TAG_DEBUG(MEMFS, "asked to read %u bytes into %p starting index = %u", n, dest, mIndex);
                 size_t r = 0;
                 while(true) {
                     uint8_t val = 0;
                     if (mContent->at(mIndex, &val) == false) break;
                     dest[r] = val;
-                    if (--n == 0) break;
-                    if (++r == n) break;
                     ++mIndex;
+                    if (++r == n) break;
                 }
+                TAG_DEBUG(MEMFS, "finished reading %u bytes final index = %u", r, mIndex);
                 return r;
             }
 
