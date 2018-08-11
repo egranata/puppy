@@ -17,27 +17,41 @@
 #include <libuserspace/exit.h>
 #include <libuserspace/memory.h>
 #include <muzzle/stdlib.h>
-#include <libuserspace/stdio.h>
 
-void printchar(char c) {
-    if (c < '\n') {
-        printf(" 0x%x ",c);
-    } else {
-        putchar(c);
+const unsigned char* read(uint32_t fd, uint32_t& size) {
+    size = 0;
+    if (!fsize(fd, size)) {
+        return nullptr;
     }
+    auto buffer = (unsigned char*)calloc(size, 1);
+    if (read(fd, size, buffer)) return buffer;
+    return nullptr;
 }
 
-void dump(uint32_t fd) {
-    uint32_t size = 0;
-    if (!fsize(fd, size)) {
-        printf("file size is unknown\n");
-        return;
-    }
-
-    for(; size != 0; --size) {
-        unsigned char c = 0;
-        read(fd, 1, &c);
-        printchar(c);
+void dump(const unsigned char* buffer, uint32_t size) {
+    for (auto i = 0u; true; i+= 16) {
+        if (i >= size) break;
+        printf("%04x ", i);
+        for (auto j = 0; j < 16; ++j) {
+            printf("%02x ", buffer[i + j]);
+        }
+        printf("    ");
+        for (auto j = 0; j < 16; ++j) {
+            if (i + j >= size) break;
+            auto c = buffer[i + j];
+            switch(c) {
+                case '\n':
+                    printf("\\n");
+                    break;
+                case 0:
+                    printf("\\0");
+                    break;
+                default:
+                    printf("%c", buffer[i + j]);
+                    break;
+            }
+        }
+        printf("\n");
     }
 }
 
@@ -50,7 +64,14 @@ void cat(const char* path) {
         exit(1);
     }
 
-    dump(fd);
+    uint32_t filesize = 0;
+    auto buffer = read(fd, filesize);
+    if (buffer == nullptr) {
+        printf("could not read %s - exiting\n", path);
+        exit(1);
+    }
+
+    dump(buffer, filesize);
     printf("==============================================================================\n");    
 }
 
