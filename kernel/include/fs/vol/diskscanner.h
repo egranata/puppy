@@ -21,11 +21,11 @@
 #include <kernel/drivers/pci/ide.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/slist.h>
-#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/idevolume.h>
 
 class DiskScanner : NOCOPY {
     private:
-        typedef slist<Volume*> Volumes;
+        typedef slist<IDEVolume*> Volumes;
         typedef Volumes::iterator VolumesIterator;
 
     public:
@@ -46,7 +46,7 @@ class DiskScanner : NOCOPY {
         uint32_t parse(const IDEController::disk_t& dsk, const diskpart_t& dp);
 
         IDEController* mDiskController;
-        slist<Volume*> mVolumes;
+        Volumes mVolumes;
 };
 
 #endif

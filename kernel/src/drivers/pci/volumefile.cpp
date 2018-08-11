@@ -18,7 +18,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/sys/nocopy.h>
 
-IDEVolumeFile::IDEVolumeFile(Volume* vol, uint32_t ctrlid) : MemFS::File(""), mVolume(vol) {
+IDEVolumeFile::IDEVolumeFile(IDEVolume* vol, uint32_t ctrlid) : MemFS::File(""), mVolume(vol) {
     auto& dsk(vol->disk());
     auto& part(vol->partition());
     char buf[64] = {0};
@@ -29,7 +29,7 @@ IDEVolumeFile::IDEVolumeFile(Volume* vol, uint32_t ctrlid) : MemFS::File(""), mV
 delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
     class Buffer : public MemFS::FileBuffer {
         public:
-            Buffer(Volume* vol) : mVolume(vol) {}
+            Buffer(IDEVolume* vol) : mVolume(vol) {}
             ~Buffer() {
                 free(mBuffer);
             }
@@ -65,7 +65,7 @@ delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
                 }
             }
         private:
-            Volume *mVolume;
+            IDEVolume *mVolume;
             uint8_t *mBuffer;
             size_t mBufferSector;
     };

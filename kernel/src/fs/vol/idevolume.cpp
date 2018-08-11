@@ -12,39 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/idevolume.h>
 
-Volume::Volume(IDEController* ctrl, IDEController::disk_t dsk, diskpart_t part) :
+IDEVolume::IDEVolume(IDEController* ctrl, IDEController::disk_t dsk, diskpart_t part) :
     mController(ctrl), mDisk(dsk), mPartition(part) {}
 
-IDEController* Volume::controller() const {
+IDEController* IDEVolume::controller() const {
     return mController;
 }
 
-uint8_t Volume::sysid() {
+uint8_t IDEVolume::sysid() {
     return partition().sysid;
 }
 
-bool Volume::read(uint32_t sector, uint16_t count, unsigned char* buffer) {
+bool IDEVolume::read(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
     return mController->read(mDisk, sector, count, buffer);
 }
 
-bool Volume::write(uint32_t sector, uint16_t count, unsigned char* buffer) {
+bool IDEVolume::write(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
     return mController->write(mDisk, sector, count, buffer);
 }
 
-size_t Volume::numsectors() const {
+size_t IDEVolume::numsectors() const {
     return mPartition.size;
 }
 
-IDEController::disk_t& Volume::disk() {
+IDEController::disk_t& IDEVolume::disk() {
     return mDisk;
 }
 
-diskpart_t& Volume::partition() {
+diskpart_t& IDEVolume::partition() {
     return mPartition;
 }

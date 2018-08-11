@@ -19,7 +19,7 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/fs/filesystem.h>
-#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/basevolume.h>
 
 #include <fatfs/ff.h>
 #include <fatfs/diskio.h>

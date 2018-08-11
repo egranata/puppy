@@ -23,9 +23,10 @@
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/vol/basevolume.h>
 
-class Volume : public BaseVolume {
+// TODO: move to IDE driver
+class IDEVolume : public BaseVolume {
     public:
-        Volume(IDEController*, IDEController::disk_t, diskpart_t);
+        IDEVolume(IDEController*, IDEController::disk_t, diskpart_t);
 
         bool read(uint32_t sector, uint16_t count, unsigned char* buffer) override;
         bool write(uint32_t sector, uint16_t count, unsigned char* buffer) override;
@@ -37,7 +38,6 @@ class Volume : public BaseVolume {
         IDEController::disk_t& disk();
         diskpart_t& partition();
     private:
-        // TODO: support something other than IDE
         IDEController* mController;
         IDEController::disk_t mDisk;
         diskpart_t mPartition;

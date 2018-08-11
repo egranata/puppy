@@ -19,16 +19,16 @@
 
 #include <kernel/drivers/pci/ide.h>
 #include <kernel/fs/memfs/memfs.h>
-#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/idevolume.h>
 #include <kernel/libc/deleteptr.h>
 
 class IDEVolumeFile : public MemFS::File {
     public:
-        IDEVolumeFile(Volume* vol, uint32_t ctrlid);
+        IDEVolumeFile(IDEVolume* vol, uint32_t ctrlid);
         delete_ptr<MemFS::FileBuffer> content() override;
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
     private:
-        Volume* mVolume;
+        IDEVolume* mVolume;
 
         friend class IDEVolumeFileData;
 };

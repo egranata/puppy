@@ -19,7 +19,6 @@
 
 #include <kernel/libc/pair.h>
 #include <kernel/fs/vol/basevolume.h>
-#include <kernel/fs/vol/volume.h>
 
 struct fs_ident_t {
     typedef pair<bool, const char*> mount_result_t;

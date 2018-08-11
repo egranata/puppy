@@ -15,7 +15,7 @@
 #include <fatfs/ff.h>
 
 #include <kernel/fs/fatfs/fs.h>
-#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/basevolume.h>
 
 extern "C"
 DSTATUS disk_initialize (FATFS*) {
@@ -43,7 +43,7 @@ DRESULT disk_ioctl (FATFS* pdrv, BYTE cmd, void* buff) {
         case CTRL_SYNC:
         case CTRL_TRIM: break;
         case GET_SECTOR_COUNT: *(uint32_t*)buff = pdrv->vol->numsectors(); break;
-        case GET_SECTOR_SIZE: *(uint32_t*)buff = 512; break;
+        case GET_SECTOR_SIZE: *(uint32_t*)buff = pdrv->vol->sectorsize(); break;
         case GET_BLOCK_SIZE: *(uint32_t*)buff = 1; break;
         default: return RES_PARERR;
     }
