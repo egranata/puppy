@@ -26,7 +26,7 @@
 
 class FATFileSystem : public Filesystem {
     public:
-        FATFileSystem(Volume* vol);
+        FATFileSystem(BaseVolume* vol);
 
         File* open(const char* path, uint32_t mode) override;
         bool del(const char*) override;

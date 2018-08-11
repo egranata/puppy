@@ -23,7 +23,7 @@
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/vol/basevolume.h>
 
-class Volume : BaseVolume {
+class Volume : public BaseVolume {
     public:
         Volume(IDEController*, IDEController::disk_t, diskpart_t);
 
