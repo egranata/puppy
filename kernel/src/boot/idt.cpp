@@ -36,25 +36,23 @@ namespace boot::irq {
 }
 
 namespace {
-    template<uint32_t L, uint32_t H>
     class TableFile : public MemFS::File {
         public:
-            TableFile() : MemFS::File("") {
-                string buffer(0, 128);
-                sprint(buffer.buf(), 128, "counters_%u-%u", L, H);
+            TableFile(uint8_t irq) : MemFS::File(""), mIRQ(irq) {
+                string buffer(0, 15);
+                sprint(buffer.buf(), 15, "counter_%u", irq);
                 name(buffer.buf());
             }
             delete_ptr<MemFS::FileBuffer> content() override {
-                string buffer(0, 10_KB);
+                string buffer(0, 128);
                 char* buf_ptr = buffer.buf();
-                for (uint32_t i = L; i <= H; ++i) {
-                    const uint64_t count = Interrupts::get().getNumOccurrences((uint8_t)i);
-                    const auto len = sprint(buf_ptr, 10_KB, "%u    %llu\n", i, count);
-                    TAG_DEBUG(IRQ_COUNTERS, "writing info for irq %u took %u bytes - value was %llu", i, len, count);
-                    buf_ptr += len;
-                }
+                const uint64_t count = Interrupts::get().getNumOccurrences(mIRQ);
+                const char* name = Interrupts::get().getName(mIRQ);
+                sprint(buf_ptr, 128, "%u    %s    %llu\n", (uint32_t)mIRQ, name, count);
                 return new MemFS::StringBuffer(buffer);
             }
+        private:
+            uint8_t mIRQ;
     };
 }
 
@@ -63,14 +61,9 @@ namespace boot::irqcount {
         DevFS& devfs(DevFS::get());
         auto irq_dir = devfs.getDeviceDirectory("irq");
         if (irq_dir == nullptr) return 1;
-        irq_dir->add(new TableFile<0,31>());
-        irq_dir->add(new TableFile<32,63>());
-        irq_dir->add(new TableFile<64,95>());
-        irq_dir->add(new TableFile<96,127>());
-        irq_dir->add(new TableFile<128,159>());
-        irq_dir->add(new TableFile<160,191>());
-        irq_dir->add(new TableFile<192,223>());
-        irq_dir->add(new TableFile<224,255>());
+        for (auto i = 0; i < 256; ++i) {
+            irq_dir->add(new TableFile(i));
+        }
         return 0;
     }
 

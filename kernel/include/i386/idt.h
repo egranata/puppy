@@ -27,7 +27,9 @@ class Interrupts {
 public:
 	struct handler_t {
 		using irq_handler_f = void(*)(GPR&, InterruptStack&, void*);
+		using irq_name_t = char[16];
 		irq_handler_f func;
+		irq_name_t name;
 		void* payload;
 		uint64_t count;
 		explicit operator bool();
@@ -41,9 +43,10 @@ public:
 	void enable();
 	void disable();
 	
-	void sethandler(uint8_t irq, handler_t::irq_handler_f = nullptr, void* = nullptr);
+	void sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f = nullptr, void* = nullptr);
 
 	uint64_t getNumOccurrences(uint8_t irq);
+	const char* getName(uint8_t irq);
 	
 private:	
 	Interrupts();

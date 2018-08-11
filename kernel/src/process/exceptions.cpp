@@ -69,7 +69,7 @@ static void fpuerror(GPR&, InterruptStack&, void*) {
     fprestore((uintptr_t)&gCurrentProcess->fpstate[0]);
 }
 
-#define HANDLERINSTALL(id, name) interrupts.sethandler( id, & name ## _handler )
+#define HANDLERINSTALL(id, name) interrupts.sethandler( id, #name, & name ## _handler )
 
 EXCEPTIONHANDLER(dividebyzero , "division by zero");
 EXCEPTIONHANDLER(overflow , "overflow");
@@ -109,7 +109,7 @@ void ProcessManager::installexceptionhandlers() {
     HANDLERINSTALL(0x14, virt);
     HANDLERINSTALL(0x1E, security);
 
-    interrupts.sethandler(0x07, fpuerror);
+    interrupts.sethandler(0x07, "fpuerror", fpuerror);
 
-    interrupts.sethandler(0x0E, pageflt_handler);
+    interrupts.sethandler(0x0E, "pageflt", pageflt_handler);
 }

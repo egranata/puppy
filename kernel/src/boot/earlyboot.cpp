@@ -63,11 +63,11 @@ static void early_doublefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
 void setupEarlyIRQs() {
     Interrupts &idt(Interrupts::get());
 	idt.install();
-	idt.sethandler(0x0, early_divby0handler);
-	idt.sethandler(0x6, early_opcodehandler);
-	idt.sethandler(0x8, early_doublefaulthandler);
-	idt.sethandler(0xD, early_gpfhandler);
-	idt.sethandler(0xE, early_pagefaulthandler);
+	idt.sethandler(0x0, "div0", early_divby0handler);
+	idt.sethandler(0x6, "opcode", early_opcodehandler);
+	idt.sethandler(0x8, "dblflt", early_doublefaulthandler);
+	idt.sethandler(0xD, "gpf", early_gpfhandler);
+	idt.sethandler(0xE, "pagefllt", early_pagefaulthandler);
 }
 
 static void setupPhysicalMemory(multiboot_info* multiboot) {

@@ -116,5 +116,5 @@ PIT::PIT() {
     gUptimeMs = 0;
 
     auto irq = PIC::gIRQNumber(gIRQNumber);
-    Interrupts::get().sethandler(irq, timer);
+    Interrupts::get().sethandler(irq, "PIT", timer);
 }

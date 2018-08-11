@@ -186,7 +186,7 @@ PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
 
     auto pic_irq = devid == 1 ? 1 : 12;
     auto cpu_irq = PIC::gIRQNumber(pic_irq);
-    Interrupts::get().sethandler(cpu_irq, keyboard_irq_handler, (void*)pic_irq);
+    Interrupts::get().sethandler(cpu_irq, "PS2Keyb", keyboard_irq_handler, (void*)pic_irq);
     LOG_DEBUG("setup keyboard IRQ handler for irq %u - device %u", cpu_irq, devid);
 }
 

@@ -197,7 +197,7 @@ RTC::RTC() {
     if (IF) PANIC("cannot configure RTC with IF == 1");
 
     auto irq = PIC::gIRQNumber(8);
-    Interrupts::get().sethandler(irq, ::rtchandler);
+    Interrupts::get().sethandler(irq, "RTC", ::rtchandler);
 
     auto regA = read(gStatusRegisterA);
     LOG_DEBUG("RTC regA = %u", regA);

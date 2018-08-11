@@ -105,7 +105,7 @@ SyscallManager::SyscallManager() {
 
     sethandlers();
 
-    Interrupts::get().sethandler(gSyscallIRQ, syscall_irq_handler);
+    Interrupts::get().sethandler(gSyscallIRQ, "syscall", syscall_irq_handler);
 }
 
 void SyscallManager::handle(uint8_t code, SyscallManager::Handler handler, bool systemOnly) {
