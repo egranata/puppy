@@ -13,14 +13,11 @@
 // limitations under the License.
 
 #include <kernel/syscalls/handlers.h>
-#include <kernel/drivers/pci/bus.h>
-#include <kernel/drivers/pci/ide.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/devfs/devfs.h>
-#include <kernel/drivers/pci/diskfile.h>
 #include <kernel/process/current.h>
-#include <kernel/fs/vol/diskscanner.h>
 #include <kernel/log/log.h>
+#include <kernel/fs/vol/basevolume.h>
 
 syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
     auto& vfs(VFS::get());
@@ -43,7 +40,7 @@ syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
 
     Filesystem::File* file = (Filesystem::File*)fh.second;
 
-    Volume* volume = (Volume*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_VOLUME, 0);
+    BaseVolume* volume = (BaseVolume*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_VOLUME, 0);
     if (volume == nullptr) {
         LOG_ERROR("no volume found %p", volume);
         return ERR(NO_SUCH_DEVICE);
