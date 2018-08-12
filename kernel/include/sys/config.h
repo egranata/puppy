@@ -26,12 +26,14 @@ struct kernel_config_t : NOCOPY {
      * Controls the level of logging that the kernel performs during runtime.
      * Current values:
      * 0 = no logging
-     * 1 - 254 = reserved
-     * 255 = full logging
-     */ 
+     * 1 - 253 = reserved
+     * 254 = full logging to RAM
+     * 255 = full logging to RAM + Serial
+     */
     struct config_logging {
         uint8_t value;
         static constexpr uint8_t gNoLogging = 0;
+        static constexpr uint8_t gNoSerialLogging = 254;
         static constexpr uint8_t gFullLogging = 255;
     } logging;
 

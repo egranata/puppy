@@ -75,7 +75,9 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
         the_log_stats.max_log_entry_size = buflen;
     }
 
-    Serial::get().write(gBuffer).write("\n");
     the_log_buffer->write(gBuffer);
     the_log_buffer->write("\n");
+
+    if (gKernelConfiguration()->logging.value == kernel_config_t::config_logging::gNoSerialLogging) return;
+    Serial::get().write(gBuffer).write("\n");
 }
