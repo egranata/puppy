@@ -18,6 +18,7 @@
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/fs/memfs/memfs.h>
 #include <kernel/libc/str.h>
+#include <kernel/libc/buffer.h>
 #include <kernel/libc/bytesizes.h>
 #include <kernel/libc/sprint.h>
 
@@ -39,17 +40,17 @@ namespace {
     class TableFile : public MemFS::File {
         public:
             TableFile(uint8_t irq) : MemFS::File(""), mIRQ(irq) {
-                string buffer(0, 15);
-                sprint(buffer.buf(), 15, "counter_%u", irq);
-                name(buffer.buf());
+                buffer b(15);
+                sprint(b.data<char>(), b.size(), "counter_%u", irq);
+                name(b.data<char>());
             }
             delete_ptr<MemFS::FileBuffer> content() override {
-                string buffer(0, 128);
-                char* buf_ptr = buffer.buf();
+                buffer b(128);
+                char* buf_ptr = b.data<char>();
                 const uint64_t count = Interrupts::get().getNumOccurrences(mIRQ);
                 const char* name = Interrupts::get().getName(mIRQ);
-                sprint(buf_ptr, 128, "%u    %s    %llu\n", (uint32_t)mIRQ, name, count);
-                return new MemFS::StringBuffer(buffer);
+                sprint(buf_ptr, b.size(), "%u    %s    %llu\n", (uint32_t)mIRQ, name, count);
+                return new MemFS::StringBuffer(string(buf_ptr));
             }
         private:
             uint8_t mIRQ;

@@ -16,6 +16,7 @@
 
 #include <kernel/drivers/ramdisk/device.h>
 #include <kernel/fs/memfs/memfs.h>
+#include <kernel/libc/buffer.h>
 #include <kernel/libc/memory.h>
 #include <kernel/libc/str.h>
 #include <kernel/libc/string.h>
@@ -61,9 +62,9 @@ class VolumeFile : public MemFS::File {
         };
 
         VolumeFile(uint32_t id, uint32_t size) : MemFS::File(""), mId(id), mByteSize(size), mData(allocate(size)), mVolumeImpl(this) {
-            string buffer(0, 32);
-            sprint(buffer.buf(), 32, "vol%u", id);
-            name(buffer.c_str());
+            buffer b(32);
+            sprint(b.data<char>(), b.size(), "vol%u", id);
+            name(b.data<char>());
         }
         ~VolumeFile() override {
             free(mData);
@@ -124,9 +125,9 @@ uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
         drive_id[0] += fat->pdrv;
         TAG_DEBUG(RAMDISK, "making RAM disk - size = %u, volfile = %p, fsobj = %p, fat = %p, drive_id = %s",
             b, volfile, fsobj, fat, &drive_id[0]);
-        string buffer(0, 2048);
+        buffer b(2048);
         // TODO: we are losing a FatFS drive number here - they are somewhat precious
-        auto newfs_outcome = f_mkfs((const char*)&drive_id[0], FM_SFD|FM_FAT|FM_FAT32, 0, buffer.buf(), 2048);
+        auto newfs_outcome = f_mkfs((const char*)&drive_id[0], FM_SFD|FM_FAT|FM_FAT32, 0, b.data(), b.size());
         TAG_DEBUG(RAMDISK, "newfs_outcome = %u", newfs_outcome);
         switch (newfs_outcome) {
             case FR_OK: {
