@@ -28,6 +28,8 @@ class FATFileSystem : public Filesystem {
     public:
         FATFileSystem(Volume* vol);
 
+        FATFS* getFAT() { return &mFatFS; }
+
         File* open(const char* path, uint32_t mode) override;
         bool del(const char*) override;
         Directory* opendir(const char* path) override;

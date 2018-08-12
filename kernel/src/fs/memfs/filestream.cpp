@@ -27,6 +27,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
                 mFile = file;
                 mContent.reset(file->content().reset());
                 mIndex = 0;
+                kind(file->kind());
             }
 
             bool seek(size_t index) {
@@ -73,8 +74,15 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     string _paths(path);
     Entity* entity = root()->get(_paths.buf());
     if (entity == nullptr) return nullptr;
-    if (entity->kind() != Filesystem::FilesystemObject::kind_t::file) return nullptr;
-
-    return new FileStream((MemFS::File*)entity);
+    switch (entity->kind()) {
+        case Filesystem::FilesystemObject::kind_t::file:
+        case Filesystem::FilesystemObject::kind_t::blockdevice:
+            break;
+        case Filesystem::FilesystemObject::kind_t::directory:
+            TAG_DEBUG(MEMFS, "cannot open a directory object as file");
+            return nullptr;
+    }
+    auto result = new FileStream((MemFS::File*)entity);
+    return result;
 }
 

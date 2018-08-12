@@ -26,7 +26,7 @@ class MemFS : public Filesystem {
 protected:
     class Entity {
         public:
-            Filesystem::FilesystemObject::kind_t kind() const;
+            virtual Filesystem::FilesystemObject::kind_t kind() const;
             const char* name() const;
         protected:
             Entity(Filesystem::FilesystemObject::kind_t k, const char* name);
@@ -65,6 +65,7 @@ public:
             File(const char* name);
             virtual delete_ptr<FileBuffer> content() = 0;
             virtual uintptr_t ioctl(uintptr_t, uintptr_t);
+            virtual ~File() = default;
     };
 
     class Directory : public Entity {

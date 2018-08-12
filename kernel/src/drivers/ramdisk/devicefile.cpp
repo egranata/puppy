@@ -16,24 +16,94 @@
 
 #include <kernel/drivers/ramdisk/device.h>
 #include <kernel/fs/memfs/memfs.h>
+#include <kernel/libc/memory.h>
 #include <kernel/libc/str.h>
+#include <kernel/libc/string.h>
 #include <kernel/libc/sprint.h>
+#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/fatfs/fs.h>
+#include <fatfs/ff.h>
+#include <kernel/log/log.h>
 
+LOG_TAG(RAMDISK, 0);
+
+namespace {
 class VolumeFile : public MemFS::File {
     public:
-        VolumeFile(uint32_t id, uint32_t size) : MemFS::File(""), mId(id), mByteSize(size) {
+        class VolumeImpl : public Volume {
+            public:
+                VolumeImpl(VolumeFile* vol) : mVolume(vol) {}
+
+                uint8_t sysid() override {
+                    return 0x0C; // FAT32 LBA
+                }
+
+                size_t numsectors() const override {
+                    return mVolume->size() / sectorsize();
+                }
+
+                bool read(uint32_t sector, uint16_t count, unsigned char* buffer) override {
+                    if (sector + count >= numsectors()) return false;
+                    auto src = mVolume->data(sector);
+                    memcpy(buffer, src, count * sectorsize());
+                    return true;
+                }
+
+                bool write(uint32_t sector, uint16_t count, unsigned char* buffer) override {
+                    if (sector + count >= numsectors()) return false;
+                    auto dst = mVolume->data(sector);
+                    memcpy(dst, buffer, count * sectorsize());
+                    return true;
+                }
+
+            private:
+                VolumeFile *mVolume;
+        };
+
+        VolumeFile(uint32_t id, uint32_t size) : MemFS::File(""), mId(id), mByteSize(size), mData(allocate(size)), mVolumeImpl(this) {
             string buffer(0, 32);
             sprint(buffer.buf(), 32, "vol%u", id);
             name(buffer.c_str());
         }
-        delete_ptr<MemFS::FileBuffer> content() override {
-           return new MemFS::EmptyBuffer();                    
+        ~VolumeFile() override {
+            free(mData);
         }
+        delete_ptr<MemFS::FileBuffer> content() override {
+           return new MemFS::EmptyBuffer();
+        }
+
+        Filesystem::FilesystemObject::kind_t kind() const override {
+            return Filesystem::FilesystemObject::kind_t::blockdevice;
+        }
+
+        #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
+        uintptr_t ioctl(uintptr_t a, uintptr_t)  {
+            switch (a) {
+                IS(IOCTL_GET_SECTOR_SIZE): return mVolumeImpl.sectorsize();
+                IS(IOCTL_GET_NUM_SECTORS): return mVolumeImpl.numsectors();
+                IS(IOCTL_GET_CONTROLLER): return 0;
+                IS(IOCTL_GET_ROUTING): return 0;
+                IS(IOCTL_GET_VOLUME): return (uintptr_t)&mVolumeImpl;
+            }
+            return 0;
+        }
+        #undef IS
+
         uint32_t id() { return mId; }
+        uint32_t size() { return mByteSize; }
+        uint8_t *data(size_t sector = 0) {
+            return &mData[sector * 512];
+        }
+
+        Volume* volume() { return &mVolumeImpl; }
+
     private:
         uint32_t mId;
         uint32_t mByteSize;
+        uint8_t *mData;
+        VolumeImpl mVolumeImpl;
 };
+}
 
 RamDiskDevice::DeviceFile::DeviceFile() : MemFS::File("new") {}
 
@@ -42,10 +112,35 @@ delete_ptr<MemFS::FileBuffer> RamDiskDevice::DeviceFile::content() {
 }
 uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
     if (a == GIVE_ME_A_DISK_IOCTL) {
+        if (b % 512) {
+            return -1;
+        }
         VolumeFile* volfile = new VolumeFile(RamDiskDevice::get().assignDiskId(), b);
-        auto dir = RamDiskDevice::get().deviceDirectory();
-        dir->add(volfile);
-        return volfile->id();
+        TAG_DEBUG(RAMDISK, "creating FATFileSystem helper for volume file %p", volfile);
+        FATFileSystem* fsobj = new FATFileSystem(volfile->volume());
+        FATFS* fat = fsobj->getFAT();
+        TAG_DEBUG(RAMDISK, "fat = %p, fat->pdrv = %x", fat, (uint32_t)fat->pdrv);
+        uint8_t drive_id[3] = {'0', ':', 0};
+        drive_id[0] += fat->pdrv;
+        TAG_DEBUG(RAMDISK, "making RAM disk - size = %u, volfile = %p, fsobj = %p, fat = %p, drive_id = %s",
+            b, volfile, fsobj, fat, &drive_id[0]);
+        string buffer(0, 2048);
+        // TODO: we are losing a FatFS drive number here - they are somewhat precious
+        auto newfs_outcome = f_mkfs((const char*)&drive_id[0], FM_SFD|FM_FAT|FM_FAT32, 0, buffer.buf(), 2048);
+        TAG_DEBUG(RAMDISK, "newfs_outcome = %u", newfs_outcome);
+        switch (newfs_outcome) {
+            case FR_OK: {
+                auto dir = RamDiskDevice::get().deviceDirectory();
+                dir->add(volfile);
+                TAG_DEBUG(RAMDISK, "returning new volume with id %u", volfile->id());
+                return volfile->id();
+            }
+                break;
+            default: break;
+        }
+        TAG_DEBUG(RAMDISK, "failure to make new FS, returning -1");
+        delete fsobj;
+        delete volfile;
     }
-    return 0;
+    return -1;
 }

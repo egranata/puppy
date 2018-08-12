@@ -64,6 +64,8 @@ pair<bool, const char*> fatfs_trymount(Volume* vol, const char* where) {
         vfs.mount(where, fatfs);
         // TODO: LEAK
         return {true,strdup(where)};
+    } else {
+        LOG_ERROR("ebr16->signature = %x and ebr32->signature = %x - not matching valid FAT signature", ebr16->signature, ebr32->signature);
     }
 
     return {false, nullptr};

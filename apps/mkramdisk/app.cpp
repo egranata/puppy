@@ -21,12 +21,13 @@
 
 int main(int argc, const char** argv) {
     if (argc != 1) {
-        printf("mkramdisk <size>\n");
+        printf("mkramdisk <sectors>\n");
+        printf("each sector is 512 bytes in size, so e.g. 2048 would make a 1MB disk\n");
         exit(1);
     }
     
     auto arg = argv[0];
-    auto size = atoi(arg);
+    auto size = 512 * atoi(arg);
     printf("About to create a RAM disk volume of %u bytes...\n", size);
 
     auto fd = open("/devices/ramdisk/new", gModeRead);
@@ -36,7 +37,7 @@ int main(int argc, const char** argv) {
     }
 
     int result = ioctl(fd, 0x4449534b, size);
-    if (result >= 0) {
+    if (result != 0x7FFFFFFF) {
         printf("/devices/ramdisk/vol%u should now be a valid RAM disk\n", result);
     } else {
         printf("error: ramdisk device returned 0x%x\n", result);

@@ -5510,7 +5510,7 @@ FRESULT f_mkfs (
 	const UINT n_rootdir = 512;	/* Number of root directory entries for FAT volume */
 	static const WORD cst[] = {1, 4, 16, 64, 256, 512, 0};	/* Cluster size boundary for FAT volume (4Ks unit) */
 	static const WORD cst32[] = {1, 2, 4, 8, 16, 32, 0};	/* Cluster size boundary for FAT32 volume (128Ks unit) */
-	BYTE fmt, sys, *buf, *pte, pdrv, part;
+	BYTE fmt, sys, *buf, *pte, part;
 	WORD ss;	/* Sector size */
 	DWORD szb_buf, sz_buf, sz_blk, n_clst, pau, sect, nsect, n;
 	DWORD b_vol, b_fat, b_data;				/* Base LBA for volume, fat, data */
@@ -5527,16 +5527,15 @@ FRESULT f_mkfs (
 	vol = get_ldnumber(&path);					/* Get target logical drive */
 	if (vol < 0) return FR_INVALID_DRIVE;
 	if (FatFs[vol]) FatFs[vol]->fs_type = 0;	/* Clear the volume if mounted */
-	pdrv = LD2PD(vol);	/* Physical drive */
 	part = LD2PT(vol);	/* Partition (0:create as new, 1-4:get from partition table) */
 
 	/* Check physical drive status */
-	stat = disk_initialize(pdrv);
+	stat = disk_initialize(FatFs[vol]);
 	if (stat & STA_NOINIT) return FR_NOT_READY;
 	if (stat & STA_PROTECT) return FR_WRITE_PROTECTED;
-	if (disk_ioctl(pdrv, GET_BLOCK_SIZE, &sz_blk) != RES_OK || !sz_blk || sz_blk > 32768 || (sz_blk & (sz_blk - 1))) sz_blk = 1;	/* Erase block to align data area */
+	if (disk_ioctl(FatFs[vol], GET_BLOCK_SIZE, &sz_blk) != RES_OK || !sz_blk || sz_blk > 32768 || (sz_blk & (sz_blk - 1))) sz_blk = 1;	/* Erase block to align data area */
 #if FF_MAX_SS != FF_MIN_SS		/* Get sector size of the medium if variable sector size cfg. */
-	if (disk_ioctl(pdrv, GET_SECTOR_SIZE, &ss) != RES_OK) return FR_DISK_ERR;
+	if (disk_ioctl(FatFs[vol], GET_SECTOR_SIZE, &ss) != RES_OK) return FR_DISK_ERR;
 	if (ss > FF_MAX_SS || ss < FF_MIN_SS || (ss & (ss - 1))) return FR_DISK_ERR;
 #else
 	ss = FF_MAX_SS;
@@ -5561,7 +5560,7 @@ FRESULT f_mkfs (
 	/* Determine where the volume to be located (b_vol, sz_vol) */
 	if (FF_MULTI_PARTITION && part != 0) {
 		/* Get partition information from partition table in the MBR */
-		if (disk_read(pdrv, buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Load MBR */
+		if (disk_read(FatFs[vol], buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Load MBR */
 		if (ld_word(buf + BS_55AA) != 0xAA55) LEAVE_MKFS(FR_MKFS_ABORTED);	/* Check if MBR is valid */
 		pte = buf + (MBR_Table + (part - 1) * SZ_PTE);
 		if (pte[PTE_System] == 0) LEAVE_MKFS(FR_MKFS_ABORTED);	/* No partition? */
@@ -5569,7 +5568,7 @@ FRESULT f_mkfs (
 		sz_vol = ld_dword(pte + PTE_SizLba);	/* Get volume size */
 	} else {
 		/* Create a single-partition in this function */
-		if (disk_ioctl(pdrv, GET_SECTOR_COUNT, &sz_vol) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+		if (disk_ioctl(FatFs[vol], GET_SECTOR_COUNT, &sz_vol) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 		b_vol = (opt & FM_SFD) ? 0 : 63;		/* Volume start sector */
 		if (sz_vol < b_vol) LEAVE_MKFS(FR_MKFS_ABORTED);
 		sz_vol -= b_vol;						/* Volume size */
@@ -5603,7 +5602,7 @@ FRESULT f_mkfs (
 		if (sz_vol < 0x1000) LEAVE_MKFS(FR_MKFS_ABORTED);	/* Too small volume? */
 #if FF_USE_TRIM
 		tbl[0] = b_vol; tbl[1] = b_vol + sz_vol - 1;	/* Inform the device the volume area may be erased */
-		disk_ioctl(pdrv, CTRL_TRIM, tbl);
+		disk_ioctl(FatFs[vol], CTRL_TRIM, tbl);
 #endif
 		/* Determine FAT location, data location and number of clusters */
 		if (au == 0) {	/* au auto-selection */
@@ -5668,7 +5667,7 @@ FRESULT f_mkfs (
 			for (i = 0; nb >= 8 && i < szb_buf; buf[i++] = 0xFF, nb -= 8) ;
 			for (b = 1; nb != 0 && i < szb_buf; buf[i] |= b, b <<= 1, nb--) ;
 			n = (nsect > sz_buf) ? sz_buf : nsect;		/* Write the buffered data */
-			if (disk_write(pdrv, buf, sect, n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+			if (disk_write(FatFs[vol], buf, sect, n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 			sect += n; nsect -= n;
 		} while (nsect);
 
@@ -5689,7 +5688,7 @@ FRESULT f_mkfs (
 				if (nb == 0 && j < 3) nb = tbl[j++];	/* Next chain */
 			} while (nb != 0 && i < szb_buf);
 			n = (nsect > sz_buf) ? sz_buf : nsect;	/* Write the buffered data */
-			if (disk_write(pdrv, buf, sect, n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+			if (disk_write(FatFs[vol], buf, sect, n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 			sect += n; nsect -= n;
 		} while (nsect);
 
@@ -5706,7 +5705,7 @@ FRESULT f_mkfs (
 		sect = b_data + au * (tbl[0] + tbl[1]);	nsect = au;	/* Start of the root directory and number of sectors */
 		do {	/* Fill root directory sectors */
 			n = (nsect > sz_buf) ? sz_buf : nsect;
-			if (disk_write(pdrv, buf, sect, n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+			if (disk_write(FatFs[vol], buf, sect, n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 			mem_set(buf, 0, ss);
 			sect += n; nsect -= n;
 		} while (nsect);
@@ -5741,17 +5740,17 @@ FRESULT f_mkfs (
 			st_word(buf + ss - 2, 0xAA55);	/* Signature (placed at end of sector) */
 			for (j = 1; j < 9; j++) {
 				for (i = 0; i < ss; sum = xsum32(buf[i++], sum)) ;	/* VBR checksum */
-				if (disk_write(pdrv, buf, sect++, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+				if (disk_write(FatFs[vol], buf, sect++, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 			}
 			/* OEM/Reserved record (+9..+10) */
 			mem_set(buf, 0, ss);
 			for ( ; j < 11; j++) {
 				for (i = 0; i < ss; sum = xsum32(buf[i++], sum)) ;	/* VBR checksum */
-				if (disk_write(pdrv, buf, sect++, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+				if (disk_write(FatFs[vol], buf, sect++, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 			}
 			/* Sum record (+11) */
 			for (i = 0; i < ss; i += 4) st_dword(buf + i, sum);		/* Fill with checksum value */
-			if (disk_write(pdrv, buf, sect++, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+			if (disk_write(FatFs[vol], buf, sect++, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 		}
 
 	} else
@@ -5830,7 +5829,7 @@ FRESULT f_mkfs (
 
 #if FF_USE_TRIM
 		tbl[0] = b_vol; tbl[1] = b_vol + sz_vol - 1;	/* Inform the device the volume area can be erased */
-		disk_ioctl(pdrv, CTRL_TRIM, tbl);
+		disk_ioctl(FatFs[vol], CTRL_TRIM, tbl);
 #endif
 		/* Create FAT VBR */
 		mem_set(buf, 0, ss);
@@ -5866,19 +5865,19 @@ FRESULT f_mkfs (
 			mem_cpy(buf + BS_VolLab, "NO NAME    " "FAT     ", 19);	/* Volume label, FAT signature */
 		}
 		st_word(buf + BS_55AA, 0xAA55);					/* Signature (offset is fixed here regardless of sector size) */
-		if (disk_write(pdrv, buf, b_vol, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it to the VBR sector */
+		if (disk_write(FatFs[vol], buf, b_vol, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it to the VBR sector */
 
 		/* Create FSINFO record if needed */
 		if (fmt == FS_FAT32) {
-			disk_write(pdrv, buf, b_vol + 6, 1);		/* Write backup VBR (VBR + 6) */
+			disk_write(FatFs[vol], buf, b_vol + 6, 1);		/* Write backup VBR (VBR + 6) */
 			mem_set(buf, 0, ss);
 			st_dword(buf + FSI_LeadSig, 0x41615252);
 			st_dword(buf + FSI_StrucSig, 0x61417272);
 			st_dword(buf + FSI_Free_Count, n_clst - 1);	/* Number of free clusters */
 			st_dword(buf + FSI_Nxt_Free, 2);			/* Last allocated cluster# */
 			st_word(buf + BS_55AA, 0xAA55);
-			disk_write(pdrv, buf, b_vol + 7, 1);		/* Write backup FSINFO (VBR + 7) */
-			disk_write(pdrv, buf, b_vol + 1, 1);		/* Write original FSINFO (VBR + 1) */
+			disk_write(FatFs[vol], buf, b_vol + 7, 1);		/* Write backup FSINFO (VBR + 7) */
+			disk_write(FatFs[vol], buf, b_vol + 1, 1);		/* Write original FSINFO (VBR + 1) */
 		}
 
 		/* Initialize FAT area */
@@ -5895,7 +5894,7 @@ FRESULT f_mkfs (
 			nsect = sz_fat;		/* Number of FAT sectors */
 			do {	/* Fill FAT sectors */
 				n = (nsect > sz_buf) ? sz_buf : nsect;
-				if (disk_write(pdrv, buf, sect, (UINT)n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+				if (disk_write(FatFs[vol], buf, sect, (UINT)n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 				mem_set(buf, 0, ss);
 				sect += n; nsect -= n;
 			} while (nsect);
@@ -5905,7 +5904,7 @@ FRESULT f_mkfs (
 		nsect = (fmt == FS_FAT32) ? pau : sz_dir;	/* Number of root directory sectors */
 		do {
 			n = (nsect > sz_buf) ? sz_buf : nsect;
-			if (disk_write(pdrv, buf, sect, (UINT)n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+			if (disk_write(FatFs[vol], buf, sect, (UINT)n) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 			sect += n; nsect -= n;
 		} while (nsect);
 	}
@@ -5928,9 +5927,9 @@ FRESULT f_mkfs (
 	/* Update partition information */
 	if (FF_MULTI_PARTITION && part != 0) {	/* Created in the existing partition */
 		/* Update system ID in the partition table */
-		if (disk_read(pdrv, buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Read the MBR */
+		if (disk_read(FatFs[vol], buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Read the MBR */
 		buf[MBR_Table + (part - 1) * SZ_PTE + PTE_System] = sys;		/* Set system ID */
-		if (disk_write(pdrv, buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it back to the MBR */
+		if (disk_write(FatFs[vol], buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it back to the MBR */
 	} else {								/* Created as a new single partition */
 		if (!(opt & FM_SFD)) {	/* Create partition table if in FDISK format */
 			mem_set(buf, 0, ss);
@@ -5947,11 +5946,11 @@ FRESULT f_mkfs (
 			pte[PTE_EdCyl] = (BYTE)n;			/* End cylinder */
 			st_dword(pte + PTE_StLba, b_vol);	/* Start offset in LBA */
 			st_dword(pte + PTE_SizLba, sz_vol);	/* Size in sectors */
-			if (disk_write(pdrv, buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it to the MBR */
+			if (disk_write(FatFs[vol], buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it to the MBR */
 		}
 	}
 
-	if (disk_ioctl(pdrv, CTRL_SYNC, 0) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
+	if (disk_ioctl(FatFs[vol], CTRL_SYNC, 0) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);
 
 	LEAVE_MKFS(FR_OK);
 }

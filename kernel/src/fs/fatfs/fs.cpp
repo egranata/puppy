@@ -32,14 +32,16 @@ static uint8_t gNextId() {
 
 FATFileSystem::FATFileSystem(Volume* vol) {
     char buf[3] = {0};
-    sprint(&buf[0], 2, "%d:", gNextId());
+    auto nextid = gNextId();
+    sprint(&buf[0], 2, "%d:", nextid);
 
     LOG_DEBUG("mounting volume %p as id %s", vol, &buf[0]);
 
+    mFatFS.pdrv = nextid;
     mFatFS.vol = vol;
     f_mount(&mFatFS, &buf[0], 1);
 
-    LOG_DEBUG("mount completed as drive %u", mFatFS.pdrv);
+    LOG_DEBUG("mount completed as drive %u, mFatFS = %p", mFatFS.pdrv, &mFatFS);
 }
 
 class FATFileSystemFile : public Filesystem::File {
