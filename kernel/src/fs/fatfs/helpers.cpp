@@ -15,7 +15,7 @@
 #include <fatfs/ff.h>
 
 #include <kernel/fs/fatfs/fs.h>
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 
 extern "C"
 DSTATUS disk_initialize (FATFS*) {

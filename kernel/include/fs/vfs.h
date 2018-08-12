@@ -21,7 +21,7 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/filesystem.h>
 #include <kernel/libc/slist.h>
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 #include <kernel/libc/pair.h>
 #include <kernel/fs/fsidents.h>
 
@@ -35,7 +35,7 @@ class VFS : NOCOPY {
 
         Filesystem* findfs(const char* mnt);
 
-        fs_ident_t::mount_result_t mount(BaseVolume* vol, const char* where = nullptr);
+        fs_ident_t::mount_result_t mount(Volume* vol, const char* where = nullptr);
 
         filehandle_t open(const char* path, uint32_t mode);
         bool del(const char* path);

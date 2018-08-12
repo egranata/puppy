@@ -85,7 +85,7 @@ typedef DWORD FSIZE_t;
 typedef struct {
 	BYTE	fs_type;		/* Filesystem type (0:N/A) */
 	BYTE	pdrv;			/* Physical drive number */
-	struct BaseVolume* vol; /* The underlying partition */
+	struct Volume* vol; /* The underlying partition */
 	BYTE	n_fats;			/* Number of FATs (1 or 2) */
 	BYTE	wflag;			/* win[] flag (b0:dirty) */
 	BYTE	fsi_flag;		/* FSINFO flags (b7:disabled, b0:dirty) */

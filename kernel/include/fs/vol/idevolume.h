@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef FS_VOL_VOLUME
-#define FS_VOL_VOLUME
+#ifndef FS_VOL_IDEVOLUME
+#define FS_VOL_IDEVOLUME
 
 #include <kernel/sys/stdint.h>
 #include <kernel/drivers/pci/ide.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/ptable.h>
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 
 // TODO: move to IDE driver
-class IDEVolume : public BaseVolume {
+class IDEVolume : public Volume {
     public:
         IDEVolume(IDEController*, IDEController::disk_t, diskpart_t);
 

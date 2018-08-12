@@ -17,7 +17,7 @@
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/process/current.h>
 #include <kernel/log/log.h>
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 
 syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
     auto& vfs(VFS::get());
@@ -40,7 +40,7 @@ syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
 
     Filesystem::File* file = (Filesystem::File*)fh.second;
 
-    BaseVolume* volume = (BaseVolume*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_VOLUME, 0);
+    Volume* volume = (Volume*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_VOLUME, 0);
     if (volume == nullptr) {
         LOG_ERROR("no volume found %p", volume);
         return ERR(NO_SUCH_DEVICE);

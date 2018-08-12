@@ -17,9 +17,9 @@
 #ifndef FS_FATFS_TRYMOUNT
 #define FS_FATFS_TRYMOUNT
 
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 #include <kernel/libc/pair.h>
 
-pair<bool, const char*> fatfs_trymount(BaseVolume*, const char*);
+pair<bool, const char*> fatfs_trymount(Volume*, const char*);
 
 #endif

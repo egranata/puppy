@@ -30,7 +30,7 @@ static uint8_t gNextId() {
     return id;
 }
 
-FATFileSystem::FATFileSystem(BaseVolume* vol) {
+FATFileSystem::FATFileSystem(Volume* vol) {
     char buf[3] = {0};
     sprint(&buf[0], 2, "%d:", gNextId());
 

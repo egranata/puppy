@@ -19,14 +19,14 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/fs/filesystem.h>
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 
 #include <fatfs/ff.h>
 #include <fatfs/diskio.h>
 
 class FATFileSystem : public Filesystem {
     public:
-        FATFileSystem(BaseVolume* vol);
+        FATFileSystem(Volume* vol);
 
         File* open(const char* path, uint32_t mode) override;
         bool del(const char*) override;

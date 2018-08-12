@@ -18,11 +18,11 @@
 #define FS_FSIDENTS
 
 #include <kernel/libc/pair.h>
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 
 struct fs_ident_t {
     typedef pair<bool, const char*> mount_result_t;
-    typedef mount_result_t(*trymount_t)(BaseVolume*, const char*);
+    typedef mount_result_t(*trymount_t)(Volume*, const char*);
     uint8_t sysid;
     const char* type;
     trymount_t fmount;

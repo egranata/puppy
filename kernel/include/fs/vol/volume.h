@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef FS_VOL_BASEVOLUME
-#define FS_VOL_BASEVOLUME
+#ifndef FS_VOL_VOLUME
+#define FS_VOL_VOLUME
 
 #include <kernel/sys/stdint.h>
 #include <kernel/sys/nocopy.h>
 
-class BaseVolume : NOCOPY {
+class Volume : NOCOPY {
     protected:
-        BaseVolume();
+        Volume();
     public:
-        virtual ~BaseVolume();
+        virtual ~Volume();
         virtual bool read(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
         virtual bool write(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
 

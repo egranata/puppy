@@ -94,7 +94,7 @@ bool VFS::unmount(const char* path) {
     return false;
 }
 
-fs_ident_t::mount_result_t VFS::mount(BaseVolume* vol, const char* where) {
+fs_ident_t::mount_result_t VFS::mount(Volume* vol, const char* where) {
     auto sysid = vol->sysid();
     
     for (auto i = 0u; true; ++i) {

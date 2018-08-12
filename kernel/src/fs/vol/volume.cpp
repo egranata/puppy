@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/fs/vol/basevolume.h>
+#include <kernel/fs/vol/volume.h>
 
-BaseVolume::BaseVolume() = default;
+Volume::Volume() = default;
 
-BaseVolume::~BaseVolume() = default;
+Volume::~Volume() = default;
 

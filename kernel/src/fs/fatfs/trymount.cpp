@@ -46,7 +46,7 @@ namespace {
     } __attribute__((packed));
 }
 
-pair<bool, const char*> fatfs_trymount(BaseVolume* vol, const char* where) {
+pair<bool, const char*> fatfs_trymount(Volume* vol, const char* where) {
     unsigned char buffer[512] = {0};
     if (!vol->read(0, 1, &buffer[0])) {
         LOG_ERROR("failed to read sector 0, cannot mount");
