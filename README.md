@@ -10,7 +10,7 @@ More specifically, project goals include providing:
 - support for memory protection; ✅
 - system call interface to userspace; ✅
 - booting on emulators **AND** real hardware; ✅
-- FAT filesystem on hard disks;
+- FAT filesystem on hard disks; ✅
 - program launcher (aka, shell);
 - a C/C++ standard library.
 
