@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <libuserspace/exit.h>
+#include <libuserspace/file.h>
 #include <libuserspace/printf.h>
 #include <libuserspace/yield.h>
 #include <libuserspace/stdio.h>
@@ -22,6 +24,10 @@
 #include <kernel/sys/osinfo.h>
 #include <libuserspace/collect.h>
 #include <libuserspace/syscalls.h>
+#include <libuserspace/memory.h>
+#include <muzzle/stdlib.h>
+#include <muzzle/string.h>
+#include <libuserspace/shell.h>
 
 template<typename T>
 T* zero(T* thing, size_t size) {
@@ -72,11 +78,73 @@ static const char* trim(const char* s) {
     return s;
 }
 
+static char* bufgetline(char* src, char* dest, size_t maxlen) {
+    while(true) {
+        if (maxlen == 0) return src;
+        if (*src == 0) return src;
+        if (*src == '\n') return ++src;
+        *dest = *src;
+        ++dest;
+        ++src;
+        --maxlen;
+    }
+}
+
+bool runInitScript() {
+    uint32_t fd = open("/system/config/init", gModeRead);
+    if (fd == gInvalidFd) {
+        printf("[init] warning: no /system/config/init script found\n");
+        return true;
+    }
+    uint32_t size = 0;
+    if (!fsize(fd, size)) {
+        close(fd);
+        return false;
+    }
+    if (size == 0) {
+        close(fd);
+        return true;
+    }
+    uint8_t* initfile = (uint8_t*)calloc(size, 1);
+    if (size != read(fd, size, initfile)) {
+        close(fd);
+        return false;
+    }
+
+    char* src = (char*)initfile;
+    while(true) {
+        char buffer[512] = {0};
+        src = bufgetline(src, &buffer[0], 511);
+        if (buffer[0] == 0) break;
+        printf("[init] %s\n", &buffer[0]);
+        auto result = shell(&buffer[0]);
+        if (result.reason != process_exit_status_t::reason_t::cleanExit) {
+            printf("[init] non-clean exit in init script; exiting\n");
+            close(fd);
+            return false;
+        }
+        if (result.status != 0) {
+            printf("[init] non zero exit in init script; exiting\n");
+            close(fd);
+            return false;
+        }
+        if (*src == 0) break;
+    }
+
+    close(fd);
+    return true;
+}
+
 int main(int, const char**) {
     static char buffer[512] = {0};
     
     printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
     klog_syscall("init is up and running");
+
+    if (!runInitScript()) {
+        klog_syscall("init could not run config - will exit");
+        exit(1);
+    }
 
     while(true) {
         bzero(&buffer[0], 512);

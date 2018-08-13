@@ -1,0 +1,2 @@
+/system/apps/mkramdisk 4096
+/initrd/mount /devices/ramdisk/vol0 /tmp

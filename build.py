@@ -424,6 +424,9 @@ for app in APP_REFS:
 for test in TEST_REFS:
     copy(test, "out/mnt/tests/%s" % os.path.basename(test))
 
+makeDir("out/mnt/config")
+copy("build/config/init", "out/mnt/config/init")
+
 CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
 shell(CMDLINE)
 
