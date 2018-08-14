@@ -29,50 +29,6 @@
 #include <muzzle/string.h>
 #include <libuserspace/shell.h>
 
-template<typename T>
-T* zero(T* thing, size_t size) {
-    uint8_t *buf = (uint8_t*)thing;
-    size *= sizeof(T);
-    while(size) {
-        *buf = 0;
-        ++buf, --size;
-    }
-    return thing;
-}
-
-void handleExitStatus(uint16_t pid, process_exit_status_t es) {
-    switch (es.reason) {
-        case process_exit_status_t::reason_t::cleanExit:
-            // do not write anything for a clean exit with status 0
-            if(es.status) {
-                printf("[child %u] exited - status %u\n", pid, es.status);
-            }
-            break;
-        case process_exit_status_t::reason_t::exception:
-            printf("[child %u] killed due to exception %u\n", pid, es.status);
-            break;
-        case process_exit_status_t::reason_t::kernelError:
-            printf("[child %u] terminated due to kernel error %u\n", pid, es.status);
-            break;
-        case process_exit_status_t::reason_t::killed:
-            printf("[child %u] killed\n", pid);
-            break;
-        case process_exit_status_t::reason_t::alive:
-        default:
-            printf("[child %u] termination reason unknown %x %x\n", pid, es.reason, es.status);
-            break;
-    }
-}
-
-void tryCollect() {
-    uint16_t pid;
-    process_exit_status_t status(0);
-
-    if (collectany(&pid, &status)) {
-        handleExitStatus(pid, status);
-    }
-}
-
 static const char* trim(const char* s) {
     while(s && *s == ' ') ++s;
     return s;
@@ -116,8 +72,9 @@ bool runInitScript() {
         char buffer[512] = {0};
         src = bufgetline(src, &buffer[0], 511);
         if (buffer[0] == 0) break;
-        printf("[init] %s\n", &buffer[0]);
-        auto result = shell(&buffer[0]);
+        const char* cmdline = trim(&buffer[0]);
+        printf("[init] %s\n", cmdline);
+        auto result = shell(cmdline);
         if (result.reason != process_exit_status_t::reason_t::cleanExit) {
             printf("[init] non-clean exit in init script; exiting\n");
             close(fd);
@@ -135,9 +92,12 @@ bool runInitScript() {
     return true;
 }
 
+bool runShell() {
+    auto pid = exec("/system/apps/shell", nullptr, true);
+    return pid != 0;
+}
+
 int main(int, const char**) {
-    static char buffer[512] = {0};
-    
     printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
     klog_syscall("init is up and running");
 
@@ -146,24 +106,14 @@ int main(int, const char**) {
         exit(1);
     }
 
+    if (!runShell()) {
+        klog_syscall("init could not run shell - will exit");
+        exit(1);
+    }
+
     while(true) {
-        bzero(&buffer[0], 512);
-        printf("init %u> ", getpid());
-        getline(&buffer[0], 511);
-        const char* program = trim(&buffer[0]);
-        if (program == 0 || *program == 0) continue;
-        bool letgo = ('&' == *program);
-        if (letgo) ++program;
-        char* args = (char*)strchr(program, ' ');
-        if (args != nullptr) {
-            *args = 0;
-            ++args;
-        }
-        auto chld = exec(program, args, !letgo);
-        if (!letgo) {
-            auto exitcode = collect(chld);
-            handleExitStatus(chld, exitcode);
-        }
-        tryCollect();
+        // TODO: init could be receiving messages from the rest of the system
+        // and execute system-y operations on behalf of the rest of the system
+        yield();
     }
 }
