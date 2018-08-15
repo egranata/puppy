@@ -15,9 +15,6 @@
 # limitations under the License.
 
 # courtesy of https://wiki.osdev.org/Automated_Build_Using_CircleCI
-binutils_version="2.29"
-gcc_version="7.2.0"
-
 target=i686-elf
 prefix=$HOME/cross/$target
 
@@ -27,13 +24,13 @@ cd /tmp/toolchain
 rm -rf /tmp/toolchain/*
 
 # Download gcc sources if they are not yet downloaded.
-if [ ! -f gcc-$gcc_version.tar.gz ]
+if [ ! -f gcc-7.2.0.tar.gz ]
 then
     curl https://gcc.gnu.org/pub/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.gz > gcc-7.2.0.tar.gz
     tar -xf gcc-7.2.0.tar.gz
 
     # download GCC prereqs
-    cd /tmp/toolchain/gcc-$gcc_version
+    cd /tmp/toolchain/gcc-7.2.0
 
     curl http://gcc.gnu.org/pub/gcc/infrastructure/gmp-6.1.0.tar.bz2 > gmp.tar.bz2
     tar -xf gmp.tar.bz2
@@ -55,10 +52,10 @@ fi
 cd /tmp/toolchain
 
 # Download binutils sources if they are not yet downloaded.
-if [ ! -f binutils-$binutils_version.tar.bz2 ]
+if [ ! -f binutils-2.29.tar.bz2 ]
 then
-    wget -c -O binutils-$binutils_version.tar.bz2 http://ftp.gnu.org/gnu/binutils/binutils-$binutils_version.tar.bz2
-    tar -xf binutils-$binutils_version.tar.bz2
+    wget -c -O binutils-2.29.tar.bz2 https://gcc.gnu.org/pub/binutils/releases/binutils-2.29.tar.bz2
+    tar -xf binutils-2.29.tar.bz2
 fi
 
 # Create build paths.
@@ -68,7 +65,7 @@ mkdir -p /tmp/toolchain/build-gcc
 # Build binutils.
 cd /tmp/toolchain/build-binutils
 sudo rm -rf *
-/tmp/toolchain/binutils-$binutils_version/configure --target=$target --prefix=$prefix --with-sysroot --disable-nls --disable-werror 2>&1
+/tmp/toolchain/binutils-2.29/configure --target=$target --prefix=$prefix --with-sysroot --disable-nls --disable-werror 2>&1
 make all 2>&1
 make install 2>&1
 sudo rm -rf *
@@ -77,7 +74,7 @@ export PATH=$PATH:$prefix/bin
 
 # Build gcc and libgcc.
 cd /tmp/toolchain/build-gcc
-/tmp/toolchain/gcc-$gcc_version/configure --target=$target --prefix=$prefix --disable-nls --enable-languages=c,c++ --without-headers 2>&1
+/tmp/toolchain/gcc-7.2.0/configure --target=$target --prefix=$prefix --disable-nls --enable-languages=c,c++ --without-headers 2>&1
 make all-gcc 2>&1
 make install-gcc 2>&1
 make all-target-libgcc 2>&1
