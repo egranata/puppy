@@ -434,7 +434,7 @@ sysinfo = sysinfo.replace("${NOW}", datetime.now().__str__())
 sysinfo = sysinfo.replace("${GIT-HASH}", shell("git rev-parse HEAD").replace('\n', ''))
 sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "No diff applied")
 sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").replace('\n', ''))
-sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm --version").replace('\n', ''))
+sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm -v").replace('\n', ''))
 write("out/mnt/config/sysinfo", sysinfo)
 
 CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
