@@ -29,8 +29,8 @@ rm -rf /tmp/toolchain/*
 # Download gcc sources if they are not yet downloaded.
 if [ ! -f gcc-$gcc_version.tar.gz ]
 then
-    wget -c -O gcc-$gcc_version.tar.gz http://ftp.gnu.org/gnu/gcc/gcc-$gcc_version/gcc-$gcc_version.tar.gz
-    tar -xf gcc-$gcc_version.tar.gz
+    curl https://gcc.gnu.org/pub/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.gz > gcc-7.2.0.tar.gz
+    tar -xf gcc-7.2.0.tar.gz
 
     # download GCC prereqs
     cd /tmp/toolchain/gcc-$gcc_version
