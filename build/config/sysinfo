@@ -1,0 +1,7 @@
+Image built on: ${NOW}
+
+Source revision: ${GIT-HASH}
+                 ${ANY-DIFF}
+
+GCC version: ${GCC-VERSION}
+NASM version: ${NASM-VERSION}

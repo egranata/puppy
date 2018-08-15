@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import glob
 import json
 from multiprocessing import Pool
@@ -426,6 +427,15 @@ for test in TEST_REFS:
 
 makeDir("out/mnt/config")
 copy("build/config/init", "out/mnt/config/init")
+
+anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
+sysinfo = read('build/config/sysinfo')
+sysinfo = sysinfo.replace("${NOW}", datetime.now().__str__())
+sysinfo = sysinfo.replace("${GIT-HASH}", shell("git rev-parse HEAD").replace('\n', ''))
+sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "No diff applied")
+sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").replace('\n', ''))
+sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm --version").replace('\n', ''))
+write("out/mnt/config/sysinfo", sysinfo)
 
 CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
 shell(CMDLINE)
