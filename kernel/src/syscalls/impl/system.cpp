@@ -27,12 +27,6 @@ HANDLER0(reboot) {
     return OK; // we should never return from here
 }
 
-syscall_response_t now_syscall_handler(uint64_t *dest) {
-    *dest = RTC::get().timestamp();
-
-    return OK;
-}
-
 syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
     if (fill & INCLUDE_GLOBAL_INFO) {
         dest->global.uptime = PIT::getUptime();

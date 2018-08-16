@@ -12,18 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/drivers/rtc/rtc.h>
-#include <kernel/i386/primitives.h>
-#include <kernel/panic/panic.h>
-#include <kernel/i386/idt.h>
 #include <kernel/drivers/pic/pic.h>
-
+#include <kernel/drivers/rtc/rtc.h>
+#include <kernel/fs/devfs/devfs.h>
+#include <kernel/i386/idt.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/libc/sprint.h>
 #include <kernel/log/log.h>
+#include <kernel/panic/panic.h>
+
+class RTC_NowFile : public MemFS::File {
+    public:
+        RTC_NowFile() : MemFS::File("now") {}
+        delete_ptr<MemFS::FileBuffer> content() override {
+            string buf('\0', 24);
+            sprint(&buf[0], 24, "%llu", RTC::get().timestamp());
+            return new MemFS::StringBuffer(buf);
+        }
+};
 
 namespace boot::rtc {
     uint32_t init() {
         auto &&rtc(RTC::get());
     	LOG_INFO("RTC gathered - timestamp is %llu", rtc.timestamp());
+
+        auto dir = DevFS::get().getDeviceDirectory("rtc");
+        dir->add(new RTC_NowFile());
+
         PIC::get().accept(RTC::gIRQNumber);
         return 0;
     }

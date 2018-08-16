@@ -76,9 +76,6 @@ syscall_response_t exec_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 syscall_response_t kill_syscall(uint32_t arg1) {
 	return syscall1(kill_syscall_id,(uint32_t)arg1);
 }
-syscall_response_t now_syscall(uint64_t* arg1) {
-	return syscall1(now_syscall_id,(uint32_t)arg1);
-}
 syscall_response_t fstat_syscall(uint32_t arg1,uint32_t arg2) {
 	return syscall2(fstat_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }

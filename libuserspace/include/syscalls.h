@@ -49,8 +49,6 @@ syscall_response_t exec_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 constexpr uint8_t exec_syscall_id = 0x10;
 syscall_response_t kill_syscall(uint32_t arg1);
 constexpr uint8_t kill_syscall_id = 0x12;
-syscall_response_t now_syscall(uint64_t* arg1);
-constexpr uint8_t now_syscall_id = 0x13;
 syscall_response_t fstat_syscall(uint32_t arg1,uint32_t arg2);
 constexpr uint8_t fstat_syscall_id = 0x14;
 syscall_response_t fseek_syscall(uint32_t arg1,uint32_t arg2);

@@ -15,6 +15,8 @@
 #include <libuserspace/time.h>
 #include <libuserspace/syscalls.h>
 #include <libuserspace/sysinfo.h>
+#include <libuserspace/file.h>
+#include <muzzle/stdlib.h>
 
 extern "C"
 uint64_t uptime() {
@@ -25,7 +27,10 @@ uint64_t uptime() {
 
 extern "C"
 uint64_t now() {
-    uint64_t ret = 0;
-    now_syscall(&ret);
-    return ret;
+    auto fd = open("/devices/rtc/now", gModeRead);
+    if (fd == gInvalidFd) return 0;
+    uint8_t buffer[24] = {0};
+    read(fd, 23, &buffer[0]);
+    close(fd);
+    return atoll((const char*)&buffer[0]);
 }

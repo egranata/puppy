@@ -14,7 +14,6 @@
     {"number":15,    "name":"fread",            "argc":3},
     {"number":16,    "name":"exec",             "argc":3},
     {"number":18,    "name":"kill",             "argc":1},
-    {"number":19,    "name":"now",              "argtypes":["uint64_t*"]},
     {"number":20,    "name":"fstat",            "argc":2},
     {"number":21,    "name":"fseek",            "argc":2},
     {"number":22,    "name":"fopendir",         "argc":1},
