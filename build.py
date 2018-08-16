@@ -378,14 +378,6 @@ write("out/iso/boot/grub/grub.cfg", menulst)
 
 copy("out/kernel", "out/iso/boot/puppy")
 
-print("Generating os.iso")
-
-CMDLINE = "genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A os -input-charset utf8 -boot-info-table -o out/os.iso out/iso"
-CMDLINE = "grub-mkrescue -o out/os.iso out/iso"
-shell(CMDLINE)
-
-print("Size of OS iso image: %d bytes" % os.stat("out/os.iso").st_size)
-
 print("Generating kernel symbol table")
 
 CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
