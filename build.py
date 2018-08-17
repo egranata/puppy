@@ -276,17 +276,33 @@ Userspace = Project(name="Userspace",
     linkerdeps=["out/libmuzzle.a"])
 Userspace.link = Userspace.linkAr
 
+NewlibInterface = Project(name="NewlibInterface",
+    srcdir="newlib/syscalls",
+    assembler="nasm",
+    ipaths=["include", "include/newlib"])
+NewlibInterface.link = NewlibInterface.linkAr
+
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
     assembler="nasm",
     linkerdeps=["out/libuserspace.a"])
 Checkup.link = Checkup.linkAr
 
+NewlibDemo = Project(name="NewlibDemo",
+    srcdir="newlib/demo",
+    ipaths=["include", "include/newlib"],
+    ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e__start"],
+    outwhere="out/apps",
+    linkerdeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a"])
+NewlibDemo.link = NewlibDemo.linkGcc
+
 FatFS.build()
 Muzzle.build()
 Kernel.build()
 Userspace.build()
+NewlibInterface.build()
 Checkup.build()
+NewlibDemo.build()
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
@@ -302,7 +318,7 @@ APPS = []
 TESTS = []
 
 INITRD_REFS = [] # apps for initrd
-APP_REFS = [] # apps for main filesystem
+APP_REFS = ["out/apps/newlibdemo"] # apps for main filesystem
 TEST_REFS = []
 APP_PROJECTS = []
 TEST_PROJECTS = []
