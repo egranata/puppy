@@ -9,6 +9,8 @@ extern "C" int  errno;
 #include <newlib/sys/time.h>
 #include <newlib/stdio.h>
 #include <newlib/syscalls.h>
+#include <newlib/stdlib.h>
+#include <newlib/malloc.h>
 
 #include <kernel/syscalls/types.h>
 
@@ -22,9 +24,15 @@ NEWLIB_IMPL_REQUIREMENT int close(int file) {
     return fclose_syscall(file);
 }
 
-NEWLIB_IMPL_REQUIREMENT int execve(char *name, char **argv, char **env);
+NEWLIB_IMPL_REQUIREMENT int execve(char* /*name*/, char** /*argv*/, char** /*env*/) {
+  errno = ENOMEM;
+  return -1;    
+}
 
-NEWLIB_IMPL_REQUIREMENT int fork();
+NEWLIB_IMPL_REQUIREMENT int fork() {
+  errno = EAGAIN;
+  return -1;
+}
 
 NEWLIB_IMPL_REQUIREMENT int fstat(int /*file*/, struct stat* /*st*/) { return 0; }
 
@@ -43,7 +51,10 @@ NEWLIB_IMPL_REQUIREMENT int isatty(int file) {
     }
 }
 
-NEWLIB_IMPL_REQUIREMENT int kill(int pid, int sig);
+NEWLIB_IMPL_REQUIREMENT int kill(int /*pid*/, int /*sig*/) {
+  errno = EINVAL;
+  return -1;
+}
 
 NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
     errno = EMLINK;
@@ -110,11 +121,39 @@ NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
 
 NEWLIB_IMPL_REQUIREMENT int stat(const char *file, struct stat *st);
 
-NEWLIB_IMPL_REQUIREMENT clock_t times(struct tms *buf);
+NEWLIB_IMPL_REQUIREMENT clock_t times(struct tms* /*buf*/) {
+    return -1;
+}
 
-NEWLIB_IMPL_REQUIREMENT int unlink(char *name);
+NEWLIB_IMPL_REQUIREMENT int unlink(char *name) {
+    auto r = fdel_syscall(name);
+    if (r == 0) return 0;
+    errno = ENOENT;
+    return -1;
+}
 
-NEWLIB_IMPL_REQUIREMENT int wait(int *status);
+NEWLIB_IMPL_REQUIREMENT int wait(int *stat_loc) {
+    uint16_t pid;
+    process_exit_status_t status(0);
+    if (0 != collectany_syscall(&pid, &status)) {
+        return -1;
+    }
+    switch (status.reason) {
+        case process_exit_status_t::reason_t::cleanExit:
+            *stat_loc = status.status << 8;
+            break;
+        case process_exit_status_t::reason_t::exception:
+        case process_exit_status_t::reason_t::kernelError:
+            *stat_loc = 0x80;
+            break;
+        case process_exit_status_t::reason_t::killed:
+            *stat_loc = 0x901; // signal 9
+            break;
+        case process_exit_status_t::reason_t::alive:
+            return -1;
+    }
+    return pid;
+}
 
 NEWLIB_IMPL_REQUIREMENT int write(int file, char *ptr, int len) {
     auto wo = fwrite_syscall(file, len, (uint32_t)ptr);
@@ -122,6 +161,16 @@ NEWLIB_IMPL_REQUIREMENT int write(int file, char *ptr, int len) {
     return wo >> 1;
 }
 
-NEWLIB_IMPL_REQUIREMENT int gettimeofday (struct timeval *__restrict __p, void *__restrict __tz);
+NEWLIB_IMPL_REQUIREMENT int gettimeofday (struct timeval *__restrict __p, void *__restrict /**__tz: no timezone support */) {
+    char* buf = nullptr;
+    size_t n = 0;
+    FILE *f = fopen("/devices/rtc/now", "r");
+    if (f == nullptr) return -1;
+    __getline(&buf, &n, f);
+    fclose(f);
+    __p->tv_sec = atoll(buf);
+    free(buf);
+    return 0;
+}
 
 NEWLIB_IMPL_REQUIREMENT char **environ;

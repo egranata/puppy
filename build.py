@@ -265,7 +265,10 @@ class UserspaceTool(Project):
         elif stdlib == 'newlib':
             ipaths=["include", "include/newlib"]
             ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e_start"]
-            ldeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a"]
+            # not a typo: libc depends on libinterface, but libinterface takes liberties with
+            # symbols from libc - the simplest way to resolve this circular dependency is to
+            # specify libc as dependency twice.. TODO would be using --start-group for this
+            ldeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
         else:
             raise ValueError("stdlib should be either libuserspace or newlib")
 
