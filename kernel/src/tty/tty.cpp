@@ -19,10 +19,14 @@
 
 TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()) {}
 
-void TTY::write(const char* buffer) {
+void TTY::write(size_t sz, const char* buffer) {
     mWriteSemaphore.wait();
 
-    mFramebuffer.write(buffer);
+    while(sz) {
+        mFramebuffer.putc(*buffer);
+        --sz;
+        ++buffer;
+    }
 
     mWriteSemaphore.signal();
 }

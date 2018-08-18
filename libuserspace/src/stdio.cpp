@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <libuserspace/stdio.h>
+#include <libuserspace/string.h>
 #include <libuserspace/syscalls.h>
 
 static bool gEchoMode = true;
@@ -24,16 +25,11 @@ void echomode(bool echo) {
 
 extern "C"
 void cwrite(const char* s) {
-    // TODO: tty does not use the size argument
-    // 0 is safe to pass, as it will make it obvious
-    // when the tty interface is fixed (hint: nothing
-    // will be displayed on screen)
-    fwrite_syscall(0, 0, (uint32_t)s);
+    fwrite_syscall(0, strlen(s), (uint32_t)s);
 }
 
 void putchar(char s) {
-    char buf[2] = {s, 0};
-    cwrite(buf);
+    fwrite_syscall(0, 1, (uint32_t)&s);
 }
 
 extern "C"

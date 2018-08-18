@@ -47,6 +47,9 @@ class Framebuffer : NOCOPY {
         Framebuffer& write(const char* s);
         Framebuffer& write(const char* s, color_t color);
 
+        Framebuffer& putc(char c);
+        Framebuffer& putc(char c, color_t color);
+
         uintptr_t base() const;
         uintptr_t end() const;
         size_t size() const;

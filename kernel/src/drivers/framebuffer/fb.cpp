@@ -217,6 +217,26 @@ uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	return end;
 }
 
+Framebuffer& Framebuffer::putc(char c) {
+	return putc(c, mForeground);
+}
+
+Framebuffer& Framebuffer::putc(char c, color_t color) {
+	switch (c) {
+		case '\n':
+			nl();
+			break;
+		case '\b':
+			rewind(true);
+			break;
+		default:
+			putchar(mX, mY, c, color.r, color.g, color.b);
+			advance();
+			break;
+	}
+	return *this;
+}
+
 Framebuffer& Framebuffer::write(const char* s) {
     return write(s, mForeground);
 }
@@ -224,18 +244,7 @@ Framebuffer& Framebuffer::write(const char* s) {
 Framebuffer& Framebuffer::write(const char* s, Framebuffer::color_t color) {
 	if (s != nullptr) {
 		while(auto c = *s) {
-			switch (c) {
-				case '\n':
-					nl();
-					break;
-				case '\b':
-					rewind(true);
-					break;
-				default:
-					putchar(mX, mY, c, color.r, color.g, color.b);
-					advance();
-					break;
-			}
+			putc(c, color);
 			++s;
 		}
 	}

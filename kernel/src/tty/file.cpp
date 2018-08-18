@@ -38,7 +38,7 @@ ch:     auto c = mTTY->read();
 }
 
 size_t TTYFile::write(size_t s, char* buffer) {
-    mTTY->write(buffer);
+    mTTY->write(s, buffer);
     return s;
 }
 

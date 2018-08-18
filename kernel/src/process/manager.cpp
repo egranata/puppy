@@ -731,11 +731,13 @@ uint64_t ProcessManager::fillGDT(process_t* process) {
 }
 
 void ProcessManager::forwardTTY(process_t* process) {
-    size_t ttyfd;
-    bool ok = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd);
-    if (false == ok || 0 != ttyfd) {
-        PANIC("unable to forward TTY to new process");
-    } else {
+    size_t ttyfd0=3, ttyfd1=3, ttyfd2=3;
+    bool ok0 = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd0);
+    bool ok1 = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd1);
+    bool ok2 = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd2);
+    if ((ok0 && 0 == ttyfd0) && (ok1 && 1 == ttyfd1) && (ok2 && 2 == ttyfd2)) {
         LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, process->ttyinfo.ttyfile);
+    } else {
+        PANIC("unable to forward TTY to new process");
     }
 }

@@ -28,7 +28,7 @@
 class TTY {
     public:
         TTY();
-        void write(const char* buffer);
+        void write(size_t sz, const char* buffer);
         int read();
 
         void pushfg(uint16_t);
