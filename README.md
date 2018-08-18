@@ -40,13 +40,9 @@ Assuming those are in place, to compile the project, just type
 $ ./build.py
 ```
 
-in a shell. This will churn for a while (should be under a minute) and produce two main outputs:
-- a bootable ISO image `out/os.iso`;
-- a bootable HD image `out/os.img`.
+in a shell. This will churn for a while (should be under a minute) and produce a bootable HD image `out/os.img`.
 
 The HD image includes the kernel, as well as a fairly minimal userspace + suite of tests. It can be used to boot an emulator, or bit-blasted to a real hard disk.
-
-The ISO image doesn't include any of the userspace, but the kernel should be bootable to a minimal shell.
 
 A sample configuration for Bochs and QEMU launcher script can be found in the `build` directory.
 
