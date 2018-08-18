@@ -251,7 +251,13 @@ class Project(object):
         return DEST
 
 class UserspaceTool(Project):
-    def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib='libuserspace', linkerdeps=[], announce=False):
+    def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib=None, linkerdeps=[], announce=False):
+        if stdlib is None:
+            if os.path.exists(os.path.join(srcdir, "newlib.use")):
+                stdlib = 'newlib'
+            else:
+                stdlib = 'libuserspace'
+
         if stdlib == 'libuserspace':
             ipaths = None
             ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"]
@@ -262,7 +268,9 @@ class UserspaceTool(Project):
             ldeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a"]
         else:
             raise ValueError("stdlib should be either libuserspace or newlib")
+
         ldeps = ldeps + linkerdeps
+
         Project.__init__(self,
                          name=name,
                          srcdir=srcdir,
@@ -314,17 +322,12 @@ Checkup = Project(name="Checkup",
     linkerdeps=["out/libuserspace.a"])
 Checkup.link = Checkup.linkAr
 
-NewlibDemo = UserspaceTool(name="NewlibDemo",
-                           srcdir="newlib/demo",
-                           stdlib="newlib") 
-
 FatFS.build()
 Muzzle.build()
 Kernel.build()
 Userspace.build()
 NewlibInterface.build()
 Checkup.build()
-NewlibDemo.build()
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
