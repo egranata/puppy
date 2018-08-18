@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/tty.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/sleep.h>
-#include <libuserspace/yield.h>
-#include <libuserspace/getpid.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/stdio.h>
+#include <newlib/unistd.h>
 
 int main(int argc, const char** argv) {
     auto pid = getpid();
-    printf("[pid %u] About to let go of the TTY\n", pid);
-    ttybg();
-    printf("[pid %u] I am not in the foreground anymore!\n", pid);
+    auto ppid = getppid();
+    printf("[pid %u child of %u] About to let go of the TTY\n", pid, ppid);
+    fioctl_syscall(0, 2, 0);
+    printf("[pid %u child of %u] I am not in the foreground anymore!\n", pid, ppid);
     while(true) {
-        sleep(5000);
-        printf("[pid %u] args = ", pid);
+        sleep_syscall(5000);
+        printf("[pid %u child of %u] args = ", pid, ppid);
         if (argc == 0) {
             printf("no message!\n");
         } else {
@@ -34,6 +35,6 @@ int main(int argc, const char** argv) {
             }
             printf("\n");
         }
-        yield();
+        yield_syscall();
     }
 }

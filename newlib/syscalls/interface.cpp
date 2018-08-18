@@ -37,7 +37,11 @@ NEWLIB_IMPL_REQUIREMENT int fork() {
 NEWLIB_IMPL_REQUIREMENT int fstat(int /*file*/, struct stat* /*st*/) { return 0; }
 
 NEWLIB_IMPL_REQUIREMENT int getpid() {
-    return getpid_syscall() << 1;
+    return getpid_syscall() >> 1;
+}
+
+NEWLIB_IMPL_REQUIREMENT int getppid() {
+    return getppid_syscall() >> 1;
 }
 
 NEWLIB_IMPL_REQUIREMENT int isatty(int file) {
