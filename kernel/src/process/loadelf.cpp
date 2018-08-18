@@ -19,7 +19,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/process/current.h>
 
-LOG_TAG(LOADELF, 1);
+LOG_TAG(LOADELF, 0);
 
 #define UNHAPPY(cause) { \
     TAG_ERROR(LOADELF, "failed to load ELF image: " #cause); \

@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/printf.h>
-#include <libuserspace/file.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/memory.h>
-#include <muzzle/stdlib.h>
-#include <libuserspace/stdio.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+#include <newlib/string.h>
 
 void printchar(char c) {
     if (c < '\n') {
@@ -27,34 +24,29 @@ void printchar(char c) {
     }
 }
 
-void dump(uint32_t fd) {
-    uint32_t size = 0;
-    if (!fsize(fd, size)) {
-        printf("file size is unknown\n");
-        return;
+void dump(FILE* f) {
+    while(true) {
+        auto c = fgetc(f);
+        if (c == EOF) break;
+        fputc(c, stdout);
     }
-
-    for(; size != 0; --size) {
-        unsigned char c = 0;
-        read(fd, 1, &c);
-        printchar(c);
-    }
+    fclose(f);
 }
 
 void cat(const char* path) {
     printf("Printout of %s\n", path);
     printf("==============================================================================\n");
-    auto fd = open(path, gModeRead);
-    if (fd == gInvalidFd) {
+    auto fd = fopen(path, "r'");
+    if (fd == nullptr) {
         printf("could not open %s - exiting\n", path);
         exit(1);
     }
-
     dump(fd);
     printf("==============================================================================\n");    
 }
 
 int main(int argc, const char** argv) {
+    printf("Will dump %u files - arguments at %p\n", argc, argv);
     for (auto i = 0; i < argc; ++i) {
         cat(argv[i]);
     }

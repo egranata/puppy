@@ -264,7 +264,7 @@ class UserspaceTool(Project):
             ldeps = ["out/libuserspace.a", "out/libmuzzle.a"]
         elif stdlib == 'newlib':
             ipaths=["include", "include/newlib"]
-            ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e__start"]
+            ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e_start"]
             ldeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a"]
         else:
             raise ValueError("stdlib should be either libuserspace or newlib")

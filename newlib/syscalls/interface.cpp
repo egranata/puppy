@@ -99,6 +99,7 @@ NEWLIB_IMPL_REQUIREMENT int read(int file, char* ptr, int len) {
 uint8_t *gSbrkPointer = nullptr;
 
 NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
+    klog_syscall("sbrk");
     if (gSbrkPointer == nullptr) {
         gSbrkPointer = (uint8_t*)mapregion_syscall(128*1024*1024, 1);
     }
