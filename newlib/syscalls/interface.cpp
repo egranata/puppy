@@ -16,8 +16,8 @@ extern "C" int  errno;
 
 #define NEWLIB_IMPL_REQUIREMENT extern "C" 
 
-NEWLIB_IMPL_REQUIREMENT void _exit() {
-    exit_syscall(12);
+NEWLIB_IMPL_REQUIREMENT void _exit(int code) {
+    exit_syscall(code);
 }
 
 NEWLIB_IMPL_REQUIREMENT int close(int file) {
@@ -110,7 +110,6 @@ NEWLIB_IMPL_REQUIREMENT int read(int file, char* ptr, int len) {
 uint8_t *gSbrkPointer = nullptr;
 
 NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
-    klog_syscall("sbrk");
     if (gSbrkPointer == nullptr) {
         gSbrkPointer = (uint8_t*)mapregion_syscall(128*1024*1024, 1);
     }

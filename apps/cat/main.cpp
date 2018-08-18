@@ -46,7 +46,6 @@ void cat(const char* path) {
 }
 
 int main(int argc, const char** argv) {
-    printf("Will dump %u files - arguments at %p\n", argc, argv);
     for (auto i = 0; i < argc; ++i) {
         cat(argv[i]);
     }

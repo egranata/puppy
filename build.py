@@ -321,8 +321,7 @@ NewlibInterface.link = NewlibInterface.linkAr
 
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
-    assembler="nasm",
-    linkerdeps=["out/libuserspace.a"])
+    assembler="nasm")
 Checkup.link = Checkup.linkAr
 
 FatFS.build()
