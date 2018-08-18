@@ -250,6 +250,32 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
+class UserspaceTool(Project):
+    def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib='libuserspace', linkerdeps=[], announce=False):
+        if stdlib == 'libuserspace':
+            ipaths = None
+            ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"]
+            ldeps = ["out/libuserspace.a", "out/libmuzzle.a"]
+        elif stdlib == 'newlib':
+            ipaths=["include", "include/newlib"]
+            ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e__start"]
+            ldeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a"]
+        else:
+            raise ValueError("stdlib should be either libuserspace or newlib")
+        ldeps = ldeps + linkerdeps
+        Project.__init__(self,
+                         name=name,
+                         srcdir=srcdir,
+                         cflags=cflags,
+                         cppflags=cppflags,
+                         ldflags=ldflags,
+                         ipaths=ipaths,
+                         assembler="nasm",
+                         linkerdeps=ldeps,
+                         outwhere=outwhere,
+                         announce=announce)
+        self.link = self.linkGcc
+
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
     assembler="nasm")
@@ -288,13 +314,9 @@ Checkup = Project(name="Checkup",
     linkerdeps=["out/libuserspace.a"])
 Checkup.link = Checkup.linkAr
 
-NewlibDemo = Project(name="NewlibDemo",
-    srcdir="newlib/demo",
-    ipaths=["include", "include/newlib"],
-    ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e__start"],
-    outwhere="out/apps",
-    linkerdeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a"])
-NewlibDemo.link = NewlibDemo.linkGcc
+NewlibDemo = UserspaceTool(name="NewlibDemo",
+                           srcdir="newlib/demo",
+                           stdlib="newlib") 
 
 FatFS.build()
 Muzzle.build()
@@ -327,15 +349,9 @@ USER_CONTENT_BEGIN = time.time()
 
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
-    app_p = Project(name = os.path.basename(app),
-                    srcdir = app,
-                    ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"],
-                    assembler="nasm",
-                    linkerdeps = ["out/libuserspace.a", "out/libmuzzle.a"],
-                    outwhere="out/apps",
-                    announce=False)
+    app_p = UserspaceTool(name = os.path.basename(app),
+                          srcdir = app)
     APP_PROJECTS.append(app_p.name)
-    app_p.link = app_p.linkGcc
     app_o = app_p.build()
     APPS.append(app_o)
     config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
@@ -349,17 +365,13 @@ TEST_DIRS = findSubdirectories("tests", self=False)
 for test in TEST_DIRS:
     test_name = test.replace('/','_')
     test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
-    test_p = Project(name = os.path.basename(test),
-                    srcdir = test,
-                    cflags = BASIC_CFLAGS + [test_name_define],
-                    cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + [test_name_define],
-                    ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"],
-                    assembler="nasm",
-                    linkerdeps = ["out/libcheckup.a", "out/libuserspace.a", "out/libmuzzle.a"],
-                    outwhere="out/tests",
-                    announce=False)
+    test_p = UserspaceTool(name = os.path.basename(test),
+                           srcdir = test,
+                           cflags = BASIC_CFLAGS + [test_name_define],
+                           cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + [test_name_define],
+                           outwhere="out/tests",
+                           linkerdeps = ["out/libcheckup.a"])
     TEST_PROJECTS.append(test_p.name)
-    test_p.link = test_p.linkGcc
     test_o = test_p.build()
     TESTS.append(test_o)
     TEST_REFS.append(test_o)
