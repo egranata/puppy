@@ -16,6 +16,7 @@
 #include <libuserspace/memory.h>
 #include <libuserspace/sbrk.h>
 #include <libuserspace/stdio.h>
+#include <libuserspace/printf.h>
 
 #include <muzzle/string.h>
 #include <muzzle/stdlib.h>
@@ -87,16 +88,20 @@ static size_t parseArgs(char* s, char** argv) {
 }
 
 extern "C"
-void __app_entry(char* cmdline) {
+void __app_entry(char* program, char* cmdline) {
     initheap();
     echomode(true);
 
-    if (cmdline == nullptr) {
-        exit(main(0, nullptr));
+    size_t maxargc = maxArgc(cmdline);
+    char** args = (char**)calloc(sizeof(char*), maxargc + 2);
+    if (program == nullptr) {
+        args[0] = (char*)calloc(sizeof(char), 1);
     } else {
-        size_t maxargc = maxArgc(cmdline);
-        char** args = (char**)calloc(sizeof(char*), maxargc);
-        size_t argcnt = parseArgs(cmdline, args);
-        exit(main(argcnt, args));
+        args[0] = (char*)calloc(strlen(program) + 1, 1);
+        strcpy(args[0], program);
     }
+    size_t argcnt = parseArgs(cmdline, &args[1]);
+    args[argcnt + 1] = nullptr;
+
+    exit(main(argcnt+1, args));
 }

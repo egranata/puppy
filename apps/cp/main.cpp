@@ -31,13 +31,13 @@ void copy(int from, int to) {
 }
 
 int main(int argc, const char** argv) {
-    if (argc != 2) {
+    if (argc != 3) {
         usage(true);
     }
 
-    auto srcFd = open(argv[0], FILE_OPEN_READ);
+    auto srcFd = open(argv[1], FILE_OPEN_READ);
     if (srcFd == gInvalidFd) usage(true);
-    auto dstFd = open(argv[1], FILE_OPEN_WRITE | FILE_OPEN_NEW);
+    auto dstFd = open(argv[2], FILE_OPEN_WRITE | FILE_OPEN_NEW);
     if (dstFd == gInvalidFd) usage(true);
 
     copy(srcFd, dstFd);

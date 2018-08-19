@@ -20,10 +20,10 @@ void waitForReceive();
 void send(uint16_t);
 
 int main(int argc, const char** argv) {
-    if (argc == 0) {
+    if (argc == 1) {
         waitForReceive();
     } else {
-        auto pid = atoi(argv[0]);
+        auto pid = atoi(argv[1]);
         send(pid);
     }
 

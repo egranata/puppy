@@ -54,7 +54,7 @@ void dump(const char* path) {
 }
 
 int main(int argc, const char** argv) {
-    for (auto i = 0; i < argc; ++i) {
+    for (auto i = 1; i < argc; ++i) {
         dump(argv[i]);
     }
 

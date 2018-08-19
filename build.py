@@ -272,7 +272,7 @@ class UserspaceTool(Project):
         else:
             raise ValueError("stdlib should be either libuserspace or newlib")
 
-        ldeps = ldeps + linkerdeps
+        ldeps = linkerdeps + ldeps
 
         Project.__init__(self,
                          name=name,
@@ -321,7 +321,8 @@ NewlibInterface.link = NewlibInterface.linkAr
 
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
-    assembler="nasm")
+    assembler="nasm",
+    linkerdeps=["out/libuserspace.a", "out/libmuzzle.a"])
 Checkup.link = Checkup.linkAr
 
 FatFS.build()

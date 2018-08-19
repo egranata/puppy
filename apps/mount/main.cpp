@@ -19,25 +19,25 @@
 #include <libuserspace/printf.h>
 #include <libuserspace/syscalls.h>
 
-static void usage() {
-    printf("mount: <device> <path>\n");
+static void usage(const char* name) {
+    printf("%s: <device> <path>\n", name);
     exit(1);
 }
 
 int main(int argc, const char** argv) {
-    if (argc != 2) {
-        usage();
+    if (argc != 3) {
+        usage(argv[0]);
     }
-    auto fd = open(argv[0], gModeRead);
+
+    const char* dev = argv[1];
+    const char* mountpoint = argv[2];
+    if (*mountpoint == '/') ++mountpoint;
+
+    auto fd = open(dev, gModeRead);
     if (fd == gInvalidFd) {
-        printf("Could not open %s\n", argv[0]);
+        printf("Could not open %s\n", dev);
         exit(1);
     }
 
-    if (argv[1][0] == '/') ++argv[1];
-
-    trymount_syscall(fd, argv[1]);
-
-    return 0;
+    return trymount_syscall(fd, mountpoint); // returns 0 on success
 }
-

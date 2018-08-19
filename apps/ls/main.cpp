@@ -37,12 +37,12 @@ void print(dir_entry_info_t& entry) {
 }
 
 int main(int argc, const char** argv) {
-    if (argc == 0) {
-        printf("ls <path>\n");
+    if (argc == 1) {
+        printf("%s <path>\n", argv[0]);
         exit(1);
     }
 
-    uint32_t did = opendir(argv[0]);
+    uint32_t did = opendir(argv[1]);
     if (did == gInvalidDid) {
         printf("error: could not open %s\n", argv[0]);
         exit(1);

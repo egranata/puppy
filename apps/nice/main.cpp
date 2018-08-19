@@ -38,10 +38,10 @@ int setnice(const char* spid, const char* sprio) {
 
 int main(int argc, const char** argv) {
     switch (argc) {
-        case 1:
-            return getnice(argv[0]);
         case 2:
-            return setnice(argv[0], argv[1]);
+            return getnice(argv[1]);
+        case 3:
+            return setnice(argv[1], argv[2]);
         default:
             printf("nice <pid> [<prio>]\n");
             exit(1);

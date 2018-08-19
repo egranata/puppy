@@ -26,12 +26,12 @@ void error() {
 }
 
 int main(int argc, const char** argv) {
-    if (argc != 2) error();
+    if (argc != 3) error();
 
-    if (0 == strcmp("wait", argv[0])) {
-        waitForSema(argv[1]);
-    } else if (0 == strcmp("signal", argv[0])) {
-        signalSema(argv[1]);
+    if (0 == strcmp("wait", argv[1])) {
+        waitForSema(argv[2]);
+    } else if (0 == strcmp("signal", argv[1])) {
+        signalSema(argv[2]);
     } else {
         error();
     }

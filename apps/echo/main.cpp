@@ -26,13 +26,13 @@ static void usage() {
 }
 
 int main(int argc, const char** argv) {
-    if (argc == 0) return 0;
+    if (argc < 2) return 0;
 
     const char* file = nullptr;
     bool append = false;
     auto fd = gInvalidFd;
 
-    for (auto i = 0; i < argc; ++i) {
+    for (auto i = 1; i < argc; ++i) {
         if (0 == strcmp(argv[i], "--file")) {
             if (i + 1 >= argc) {
                 usage();

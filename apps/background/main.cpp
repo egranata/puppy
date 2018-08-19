@@ -30,7 +30,7 @@ int main(int argc, const char** argv) {
         if (argc == 0) {
             printf("no message!\n");
         } else {
-            for (auto i = 0; i < argc; ++i) {
+            for (auto i = 1; i < argc; ++i) {
                 printf("%s ", argv[i]);
             }
             printf("\n");

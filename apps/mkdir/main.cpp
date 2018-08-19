@@ -22,11 +22,11 @@ static void usage(bool exit) {
 }
 
 int main(int argc, const char** argv) {
-    if (argc != 1) {
+    if (argc != 2) {
         usage(true);
     }
 
-    if (!mkdir(argv[0])) {
+    if (!mkdir(argv[1])) {
         usage(true);
     }
 

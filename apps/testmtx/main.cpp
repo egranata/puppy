@@ -26,12 +26,12 @@ void error() {
 }
 
 int main(int argc, const char** argv) {
-    if (argc != 1) error();
+    if (argc != 2) error();
 
     auto p = getpid();
 
-    Mutex mtx(argv[0]);
-    printf("pid %u acquired mutex %s, handle is %x\n", p, argv[0], mtx.handle());
+    Mutex mtx(argv[1]);
+    printf("pid %u acquired mutex %s, handle is %x\n", p, argv[1], mtx.handle());
     mtx.lock();
     printf("pid %u locked mutex!\n", p);
     sleep(12000);

@@ -19,12 +19,12 @@
 #include <muzzle/stdlib.h>
 
 int main(int argc, const char** argv) {
-    if (argc == 0) {
+    if (argc == 1) {
         printf("kill <pid>...\n");
         exit(1);
     }
 
-    for (auto i = 0; i < argc; ++i) {
+    for (auto i = 1; i < argc; ++i) {
         auto arg = argv[i];
         auto pid = atoi(arg);
         printf("About to nuke process %u from orbit..", pid);

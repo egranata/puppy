@@ -20,13 +20,13 @@
 #include <muzzle/stdlib.h>
 
 int main(int argc, const char** argv) {
-    if (argc != 1) {
-        printf("mkramdisk <sectors>\n");
+    if (argc != 2) {
+        printf("%s <sectors>\n", argv[0]);
         printf("each sector is 512 bytes in size, so e.g. 2048 would make a 1MB disk\n");
         exit(1);
     }
     
-    auto arg = argv[0];
+    auto arg = argv[1];
     auto size = 512 * atoi(arg);
     printf("About to create a RAM disk volume of %u bytes...\n", size);
 

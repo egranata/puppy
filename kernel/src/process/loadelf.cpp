@@ -26,6 +26,14 @@ LOG_TAG(LOADELF, 0);
     return loadinfo; \
 }
 
+namespace {
+    struct program_args_t {
+        char name[384];
+        char arguments[3712];
+    };
+    static_assert(sizeof(program_args_t) == VirtualPageManager::gPageSize);
+}
+
 extern "C"
 process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
     auto&& vmm(VirtualPageManager::get());
@@ -111,20 +119,34 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
     memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
     // gcc tends to expect ESP+4 to be available; we could leave a 4-byte gap
-    // but we're going to be pushing the args pointer below, so leave 12 now,
+    // but we're going to be pushing the args pointer below, so leave 16 now,
     // and then with the pointer to args, we'll be at 8-byte aligned
-    loadinfo.stack = stackbegin - 12;
+    loadinfo.stack = stackbegin - 16;
 
     uint32_t *stack = (uint32_t*)loadinfo.stack;
     if (gCurrentProcess->args) {
         auto mapopts = VirtualPageManager::map_options_t().rw(true).user(true).clear(true);
         auto cmdlinergn = memmgr->findAndMapRegion(VirtualPageManager::gPageSize, mapopts);
-        uint8_t* cmdlines = (uint8_t*)cmdlinergn.from;
-        TAG_DEBUG(LOADELF, "cmdline pointer at %p", cmdlines);
-        memcopy((uint8_t*)gCurrentProcess->args, cmdlines, strlen(gCurrentProcess->args));
-        TAG_DEBUG(LOADELF, "copied command line arguments (%s) to %p - pushing on stack at %p", cmdlines, cmdlines, stack);
-        *stack = (uintptr_t)cmdlines;
+        program_args_t* args_ptr = (program_args_t*)cmdlinergn.from;
+        TAG_DEBUG(LOADELF, "cmdline pointer at %p", args_ptr);
+        if (gCurrentProcess->path) {
+            strncpy(args_ptr->name, gCurrentProcess->path, sizeof(args_ptr->name));
+        }
+        if (gCurrentProcess->args) {
+            strncpy(args_ptr->arguments, gCurrentProcess->args, sizeof(args_ptr->arguments));
+        }
+
+        TAG_DEBUG(LOADELF, "args_ptr: name=%p (%s) arguments=%p (%s) - pushing on stack at %p",
+            args_ptr->name, args_ptr->name,
+            args_ptr->arguments, args_ptr->arguments,
+            stack);
+
+        *stack = (uintptr_t)&args_ptr->arguments[0];
+        --stack;
+        *stack = (uintptr_t)&args_ptr->name[0];
     } else {
+        *stack = 0;
+        --stack;
         *stack = 0;
     }
     --stack;
