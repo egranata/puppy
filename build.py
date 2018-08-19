@@ -353,19 +353,27 @@ TEST_PROJECTS = []
 
 USER_CONTENT_BEGIN = time.time()
 
+print("Building userspace tools: ", end='', flush=True)
+
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
     app_p = UserspaceTool(name = os.path.basename(app),
                           srcdir = app)
     APP_PROJECTS.append(app_p.name)
+    print(app_p.name, end='', flush=True)
     app_o = app_p.build()
     APPS.append(app_o)
     config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
     if config["mainfs"]: APP_REFS.append(app_o)
     if config["initrd"]: INITRD_REFS.append(app_o)
+    print("(%d) " % os.stat(app_o).st_size, end='', flush=True)
+
+print('')
 
 TEST_PLAN = {}
 KNOWN_FAIL_TESTS = ["tests_mutexkill"]
+
+print("Building tests: ", end='', flush=True)
 
 TEST_DIRS = findSubdirectories("tests", self=False)
 for test in TEST_DIRS:
@@ -378,9 +386,11 @@ for test in TEST_DIRS:
                            outwhere="out/tests",
                            linkerdeps = ["out/libcheckup.a"])
     TEST_PROJECTS.append(test_p.name)
+    print(test_p.name, end='', flush=True)
     test_o = test_p.build()
     TESTS.append(test_o)
     TEST_REFS.append(test_o)
+    print("(%d) " % os.stat(test_o).st_size, end='', flush=True)
     test_ref = "/system/%s" % (test_o.replace("out/", "")) # this is a bit hacky..
     if test_name not in KNOWN_FAIL_TESTS:
         TEST_PLAN[test_name] = {
@@ -391,6 +401,8 @@ for test in TEST_DIRS:
 
 with open("out/testplan.json", "w") as f:
     json.dump(TEST_PLAN, f)
+
+print('')
 
 USER_CONTENT_END = time.time()
 USER_CONTENT_DURATION = int(USER_CONTENT_END - USER_CONTENT_BEGIN)
