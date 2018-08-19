@@ -148,9 +148,8 @@ HANDLER1(fopendir,pth) {
     }
 }
 
-HANDLER2(freaddir,fid,fip) {
+syscall_response_t freaddir_syscall_handler(uint16_t fid, file_info_t* info) {
     Filesystem::Directory::fileinfo_t finfo;
-    auto fi = (Filesystem::FilesystemObject::info_t*)fip;
     VFS::filehandle_t file = {nullptr, nullptr};
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
@@ -158,10 +157,10 @@ HANDLER2(freaddir,fid,fip) {
         if (file.second) {
             auto ok = ((Filesystem::Directory*)file.second)->next(finfo);
             if (ok) {
-                fi->kind = finfo.kind;
-                fi->size = finfo.size;
-                bzero(&fi->name[0], sizeof(fi->name));
-                memcpy(&fi->name[0], finfo.name.c_str(), finfo.name.size());
+                info->kind = finfo.kind;
+                info->size = finfo.size;
+                bzero(info->name, sizeof(info->name));
+                strncpy(info->name, finfo.name, gMaxPathSize);
                 return OK;
             } else {
                 return ERR(NO_SUCH_FILE);

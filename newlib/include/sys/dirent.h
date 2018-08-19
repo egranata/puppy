@@ -7,7 +7,33 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#error "<dirent.h> not supported"
+
+#include <newlib/stdint.h>
+
+#define DT_UNKNOWN       0
+#define DT_CHR           2
+#define DT_DIR           4
+#define DT_BLK           6
+#define DT_REG           8
+
+struct dirent {
+    int d_ino; // inode: required for compatibility but unused
+    uint16_t d_reclen; // size of this record
+    uint8_t d_type; // entry type
+    uint32_t d_size; // size of the filesystem object
+    char d_name[255 + 1];
+};
+
+struct DIR {
+    uint32_t fhnd;
+    dirent current;
+};
+
+DIR* opendir(const char*);
+int closedir(DIR*);
+struct dirent* readdir(DIR*);
+int readdir_r(DIR*, struct dirent*, struct dirent**);
+
 #ifdef __cplusplus
 }
 #endif

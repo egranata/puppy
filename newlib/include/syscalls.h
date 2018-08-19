@@ -55,7 +55,7 @@ syscall_response_t fseek_syscall(uint32_t arg1,uint32_t arg2);
 constexpr uint8_t fseek_syscall_id = 0x15;
 syscall_response_t fopendir_syscall(uint32_t arg1);
 constexpr uint8_t fopendir_syscall_id = 0x16;
-syscall_response_t freaddir_syscall(uint32_t arg1,uint32_t arg2);
+syscall_response_t freaddir_syscall(uint16_t arg1,file_info_t* arg2);
 constexpr uint8_t freaddir_syscall_id = 0x17;
 syscall_response_t getppid_syscall();
 constexpr uint8_t getppid_syscall_id = 0x18;

@@ -32,11 +32,11 @@ void closedir(uint32_t) {
 
 extern "C"
 bool readdir(uint32_t did, dir_entry_info_t& entry) {
-    Filesystem::FilesystemObject::info_t fi;
-    if (0 == freaddir_syscall(did, (uint32_t)&fi)) {
+    file_info_t fi;
+    if (0 == freaddir_syscall(did, &fi)) {
         entry.isdir = (fi.kind == Filesystem::Directory::fileinfo_t::kind_t::directory);
         entry.size = fi.size;
-        memcpy(&entry.name[0], &fi.name[0], sizeof(fi.name));
+        strncpy(entry.name, fi.name, gMaxPathSize);
         return true;
     }
     return false;

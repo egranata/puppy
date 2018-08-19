@@ -85,7 +85,7 @@ syscall_response_t fseek_syscall(uint32_t arg1,uint32_t arg2) {
 syscall_response_t fopendir_syscall(uint32_t arg1) {
 	return syscall1(fopendir_syscall_id,(uint32_t)arg1);
 }
-syscall_response_t freaddir_syscall(uint32_t arg1,uint32_t arg2) {
+syscall_response_t freaddir_syscall(uint16_t arg1,file_info_t* arg2) {
 	return syscall2(freaddir_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
 syscall_response_t getppid_syscall() {

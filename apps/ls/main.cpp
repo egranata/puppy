@@ -12,28 +12,74 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/directory.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/exit.h>
+#include <newlib/dirent.h>
+#include <newlib/stdint.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
 
 uint32_t gNumFiles = 0;
 uint32_t gNumDirectories = 0;
+uint32_t gNumDevices = 0;
 uint32_t gTotalSize = 0;
 
-bool next(uint32_t did, dir_entry_info_t& entry) {
-    return readdir(did, entry);
+const char* kind2Str(int kind) {
+    switch (kind) {
+        case DT_DIR:
+            ++gNumDirectories;
+            return "<DIR>";
+        case DT_BLK:
+            ++gNumDevices;
+            return "<BLK>";
+        case DT_CHR:
+            ++gNumDevices;
+            return "<CHR>";
+        case DT_REG:
+            ++gNumFiles;
+            __attribute__ ((fallthrough));
+        case DT_UNKNOWN:
+        default:
+            return "";
+    }
 }
 
-void print(dir_entry_info_t& entry) {
-    if (entry.isdir) {
-        printf("<DIR>           ");
-        ++gNumDirectories;
+bool doesPrintSize(int kind) {
+    return kind == DT_REG;
+}
+
+void print(dirent* entry) {
+    if (entry == nullptr) return;
+
+    gTotalSize += entry->d_size;
+
+    printf("%5s  ", kind2Str(entry->d_type));
+    if (doesPrintSize(entry->d_type)) {
+        printf("%12lu ", entry->d_size);
     } else {
-        printf("       %d       ", entry.size);
-        ++gNumFiles;
-        gTotalSize += entry.size;
+        printf("             ");
     }
-    printf("%s\n", entry.name);
+    printf("%s\n", entry->d_name);
+}
+
+int ls(const char* path) {
+    DIR* dir = opendir(path);
+    if (dir == nullptr) {
+        printf("error: could not open %s\n", path);
+        return 1;
+    }
+
+    printf("Directory of %s\n\n", path);
+
+    while(true) {
+        dirent* de = readdir(dir);
+        if (de == nullptr) break;
+        print(de);
+    }
+
+    printf("        %lu File(s)        %lu bytes\n", gNumFiles, gTotalSize);
+    printf("        %lu Dir(s)\n", gNumDirectories);
+    printf("        %lu Devices(s)\n", gNumDevices);
+
+    return 0;
 }
 
 int main(int argc, const char** argv) {
@@ -42,21 +88,6 @@ int main(int argc, const char** argv) {
         exit(1);
     }
 
-    uint32_t did = opendir(argv[1]);
-    if (did == gInvalidDid) {
-        printf("error: could not open %s\n", argv[0]);
-        exit(1);
-    }
-
-    printf("Directory of %s\n\n", argv[0]);
-
-    dir_entry_info_t entry;
-    while(next(did, entry)) {
-        print(entry);
-    }
-
-    printf("        %d File(s)        %d bytes\n", gNumFiles, gTotalSize);
-    printf("        %d Dir(s)\n", gNumDirectories);
-
-    return 0;
+    const char* path = argv[1];
+    return ls(path);
 }

@@ -104,9 +104,28 @@ struct message_t {
     uint32_t arg2;
 };
 
+static constexpr size_t gMaxPathSize = 255;
+typedef char path_name_t[gMaxPathSize + 1];
+
+struct file_stat_t {
+    uint32_t size;
+};
+
+enum class file_kind_t {
+    directory,
+    file,
+    blockdevice, /** see blockdevice_ioctl */
+};
+
+struct file_info_t {
+    using kind_t = file_kind_t;
+    uint32_t size;
+    path_name_t name;
+    file_kind_t kind;
+};
+
 struct process_info_t {
     using pid_t = uint16_t;
-    static constexpr size_t gMaxPathSize = 256;
     static constexpr size_t gMaxCommandLineSize = 128;
 
     pid_t pid;

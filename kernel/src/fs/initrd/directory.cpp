@@ -15,6 +15,7 @@
 #include <kernel/fs/initrd/directory.h>
 #include <kernel/libc/memory.h>
 #include <kernel/libc/str.h>
+#include <muzzle/string.h>
 
 bool InitrdDirectory::next(fileinfo_t& fi) {
     if (mIndex >= mFiles->count) {
@@ -24,7 +25,8 @@ bool InitrdDirectory::next(fileinfo_t& fi) {
     auto&& f = mFiles->files[mIndex++];
     fi.kind = fileinfo_t::kind_t::file;
     fi.size = f.size;
-    fi.name = string((const char*)&f.name[0]);
+    bzero(fi.name, sizeof(fi.name));
+    strncpy(fi.name, (char*)f.name, gMaxPathSize);
     
     return true;
 }

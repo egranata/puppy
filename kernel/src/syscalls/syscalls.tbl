@@ -17,7 +17,7 @@
     {"number":20,    "name":"fstat",            "argc":2},
     {"number":21,    "name":"fseek",            "argc":2},
     {"number":22,    "name":"fopendir",         "argc":1},
-    {"number":23,    "name":"freaddir",         "argc":2},
+    {"number":23,    "name":"freaddir",         "argtypes":["uint16_t", "file_info_t*"]},
     {"number":24,    "name":"getppid",          "argc":0},
     {"number":25,    "name":"collect",          "argtypes":["uint16_t", "process_exit_status_t*"]},
     {"number":26,    "name":"semget",           "argc":1},

@@ -100,9 +100,10 @@ class FATFileSystemDirectory : public Filesystem::Directory {
                 default: return false;
                 case FR_OK:
                     if (fil.fname[0] == 0) return false;
-                    fi.name = string((const char*)&fil.fname[0]);
+                    bzero(fi.name, sizeof(fi.name));
+                    strncpy(fi.name, fil.fname, sizeof(fi.name));
                     fi.size = fil.fsize;
-                    fi.kind = (fil.fattrib & AM_DIR) ? fileinfo_t::kind_t::directory : fileinfo_t::kind_t::file;
+                    fi.kind = (fil.fattrib & AM_DIR) ? file_kind_t::directory : file_kind_t::file;
                     return true;
             }
         }

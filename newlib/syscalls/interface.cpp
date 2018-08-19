@@ -1,3 +1,17 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <newlib/sys/errno.h>
 #undef errno
 extern "C" int  errno;
@@ -174,6 +188,13 @@ NEWLIB_IMPL_REQUIREMENT int gettimeofday (struct timeval *__restrict __p, void *
     __p->tv_sec = atoll(buf);
     free(buf);
     return 0;
+}
+
+NEWLIB_IMPL_REQUIREMENT int mkdir(const char *path, mode_t /**mode: no mode support*/) {
+    auto mo = mkdir_syscall(path);
+    if (mo == 0) return 0;
+    errno = ENOENT;
+    return -1;
 }
 
 NEWLIB_IMPL_REQUIREMENT char **environ;

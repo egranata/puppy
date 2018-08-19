@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <kernel/syscalls/types.h>
 
 static constexpr uint32_t gInvalidDid = -1;
 
@@ -30,7 +31,7 @@ void closedir(uint32_t did);
 
 struct dir_entry_info_t {
     bool isdir;
-    char name[64] = {0};
+    char name[gMaxPathSize + 1] = {0};
     size_t size;
 };
 

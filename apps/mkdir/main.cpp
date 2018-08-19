@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/printf.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/file.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+#include <newlib/sys/stat.h>
 
 static void usage(bool exit) {
     printf("mkdir <path>\n");
@@ -26,7 +26,7 @@ int main(int argc, const char** argv) {
         usage(true);
     }
 
-    if (!mkdir(argv[1])) {
+    if (mkdir(argv[1], 0)) {
         usage(true);
     }
 

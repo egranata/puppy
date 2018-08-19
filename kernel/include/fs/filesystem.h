@@ -27,18 +27,8 @@ class Filesystem {
             public:
                 static constexpr size_t gFilenameSize = 32;
                 typedef unsigned char filename_t[gFilenameSize];
-                enum class kind_t {
-                    directory,
-                    file,
-                    blockdevice, /** see blockdevice_ioctl */
-                };
+                using kind_t = file_kind_t;
                 virtual ~FilesystemObject() = default;
-
-                struct info_t {
-                    uint8_t name[64] = {0};
-                    kind_t kind;
-                    size_t size;
-                };
 
                 kind_t kind() const;
                 void kind(kind_t);
@@ -49,9 +39,7 @@ class Filesystem {
         };
         class File : public FilesystemObject {
             public:
-                struct stat_t {
-                    uint32_t size;
-                };
+                using stat_t = file_stat_t;
 
                 virtual bool seek(size_t) = 0;
                 virtual size_t read(size_t, char*) = 0;
@@ -67,11 +55,7 @@ class Filesystem {
 
         class Directory : public FilesystemObject {
             public:
-                struct fileinfo_t : public File::stat_t {
-                    string name;
-                    using kind_t = Filesystem::FilesystemObject::kind_t;
-                    kind_t kind;
-                };
+                using fileinfo_t = file_info_t;
 
                 virtual bool next(fileinfo_t&) = 0;
 
