@@ -124,7 +124,7 @@ process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize) {
     loadinfo.stack = stackbegin - 16;
 
     uint32_t *stack = (uint32_t*)loadinfo.stack;
-    if (gCurrentProcess->args) {
+    if (gCurrentProcess->args || gCurrentProcess->path) {
         auto mapopts = VirtualPageManager::map_options_t().rw(true).user(true).clear(true);
         auto cmdlinergn = memmgr->findAndMapRegion(VirtualPageManager::gPageSize, mapopts);
         program_args_t* args_ptr = (program_args_t*)cmdlinergn.from;
