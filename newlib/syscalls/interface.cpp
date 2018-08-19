@@ -16,6 +16,7 @@
 #undef errno
 extern "C" int  errno;
 
+#include <newlib/sys/kill.h>
 #include <newlib/sys/stat.h>
 #include <newlib/sys/types.h>
 #include <newlib/sys/fcntl.h>
@@ -67,11 +68,6 @@ NEWLIB_IMPL_REQUIREMENT int isatty(int file) {
         default:
             return 0;
     }
-}
-
-NEWLIB_IMPL_REQUIREMENT int kill(int /*pid*/, int /*sig*/) {
-  errno = EINVAL;
-  return -1;
 }
 
 NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
@@ -194,6 +190,17 @@ NEWLIB_IMPL_REQUIREMENT int mkdir(const char *path, mode_t /**mode: no mode supp
     auto mo = mkdir_syscall(path);
     if (mo == 0) return 0;
     errno = ENOENT;
+    return -1;
+}
+
+NEWLIB_IMPL_REQUIREMENT int kill (pid_t p, int sig) {
+    if (sig != SIGKILL) {
+        errno = EPERM;
+        return -1;
+    }
+    if (0 == kill_syscall(p)) {
+        return 0;
+    }
     return -1;
 }
 

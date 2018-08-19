@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/string.h>
-#include <libuserspace/kill.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/exit.h>
-#include <muzzle/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+#include <newlib/sys/kill.h>
 
 int main(int argc, const char** argv) {
     if (argc == 1) {
@@ -28,7 +26,7 @@ int main(int argc, const char** argv) {
         auto arg = argv[i];
         auto pid = atoi(arg);
         printf("About to nuke process %u from orbit..", pid);
-        kill(pid);
+        kill(pid, SIGKILL);
         printf("...and done!\n");
     }
 

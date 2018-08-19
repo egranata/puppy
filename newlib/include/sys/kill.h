@@ -12,38 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#ifndef NEWLIB_KILL
+#define NEWLIB_KILL
 
-static void usage(bool exit) {
-    printf("cp <src> <dst>\n");
-    if (exit) ::exit(1);
+#include <newlib/sys/signal.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int kill(pid_t, int);
+
+#ifdef __cplusplus
 }
+#endif
 
-void copy(FILE* from, FILE* to) {
-    while(true) {
-        int c = fgetc(from);
-        if (c < 0) break;
-        fputc(c, to);
-    }
-}
-
-int main(int argc, const char** argv) {
-    if (argc != 3) {
-        usage(true);
-    }
-
-    FILE* from = fopen(argv[1], "r");
-    FILE* to = fopen(argv[2], "w");
-
-    if ((from == nullptr) || (to == nullptr)) {
-        usage(true);
-    }
-
-    copy(from, to);
-
-    fclose(from);
-    fclose(to);
-
-    return 0;
-}
+#endif
