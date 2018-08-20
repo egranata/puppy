@@ -12,66 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/printf.h>
-#include <libuserspace/file.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/memory.h>
-#include <muzzle/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+#include <newlib/string.h>
+#include <newlib/ctype.h>
+#include <newlib/strings.h>
 
-const unsigned char* read(uint32_t fd, uint32_t& size) {
-    size = 0;
-    if (!fsize(fd, size)) {
-        return nullptr;
+void printbuf(char* buf, int count) {
+    for (auto i = 0; i < count; ++i) {
+        printf("%02x ", buf[i]);
     }
-    auto buffer = (unsigned char*)calloc(size, 1);
-    if (read(fd, size, buffer)) return buffer;
-    return nullptr;
+    printf("    ");
+    for (auto i = 0; i < count; ++i) {
+        if (isprint(buf[i]))
+            printf("%c", buf[i]);
+        else
+            printf(".");
+    }
+    printf("\n");
 }
 
-void dump(const unsigned char* buffer, uint32_t size) {
-    for (auto i = 0u; true; i+= 16) {
-        if (i >= size) break;
-        printf("%04x ", i);
-        for (auto j = 0; j < 16; ++j) {
-            printf("%02x ", buffer[i + j]);
-        }
-        printf("    ");
-        for (auto j = 0; j < 16; ++j) {
-            if (i + j >= size) break;
-            auto c = buffer[i + j];
-            switch(c) {
-                case '\n':
-                    printf("\\n");
-                    break;
-                case 0:
-                    printf("\\0");
-                    break;
-                default:
-                    printf("%c", buffer[i + j]);
-                    break;
-            }
-        }
-        printf("\n");
+void dump(FILE* f) {
+    char buf[16] = {0};
+    while(true) {
+        bzero(&buf[0], sizeof(buf));
+        int count = fread(&buf[0], 1, sizeof(buf), f);
+        if (0 == count) break;
+        printbuf(&buf[0], count);
     }
+    fclose(f);
 }
 
 void cat(const char* path) {
     printf("Printout of %s\n", path);
     printf("==============================================================================\n");
-    auto fd = open(path, gModeRead);
-    if (fd == gInvalidFd) {
+    auto fd = fopen(path, "r'");
+    if (fd == nullptr) {
         printf("could not open %s - exiting\n", path);
         exit(1);
     }
-
-    uint32_t filesize = 0;
-    auto buffer = read(fd, filesize);
-    if (buffer == nullptr) {
-        printf("could not read %s - exiting\n", path);
-        exit(1);
-    }
-
-    dump(buffer, filesize);
+    dump(fd);
     printf("==============================================================================\n");    
 }
 
