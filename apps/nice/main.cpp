@@ -12,12 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/exit.h>
-#include <libuserspace/nice.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/string.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/syscalls.h>
+#include <newlib/unistd.h>
 
-#include <muzzle/stdlib.h>
+namespace {
+    uint8_t nice(uint16_t pid) {
+        auto c = prioritize_syscall(pid, 0);
+        if (c & 1) return 0;
+        return (c >> 1);
+    }
+    uint8_t renice(uint16_t pid, uint8_t prio) {
+        auto c = prioritize_syscall(pid, prio);
+        if (c & 1) return 0;
+        return c >> 1;
+    }
+}
 
 int getnice(const char *spid) {
     auto pid = (uint16_t)atoi(spid);
