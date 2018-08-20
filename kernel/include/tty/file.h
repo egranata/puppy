@@ -31,6 +31,24 @@ class TTYFile : public Filesystem::File {
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
     private:
         TTY* mTTY;
+        struct input_t {
+            char buf[1024];
+            size_t mNextWrite;
+            size_t mNextRead;
+
+            bool appendOne(char c);
+            bool undoAppend(char* c);
+            bool consumeOne(char* c);
+            bool emptyWrite() const;
+            bool emptyRead() const;
+            void clear();
+        } mInput;
+        enum class mode_t {
+            READ_FROM_IRQ = 0xF00D,
+            CONSUME_BUFFER = 0xBEEF,
+        } mMode = mode_t::READ_FROM_IRQ;
+
+        char procureOne();
 };
 
 #endif

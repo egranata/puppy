@@ -17,21 +17,102 @@
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
 
-TTYFile::TTYFile(TTY* tty) : mTTY(tty) {}
+LOG_TAG(TTYFILE, 2);
+
+TTYFile::TTYFile(TTY* tty) : mTTY(tty) {
+    mInput.clear();
+}
+
+bool TTYFile::input_t::appendOne(char c) {
+    if (mNextWrite == sizeof(buf)) return false;
+    buf[mNextWrite++] = c;
+    return true;
+}
+bool TTYFile::input_t::undoAppend(char* c) {
+    if (emptyWrite()) return false;
+    --mNextWrite;
+    if (c != nullptr) *c = buf[mNextWrite];
+    return true;
+}
+bool TTYFile::input_t::consumeOne(char* c) {
+    if (emptyRead()) return false;
+    *c = buf[mNextRead++];
+    return true;
+}
+bool TTYFile::input_t::emptyWrite() const {
+    return mNextWrite == 0;
+}
+bool TTYFile::input_t::emptyRead() const {
+    return mNextWrite == mNextRead;
+}
+void TTYFile::input_t::clear() {
+    bzero(this, sizeof(*this));
+}
 
 bool TTYFile::seek(size_t) {
     return false;
 }
 
+// TODO: this should be using waitqueues - not yielding
+char TTYFile::procureOne() {
+ch:
+    auto c = mTTY->read();
+    if (c == -1) {
+        ProcessManager::get().yield();
+        goto ch;
+    }
+    return (char)c;
+}
+
 size_t TTYFile::read(size_t n, char* b) {
-    size_t n0 = n;
-    for(;n > 0;++b,--n) {
-ch:     auto c = mTTY->read();
-        if (c == -1) {
-            ProcessManager::get().yield();
-            goto ch;
+    TAG_DEBUG(TTYFILE, "trying to consume up to %u bytes from the TTY - mode is %x", n, mMode);
+    if (n == 0) return n;
+
+    while (mMode == mode_t::READ_FROM_IRQ) {
+        bool swallow = false;
+        auto c = procureOne();
+        TAG_DEBUG(TTYFILE, "got a byte: %x", c);
+        switch (c) {
+            case '\b':
+                if (mInput.emptyWrite()) {
+                    swallow = true;
+                } else {
+                    mInput.undoAppend(nullptr);
+                }
+                TAG_DEBUG(TTYFILE, "processed a backspace");
+                break;
+            case '\n':
+                mInput.appendOne(c);
+                mMode = mode_t::CONSUME_BUFFER;
+                TAG_DEBUG(TTYFILE, "processed a newline");
+                break;
+            default:
+                if (false == mInput.appendOne(c)) {
+                    // this buffer is full - let it be consumed
+                    mMode = mode_t::CONSUME_BUFFER;
+                }
+                TAG_DEBUG(TTYFILE, "processed a character");
+                break;
         }
-        *b = c;
+        TAG_DEBUG(TTYFILE, "swallow = %s", swallow ? "yes" : "no");
+        if (!swallow) {
+            write(1, &c);
+        }
+    }
+
+    auto n0 = 0u;
+    while(mMode == mode_t::CONSUME_BUFFER) {
+        if (mInput.emptyRead()) {
+            TAG_DEBUG(TTYFILE, "the TTY is empty - get out with %u bytes read", n0);
+            mInput.clear();
+            mMode = mode_t::READ_FROM_IRQ;
+            break;
+        } else {
+            mInput.consumeOne(b);
+            TAG_DEBUG(TTYFILE, "consumed a byte: %x", *b);
+            ++b;
+        }
+        if (++n0 == n) break;
     }
 
     return n0;
