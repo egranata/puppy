@@ -160,6 +160,31 @@ NEWLIB_IMPL_REQUIREMENT int wait(int *stat_loc) {
             *stat_loc = 0x80;
             break;
         case process_exit_status_t::reason_t::killed:
+            *stat_loc = 0x0909; // signal 9
+            break;
+        case process_exit_status_t::reason_t::alive:
+            return -1;
+    }
+    return pid;
+}
+
+NEWLIB_IMPL_REQUIREMENT pid_t waitpid(pid_t pid, int *stat_loc, int /*options: implement WNOHANG*/) {
+    if ((pid == -1) || (pid == 0)) {
+        return wait(stat_loc);
+    }
+    process_exit_status_t status(0);
+    if (0 != collect_syscall(pid, &status)) {
+        return -1;
+    }
+    switch (status.reason) {
+        case process_exit_status_t::reason_t::cleanExit:
+            *stat_loc = status.status << 8;
+            break;
+        case process_exit_status_t::reason_t::exception:
+        case process_exit_status_t::reason_t::kernelError:
+            *stat_loc = 0x80;
+            break;
+        case process_exit_status_t::reason_t::killed:
             *stat_loc = 0x901; // signal 9
             break;
         case process_exit_status_t::reason_t::alive:
@@ -208,6 +233,12 @@ NEWLIB_IMPL_REQUIREMENT int ioctl(int fd, int a, int b) {
     auto io = fioctl_syscall(fd, a, b);
     if (io & 1) return -1;
     return io >> 1;
+}
+
+NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags) {
+    auto eo = exec_syscall((uint32_t)path, (uint32_t)args, flags);
+    if (eo & 1) return -1;
+    return eo >> 1;
 }
 
 NEWLIB_IMPL_REQUIREMENT char **environ;
