@@ -90,6 +90,17 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             mTTY->setBackgroundColor(a2);
             return 1;
         }
+        case TIOCGWINSZ: {
+            winsize_t* ws = (winsize_t*)a2;
+            uint16_t r=0,c=0;
+            mTTY->getSize(&r, &c);
+            ws->ws_col = c;
+            ws->ws_row = r;
+            // TODO: do not hardcode font height and width
+            ws->ws_xpixel = c * 8;
+            ws->ws_ypixel = c * 16;
+            return 1;
+        }
         default:
             return 0;
     }

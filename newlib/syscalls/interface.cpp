@@ -204,4 +204,10 @@ NEWLIB_IMPL_REQUIREMENT int kill (pid_t p, int sig) {
     return -1;
 }
 
+NEWLIB_IMPL_REQUIREMENT int ioctl(int fd, int a, int b) {
+    auto io = fioctl_syscall(fd, a, b);
+    if (io & 1) return -1;
+    return io >> 1;
+}
+
 NEWLIB_IMPL_REQUIREMENT char **environ;

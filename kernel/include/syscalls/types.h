@@ -144,4 +144,12 @@ struct klog_stats_t {
     size_t   largestentry;
 };
 
+static constexpr uint32_t TIOCGWINSZ = 0x40087468;
+struct winsize_t { // the return of TIOCGWINSZ
+  unsigned short ws_row;	/* rows, in characters */
+  unsigned short ws_col;	/* columns, in characters */
+  unsigned short ws_xpixel;	/* horizontal size, pixels */
+  unsigned short ws_ypixel;	/* vertical size, pixels */
+};
+
 #endif
