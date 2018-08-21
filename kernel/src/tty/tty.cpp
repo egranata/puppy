@@ -58,14 +58,29 @@ uint16_t TTY::popfg() {
     return mForeground.push(pmm.initpid()), mForeground.peek();
 }
 
+#define CTRL evt.ctrldown
+#define ALT evt.altdown
+#define KEY(x) (evt.keycode == x)
+
 bool TTY::interceptChords(const PS2Keyboard::key_event_t& evt) {
     if (evt.down) return false;
-    if (evt.ctrldown && evt.altdown && evt.keycode == 'k') {
+    if (CTRL && ALT && (KEY('K') || KEY('k'))) {
         mFramebuffer.cls();
         return true;
     }
+    if (CTRL && (KEY('C') || KEY('c'))) {
+        if (!mForeground.empty()) {
+            auto pid = mForeground.peek();
+            ProcessManager::get().kill(pid);
+            return true;
+        }
+    }
     return false;
 }
+
+#undef CTRL
+#undef ALT
+#undef KEY
 
 int TTY::read() {
     // TODO: TTY spawns a kernel thread that reads and buffers keyboard events    
