@@ -32,6 +32,8 @@ class TTYFile : public Filesystem::File {
     private:
         TTY* mTTY;
         struct input_t {
+            static constexpr char EOF_MARKER = 0xFF;
+
             char buf[1024];
             size_t mNextWrite;
             size_t mNextRead;
@@ -39,6 +41,7 @@ class TTYFile : public Filesystem::File {
             bool appendOne(char c);
             bool undoAppend(char* c);
             bool consumeOne(char* c);
+            int peekOne();
             bool emptyWrite() const;
             bool emptyRead() const;
             void clear();
@@ -46,6 +49,7 @@ class TTYFile : public Filesystem::File {
         enum class mode_t {
             READ_FROM_IRQ = 0xF00D,
             CONSUME_BUFFER = 0xBEEF,
+            ONLY_EOF = 0xE00F,
         } mMode = mode_t::READ_FROM_IRQ;
 
         char procureOne();

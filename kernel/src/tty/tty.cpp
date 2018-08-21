@@ -17,7 +17,7 @@
 #include <kernel/process/manager.h>
 #include <kernel/log/log.h>
 
-TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()) {}
+TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()), mEOF(false) {}
 
 void TTY::write(size_t sz, const char* buffer) {
     mWriteSemaphore.wait();
@@ -58,6 +58,10 @@ uint16_t TTY::popfg() {
     return mForeground.push(pmm.initpid()), mForeground.peek();
 }
 
+void TTY::resetEOF() {
+    mEOF = false;
+}
+
 #define CTRL evt.ctrldown
 #define ALT evt.altdown
 #define KEY(x) (evt.keycode == x)
@@ -68,10 +72,18 @@ bool TTY::interceptChords(const PS2Keyboard::key_event_t& evt) {
         mFramebuffer.cls();
         return true;
     }
+
     if (CTRL && (KEY('C') || KEY('c'))) {
         if (!mForeground.empty()) {
             auto pid = mForeground.peek();
             ProcessManager::get().kill(pid);
+            return true;
+        }
+    }
+
+    if (CTRL && (KEY('D') || KEY('d'))) {
+        if (!mForeground.empty()) {
+            mEOF = true;
             return true;
         }
     }
@@ -100,14 +112,24 @@ int TTY::read() {
         }
     } while(false == allow);
 
+    // refuse to return anything except EOF when in EOF mode
+    if (mEOF) {
+        return TTY_EOF_MARKER;
+    }
+
     // TODO: make a global input queue
     auto d1 = PS2Controller::get().getDevice1();
     if (d1 && d1->getType() == PS2Controller::Device::Type::KEYBOARD) {
         PS2Keyboard::key_event_t evt;
         while (true) {
             evt = ((PS2Keyboard*)d1)->next();
-            if (evt.keycode == 0) return -1; // out of input
+            if (evt.keycode == 0) return TTY_NO_INPUT; // out of input
             if (interceptChords(evt)) {
+                if (mEOF) {
+                    // CTRL+D can be used as a chord to generate EOF, so
+                    // evaluate EOF again here
+                    return TTY_EOF_MARKER;
+                }
                 continue;
             } else {
                 break;
@@ -125,7 +147,7 @@ int TTY::read() {
         }
     }
 
-    return -1;
+    return TTY_NO_INPUT;
 }
 
 void TTY::setPosition(uint16_t row, uint16_t col) {

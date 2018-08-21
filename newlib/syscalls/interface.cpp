@@ -104,21 +104,9 @@ NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file p
 #undef FLAG_TEST
 
 NEWLIB_IMPL_REQUIREMENT int read(int file, char* ptr, int len) {
-    // special case non-blocking stdin
-    if (file == 0) {
-        int i = 0;
-        len = 1;
-        while (i < len) {
-            char buf[2] = {0, 0};
-            auto r = fread_syscall(file, 1, (uint32_t)&buf[0]);
-            if (r != 0) ptr[i++] = buf[0]; // TODO: echo character
-        }
-        return len;
-    } else {
-        auto ro = fread_syscall(file, len, (uint32_t)ptr);
-        if (ro & 1) return -1;
-        return ro >> 1;
-    }
+    auto ro = fread_syscall(file, len, (uint32_t)ptr);
+    if (ro & 1) return -1;
+    return ro >> 1;
 }
 
 uint8_t *gSbrkPointer = nullptr;

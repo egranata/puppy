@@ -27,12 +27,16 @@
 
 class TTY {
     public:
+        static constexpr int TTY_NO_INPUT = -1; // nothing is currently available to be read
+        static constexpr int TTY_EOF_MARKER = -2; // the TTY has received an end-of-file marking
+
         TTY();
         void write(size_t sz, const char* buffer);
         int read();
 
         void pushfg(uint16_t);
         uint16_t popfg();
+        void resetEOF();
 
         void setPosition(uint16_t row, uint16_t col);
         void getPosition(uint16_t *row, uint16_t* col);
@@ -56,6 +60,7 @@ class TTY {
         queue<char, gQueueSize> mOutQueue;
         queue<char, gQueueSize> mInQueue;
         Framebuffer& mFramebuffer;
+        bool mEOF;
 };
 
 #endif

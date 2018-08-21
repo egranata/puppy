@@ -542,6 +542,7 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
 
     task->state = process_t::State::EXITED;
     task->ttyinfo.tty->popfg();
+    task->ttyinfo.tty->resetEOF();
     task->exitstatus = es;
 
     auto parent = getprocess(task->ppid);

@@ -67,6 +67,8 @@ struct process_t {
 
         ttyinfo_t();
         ttyinfo_t(TTY*);
+        ttyinfo_t(const ttyinfo_t&);
+        ttyinfo_t& operator=(const ttyinfo_t&);
         ~ttyinfo_t();
     } ttyinfo;
     struct {

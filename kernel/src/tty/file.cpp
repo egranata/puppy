@@ -18,6 +18,7 @@
 #include <kernel/syscalls/types.h>
 
 LOG_TAG(TTYFILE, 2);
+LOG_TAG(TTYEOF, 0);
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {
     mInput.clear();
@@ -36,8 +37,16 @@ bool TTYFile::input_t::undoAppend(char* c) {
 }
 bool TTYFile::input_t::consumeOne(char* c) {
     if (emptyRead()) return false;
-    *c = buf[mNextRead++];
+    if(c) {
+        *c = buf[mNextRead++];
+    } else {
+        mNextRead++;
+    }
     return true;
+}
+int TTYFile::input_t::peekOne() {
+    if (emptyRead()) return -1;
+    return buf[mNextRead];
 }
 bool TTYFile::input_t::emptyWrite() const {
     return mNextWrite == 0;
@@ -57,14 +66,18 @@ bool TTYFile::seek(size_t) {
 char TTYFile::procureOne() {
 ch:
     auto c = mTTY->read();
-    if (c == -1) {
+    if (c == TTY::TTY_NO_INPUT) {
         ProcessManager::get().yield();
         goto ch;
+    }
+    if (c == TTY::TTY_EOF_MARKER) {
+        return 0xFF;
     }
     return (char)c;
 }
 
 size_t TTYFile::read(size_t n, char* b) {
+entry:
     TAG_DEBUG(TTYFILE, "trying to consume up to %u bytes from the TTY - mode is %x", n, mMode);
     if (n == 0) return n;
 
@@ -84,7 +97,12 @@ size_t TTYFile::read(size_t n, char* b) {
             case '\n':
                 mInput.appendOne(c);
                 mMode = mode_t::CONSUME_BUFFER;
-                TAG_DEBUG(TTYFILE, "processed a newline");
+                TAG_DEBUG(TTYFILE, "processed newline");
+                break;
+            case input_t::EOF_MARKER:
+                mInput.appendOne(c);
+                mMode = mode_t::CONSUME_BUFFER;
+                TAG_DEBUG(TTYEOF, "processed EOF");
                 break;
             default:
                 if (false == mInput.appendOne(c)) {
@@ -100,17 +118,39 @@ size_t TTYFile::read(size_t n, char* b) {
         }
     }
 
+    if (mMode == mode_t::ONLY_EOF) {
+        return 0;
+    }
+
     auto n0 = 0u;
     while(mMode == mode_t::CONSUME_BUFFER) {
         if (mInput.emptyRead()) {
-            TAG_DEBUG(TTYFILE, "the TTY is empty - get out with %u bytes read", n0);
-            mInput.clear();
-            mMode = mode_t::READ_FROM_IRQ;
-            break;
+            if (n0 == 0) {
+                TAG_DEBUG(TTYFILE, "the TTY is empty and nothing was read, but we're not in EOF mode; try again");
+                goto entry;
+            } else {
+                TAG_DEBUG(TTYFILE, "the TTY is empty - get out with %u bytes read", n0);
+                mInput.clear();
+                mMode = mode_t::READ_FROM_IRQ;
+                break;
+            }
         } else {
-            mInput.consumeOne(b);
-            TAG_DEBUG(TTYFILE, "consumed a byte: %x", *b);
-            ++b;
+            int peek = mInput.peekOne();
+            if (peek == input_t::EOF_MARKER) {
+                if (n0 == 0) {
+                    TAG_DEBUG(TTYEOF, "the TTY received EOF and nothing was read; consume it and get out");
+                    mInput.consumeOne(nullptr);
+                    mMode = mode_t::ONLY_EOF;
+                    return 0;
+                } else {
+                    TAG_DEBUG(TTYEOF, "the TTY received EOF but %u bytes were read - get out now and consume later", n0);
+                    break;
+                }
+            } else {
+                mInput.consumeOne(b);
+                TAG_DEBUG(TTYFILE, "consumed a byte: %x", *b);
+                ++b;
+            }
         }
         if (++n0 == n) break;
     }

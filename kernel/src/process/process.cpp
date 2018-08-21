@@ -31,6 +31,17 @@ process_t::ttyinfo_t::ttyinfo_t(TTY* t) {
     ttyfile = new TTYFile(tty);
 }
 
+process_t::ttyinfo_t::ttyinfo_t(const ttyinfo_t& info) {
+    tty = info.tty;
+    ttyfile = new TTYFile(tty);
+}
+
+process_t::ttyinfo_t& process_t::ttyinfo_t::operator=(const ttyinfo_t& info) {
+    tty = info.tty;
+    ttyfile = new TTYFile(tty);
+    return *this;
+}
+
 // TODO: make tty and ttyfile be refcounted
 process_t::ttyinfo_t::~ttyinfo_t() = default;
 
