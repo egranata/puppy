@@ -24,6 +24,8 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(TTYLEAK, 2);
+
 #define sbrk(x) (char*)VirtualPageManager::get().ksbrk(x)
 
 /* This header is stored at the beginning of memory segments in the list. */
@@ -47,6 +49,8 @@ void free(void* ptr) {
   union header *iter, *block;
   iter = first;
   block = (union header*)ptr - 1;
+
+  TAG_DEBUG(TTYLEAK, "asked to free: %p, freeing a block at %p of len %u", ptr, block, block->meta.len);
 
   /* Traverse to the spot in the list to insert the freed fragment,
    * such that the list is ordered by memory address (for coalescing). */
@@ -100,8 +104,9 @@ void *malloc(size_t size) {
   p = prev->meta.next;
   /* Traverse the list of previously allocated fragments, searching
    * for one sufficiently large to allocate. */
+  TAG_DEBUG(TTYLEAK, "malloc trying to find a block of len %u", true_size);
   while (1) {
-    LOG_DEBUG("malloc found a block of len %u", p->meta.len);
+    TAG_DEBUG(TTYLEAK, "malloc found a block of len %u", p->meta.len);
     if (p->meta.len >= true_size) {
       if (p->meta.len == true_size) {
         /* If the fragment is exactly the right size, we do not have
@@ -111,17 +116,19 @@ void *malloc(size_t size) {
         /* Otherwise, split the fragment, returning the first half and
          * storing the back half as another element in the list. */
         p->meta.len -= true_size;
-        LOG_DEBUG("malloc left a block of len %u", p->meta.len);
+        TAG_DEBUG(TTYLEAK, "malloc left a block of len %u", p->meta.len);
         p += p->meta.len;
         p->meta.len = true_size;
       }
       first = prev;
       LOG_DEBUG("returning %p", p+1);
+      TAG_DEBUG(TTYLEAK, "asked to malloc %u bytes, returning %p which is a block at %p of %u bytes", size, p+1, p, p->meta.len);
       return (void *)(p+1);
     }
     /* If we reach the beginning of the list, no satisfactory fragment
      * was found, so we have to request a new one. */
     if (p == first) {
+      TAG_DEBUG(TTYLEAK, "malloc will have to make a kernel sbrk request");
       char *page;
       union header *block;
       /* We have to request memory of at least a certain size. */

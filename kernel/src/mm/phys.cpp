@@ -20,6 +20,8 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(PMLEAK, 2);
+
 PhysicalPageManager& PhysicalPageManager::get() {
 	static PhysicalPageManager gAllocator;
 	
@@ -117,6 +119,7 @@ uintptr_t PhysicalPageManager::alloc() {
 			// allows us to leave rc in the code, even if LOG_NODEBUG is defined
 			if (rc > 0) --mFreePages;
 			auto base = gPageSize * idx;
+			TAG_DEBUG(PMLEAK, "ALLOC %p", base);
 			LOG_DEBUG("physical allocator returned page at %p (idx = %u) - rc = %u", base, idx, rc);
 			return base;
 		}
@@ -144,7 +147,10 @@ void PhysicalPageManager::dealloc(uintptr_t base) {
 		PANIC("trying to deallocate a free/unusable page");
 	}
 	auto rc = mPages[idx].decref();
-	if (0 == rc) ++mFreePages;
+	if (0 == rc) {
+		++mFreePages;
+		TAG_DEBUG(PMLEAK, "DEALLOC %p", base);
+	}
 	LOG_DEBUG("deallocated page at %p (idx = %u) - rc = %u", base, idx, rc);
 }
 

@@ -26,6 +26,8 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(MEMLEAK, 2);
+
 static constexpr uintptr_t gBootVirtualOffset = 0xC0000000;
 
 static constexpr uint32_t gPresentBit = 0x1;
@@ -354,6 +356,8 @@ uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_opti
 		gCurrentProcess->memstats.allocated += gPageSize;
 	}
 
+	if (gCurrentProcess) TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u allocated page virt=%x phys=%x", gCurrentProcess->pid, virt, phys);
+
 	return virt;
 }
 
@@ -399,15 +403,20 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 	tbl.zpmap(false); // make sure we don't think this is a zeropage mapping
 	invtlb(virt);
 
+	uintptr_t phys = 0;
+
 	if (tbl.frompmm()) {
 		auto& pmm(PhysicalPageManager::get());
+		phys = tbl.page();
 		pmm.dealloc(tbl.page());
 	}
 	tbl.page(0);
 
 	if (gCurrentProcess && wasthere&& isuserspace) {
 		gCurrentProcess->memstats.allocated -= gPageSize;
-	}	
+	}
+
+	if (gCurrentProcess) TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=%x phys=%x", gCurrentProcess->pid, virt, phys);
 }
 
 void VirtualPageManager::unmaprange(uintptr_t low, uintptr_t high) {
@@ -623,7 +632,7 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 		}
 	}
 
-	return pPageDir;	
+	return pPageDir;
 }
 
 // deallocate all memory that this process ever acquired
@@ -643,6 +652,7 @@ void VirtualPageManager::cleanAddressSpace() {
 				auto ptr = tbl[j].page();
 				LOG_DEBUG("freeing page %u at %p", j, ptr);
 				phys.dealloc(ptr);
+				TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=%x phys=%x", gCurrentProcess->pid, 0x0, ptr);
 			}
 		}
 
