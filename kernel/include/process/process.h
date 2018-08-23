@@ -66,8 +66,8 @@ struct process_t {
         TTYFile* ttyfile;
 
         ttyinfo_t();
-        ttyinfo_t(TTY*);
-        ttyinfo_t(const ttyinfo_t&);
+        ttyinfo_t(TTY*, TTYFile*);
+        ttyinfo_t(const ttyinfo_t&) = delete;
         ttyinfo_t& operator=(const ttyinfo_t&);
         ~ttyinfo_t();
     } ttyinfo;

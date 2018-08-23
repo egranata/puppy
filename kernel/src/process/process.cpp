@@ -26,18 +26,14 @@ process_t::process_t() : tss(), mmap(this), ttyinfo(), exitstatus(0), children()
 process_t::ttyinfo_t::ttyinfo_t() : tty(nullptr), ttyfile(nullptr) {
 }
 
-process_t::ttyinfo_t::ttyinfo_t(TTY* t) {
+process_t::ttyinfo_t::ttyinfo_t(TTY* t, TTYFile* f) {
     tty = t;
-    ttyfile = new TTYFile(tty);
-}
-
-process_t::ttyinfo_t::ttyinfo_t(const ttyinfo_t& info) {
-    tty = info.tty;
-    ttyfile = new TTYFile(tty);
+    ttyfile = f;
 }
 
 process_t::ttyinfo_t& process_t::ttyinfo_t::operator=(const ttyinfo_t& info) {
     tty = info.tty;
+    if (ttyfile) delete ttyfile;
     ttyfile = new TTYFile(tty);
     return *this;
 }

@@ -51,7 +51,7 @@ class ProcessBitmap {
         void reserve(PidType p) {
             auto B = (p / 8);
             auto b = (p % 8);
-            mBitmap[B] = mBitmap[B] | gBitmasks[b];            
+            mBitmap[B] = mBitmap[B] | gBitmasks[b];
         }
     private:
         static_assert(8 * NumBytes == NumProcesses, "process count must be a multiple of 8");

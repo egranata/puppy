@@ -37,6 +37,7 @@ namespace tasks::deleter {
                 LOG_DEBUG("deleting process object for %u", proc->pid);
                 if (proc->path) free((void*)proc->path);
                 if (proc->args) free((void*)proc->args);
+                if (proc->ttyinfo.ttyfile) delete proc->ttyinfo.ttyfile;
 
                 auto dtbl = addr_gdt<uint64_t*>();
                 dtbl[proc->pid + val_numsysgdtentries<uint32_t>()] = 0;
@@ -52,7 +53,7 @@ namespace tasks::deleter {
                 vmm.unmap((uintptr_t)proc);
             }
             
-            pm.yield();            
+            pm.yield();
         }        
     }
 }

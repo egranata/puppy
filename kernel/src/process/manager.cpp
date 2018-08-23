@@ -192,6 +192,9 @@ ProcessManager::ProcessManager() {
         }
     }
 
+    static TTY gDummyProcessTTY;
+    static TTYFile gDummyProcessTTYFile(&gDummyProcessTTY);
+
     // prepare the initial dummy task
     gDummyProcess.tss.cr3 = readcr3();
     gDummyProcess.tss.eip = (uintptr_t)&task0;
@@ -205,7 +208,7 @@ ProcessManager::ProcessManager() {
     gDummyProcess.priority.prio = gDummyProcess.priority.prio0 = 1;
     gDummyProcess.path = strdup("kernel task");
     gDummyProcess.gdtidx = gGDTBitmap().next();
-    gDummyProcess.ttyinfo = process_t::ttyinfo_t(new TTY());
+    gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY, &gDummyProcessTTYFile);
 
     auto dtbl = addr_gdt<uint64_t*>();
 
