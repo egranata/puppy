@@ -139,6 +139,8 @@ public:
 
 	uintptr_t newoptions(uintptr_t virt, const map_options_t&);
 
+	uintptr_t markCOW(uintptr_t virt);
+
 	uintptr_t ksbrk(size_t amount);
 	
 	uintptr_t createAddressSpace();

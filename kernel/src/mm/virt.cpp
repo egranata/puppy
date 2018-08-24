@@ -498,6 +498,17 @@ uintptr_t VirtualPageManager::newoptions(uintptr_t virt, const map_options_t& op
 	return gPageSize - 1;
 }
 
+uintptr_t VirtualPageManager::markCOW(uintptr_t virt) {
+	map_options_t opts;
+	if (mapped(virt, &opts)) {
+		opts.rw(false);
+		opts.cow(true);
+		return newoptions(virt, opts);
+	}
+
+	return gPageSize - 1;
+}
+
 uintptr_t VirtualPageManager::mapPageWithinRange(uintptr_t low, uintptr_t high, const map_options_t& options) {
 	auto pg = findPageWithinRange(low, high);
 	if (pg & 1) {
@@ -526,8 +537,8 @@ uintptr_t VirtualPageManager::findPageWithinRange(uintptr_t low, uintptr_t high)
 
 // returns the physical address of the page directory suitable for
 // launching a new process. The kernel is mapped in, sharing mapping with
-// the process that called createAddressSpace(). All of userspace memory is
-// a COW mapping of the memory that the current process has mapped.
+// the process that called createAddressSpace(). The RW portions of memory of
+// this process are COW-marked in both this and the other process.
 uintptr_t VirtualPageManager::cloneAddressSpace() {
 	LOG_DEBUG("attempting to clone this address space");
 
@@ -550,13 +561,15 @@ uintptr_t VirtualPageManager::cloneAddressSpace() {
 			TableEntry tbl(indices.table()); // NB: this is making a *copy* of the original TableEntry
 			if (!tbl.present()) continue;
 			if (tbl.rw()) {
-				// no need to COW map read-only pages
+				// only mark RW pages as COW
+				markCOW(indices.address());
 				tbl.cow(true);
 				tbl.rw(false);
 			}
 			LOG_INFO("cloning indices %p (%u, %u) into dir = %u, tbl = %u - writing %x", indices.address(), indices.dir, indices.tbl, i, j, (uint32_t)tbl);
 			pageTbl[j] = (uint32_t)tbl;
 			if (tbl.frompmm()) {
+				// add a reference to the page so we don't let go of it
 				phys.alloc(tbl.page());
 			}
 		}
