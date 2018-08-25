@@ -20,22 +20,25 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/panic/panic.h>
 
+#define PB_INDICES(n) \
+auto B = n / 8; \
+auto b = n % 8
+
 template<size_t NumProcesses, size_t NumBytes = NumProcesses / 8, typename PidType = uint16_t>
 class ProcessBitmap {
     public:
         ProcessBitmap() {
             bzero(&mBitmap[0], sizeof(mBitmap));
+            mFirstIndexToTry = 0;
         }
 
         PidType next() {
-            for (auto i = 0u; i < NumBytes; ++i) {
-                auto& entry = mBitmap[i];
-                if (0xFF == entry) continue;
-                for (auto j = 0u; j < 8; ++j) {
-                    if (0 == (entry & gBitmasks[j])) {
-                        entry |= gBitmasks[j];
-                        return 8*i + j;
-                    }
+            for (size_t i = 0u; i < NumProcesses; ++i) {
+                auto idx = (mFirstIndexToTry + i) % NumProcesses;
+                if (isFree(idx)) {
+                    reserve(idx);
+                    mFirstIndexToTry = idx + 1;
+                    return idx;
                 }
             }
 
@@ -43,18 +46,21 @@ class ProcessBitmap {
         }
 
         void free(PidType p) {
-            auto B = (p / 8);
-            auto b = (p % 8);
+            PB_INDICES(p);
             mBitmap[B] = mBitmap[B] & ~gBitmasks[b];
         }
 
         void reserve(PidType p) {
-            auto B = (p / 8);
-            auto b = (p % 8);
+            PB_INDICES(p);
             mBitmap[B] = mBitmap[B] | gBitmasks[b];
         }
     private:
         static_assert(8 * NumBytes == NumProcesses, "process count must be a multiple of 8");
+
+        bool isFree(PidType p) const {
+            PB_INDICES(p);
+            return 0 == (mBitmap[B] & gBitmasks[b]);
+        }
 
         static constexpr uint8_t gBitmasks[8] = {
             1 << 0,
@@ -67,7 +73,10 @@ class ProcessBitmap {
             1 << 7
         };
         uint8_t mBitmap[NumBytes];
+        size_t mFirstIndexToTry;
 };
+
+#undef PB_INDICES
 
 template<size_t A, size_t B, typename C>
 constexpr decltype(ProcessBitmap<A,B,C>::gBitmasks) ProcessBitmap<A,B,C>::gBitmasks;
