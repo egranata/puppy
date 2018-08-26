@@ -250,6 +250,8 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
+NEWLIB_DEPS = ["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib=None, linkerdeps=[], announce=False):
         if stdlib is None:
@@ -268,7 +270,7 @@ class UserspaceTool(Project):
             # not a typo: libc depends on libinterface, but libinterface takes liberties with
             # symbols from libc - the simplest way to resolve this circular dependency is to
             # specify libc as dependency twice.. TODO would be using --start-group for this
-            ldeps=["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+            ldeps=NEWLIB_DEPS
         else:
             raise ValueError("stdlib should be either libuserspace or newlib")
 
@@ -319,6 +321,13 @@ NewlibInterface = Project(name="NewlibInterface",
     ipaths=["include", "include/newlib"])
 NewlibInterface.link = NewlibInterface.linkAr
 
+CxxSupport = Project(name="CxxSupport",
+    srcdir="libcxxsup/src",
+    assembler="nasm",
+    ipaths=["include", "include/newlib"],
+    linkerdeps=NEWLIB_DEPS)
+CxxSupport.link = CxxSupport.linkAr
+
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
     assembler="nasm",
@@ -330,6 +339,7 @@ Muzzle.build()
 Kernel.build()
 Userspace.build()
 NewlibInterface.build()
+CxxSupport.build()
 Checkup.build()
 
 # apps can end up in /initrd and/or /apps in the main filesystem
