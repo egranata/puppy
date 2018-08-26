@@ -250,7 +250,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+NEWLIB_DEPS = ["out/libcxxsupport.a", "newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib=None, linkerdeps=[], announce=False):

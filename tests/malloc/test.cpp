@@ -16,7 +16,9 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/memory.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/sys/vm.h>
 
 class TheTest : public Test {
     public:
@@ -28,8 +30,8 @@ class TheTest : public Test {
 
             CHECK_NOT_NULL(buffer);
 
-            CHECK_TRUE(readable(buffer));
-            CHECK_TRUE(writable(buffer));
+            CHECK_TRUE(readable(buffer, 1024));
+            CHECK_TRUE(writable(buffer, 1024));
 
             *buffer = 1234;
 

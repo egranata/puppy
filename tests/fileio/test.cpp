@@ -16,11 +16,11 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/file.h>
-#include <muzzle/string.h>
-#include <libuserspace/memory.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/exit.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/string.h>
+#include <newlib/strings.h>
+#include <newlib/unistd.h>
 
 #define TEST_FILE "/system/test.txt"
 
@@ -41,17 +41,17 @@ class TheTest : public Test {
         TheTest() : Test(TEST_NAME) {}
 
     private:
-        size_t writeString(int fd, const char* s) {
+        size_t writeString(FILE* fd, const char* s) {
             auto ls = strlen(s);
-            return ::write(fd, ls, (uint8_t*)s);
+            return fwrite(s, 1, ls, fd);
         }
 
         const char* testRead(const char* expected) {
-            auto fd = open(TEST_FILE, FILE_NO_CREATE | FILE_OPEN_READ);
-            CHECK_NOT_EQ(fd, gInvalidFd);
+            FILE* fd = fopen(TEST_FILE, "r");
+            CHECK_NOT_EQ(fd, nullptr);
             uint8_t *buffer = (uint8_t *)malloc(3999);
             bzero(buffer, 3999);
-            CHECK_NOT_EQ(read(fd, 3998, buffer), 0);
+            CHECK_NOT_EQ(fread(buffer, 1, 3999, fd), 0);
 
             CHECK_EQ(strcmp((const char*)buffer, expected), 0);
 
@@ -59,28 +59,28 @@ class TheTest : public Test {
         }
 
         void testAppend(const char* stuff) {
-            auto fd = open(TEST_FILE, FILE_OPEN_WRITE | FILE_OPEN_APPEND | FILE_NO_CREATE);
-            CHECK_NOT_EQ(fd, gInvalidFd);
+            auto fd = fopen(TEST_FILE, "a");
+            CHECK_NOT_EQ(fd, nullptr);
             CHECK_TRUE(writeString(fd, stuff));
-            close(fd);
+            fclose(fd);
         }
 
         void testCleanSlate(const char* stuff) {
-            auto fd = open(TEST_FILE, FILE_OPEN_WRITE | FILE_OPEN_NEW);
-            CHECK_NOT_EQ(fd, gInvalidFd);
+            FILE* fd = fopen(TEST_FILE, "w");
+            CHECK_NOT_EQ(fd, nullptr);
             CHECK_TRUE(writeString(fd, stuff));
-            close(fd);
+            fclose(fd);
         }
 
     protected:
         bool setup() override {
-            auto fd = open(TEST_FILE, FILE_OPEN_NEW | FILE_OPEN_WRITE);
-            if (fd == gInvalidFd) return false;
+            auto fd = fopen(TEST_FILE, "w");
+            if (fd == nullptr) return false;
             printf("file opened\n");
             auto c = writeString(fd, "hello world!");
             printf("written %d bytes\n", c);
 
-            close(fd);
+            fclose(fd);
 
             return true;
         }
@@ -98,7 +98,7 @@ class TheTest : public Test {
         }
 
         void teardown() override {
-            del(TEST_FILE);
+            unlink(TEST_FILE);
         }
 };
 
