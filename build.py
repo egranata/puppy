@@ -252,6 +252,8 @@ class Project(object):
 
 NEWLIB_DEPS = ["out/libcxxsupport.a", "newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
 
+LIBUSERSPACE_TOOLS = []
+
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib=None, linkerdeps=[], announce=False):
         if stdlib is None:
@@ -261,6 +263,7 @@ class UserspaceTool(Project):
                 stdlib = 'libuserspace'
 
         if stdlib == 'libuserspace':
+            LIBUSERSPACE_TOOLS.append(name)
             ipaths = None
             ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"]
             ldeps = ["out/libuserspace.a", "out/libmuzzle.a"]
@@ -421,6 +424,10 @@ print("Built %d apps (%s) and %d tests (%s) in %s seconds" %
     (len(APP_PROJECTS), ', '.join(APP_PROJECTS),
     len(TEST_PROJECTS), ', '.join(TEST_PROJECTS),
     USER_CONTENT_DURATION))
+
+if len(LIBUSERSPACE_TOOLS) > 0:
+    print("%d programs buit with libuserspace (%s) - please consider switching to newlib instead" %
+         (len(LIBUSERSPACE_TOOLS), ', '.join(LIBUSERSPACE_TOOLS)))
 
 INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
 shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
