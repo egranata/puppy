@@ -233,4 +233,9 @@ NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags)
     return eo >> 1;
 }
 
+NEWLIB_IMPL_REQUIREMENT unsigned int sleep(unsigned int seconds) {
+    sleep_syscall(1000 * seconds);
+    return 0;
+}
+
 NEWLIB_IMPL_REQUIREMENT char **environ;
