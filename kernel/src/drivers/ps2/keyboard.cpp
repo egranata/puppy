@@ -20,6 +20,8 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(BOOTINFO, 0);
+
 static struct keyb_buffer_t {
     static constexpr uint8_t gBufferSize = 128;
     PS2Keyboard::key_event_t mBuffer[gBufferSize] = {false, false, 0,false};
@@ -116,7 +118,9 @@ static bool gCtrlDown;
 static bool gAltDown;
 static bool gDeleteDown;
 
-static void parse_scan_code() {
+static bool parse_scan_code() {
+    bool new_evt = false;
+
     LOG_DEBUG("in keyboard IRQ");
     auto b = inb(0x60);
 
@@ -134,6 +138,8 @@ static void parse_scan_code() {
             gCapsLock ? gCapslockScancodeMap : gLowercaseScancodeMap)[b];
         event.ctrldown = gCtrlDown;
         event.altdown = gAltDown;
+
+        new_evt = true;
 
         LOG_DEBUG("event keycode: %u", event.keycode);
 
@@ -171,11 +177,13 @@ static void parse_scan_code() {
         gIsBreakCode = false;
     }
     LOG_DEBUG("seen keyboard input %u - mWriteIdx = %u", b, gKeyboardBuffer.mWriteIdx);
+    return new_evt;
 }
 
 static void keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
-    parse_scan_code();
-    PIC::eoi((uint32_t)id);
+    PS2Keyboard::keyb_irq_data_t *irq_data = (PS2Keyboard::keyb_irq_data_t*)id;
+    if (parse_scan_code()) irq_data->source->queue().wakeall();
+    PIC::eoi(irq_data->pic_irq_id);
 }
 
 PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
@@ -184,10 +192,12 @@ PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
     gCapsLock = false;
     gShift = false;
 
-    auto pic_irq = devid == 1 ? 1 : 12;
-    auto cpu_irq = PIC::gIRQNumber(pic_irq);
-    Interrupts::get().sethandler(cpu_irq, "PS2Keyb", keyboard_irq_handler, (void*)pic_irq);
-    LOG_DEBUG("setup keyboard IRQ handler for irq %u - device %u", cpu_irq, devid);
+    irq_data.source = this;
+    irq_data.pic_irq_id = devid == 1 ? 1 : 12;
+    irq_data.cpu_irq_id = PIC::gIRQNumber(irq_data.pic_irq_id);
+
+    Interrupts::get().sethandler(irq_data.cpu_irq_id, "PS2Keyb", keyboard_irq_handler, (void*)&irq_data);
+    TAG_DEBUG(BOOTINFO, "setup keyboard IRQ handler for irq %u - device %u", irq_data.cpu_irq_id, devid);
 }
 
 PS2Controller::Device::Type PS2Keyboard::getType() {
@@ -205,4 +215,8 @@ PS2Keyboard::key_event_t PS2Keyboard::next() {
         return evt;
     }
     return {false, false, 0, false};
+}
+
+WaitQueue& PS2Keyboard::queue() {
+    return mWaitForEvent;
 }

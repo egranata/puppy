@@ -35,6 +35,7 @@
 #include <kernel/tasks/awaker.h>
 #include <kernel/tasks/collector.h>
 #include <kernel/tasks/deleter.h>
+#include <kernel/tasks/keybqueue.h>
 
 LOG_TAG(TIMING, 2);
 
@@ -99,6 +100,7 @@ static process_t *gSchedulerTask;
 static process_t *gCollectorTask;
 static process_t *gAwakerTask;
 static process_t *gDeleterTask;
+static process_t *gKeybQTask;
 static process_t *gInitTask;
 
 int ProcessManager::processcomparator::compare(process_t* p1, process_t* p2) {
@@ -140,10 +142,11 @@ namespace {
 }
 
 static system_task_t gSystemTasks[] = {
-    SYSTEM_TASK(tasks::scheduler::task, false, "scheduler", &gSchedulerTask),
-    SYSTEM_TASK(tasks::collector::task, true,  "collector", &gCollectorTask),
-    SYSTEM_TASK(tasks::awaker::task,    true,  "awaker",    &gAwakerTask),
-    SYSTEM_TASK(tasks::deleter::task,   true,  "deleter",   &gDeleterTask),
+    SYSTEM_TASK(tasks::scheduler::task,   false, "scheduler",   &gSchedulerTask),
+    SYSTEM_TASK(tasks::collector::task,   true,  "collector",   &gCollectorTask),
+    SYSTEM_TASK(tasks::awaker::task,      true,  "awaker",      &gAwakerTask),
+    SYSTEM_TASK(tasks::deleter::task,     true,  "deleter",     &gDeleterTask),
+    SYSTEM_TASK(tasks::keybqueue::task,   true,  "keybqueue",   &gKeybQTask),
 };
 
 #undef SYSTEM_TASK

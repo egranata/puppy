@@ -18,6 +18,7 @@
 #define DRIVERS_PS2_KEYBOARD
 
 #include <kernel/drivers/ps2/controller.h>
+#include <kernel/synch/waitqueue.h>
 
 class PS2Keyboard : public PS2Controller::Device {
     public:
@@ -36,11 +37,24 @@ class PS2Keyboard : public PS2Controller::Device {
             uint8_t keycode;
             bool down;
         };
+
+        struct keyb_irq_data_t {
+            PS2Keyboard *source;
+            int pic_irq_id;
+            int cpu_irq_id;
+        } irq_data;
+
         PS2Keyboard(uint8_t devid);
 
         virtual Device::Type getType() override;
         bool any();
         key_event_t next();
+
+        WaitQueue& queue();
+
+    private:
+        // this queue will be woken when a keystroke comes in
+        WaitQueue mWaitForEvent;
 };
 
 #endif

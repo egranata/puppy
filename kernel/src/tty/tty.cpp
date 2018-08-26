@@ -16,6 +16,7 @@
 #include <kernel/drivers/ps2/controller.h>
 #include <kernel/process/manager.h>
 #include <kernel/log/log.h>
+#include <kernel/tasks/keybqueue.h>
 
 TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()), mEOF(false) {}
 
@@ -117,33 +118,27 @@ int TTY::read() {
         return TTY_EOF_MARKER;
     }
 
-    // TODO: make a global input queue
-    auto d1 = PS2Controller::get().getDevice1();
-    if (d1 && d1->getType() == PS2Controller::Device::Type::KEYBOARD) {
-        PS2Keyboard::key_event_t evt;
-        while (true) {
-            evt = ((PS2Keyboard*)d1)->next();
-            if (evt.keycode == 0) return TTY_NO_INPUT; // out of input
-            if (interceptChords(evt)) {
-                if (mEOF) {
-                    // CTRL+D can be used as a chord to generate EOF, so
-                    // evaluate EOF again here
-                    return TTY_EOF_MARKER;
-                }
-                continue;
-            } else {
-                break;
-            }
+tryget:
+    PS2Keyboard::key_event_t evt = tasks::keybqueue::readKey();
+    if (evt.keycode == 0) return TTY_NO_INPUT; // out of input
+    if (interceptChords(evt)) {
+        if (mEOF) {
+            // CTRL+D can be used as a chord to generate EOF, so
+            // evaluate EOF again here
+            return TTY_EOF_MARKER;
+        } else {
+            // chord didn't cause EOF - keep trying
+            goto tryget;
         }
-        if (evt.down == false) {
-            switch (evt.keycode) {
-                case '\b':
-                case '\n':
+    }
+    if (evt.down == false) {
+        switch (evt.keycode) {
+            case '\b':
+            case '\n':
+                return evt.keycode;
+            default:
+                if (evt.keycode >= ' ')
                     return evt.keycode;
-                default:
-                    if (evt.keycode >= ' ')
-                        return evt.keycode;
-            }
         }
     }
 
