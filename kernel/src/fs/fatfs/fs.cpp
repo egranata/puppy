@@ -65,9 +65,12 @@ class FATFileSystemFile : public Filesystem::File {
 
         size_t write(size_t size, char* src) override {
             UINT bw = 0;
-            switch (f_write(mFile, src, size, &bw)) {
+            FRESULT result;
+            switch (result = f_write(mFile, src, size, &bw)) {
                 case FR_OK: return bw;
-                default: return bw;
+                default:
+                LOG_ERROR("FatFS error (%u) writing to file %p (mode=%x)", result, mFile, mFile->flag);
+                return bw;
             }
         }
 

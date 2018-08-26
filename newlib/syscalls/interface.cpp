@@ -26,8 +26,18 @@ extern "C" int  errno;
 #include <newlib/syscalls.h>
 #include <newlib/stdlib.h>
 #include <newlib/malloc.h>
+#include <stdarg.h>
 
 #include <kernel/syscalls/types.h>
+
+static __unused void klog(const char* fmt, ...) {
+    char buf[1024] = {0};
+    va_list ap;
+    va_start(ap, fmt);
+    vsprintf(buf, fmt, ap);
+    klog_syscall(buf);
+    va_end(ap);
+}
 
 #define NEWLIB_IMPL_REQUIREMENT extern "C" 
 
@@ -79,28 +89,22 @@ NEWLIB_IMPL_REQUIREMENT int lseek(int /*file*/, int /*ptr*/, int /*dir*/) { retu
 
 #define FLAG_TEST(flag) (flag == (flags & flag))
 
+#define FLAG_MATCH(c, p) if (FLAG_TEST(c)) puppy_flags |= p;
+
 NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file permissions not supported - ignore*/) {
     uint32_t puppy_flags = 0;
-    if (FLAG_TEST(O_RDONLY)) {
-        puppy_flags = FILE_OPEN_READ;
-    } else if (FLAG_TEST(O_WRONLY)) {
-        puppy_flags = FILE_OPEN_WRITE;
-    } else if (FLAG_TEST(O_RDWR)) {
-        puppy_flags = FILE_OPEN_READ | FILE_OPEN_WRITE;
-    }
 
-    if (FLAG_TEST(O_APPEND)) {
-        puppy_flags |= FILE_OPEN_APPEND;
-    }
-    if (FLAG_TEST(O_TRUNC)) {
-        puppy_flags |= FILE_OPEN_NEW;
-    }
+    FLAG_MATCH(O_RDONLY, FILE_OPEN_READ);
+    FLAG_MATCH(O_WRONLY, FILE_OPEN_WRITE);
+    FLAG_MATCH(O_APPEND, FILE_OPEN_APPEND);
+    FLAG_MATCH(O_TRUNC, FILE_OPEN_NEW);
 
     auto fd = fopen_syscall(name, puppy_flags);
     if (fd & 1) return -1;
     return fd >> 1;
 }
 
+#undef FLAG_MATCH
 #undef FLAG_TEST
 
 NEWLIB_IMPL_REQUIREMENT int read(int file, char* ptr, int len) {
