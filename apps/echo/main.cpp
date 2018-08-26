@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/exit.h>
-#include <libuserspace/file.h>
-#include <libuserspace/printf.h>
-#include <muzzle/string.h>
+#include <newlib/string.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
 
 static void usage() {
     printf("echo can be used in one of the following modes:\n");
@@ -30,7 +29,7 @@ int main(int argc, const char** argv) {
 
     const char* file = nullptr;
     bool append = false;
-    auto fd = gInvalidFd;
+    FILE *fd = nullptr;;
 
     for (auto i = 1; i < argc; ++i) {
         if (0 == strcmp(argv[i], "--file")) {
@@ -43,21 +42,22 @@ int main(int argc, const char** argv) {
         } else if (0 == strcmp(argv[i], "--append")) {
             append = true;
         } else {
-            if (fd == gInvalidFd) {
+            if (fd == nullptr) {
                 if (file == nullptr) {
                     printf("%s\n", argv[i]);
                     continue;
                 } else {
-                    fd = open(file, FILE_OPEN_WRITE | (append ? FILE_OPEN_APPEND : FILE_OPEN_NEW));
-                    if (fd == gInvalidFd) usage();
+                    fd = fopen(file, (append ? "aw" : "w"));
+                    if (fd == nullptr) usage();
                 }
             }
-            write(fd, strlen(argv[i]), (unsigned char*)argv[i]);
-            write(fd, 1, (unsigned char*)"\n");
+            fputs(argv[i], fd);
+            fputc('\n', fd);
         }
     }
 
-    if (fd != gInvalidFd) close(fd);
+    fflush(fd);
+    fclose(fd);
 
     return 0;
 }
