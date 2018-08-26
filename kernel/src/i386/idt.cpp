@@ -72,10 +72,34 @@ void Interrupts::install() {
 }
 
 void Interrupts::enable() {
-	enableirq();
+    if (mCliCount == 0) {
+        mCliCount = 1;
+        enableirq();
+    } else if (mCliCount < 0) {
+        ++mCliCount;
+    }
 }
 void Interrupts::disable() {
-	disableirq();
+    if (mCliCount == 1) {
+        disableirq();
+        mCliCount = 0;
+    } else if (mCliCount <= 0) {
+        --mCliCount;
+    }
+}
+
+bool Interrupts::enabled() {
+    return 0 != (readflags() & 512);
+}
+
+Interrupts::ScopedDisabler::ScopedDisabler() {
+    Interrupts::get().disable();
+}
+Interrupts::ScopedDisabler::~ScopedDisabler() {
+    Interrupts::get().enable();
+}
+Interrupts::ScopedDisabler::operator bool() {
+    return false == Interrupts::get().enabled();
 }
 
 void Interrupts::sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f f, void* payload) {
@@ -346,6 +370,7 @@ extern uintptr_t interrupt_handler_254;
 extern uintptr_t interrupt_handler_255;
 
 Interrupts::Interrupts() {
+    mCliCount = (enabled() ? 1 : 0);
     bzero((uint8_t*)&mHandlers[0], sizeof(mHandlers));
     mEntries[0] = Entry((uintptr_t)&interrupt_handler_0, false, true);
     mEntries[1] = Entry((uintptr_t)&interrupt_handler_1, false, true);

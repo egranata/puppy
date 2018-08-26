@@ -34,6 +34,7 @@ if mode == 'idt.cpp':
         print('extern uintptr_t interrupt_handler_%d;' % i)
     
     print("\nInterrupts::Interrupts() {")
+    print("    mCliCount = (enabled() ? 1 : 0);")
     print("    bzero((uint8_t*)&mHandlers[0], sizeof(mHandlers));")
     for i in range(0, 256):
         if i in reserved: continue

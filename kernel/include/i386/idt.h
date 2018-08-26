@@ -42,13 +42,22 @@ public:
 	
 	void enable();
 	void disable();
+
+	bool enabled();
 	
 	void sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f = nullptr, void* = nullptr);
 
 	uint64_t getNumOccurrences(uint8_t irq);
 	const char* getName(uint8_t irq);
 	
-private:	
+	class ScopedDisabler {
+		public:
+			ScopedDisabler();
+			~ScopedDisabler();
+
+			explicit operator bool();
+	};
+private:
 	Interrupts();
 	
 	Interrupts(const Interrupts&) = delete;
@@ -75,6 +84,8 @@ private:
 	} __attribute__((packed)) mEntries[256];
 	
 	handler_t mHandlers[256];
+
+	int32_t mCliCount;
 	
 	friend void interrupt_handler(GPR, InterruptStack);
 	
