@@ -16,7 +16,9 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/memory.h>
+#include <newlib/sys/vm.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
 
 int main();
 
@@ -26,38 +28,61 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            readable(), writable();
+            test_readable(), test_writable();
         }
     
     private:
         static constexpr size_t gChunkSize = 3 * 4096;
 
-        void readable() {
-            CHECK_TRUE(::readable((void*)main));
-            void* ap = malloc(gChunkSize);
-            CHECK_NOT_NULL(ap);
-            CHECK_TRUE(::readable(ap, gChunkSize));
-            void* rp = mapregion(gChunkSize, false);
-            CHECK_NOT_NULL(rp);
-            CHECK_TRUE(::readable(rp, gChunkSize));
-            CHECK_TRUE(::unmapregion((uintptr_t)rp));
-            CHECK_FALSE(::readable(rp, gChunkSize));
+        template<typename T>
+        void CHECK_READABLE(T ptr, size_t n = 1) {
+            CHECK_TRUE(readable(ptr, n));
         }
 
-        void writable() {
-            CHECK_FALSE(::writable((void*)main));
+        template<typename T>
+        void CHECK_WRITABLE(T ptr, size_t n = 1) {
+            CHECK_TRUE(writable(ptr, n));
+        }
+
+        template<typename T>
+        void CHECK_NOT_READABLE(T ptr, size_t n = 1) {
+            CHECK_FALSE(readable(ptr, n));
+        }
+
+        template<typename T>
+        void CHECK_NOT_WRITABLE(T ptr, size_t n = 1) {
+            CHECK_FALSE(writable(ptr, n));
+        }
+
+        void test_readable() {
+            CHECK_READABLE((void*)main);
             void* ap = malloc(gChunkSize);
             CHECK_NOT_NULL(ap);
-            CHECK_TRUE(::writable(ap, gChunkSize));
-            void* rp = mapregion(gChunkSize, true);
+            CHECK_READABLE(ap, gChunkSize);
+            void* rp = mapregion(gChunkSize, false);
             CHECK_NOT_NULL(rp);
-            CHECK_TRUE(::writable(rp, gChunkSize));
-            CHECK_TRUE(::unmapregion((uintptr_t)rp));
-            CHECK_FALSE(::writable(rp, gChunkSize));
-            rp = mapregion(gChunkSize, false);
-            CHECK_NOT_NULL(rp);
-            CHECK_FALSE(::writable(rp, gChunkSize));
+            CHECK_READABLE(rp, gChunkSize);
+            CHECK_TRUE(unmapregion(rp));
+            CHECK_NOT_READABLE(rp, gChunkSize);
+        }
 
+        void test_writable() {
+            CHECK_NOT_WRITABLE((void*)main);
+            void* ap = malloc(gChunkSize);
+            CHECK_NOT_NULL(ap);
+            printf("A\n");
+            CHECK_WRITABLE(ap, gChunkSize);
+            printf("B\n");
+            void* rp = mapregion(gChunkSize, VM_REGION_READWRITE);
+            CHECK_NOT_NULL(rp);
+            printf("Checking for writable region at %p\n", rp);
+            CHECK_WRITABLE(rp, gChunkSize);
+            printf("C\n");
+            CHECK_TRUE(unmapregion(rp));
+            CHECK_NOT_WRITABLE(rp, gChunkSize);
+            rp = mapregion(gChunkSize, VM_REGION_READONLY);
+            CHECK_NOT_NULL(rp);
+            CHECK_NOT_WRITABLE(rp, gChunkSize);
         }
 };
 
