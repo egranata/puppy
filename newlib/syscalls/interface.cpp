@@ -26,6 +26,8 @@ extern "C" int  errno;
 #include <newlib/syscalls.h>
 #include <newlib/stdlib.h>
 #include <newlib/malloc.h>
+#include <newlib/string.h>
+#include <newlib/strings.h>
 #include <stdarg.h>
 
 #include <kernel/syscalls/types.h>
@@ -58,8 +60,6 @@ NEWLIB_IMPL_REQUIREMENT int fork() {
   errno = EAGAIN;
   return -1;
 }
-
-NEWLIB_IMPL_REQUIREMENT int fstat(int /*file*/, struct stat* /*st*/) { return 0; }
 
 NEWLIB_IMPL_REQUIREMENT int getpid() {
     return getpid_syscall() >> 1;
@@ -124,7 +124,34 @@ NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
     return (caddr_t)ptr;
 }
 
-NEWLIB_IMPL_REQUIREMENT int stat(const char *file, struct stat *st);
+NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
+    file_stat_t fs;
+    bzero(st, sizeof(struct stat));
+
+    bool ok = (0 == fstat_syscall(fd, (uint32_t)&fs));
+
+    close(fd);
+
+    if (ok) {
+        st->st_size = fs.size;
+        return 0;
+    } else {
+        errno = EIO;
+        return -1;
+    }
+}
+
+NEWLIB_IMPL_REQUIREMENT int stat(const char *file, struct stat *st) {
+    int fd = open(file, O_RDONLY);
+    if (fd == -1) {
+        errno = EACCES;
+        return -1;
+    }
+
+    int ok = fstat(fd, st);
+    close(fd);
+    return ok;
+}
 
 NEWLIB_IMPL_REQUIREMENT clock_t times(struct tms* /*buf*/) {
     return -1;
