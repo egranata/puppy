@@ -52,6 +52,12 @@ syscall_response_t reboot_syscall() {
 syscall_response_t sysinfo_syscall(sysinfo_t* arg1,uint32_t arg2) {
 	return syscall2(sysinfo_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
+syscall_response_t getcurdir_syscall(char* arg1,size_t* arg2) {
+	return syscall2(getcurdir_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
+}
+syscall_response_t setcurdir_syscall(const char* arg1) {
+	return syscall1(setcurdir_syscall_id,(uint32_t)arg1);
+}
 syscall_response_t semwait_syscall(uint32_t arg1) {
 	return syscall1(semwait_syscall_id,(uint32_t)arg1);
 }

@@ -23,6 +23,7 @@
 #include <kernel/tty/tty.h>
 #include <kernel/libc/math.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/libc/string.h>
 
 HANDLER0(yield) {
     ProcessManager::get().yield();
@@ -131,5 +132,24 @@ syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count)
         return true;
     });
 
+    return OK;
+}
+
+syscall_response_t getcurdir_syscall_handler(char* dest, size_t* sz) {
+    auto real_sz = strlen(gCurrentProcess->cwd);
+    if ((*sz <= real_sz) || (dest == nullptr)) {
+        *sz = real_sz + 1;
+        return ERR(OUT_OF_MEMORY);
+    }
+    strncpy(dest, gCurrentProcess->cwd, *sz);
+    return OK;
+}
+
+syscall_response_t setcurdir_syscall_handler(const char* arg) {
+    if (arg == nullptr || arg[0] != '/') {
+        return ERR(NO_SUCH_FILE);
+    }
+    if (gCurrentProcess->cwd) free((void*)gCurrentProcess->cwd);
+    gCurrentProcess->cwd = strdup(arg);
     return OK;
 }

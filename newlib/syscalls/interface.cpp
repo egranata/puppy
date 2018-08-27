@@ -265,4 +265,24 @@ NEWLIB_IMPL_REQUIREMENT unsigned int sleep(unsigned int seconds) {
     return 0;
 }
 
+NEWLIB_IMPL_REQUIREMENT char* getcwd (char* buf, size_t sz) {
+    if (buf == nullptr) sz = 0;
+    auto ok = getcurdir_syscall(buf, &sz);
+    if (ok == 0) return buf;
+    if (buf == nullptr) {
+        buf = (char*)calloc(1, sz + 1);
+        ok = getcurdir_syscall(buf, &sz);
+        if (ok == 0) return buf;
+    }
+    errno = ERANGE;
+    return nullptr;
+}
+
+NEWLIB_IMPL_REQUIREMENT int chdir(const char *path) {
+    auto ok = setcurdir_syscall(path);
+    if (ok == 0) return 0;
+    errno = EFAULT;
+    return -1;
+}
+
 NEWLIB_IMPL_REQUIREMENT char **environ;

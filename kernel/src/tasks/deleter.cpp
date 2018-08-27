@@ -37,6 +37,7 @@ namespace tasks::deleter {
                 LOG_DEBUG("deleting process object for %u", proc->pid);
                 if (proc->path) free((void*)proc->path);
                 if (proc->args) free((void*)proc->args);
+                if (proc->cwd) free((void*)proc->cwd);
                 if (proc->ttyinfo.ttyfile) delete proc->ttyinfo.ttyfile;
 
                 auto dtbl = addr_gdt<uint64_t*>();

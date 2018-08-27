@@ -53,11 +53,20 @@ static char* trim(char* s) {
 
 int main(int, const char**) {
     klog_syscall("shell is up and running");
+    char* prompt = (char*)malloc(1024);
 
     while(true) {
         char* buffer = nullptr;
+        bzero(prompt, 1024);
+        if (prompt == getcwd(prompt, 1021)) {
+            auto len = strlen(prompt);
+            prompt[len] = '$';
+            prompt[len+1] = 0;
+        } else {
+            strcpy(prompt, "shell>");
+        }
+        printf("%s ", prompt); fflush(stdout);
         size_t n = 0;
-        printf("shell> "); fflush(stdout);
         __getline(&buffer, &n, stdin);
         const char* program = trim(buffer);
         if (program != 0 && *program != 0) {

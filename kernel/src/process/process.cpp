@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <kernel/process/process.h>
+#include <kernel/libc/string.h>
 
 process_t::process_t() : tss(), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;
@@ -21,6 +22,7 @@ process_t::process_t() : tss(), mmap(this), ttyinfo(), exitstatus(0), children()
     priority = {usedticks = 0,0};
     args = nullptr;
     path = nullptr;
+    cwd = strdup("/");
 }
 
 process_t::ttyinfo_t::ttyinfo_t() : tty(nullptr), ttyfile(nullptr) {
@@ -51,6 +53,7 @@ void process_t::clone(process_t* other) {
 
     other->path = strdup(path);
     other->args = strdup(args);
+    other->cwd = strdup(cwd);
 
     other->state = process_t::State::NEW;
     other->sleeptill = 0;
