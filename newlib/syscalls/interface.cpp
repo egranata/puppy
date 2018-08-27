@@ -130,8 +130,6 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
 
     bool ok = (0 == fstat_syscall(fd, (uint32_t)&fs));
 
-    close(fd);
-
     if (ok) {
         st->st_size = fs.size;
         return 0;
