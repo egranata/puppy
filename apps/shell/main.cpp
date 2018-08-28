@@ -21,6 +21,7 @@
 #include <newlib/unistd.h>
 #include <newlib/sys/process.h>
 #include <newlib/sys/wait.h>
+#include <newlib/sys/unistd.h>
 
 void handleExitStatus(uint16_t pid, int exitcode) {
     if (WIFEXITED(exitcode)) {
@@ -51,6 +52,38 @@ static char* trim(char* s) {
     return s;
 }
 
+static void cd_exec(const char* args) {
+    if (chdir(args)) {
+        printf("can't set cwd to '%s'\n", args);
+    }
+}
+
+struct builtin_cmd_t {
+    const char* command;
+    void(*executor)(const char*);
+};
+
+builtin_cmd_t builtin_cmds[] = {
+    {"cd", cd_exec},
+    {nullptr, nullptr}
+};
+
+static bool tryExecBuiltin(const char* program, const char* args) {
+    size_t i = 0u;
+
+    while (builtin_cmds[i].command) {
+        if (0 == strcmp(builtin_cmds[i].command, program)) {
+            if (builtin_cmds[i].executor) {
+                builtin_cmds[i].executor(args);
+            }
+            return true;
+        }
+        ++i;
+    }
+
+    return false;
+}
+
 int main(int, const char**) {
     klog_syscall("shell is up and running");
     char* prompt = (char*)malloc(1024);
@@ -77,11 +110,14 @@ int main(int, const char**) {
                 *args = 0;
                 ++args;
             }
-            auto chld = spawn(program, args, letgo ? SPAWN_BACKGROUND : SPAWN_FOREGROUND);
-            if (!letgo) {
-                int exitcode = 0;
-                waitpid(chld, &exitcode, 0);
-                handleExitStatus(chld, exitcode);
+            // background execution makes no sense for builtins, so if it was asked, just go straight to spawn
+            if (letgo || !tryExecBuiltin(program, args)) {
+                auto chld = spawn(program, args, letgo ? SPAWN_BACKGROUND : SPAWN_FOREGROUND);
+                if (!letgo) {
+                    int exitcode = 0;
+                    waitpid(chld, &exitcode, 0);
+                    handleExitStatus(chld, exitcode);
+                }
             }
         }
         tryCollect();
