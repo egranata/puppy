@@ -17,6 +17,8 @@
 #include <kernel/synch/waitqueue.h>
 #include <kernel/process/manager.h>
 #include <kernel/process/process.h>
+
+#define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
 void WaitQueue::wait(process_t* task) {
