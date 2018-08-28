@@ -37,6 +37,7 @@ class TheTest : public Test {
             readFile("./file.txt", msg);
             readFile("../tmp/file.txt", msg);
             readFile("./../tmp/file.txt", msg);
+            readFile("../../system/config/../../../..////tmp/file.txt", msg);
         }
 
     private:

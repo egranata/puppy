@@ -117,6 +117,16 @@ static char* concatPaths(const char* p1, const char* p2) {
 
 #define FLAG_MATCH(c, p) if (FLAG_TEST(c)) puppy_flags |= p;
 
+static bool isAbsolutePath(const char* path) {
+    if (path[0] == '/') {
+        if (nullptr == strstr(path, "/.")) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file permissions not supported - ignore*/) {
     uint32_t puppy_flags = 0;
 
@@ -127,9 +137,7 @@ NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file p
         return -1;
     }
 
-    // TODO: safer way to decide whether this is an absolute path, e.g.
-    // /tmp/../system/file.txt would look absolute but it is really not
-    if (name[0] != '/') {
+    if (!isAbsolutePath(name)) {
         char* cwd = getcwd();
         char* concat = concatPaths(cwd, name);
         klog("path concat '%s' + '%s' : '%s'", cwd, name, concat);

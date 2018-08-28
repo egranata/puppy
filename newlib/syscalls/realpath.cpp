@@ -17,6 +17,22 @@
 #include <kernel/syscalls/types.h>
 
 namespace {
+    template<typename T>
+    struct scoped_ptr_t {
+        T* ptr;
+        template<typename U = T>
+        scoped_ptr_t(U* ptr = nullptr) : ptr((T*)ptr) {}
+        template<typename U = T, typename Q = T>
+        Q* reset(U* next = nullptr) {
+            auto out = ptr;
+            ptr = (T*)next;
+            return (Q*)out;
+        }
+        ~scoped_ptr_t() {
+            free(ptr);
+        }
+    };
+
     struct realpath_impl_entry_t {
         const char* value;
         bool used;
@@ -53,15 +69,15 @@ namespace {
 
         size_t destIdx = 1;
 
-        char* buf = strdup(path+1);
+        scoped_ptr_t<char> buf(strdup(path+1));
 
-        auto buf_len = strlen(buf);
-        if (buf[buf_len - 1] == '/') buf[buf_len-1] = 0;
+        auto buf_len = strlen(buf.ptr);
+        if (buf.ptr[buf_len - 1] == '/') buf.ptr[buf_len-1] = 0;
 
         char sep[] = "/";
         char* component;
         char* brk;
-        for(component = strtok_r(buf, sep, &brk);
+        for(component = strtok_r(buf.ptr, sep, &brk);
             component;
             component = strtok_r(nullptr, sep, &brk)) {
             if (strcmp(component, ".")) {
@@ -69,8 +85,6 @@ namespace {
                 dest[destIdx++] = component;
             }
         }
-
-        free((void*)buf);
         
         num = destIdx;
         return true;
@@ -83,8 +97,14 @@ namespace {
         for (auto i = 0u; i < numparts; ++i) {
             auto& entry = parts[i];
             if (entry.isDotDot()) {
-                if (i >= 2) {
-                    parts[i-1].used = false;
+                auto j = i-1;
+                while(j >= 1) {
+                    if (parts[j].isDotDot() || !parts[j].used) {
+                        --j;
+                    } else {
+                        parts[j].used = false;
+                        break;
+                    }
                 }
                 entry.used = false;
             }
@@ -108,22 +128,6 @@ namespace {
 
         return true;
     }
-
-    template<typename T>
-    struct scoped_ptr_t {
-        T* ptr;
-        template<typename U = T>
-        scoped_ptr_t(U* ptr = nullptr) : ptr((T*)ptr) {}
-        template<typename U = T, typename Q = T>
-        Q* reset(U* next = nullptr) {
-            auto out = ptr;
-            ptr = (T*)next;
-            return (Q*)out;
-        }
-        ~scoped_ptr_t() {
-            free(ptr);
-        }
-    };
 }
 
 #define NEWLIB_IMPL_REQUIREMENT extern "C"
