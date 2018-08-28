@@ -354,6 +354,7 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     process->pid = gPidBitmap().next();
     process->ppid = gCurrentProcess->pid;
     process->ttyinfo = gCurrentProcess->ttyinfo;
+    process->cwd = strdup(gCurrentProcess->cwd);
     process->priority.prio = process->priority.prio0 = si.priority;
     process->flags.system = si.system;
 
