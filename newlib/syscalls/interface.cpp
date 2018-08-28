@@ -41,7 +41,20 @@ static __unused void klog(const char* fmt, ...) {
     va_end(ap);
 }
 
-#define NEWLIB_IMPL_REQUIREMENT extern "C" 
+#define NEWLIB_IMPL_REQUIREMENT extern "C"
+
+NEWLIB_IMPL_REQUIREMENT char* getcwd (char* buf = nullptr, size_t sz = 0) {
+    if (buf == nullptr) sz = 0;
+    auto ok = getcurdir_syscall(buf, &sz);
+    if (ok == 0) return buf;
+    if (buf == nullptr) {
+        buf = (char*)calloc(1, sz + 1);
+        ok = getcurdir_syscall(buf, &sz);
+        if (ok == 0) return buf;
+    }
+    errno = ERANGE;
+    return nullptr;
+}
 
 NEWLIB_IMPL_REQUIREMENT void _exit(int code) {
     exit_syscall(code);
@@ -87,6 +100,19 @@ NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
 
 NEWLIB_IMPL_REQUIREMENT int lseek(int /*file*/, int /*ptr*/, int /*dir*/) { return 0; }
 
+static char* concatPaths(const char* p1, const char* p2) {
+    auto lp1 = strlen(p1);
+    auto lp2 = strlen(p2);
+    if (p1 == nullptr || lp1 == 0) return strdup(p2);
+    if (p2 == nullptr || lp2 == 0) return strdup(p1);
+    char* dest = (char*)calloc(1, lp1 + lp2 + 2);
+    memcpy(dest, p1, lp1);
+    if (p1[lp1 - 1] == '/' && p2[0] == '/') ++p2;
+    else if (p1[lp1 - 1] != '/' && p2[0] != '/') dest[lp1++] = '/';
+    memcpy(dest + lp1, p2, lp2);
+    return dest;
+}
+
 #define FLAG_TEST(flag) (flag == (flags & flag))
 
 #define FLAG_MATCH(c, p) if (FLAG_TEST(c)) puppy_flags |= p;
@@ -94,12 +120,33 @@ NEWLIB_IMPL_REQUIREMENT int lseek(int /*file*/, int /*ptr*/, int /*dir*/) { retu
 NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file permissions not supported - ignore*/) {
     uint32_t puppy_flags = 0;
 
+    char* rp;
+
+    if (name == nullptr || name[0] == 0) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    // TODO: safer way to decide whether this is an absolute path, e.g.
+    // /tmp/../system/file.txt would look absolute but it is really not
+    if (name[0] != '/') {
+        char* cwd = getcwd();
+        char* concat = concatPaths(cwd, name);
+        klog("path concat '%s' + '%s' : '%s'", cwd, name, concat);
+        rp = realpath(concat, nullptr);
+        klog("real path of '%s' is '%s'", concat, rp);
+        free(concat);
+    } else {
+        rp = strdup(name);
+    }
+
     FLAG_MATCH(O_RDONLY, FILE_OPEN_READ);
     FLAG_MATCH(O_WRONLY, FILE_OPEN_WRITE);
     FLAG_MATCH(O_APPEND, FILE_OPEN_APPEND);
     FLAG_MATCH(O_TRUNC, FILE_OPEN_NEW);
 
-    auto fd = fopen_syscall(name, puppy_flags);
+    auto fd = fopen_syscall(rp, puppy_flags);
+    free(rp);
     if (fd & 1) return -1;
     return fd >> 1;
 }
@@ -261,19 +308,6 @@ NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags)
 NEWLIB_IMPL_REQUIREMENT unsigned int sleep(unsigned int seconds) {
     sleep_syscall(1000 * seconds);
     return 0;
-}
-
-NEWLIB_IMPL_REQUIREMENT char* getcwd (char* buf, size_t sz) {
-    if (buf == nullptr) sz = 0;
-    auto ok = getcurdir_syscall(buf, &sz);
-    if (ok == 0) return buf;
-    if (buf == nullptr) {
-        buf = (char*)calloc(1, sz + 1);
-        ok = getcurdir_syscall(buf, &sz);
-        if (ok == 0) return buf;
-    }
-    errno = ERANGE;
-    return nullptr;
 }
 
 NEWLIB_IMPL_REQUIREMENT int chdir(const char *path) {

@@ -39,6 +39,11 @@ extern "C" {
 /* Version with trailing underscores for BSD compatibility. */
 #define	__GNUC_PREREQ__(ma, mi)	__GNUC_PREREQ(ma, mi)
 
+// TODO: make a proper Puppy toolchain
+#ifndef __STRICT_ANSI__
+#define _GNU_SOURCE 1
+#endif
+#define _DEFAULT_SOURCE 1
 
 /*
  * Feature test macros control which symbols are exposed by the system

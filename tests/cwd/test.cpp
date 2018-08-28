@@ -19,6 +19,7 @@
 #include <newlib/sys/unistd.h>
 #include <newlib/unistd.h>
 #include <newlib/string.h>
+#include <newlib/stdio.h>
 
 class TheTest : public Test {
     public:
@@ -26,9 +27,34 @@ class TheTest : public Test {
     
     protected:
         void run() override {
+            const char* msg = "Test message";
             CHECK_EQ(0, chdir("/tmp"));
             char* cwd = getcwd(nullptr, 0);
             CHECK_EQ(0, strcmp("/tmp", cwd));
+            writeFile(msg);
+            readFile("/tmp/file.txt", msg);
+            readFile("file.txt", msg);
+            readFile("./file.txt", msg);
+            readFile("../tmp/file.txt", msg);
+            readFile("./../tmp/file.txt", msg);
+        }
+
+    private:
+        void readFile(const char* path, const char* msg) {
+            printf("Trying to read from %s\n", path);
+            FILE *fd = fopen(path, "r");
+            CHECK_NOT_NULL(fd);
+            char buffer[512] = {0};
+            CHECK_NOT_EQ(fread(&buffer[0], 1, 511, fd), 0);
+            CHECK_EQ(0, strcmp(&buffer[0], msg));
+            fclose(fd);
+        }
+
+        void writeFile(const char* msg) {
+            FILE* fd = fopen("/tmp/file.txt", "w");
+            CHECK_NOT_NULL(fd);
+            CHECK_NOT_EQ(fwrite(msg, 1, strlen(msg), fd), 0);
+            fclose(fd);
         }
 };
 
