@@ -62,6 +62,7 @@ class ProcessManager : NOCOPY {
             uint8_t priority; /** initial process priority */
             uintptr_t argument; /** a pointer to be pushed onto the stack for the entry point to consume */
             const char* name;
+            const char* cwd;
 
             bool schedulable; /** should this process be scheduled */
             bool system; /** is this a system process */
@@ -71,7 +72,10 @@ class ProcessManager : NOCOPY {
         process_t *spawn(const spawninfo_t&);
         process_t *kspawn(const spawninfo_t&);
 
+        // TODO: merge setup and exec
         process_t *setup(const char* path, const char* args, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0);
+        process_t* exec(const char* path, const char* args, uint32_t flags);
+
         void tick();
 
         void ctxswitch(pid_t task);

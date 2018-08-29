@@ -49,15 +49,14 @@ HANDLER0(getppid) {
     return (gCurrentProcess->ppid << 1) | OK;
 }
 
-HANDLER3(exec,pth,rgs,fg) {
-    const char* path = (const char*)pth;
-    const char* args = (const char*)rgs;
+syscall_response_t exec_syscall_handler(const char* path, const char* args, uint32_t flags) {
     auto&& pmm = ProcessManager::get();
-    auto newproc = pmm.setup(path, args);
-    if (fg) {
+
+    auto newproc = pmm.exec(path, args, flags);
+    if (flags & PROCESS_IS_FOREGROUND) {
         newproc->ttyinfo.tty->pushfg(newproc->pid);
     }
-    return (newproc->pid << 1) | OK;
+    return OK | (newproc->pid << 1);
 }
 
 HANDLER1(kill,pid) {

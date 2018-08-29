@@ -112,7 +112,7 @@ int main(int, const char**) {
             }
             // background execution makes no sense for builtins, so if it was asked, just go straight to spawn
             if (letgo || !tryExecBuiltin(program, args)) {
-                auto chld = spawn(program, args, letgo ? SPAWN_BACKGROUND : SPAWN_FOREGROUND);
+                auto chld = spawn(program, args, PROCESS_INHERITS_CWD | (letgo ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
                 if (!letgo) {
                     int exitcode = 0;
                     waitpid(chld, &exitcode, 0);

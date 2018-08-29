@@ -53,6 +53,11 @@ enum {
     REGION_ALLOW_WRITE = 1
 };
 
+enum {
+    PROCESS_IS_FOREGROUND = 0x1, // the new process will acquire foreground on the tty
+    PROCESS_INHERITS_CWD  = 0x2, // the new process will share the parent's CWD (if not set, defaults to "/")
+};
+
 struct process_exit_status_t {
     enum class reason_t : uint8_t {
         alive = 0, /** this process is still alive */

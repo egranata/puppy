@@ -135,6 +135,7 @@ namespace {
         priority : sched ? 1 : 0, \
         argument : 0, \
         name : nm, \
+        cwd : "/", \
         schedulable : sched, \
         system : true, \
     }, \
@@ -235,6 +236,27 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
+process_t* ProcessManager::exec(const char* path, const char* args, uint32_t flags) {
+    auto&& vmm(VirtualPageManager::get());
+
+    spawninfo_t si {
+        cr3 : vmm.createAddressSpace(),
+        eip : (uintptr_t)&fileloader,
+        priority : gDefaultBasePriority,
+        argument : 0,
+        name : path,
+        cwd : (flags & PROCESS_INHERITS_CWD ? gCurrentProcess->cwd : "/"),
+        schedulable : true,
+    };
+
+    if (auto process = spawn(si)) {
+        if (args) process->args = strdup(args);
+        return process;
+    }
+
+    return nullptr;
+}
+
 process_t* ProcessManager::setup(const char* path, const char* args, uint8_t prio, uintptr_t argp) {
     auto&& vmm(VirtualPageManager::get());
 
@@ -244,6 +266,7 @@ process_t* ProcessManager::setup(const char* path, const char* args, uint8_t pri
         priority : prio,
         argument : argp,
         name : path,
+        cwd : "/",
         schedulable : true,
     };
 
@@ -717,6 +740,7 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip) {
         priority : gCurrentProcess->priority.prio,
         argument : eip,
         name : gCurrentProcess->path,
+        cwd : gCurrentProcess->cwd,
         schedulable : true,
         system : gCurrentProcess->flags.system,
         clone : true

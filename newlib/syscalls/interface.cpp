@@ -308,7 +308,7 @@ NEWLIB_IMPL_REQUIREMENT int ioctl(int fd, int a, int b) {
 }
 
 NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags) {
-    auto eo = exec_syscall((uint32_t)path, (uint32_t)args, flags);
+    auto eo = exec_syscall(path, args, flags);
     if (eo & 1) return -1;
     return eo >> 1;
 }

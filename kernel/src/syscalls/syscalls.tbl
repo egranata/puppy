@@ -14,7 +14,7 @@
     {"number":13,    "name":"fopen",            "argtypes":["const char*", "uint32_t"]},
     {"number":14,    "name":"fclose",           "argc":1},
     {"number":15,    "name":"fread",            "argc":3},
-    {"number":16,    "name":"exec",             "argc":3},
+    {"number":16,    "name":"exec",             "argtypes":["const char*", "const char*", "uint32_t"]},
     {"number":18,    "name":"kill",             "argc":1},
     {"number":20,    "name":"fstat",            "argc":2},
     {"number":21,    "name":"fseek",            "argc":2},

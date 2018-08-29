@@ -49,7 +49,7 @@ syscall_response_t fclose_syscall(uint32_t arg1);
 constexpr uint8_t fclose_syscall_id = 0xe;
 syscall_response_t fread_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 constexpr uint8_t fread_syscall_id = 0xf;
-syscall_response_t exec_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
+syscall_response_t exec_syscall(const char* arg1,const char* arg2,uint32_t arg3);
 constexpr uint8_t exec_syscall_id = 0x10;
 syscall_response_t kill_syscall(uint32_t arg1);
 constexpr uint8_t kill_syscall_id = 0x12;
