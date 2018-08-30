@@ -486,6 +486,7 @@ for test in TEST_REFS:
 
 makeDir("out/mnt/config")
 copy("build/config/init", "out/mnt/config/init")
+copy("LICENSE", "out/mnt/config/LICENSE")
 
 anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
 sysinfo = read('build/config/sysinfo')
