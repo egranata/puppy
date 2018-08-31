@@ -19,6 +19,16 @@
 
 #include <kernel/sys/stdint.h>
 
+namespace {
+    enum elf_type_t {
+        none = 0x0,
+        rel = 0x1,
+        exec = 0x2,
+        dyn = 0x3,
+        core = 0x4,
+    };
+}
+
 struct elf_header_t;
 
 struct process_loadinfo_t {
@@ -26,8 +36,16 @@ struct process_loadinfo_t {
     uintptr_t stack;
 };
 
+struct elf_load_result_t {
+    bool ok;
+    const char* error;
+    uintptr_t max_load_addr;
+};
+
+elf_load_result_t load_elf_image(elf_header_t* header);
+
 extern "C"
-process_loadinfo_t loadelf(elf_header_t* header, size_t stacksize);
+process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize);
 
 struct elf_section_t {
     uint32_t name;
@@ -40,6 +58,10 @@ struct elf_section_t {
     uint32_t info;
     uint32_t addralign;
     uint32_t entsize;
+
+    bool dynamicInfo() const {
+        return type == 0xb;
+    }
 
     uint8_t *content(elf_header_t* base, uint32_t off = 0) const {
         return ((uint8_t*)base) + offset + off;
@@ -62,6 +84,13 @@ struct elf_program_t {
 
     bool writable() const {
         return 2 == (flags & 2);
+    }
+
+    bool loadable() const {
+        return type == 0x1;
+    }
+    bool dynamicInfo() const {
+        return type == 0x2;
     }
 } __attribute__((packed));
 
@@ -96,19 +125,99 @@ struct elf_header_t {
         return ((elf_program_t*)((uint8_t*)this + phoff))[n];
     }
 
+    const elf_section_t* getDynamicSymbols() const;
+
+    const elf_program_t* getDynamic() const;
+
     const elf_section_t& strtable() const {
         return section(shstrndx);
     }
 
-    bool sanitycheck() {
+    bool isDylib() const {
+        return type == elf_type_t::dyn;
+    }
+
+    bool isExecutable() const {
+        return type == elf_type_t::exec;
+    }
+
+    bool sanitycheck() const {
         if (magic != 0x464c457f) return false;
         if (arch != 0x1) return false;
         if (order != 0x1) return false;
         if (ver != 0x1) return false;
-        if (type != 0x2) return false;
+        switch (type) {
+            case elf_type_t::exec:
+            case elf_type_t::dyn:
+                break;
+            default:
+                return false;
+        }
         if (machine != 0x3) return false;
         return true;
     }
 } __attribute__((packed));
+
+struct elf_symtab_entry_t {
+    uintptr_t name; // offset of name in string table
+    uintptr_t value;
+    uintptr_t size;
+    uint8_t info;
+    uint8_t other;
+    uint16_t secheader;
+} __attribute__((packed));
+
+struct elf_dynamic_entry_t {
+    enum kind_t {
+        null = 0,
+        hash = 4,
+        strtab = 5,
+        symtab = 6,
+        rela = 7,            // explicit addends
+        rela_table_size = 8, // in bytes
+        rela_entry_size = 9, // same,
+        init_func_addr = 12,
+        fini_func_addr = 13,
+        rel = 17,            // implicit addends
+        rel_table_size = 18, // in bytes
+        rel_entry_size = 19, // same,
+        init_array_addr = 25,
+        fini_array_addr = 26,
+        init_array_size = 27, // in bytes
+        fini_array_size = 28, // same
+    };
+    int32_t tag;
+    uint32_t value; 
+} __attribute__((packed));
+
+enum elf_rel_kind {
+    R_386_32 = 1,
+    R_386_PC32 = 2,
+};
+
+struct elf_rel_t {
+    uintptr_t offset;
+    uintptr_t info;
+
+    uint8_t kind() {
+        return (info & 0xFF);
+    }
+    uint32_t idx() {
+        return (info >> 8);
+    }
+} __attribute__((packed));
+
+struct elf_rela_t {
+    uintptr_t offset;
+    uintptr_t info;
+    uintptr_t addend;
+
+    uint8_t kind() {
+        return (info & 0xFF);
+    }
+    uint32_t idx() {
+        return (info >> 8);
+    }
+} __attribute((packed));
 
 #endif

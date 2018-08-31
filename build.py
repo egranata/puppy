@@ -162,6 +162,7 @@ def makeDir(path):
 
 clearDir("out")
 clearDir("out/apps")
+clearDir("out/libs")
 clearDir("out/tests")
 clearDir("out/mnt")
 clearDir("out/iso/boot/grub")
@@ -234,6 +235,11 @@ class Project(object):
         destfile = "%s/%s" % (self.outwhere, self.name.lower())
         out = out + self.linkerdeps
         linkGcc(files=out, flags=self.ldflags, out=destfile)
+        return destfile
+
+    def linkDylib(self, out):
+        destfile = "%s/%s" % (self.outwhere, self.name.lower())
+        shell("i686-elf-ld -shared %s -o %s" % (' '.join(out), destfile))
         return destfile
 
     def link(self, out):
@@ -356,15 +362,37 @@ APPS_CONFIG = {
 }
 
 APPS = []
+DYLIBS = []
 TESTS = []
 
 INITRD_REFS = [] # apps for initrd
 APP_REFS = ["out/apps/newlibdemo"] # apps for main filesystem
+DYLIB_REFS = []
 TEST_REFS = []
 APP_PROJECTS = []
+DYLIB_PROJECTS = []
 TEST_PROJECTS = []
 
 USER_CONTENT_BEGIN = time.time()
+
+DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
+print(DYLIBS_PRINT_PREFIX)
+
+DYLIB_DIRS = findSubdirectories("dylibs", self=False)
+for lib in DYLIB_DIRS:
+    dylib_p = UserspaceTool(name = os.path.basename(lib),
+                            srcdir = lib,
+                            outwhere="out/libs")
+    dylib_p.link = dylib_p.linkDylib
+    DYLIB_PROJECTS.append(dylib_p.name)
+    print(' ' * len(DYLIBS_PRINT_PREFIX), end='', flush=True)
+    print(dylib_p.name, end='', flush=True)
+    lib_o = dylib_p.build()
+    DYLIBS.append(lib_o)
+    DYLIB_REFS.append(lib_o)
+    print("(%d bytes) " % os.stat(lib_o).st_size)
+
+print('')
 
 USERSPACE_PRINT_PREFIX="Building userspace tools: "
 print(USERSPACE_PRINT_PREFIX)
@@ -424,8 +452,9 @@ print('')
 USER_CONTENT_END = time.time()
 USER_CONTENT_DURATION = int(USER_CONTENT_END - USER_CONTENT_BEGIN)
 
-print("Built %d apps and %d tests in %s seconds" %
-    (len(APP_PROJECTS),
+print("Built %d dylibs %d apps and %d tests in %s seconds" %
+    (len(DYLIB_PROJECTS),
+     len(APP_PROJECTS),
      len(TEST_PROJECTS),
      USER_CONTENT_DURATION))
 
@@ -476,10 +505,14 @@ CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
 shell(CMDLINE)
 
 makeDir("out/mnt/apps")
+makeDir("out/mnt/libs")
 makeDir("out/mnt/tests")
 
 for app in APP_REFS:
     copy(app, "out/mnt/apps/%s" % os.path.basename(app))
+
+for lib in DYLIB_REFS:
+    copy(lib, "out/mnt/libs/%s" % os.path.basename(lib))
 
 for test in TEST_REFS:
     copy(test, "out/mnt/tests/%s" % os.path.basename(test))

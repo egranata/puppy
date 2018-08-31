@@ -80,7 +80,7 @@ void fileloader(uintptr_t) {
 
     elf_header_t *header = (elf_header_t*)gInitialLoadAddress;
 
-    auto loadinfo = loadelf(header, process_t::gDefaultStackSize);
+    auto loadinfo = load_main_binary(header, process_t::gDefaultStackSize);
 
     vm.unmaprange(gInitialLoadAddress, gInitialLoadAddress + pages * VirtualPageManager::gPageSize);
 

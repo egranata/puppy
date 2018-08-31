@@ -24,6 +24,7 @@
 #include <kernel/libc/math.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/libc/string.h>
+#include <kernel/process/elf.h>
 
 HANDLER0(yield) {
     ProcessManager::get().yield();
@@ -151,4 +152,10 @@ syscall_response_t setcurdir_syscall_handler(const char* arg) {
     if (gCurrentProcess->cwd) free((void*)gCurrentProcess->cwd);
     gCurrentProcess->cwd = strdup(arg);
     return OK;
+}
+
+syscall_response_t dlload_syscall_handler(uint8_t *data) {
+    auto result = load_elf_image((elf_header_t*)data);
+    if (result.ok) return OK;
+    return ERR(NO_SUCH_FILE);
 }
