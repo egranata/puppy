@@ -28,6 +28,7 @@ extern "C" int  errno;
 #include <newlib/malloc.h>
 #include <newlib/string.h>
 #include <newlib/strings.h>
+#include <newlib/impl/absolutize.h>
 #include <stdarg.h>
 
 #include <kernel/syscalls/types.h>
@@ -100,61 +101,31 @@ NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
 
 NEWLIB_IMPL_REQUIREMENT int lseek(int /*file*/, int /*ptr*/, int /*dir*/) { return 0; }
 
-static char* concatPaths(const char* p1, const char* p2) {
-    auto lp1 = strlen(p1);
-    auto lp2 = strlen(p2);
-    if (p1 == nullptr || lp1 == 0) return strdup(p2);
-    if (p2 == nullptr || lp2 == 0) return strdup(p1);
-    char* dest = (char*)calloc(1, lp1 + lp2 + 2);
-    memcpy(dest, p1, lp1);
-    if (p1[lp1 - 1] == '/' && p2[0] == '/') ++p2;
-    else if (p1[lp1 - 1] != '/' && p2[0] != '/') dest[lp1++] = '/';
-    memcpy(dest + lp1, p2, lp2);
-    return dest;
-}
-
 #define FLAG_TEST(flag) (flag == (flags & flag))
 
 #define FLAG_MATCH(c, p) if (FLAG_TEST(c)) puppy_flags |= p;
 
-static bool isAbsolutePath(const char* path) {
-    if (path[0] == '/') {
-        if (nullptr == strstr(path, "/.")) {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file permissions not supported - ignore*/) {
-    uint32_t puppy_flags = 0;
-
-    char* rp;
-
     if (name == nullptr || name[0] == 0) {
         errno = ENOENT;
         return -1;
     }
 
-    if (!isAbsolutePath(name)) {
-        char* cwd = getcwd();
-        char* concat = concatPaths(cwd, name);
-        klog("path concat '%s' + '%s' : '%s'", cwd, name, concat);
-        rp = realpath(concat, nullptr);
-        klog("real path of '%s' is '%s'", concat, rp);
-        free(concat);
-    } else {
-        rp = strdup(name);
+    auto rp = newlib::puppy::impl::makeAbsolutePath(name);
+    if (rp.ptr == nullptr) {
+        errno = ENOENT;
+        return -1;
     }
 
+    uint32_t puppy_flags = 0;
     FLAG_MATCH(O_RDONLY, FILE_OPEN_READ);
     FLAG_MATCH(O_WRONLY, FILE_OPEN_WRITE);
     FLAG_MATCH(O_APPEND, FILE_OPEN_APPEND);
     FLAG_MATCH(O_TRUNC, FILE_OPEN_NEW);
 
-    auto fd = fopen_syscall(rp, puppy_flags);
-    free(rp);
+    auto fd = fopen_syscall(rp.ptr, puppy_flags);
+
     if (fd & 1) return -1;
     return fd >> 1;
 }

@@ -15,24 +15,11 @@
 #include <newlib/stdlib.h>
 #include <newlib/string.h>
 #include <kernel/syscalls/types.h>
+#include <newlib/impl/scoped_ptr.h>
+
+using newlib::puppy::impl::scoped_ptr_t;
 
 namespace {
-    template<typename T>
-    struct scoped_ptr_t {
-        T* ptr;
-        template<typename U = T>
-        scoped_ptr_t(U* ptr = nullptr) : ptr((T*)ptr) {}
-        template<typename U = T, typename Q = T>
-        Q* reset(U* next = nullptr) {
-            auto out = ptr;
-            ptr = (T*)next;
-            return (Q*)out;
-        }
-        ~scoped_ptr_t() {
-            free(ptr);
-        }
-    };
-
     struct realpath_impl_entry_t {
         const char* value;
         bool used;
