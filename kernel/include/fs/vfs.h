@@ -41,6 +41,8 @@ class VFS : NOCOPY {
         bool del(const char* path);
         bool mkdir(const char* path);
         filehandle_t opendir(const char* path);
+
+        static bool isAbsolutePath(const char* path);
     private:
         struct mount_t {
             const char* path;

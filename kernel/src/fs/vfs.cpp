@@ -131,6 +131,8 @@ pair<Filesystem*, const char*> VFS::getfs(const char* root) {
 }
 
 VFS::filehandle_t VFS::open(const char* path, uint32_t mode) {
+    if (!isAbsolutePath(path)) return {nullptr, nullptr};
+
     auto rest = getfs(path);
     if (rest.first == nullptr) {
         LOG_DEBUG("could not find filesystem to open %s", path);
@@ -141,6 +143,8 @@ VFS::filehandle_t VFS::open(const char* path, uint32_t mode) {
 }
 
 bool VFS::del(const char* path) {
+    if (!isAbsolutePath(path)) return false;
+
     auto rest = getfs(path);
     if (rest.first == nullptr) {
         LOG_DEBUG("could not find filesystem to delete %s", path);
@@ -151,6 +155,8 @@ bool VFS::del(const char* path) {
 }
 
 bool VFS::mkdir(const char* path) {
+    if (!isAbsolutePath(path)) return false;
+
     auto rest = getfs(path);
     if (rest.first == nullptr) {
         LOG_DEBUG("could not find filesystem to create %s", path);
@@ -203,7 +209,7 @@ class RootDirectory : public Filesystem::Directory {
 };
 
 VFS::filehandle_t VFS::opendir(const char* path) {
-    if (path == nullptr) return {nullptr, nullptr};
+    if (!isAbsolutePath(path)) return {nullptr, nullptr};
 
     LOG_DEBUG("asked to opendir '%s'", path);
     if (path[0] == '/') {
@@ -227,4 +233,12 @@ VFS::filehandle_t VFS::opendir(const char* path) {
 
     LOG_DEBUG("no matching filesystem found - failure");
     return {nullptr, nullptr};
+}
+
+bool VFS::isAbsolutePath(const char* path) {
+    if (path == nullptr) return false;
+    if (path[0] != '/') return false;
+    if (nullptr != strstr(path, "/.")) return false;
+
+    return true;
 }
