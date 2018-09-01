@@ -242,6 +242,14 @@ class Project(object):
         shell("i686-elf-ld -shared %s -o %s" % (' '.join(out), destfile))
         return destfile
 
+    def linkCopy(self, out):
+        if len(out) != 1:
+            raise ValueError("linkCopy can only handle a single file: %s" % out)
+        out = out[0]
+        destfile = "%s/%s" % (self.outwhere, self.name.lower())
+        copy(out, destfile)
+        return destfile
+
     def link(self, out):
         pass
     
@@ -256,7 +264,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/libcxxsupport.a", "newlib/lib/crt0.o", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+NEWLIB_DEPS = ["out/libcxxsupport.a", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
 
 LIBUSERSPACE_TOOLS = []
 
@@ -330,6 +338,12 @@ NewlibInterface = Project(name="NewlibInterface",
     ipaths=["include", "include/newlib"])
 NewlibInterface.link = NewlibInterface.linkAr
 
+NewlibCrt0 = Project(name="NewlibCrt0",
+    srcdir="newlib/crt0",
+    assembler="nasm",
+    ipaths=["include", "include/newlib"])
+NewlibCrt0.link = NewlibCrt0.linkCopy
+
 CxxSupport = Project(name="CxxSupport",
     srcdir="libcxxsup/src",
     assembler="nasm",
@@ -348,8 +362,11 @@ Muzzle.build()
 Kernel.build()
 Userspace.build()
 NewlibInterface.build()
+NEWLIB_DEPS = [NewlibCrt0.build()] + NEWLIB_DEPS
 CxxSupport.build()
 Checkup.build()
+
+print("newlib dependency list: %s" % ', '.join(NEWLIB_DEPS))
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
