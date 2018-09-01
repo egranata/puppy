@@ -146,7 +146,7 @@ syscall_response_t getcurdir_syscall_handler(char* dest, size_t* sz) {
 }
 
 syscall_response_t setcurdir_syscall_handler(const char* arg) {
-    if (arg == nullptr || arg[0] != '/') {
+    if (!VFS::isAbsolutePath(arg)) {
         return ERR(NO_SUCH_FILE);
     }
     if (gCurrentProcess->cwd) free((void*)gCurrentProcess->cwd);
