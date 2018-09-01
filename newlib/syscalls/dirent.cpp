@@ -19,11 +19,16 @@
 #include <newlib/stdlib.h>
 #include <newlib/strings.h>
 #include <newlib/string.h>
+#include <newlib/impl/absolutize.h>
 
 extern "C" int  errno;
 
 DIR* opendir(const char* path) {
-    int od = fopendir_syscall((uint32_t)path);
+    if (path == nullptr || path[0] == 0) return nullptr;
+    auto rp = newlib::puppy::impl::makeAbsolutePath(path);
+    if (rp.ptr == 0 || rp.ptr[0] == 0) return nullptr;
+
+    int od = fopendir_syscall((uint32_t)rp.ptr);
     if (od & 1) return nullptr;
     DIR* d = (DIR*)malloc(sizeof(DIR));
     d->fhnd = od >> 1;

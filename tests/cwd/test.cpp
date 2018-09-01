@@ -38,6 +38,11 @@ class TheTest : public Test {
             readFile("../tmp/file.txt", msg);
             readFile("./../tmp/file.txt", msg);
             readFile("../../system/config/../../../..////tmp/file.txt", msg);
+            CHECK_EQ(0, chdir("../system"));
+            cwd = getcwd(nullptr, 0);
+            CHECK_EQ(0, strcmp("/system", cwd));
+            readFile("../tmp/file.txt", msg);
+            readFile("/tmp/file.txt", msg);
         }
 
     private:

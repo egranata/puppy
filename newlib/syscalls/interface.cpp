@@ -33,6 +33,11 @@ extern "C" int  errno;
 
 #include <kernel/syscalls/types.h>
 
+#define ERR_EXIT(ev) { \
+    errno = ev; \
+    return -1; \
+}
+
 static __unused void klog(const char* fmt, ...) {
     char buf[1024] = {0};
     va_list ap;
@@ -181,11 +186,14 @@ NEWLIB_IMPL_REQUIREMENT clock_t times(struct tms* /*buf*/) {
     return -1;
 }
 
-NEWLIB_IMPL_REQUIREMENT int unlink(char *name) {
-    auto r = fdel_syscall(name);
+NEWLIB_IMPL_REQUIREMENT int unlink(char *path) {
+    if (path == nullptr || path[0] == 0) ERR_EXIT(ENOENT);
+    auto rp = newlib::puppy::impl::makeAbsolutePath(path);
+    if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
+
+    auto r = fdel_syscall(rp.ptr);
     if (r == 0) return 0;
-    errno = ENOENT;
-    return -1;
+    ERR_EXIT(ENOENT);
 }
 
 NEWLIB_IMPL_REQUIREMENT int wait(int *stat_loc) {
@@ -255,10 +263,13 @@ NEWLIB_IMPL_REQUIREMENT int gettimeofday (struct timeval *__restrict __p, void *
 }
 
 NEWLIB_IMPL_REQUIREMENT int mkdir(const char *path, mode_t /**mode: no mode support*/) {
-    auto mo = mkdir_syscall(path);
+    if (path == nullptr || path[0] == 0) ERR_EXIT(ENOENT);
+    auto rp = newlib::puppy::impl::makeAbsolutePath(path);
+    if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
+
+    auto mo = mkdir_syscall(rp.ptr);
     if (mo == 0) return 0;
-    errno = ENOENT;
-    return -1;
+    ERR_EXIT(ENOENT);
 }
 
 NEWLIB_IMPL_REQUIREMENT int kill (pid_t p, int sig) {
@@ -279,7 +290,11 @@ NEWLIB_IMPL_REQUIREMENT int ioctl(int fd, int a, int b) {
 }
 
 NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags) {
-    auto eo = exec_syscall(path, args, flags);
+    if (path == nullptr || path[0] == 0) ERR_EXIT(ENOENT);
+    auto rp = newlib::puppy::impl::makeAbsolutePath(path);
+    if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
+
+    auto eo = exec_syscall(rp.ptr, args, flags);
     if (eo & 1) return -1;
     return eo >> 1;
 }
@@ -290,10 +305,13 @@ NEWLIB_IMPL_REQUIREMENT unsigned int sleep(unsigned int seconds) {
 }
 
 NEWLIB_IMPL_REQUIREMENT int chdir(const char *path) {
-    auto ok = setcurdir_syscall(path);
+    if (path == nullptr || path[0] == 0) ERR_EXIT(EFAULT);
+    auto rp = newlib::puppy::impl::makeAbsolutePath(path);
+    if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(EFAULT);
+
+    auto ok = setcurdir_syscall(rp.ptr);
     if (ok == 0) return 0;
-    errno = EFAULT;
-    return -1;
+    ERR_EXIT(EFAULT);
 }
 
 NEWLIB_IMPL_REQUIREMENT char **environ;
