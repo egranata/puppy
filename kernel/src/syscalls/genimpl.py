@@ -62,7 +62,7 @@ class Tee(object):
 class SystemCall(object):
     def __init__(self, node):
         self.name = node['name']
-        self.number = node['number']
+        self.number = int(node['number']) if 'number' in node else -1
         if 'argtypes' in node:
             self.argtypes = node['argtypes']
             self.argc = len(self.argtypes)
@@ -145,6 +145,7 @@ class SystemCall(object):
         return "%s\n\t%s;\n}" % (h,b)
 
 def getTable():
+    autoGenId = 1
     T = []
     ids = set()
     with open(TABLE_FILE, "r") as f:
@@ -155,8 +156,16 @@ def getTable():
             T.append(call)
             if call.number in ids:
                 error("duplicate system call id %d" % call.number)
-            else:
+            elif call.number > 0:
                 ids.add(call.number)
+    for sc in T:
+        if sc.number == -1:
+            while autoGenId in ids:
+                autoGenId += 1
+            sc.number = autoGenId
+            ids.add(autoGenId)
+            print("System call %s automatically assigned ID %d" % (sc.name, autoGenId))
+            autoGenId += 1
     return T
 
 def printLicense(f, autogen=True):
