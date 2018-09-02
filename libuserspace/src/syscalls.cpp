@@ -127,6 +127,9 @@ syscall_response_t mapregion_syscall(uint32_t arg1,uint32_t arg2) {
 syscall_response_t unmapregion_syscall(uint32_t arg1) {
 	return syscall1(unmapregion_syscall_id,(uint32_t)arg1);
 }
+syscall_response_t setregionperms_syscall(uint32_t arg1,uint32_t arg2) {
+	return syscall2(setregionperms_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
+}
 syscall_response_t trymount_syscall(uint32_t arg1,const char* arg2) {
 	return syscall2(trymount_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }

@@ -50,7 +50,7 @@ enum {
 };
 
 enum {
-    REGION_ALLOW_WRITE = 1
+    REGION_ALLOW_WRITE = 1,
 };
 
 enum {

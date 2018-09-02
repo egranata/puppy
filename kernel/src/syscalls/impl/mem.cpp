@@ -42,6 +42,25 @@ syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {
     }
 }
 
+syscall_response_t setregionperms_syscall_handler(uint32_t address, uint32_t perm) {
+    if (VirtualPageManager::iskernel(address)) { // that's cute...
+        return ERR(NOT_ALLOWED);
+    }
+
+    MemoryManager::region_t region;
+    auto&& memmgr = gCurrentProcess->getMemoryManager();
+    if (!memmgr->isWithinRegion(address, &region)) return ERR(NO_SUCH_OBJECT);
+
+    auto opts = region.permission;
+    opts.rw(REGION_ALLOW_WRITE == (perm & REGION_ALLOW_WRITE));
+
+    if (memmgr->protectRegionAtAddress(address, opts)) {
+        return OK;
+    } else {
+        return ERR(OUT_OF_MEMORY);
+    }
+}
+
 syscall_response_t unmapregion_syscall_handler(uint32_t address) {
     if (VirtualPageManager::iskernel(address)) { // that's cute...
         return ERR(NOT_ALLOWED);

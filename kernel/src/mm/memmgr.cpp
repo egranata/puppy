@@ -20,6 +20,8 @@
 static constexpr uintptr_t gKernelInitial = 0xC0000000;
 static constexpr uintptr_t gKernelFinal =   0xFFFFFFFF;
 
+LOG_TAG(PROTECT, 2);
+
 MemoryManager::region_t::region_t (uintptr_t f, uintptr_t t, permission_t p) {
     from = f;
     to = t;
@@ -52,6 +54,46 @@ bool MemoryManager::isWithinRegion(uintptr_t addr, region_t *rgn) {
     // hacky but effective - page 0 is never permitted to be mapped
     if (VirtualPageManager::page(addr) == 0) return false;
     return mRegions.contains(addr, rgn);
+}
+
+bool MemoryManager::protectRegionAtAddress(uintptr_t address, const VirtualPageManager::map_options_t& new_opts) {
+    auto&& vmm(VirtualPageManager::get());
+
+    region_t rgn;
+    if (!isWithinRegion(address, &rgn)) return false;
+
+    mRegions.foreach([rgn, new_opts] (region_t& R) -> bool {
+        if (R.from == rgn.from && R.to == rgn.to) {
+            TAG_DEBUG(PROTECT, "found a matching region; changing permissions");
+            R.permission = new_opts; // (I)
+            return false;
+        }
+        return true;
+    });
+
+    // (II)
+    for (auto pp = rgn.from; pp <= rgn.to; pp += VirtualPageManager::gPageSize) {
+        VirtualPageManager::map_options_t page_opts;
+        bool mapped = false;
+        bool zpmapped = false;
+        mapped = vmm.mapped(pp, &page_opts);
+        if (!mapped) zpmapped = vmm.zeroPageMapped(pp, &page_opts);
+        if (mapped || zpmapped) {
+            // do not allow this, as it would prevent the process from getting its own
+            // copy of the page upon a COW fault; the copy will be properly marked
+            // when it is made
+            if (mapped && new_opts.rw() && page_opts.cow()) {
+                TAG_WARNING(PROTECT, "page %p is a COW page - cannot mark writable; skipping edit", pp);
+                continue;
+            } else {
+                // TODO: any other bit that must be edited?
+                page_opts.rw(new_opts.rw());
+                vmm.newoptions(pp, page_opts);
+            }
+        }
+    }
+
+    return true;
 }
 
 bool MemoryManager::findRegionImpl(size_t size, MemoryManager::region_t& region) {

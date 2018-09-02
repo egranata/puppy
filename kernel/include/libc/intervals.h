@@ -20,6 +20,7 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/slist.h>
 #include <kernel/libc/interval.h>
+#include <kernel/libc/function.h>
 
 template <typename T /** : interval_t */, uint32_t max = 0xFFFFFFFF>
 class IntervalList {
@@ -29,7 +30,7 @@ public:
     bool findFree(uint32_t size, T& range);
     bool add(uint32_t size, T& range);
     bool del(const T& i);
-    void foreach(bool(*f)(const T& i)) const;
+    void foreach(function<bool(T&)> f);
 private:
     slist<T> mIntervals;
 };
@@ -135,7 +136,7 @@ bool IntervalList<T, max>::del(const T& i) {
 }
 
 template<typename T, uint32_t max>
-void IntervalList<T, max>::foreach(bool(*f)(const T& i)) const {
+void IntervalList<T, max>::foreach(function<bool(T&)> f) {
     mIntervals.foreach(f);
 }
 

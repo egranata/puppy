@@ -484,7 +484,7 @@ uintptr_t VirtualPageManager::newoptions(uintptr_t virt, const map_options_t& op
 	PagingIndices indices(pg);
 	TableEntry &tbl(indices.table());
 
-	if (tbl.present()) {
+	if (tbl.present() || tbl.zpmap()) {
 		tbl.rw(options.rw());
 		tbl.user(options.user());
 		tbl.cacheoff(!options.cached());

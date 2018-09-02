@@ -27,6 +27,7 @@ enum {
 };
 
 void* mapregion(size_t, int);
+int protect(void*, int);
 int unmapregion(void*);
 
 int readable(void* p, size_t);

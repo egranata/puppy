@@ -18,6 +18,7 @@
 #define LIBC_SLIST
 
 #include <kernel/sys/stdint.h>
+#include <kernel/libc/function.h>
 
 template<typename T>
 class slist {
@@ -79,7 +80,7 @@ public:
 	
 	class iterator {
 	public:
-		const T& operator*() { return current->item; }
+		T& operator*() { return current->item; }
 		T& operator->() { return current->item; }
 		iterator& operator++() {
 			current = current->next;
@@ -197,7 +198,15 @@ public:
         return t;
 	}
 
-	void foreach(bool(*f)(const T& item)) const {
+	void foreach(function<bool(T&)> f) {
+		auto b = begin(), e = end();
+		while(b != e) {
+			if (false == f(*b)) return;
+			++b;
+		}
+	}
+
+	void foreach(function<bool(const T&)> f) const {
 		auto b = begin(), e = end();
 		while(b != e) {
 			if (false == f(*b)) return;

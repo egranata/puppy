@@ -31,6 +31,12 @@ NEWLIB_IMPL_REQUIREMENT void* mapregion(size_t sz, int perm) {
     return (void*)mo;
 }
 
+NEWLIB_IMPL_REQUIREMENT int protect(void* p, int perm) {
+    perm = (perm == VM_REGION_READWRITE) ? REGION_ALLOW_WRITE : 0;
+    auto mo = setregionperms_syscall((uintptr_t)p, perm);
+    return mo == 0 ? mo : -1;
+}
+
 NEWLIB_IMPL_REQUIREMENT int unmapregion(void* ptr) {
     return 0 == unmapregion_syscall((uintptr_t)ptr);
 }
