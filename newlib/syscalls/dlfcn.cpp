@@ -39,6 +39,8 @@ namespace {
     }
     struct loaded_elf_image_t {
         const char* path;
+        elf_header_t *header;
+        uint8_t *stringtab;
         struct {
             ph_load_info info[gMaxProgramHeaders];
             size_t count;
@@ -198,6 +200,22 @@ namespace {
         return true;
     }
 
+    bool do_get_string_table(elf_header_t* header, loaded_elf_image_t* dest) {
+        uint8_t* sec_names = header->getSectionNames()->content(header);
+        for (auto i = 0u; i < header->shnum; ++i) {
+            auto sec = header->section(i);
+            if (sec.stringTable()) {
+                const char *sec_name = (const char*)&sec_names[sec.name];
+                if (0 == strcmp(sec_name, ".strtab")) {
+                    dest->stringtab = (uint8_t*)sec.content(header);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     static bool do_load_elf(elf_header_t* header, loaded_elf_image_t* dest) {
         if (header == nullptr || false == header->sanitycheck()) return false;
         if (false == header->isDylib()) return false;
@@ -207,6 +225,10 @@ namespace {
         if (false == do_discover_relocations(header, dest)) return false;
 
         if (false == do_perform_relocations(header, dest)) return false;
+
+        if (false == do_get_string_table(header, dest)) return false;
+
+        dest->header = header;
 
         return true;
     }
@@ -229,7 +251,22 @@ NEWLIB_IMPL_REQUIREMENT void *dlopen(const char *path, int /* flags: unused */) 
     return do_load_elf((elf_header_t*)data, elf_img) ? elf_img : nullptr;
 }
 
-void *dlsym(void* /* handle */, const char* /* symbol */) {
+void *dlsym(void* handle, const char* target) {
+    loaded_elf_image_t* elf_image = (loaded_elf_image_t*)handle;
+    if (elf_image == nullptr) return nullptr;
+
+    auto symtab = elf_image->header->getSymbolTable();
+
+    elf_symtab_entry_t* symbol = (elf_symtab_entry_t*)symtab->content(elf_image->header);
+    size_t num_symbols = symtab->size / sizeof(elf_symtab_entry_t);
+    uint8_t* names = elf_image->stringtab;
+    for (auto i = 0u; i < num_symbols; ++i, ++symbol) {
+        if (symbol->name == 0) continue;
+        if (0 == strcmp(target, (const char*)&names[symbol->name])) {
+            return (void*)elf_image->findRealAddress(symbol->value);
+        }
+    }
+
     return nullptr;
 }
 

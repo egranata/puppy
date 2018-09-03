@@ -19,18 +19,8 @@
 #include <newlib/dlfcn.h>
 
 void load(char* file) {
-#if 1
-    __unused void* dylib = dlopen(file, 0);
-#else
-    FILE *f = fopen(file, "r");
-    struct stat s;
-    stat(file, &s);
-    uint8_t* buf = (uint8_t*)calloc(1, s.st_size);
-    fread(buf, 1, s.st_size, f);
-    fclose(f);
-    dlload_syscall(buf);
-#endif
-    auto fp = reinterpret_cast<int (*)(int, int)>(0x21d0);
+    void* dylib = dlopen(file, 0);
+    auto fp = reinterpret_cast<int (*)(int, int)>(dlsym(dylib, "testfunction"));
     printf("f(3,4) = %d\n", fp(3,4));
 }
 

@@ -74,27 +74,6 @@ elf_load_result_t load_elf_image(elf_header_t* header);
 extern "C"
 process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize);
 
-struct elf_section_t {
-    uint32_t name;
-    uint32_t type;
-    uint32_t flags;
-    uint32_t addr;
-    uint32_t offset;
-    uint32_t size;
-    uint32_t link;
-    uint32_t info;
-    uint32_t addralign;
-    uint32_t entsize;
-
-    bool dynamicInfo() const {
-        return type == 0xb;
-    }
-
-    uint8_t *content(elf_header_t* base, uint32_t off = 0) const {
-        return ((uint8_t*)base) + offset + off;
-    }
-} __attribute__((packed));
-
 struct elf_program_t {
     uint32_t type;
     uint32_t offset;
@@ -118,6 +97,35 @@ struct elf_program_t {
     }
     bool dynamicInfo() const {
         return type == 0x2;
+    }
+} __attribute__((packed));
+
+struct elf_section_t {
+    uint32_t name;
+    uint32_t type;
+    uint32_t flags;
+    uint32_t addr;
+    uint32_t offset;
+    uint32_t size;
+    uint32_t link;
+    uint32_t info;
+    uint32_t addralign;
+    uint32_t entsize;
+
+    bool dynamicInfo() const {
+        return type == 0xb;
+    }
+
+    bool stringTable() const {
+        return type == 0x3;
+    }
+
+    bool symbolTable() const {
+        return type == 0x2;
+    }
+
+    uint8_t *content(elf_header_t* base, uint32_t off = 0) const {
+        return ((uint8_t*)base) + offset + off;
     }
 } __attribute__((packed));
 
@@ -152,9 +160,23 @@ struct elf_header_t {
         return ((elf_program_t*)((uint8_t*)this + phoff))[n];
     }
 
+    const elf_section_t* getSectionNames() const {
+        return &section(shstrndx);
+    }
+
     const elf_section_t* getDynamicSymbols() const {
         for (auto i = 0; i < shnum; ++i) {
             if (section(i).dynamicInfo()) {
+                return &section(i);
+            }
+        }
+
+        return nullptr;
+    }
+
+    const elf_section_t* getSymbolTable() const {
+        for (auto i = 0; i < shnum; ++i) {
+            if (section(i).symbolTable()) {
                 return &section(i);
             }
         }
