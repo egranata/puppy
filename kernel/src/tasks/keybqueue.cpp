@@ -57,14 +57,17 @@ namespace tasks::keybqueue {
         }
         while (true) {
             bool any = false;
-            while (gKeyboard->any()) {
-                any = true;
-                PS2Keyboard::key_event_t evt;
-                evt = gKeyboard->next();
-                gKeyEvents.write(evt);
-                LOG_DEBUG("ingested new keyboard event: %s '%c'", evt.down ? "down" : "up", evt.keycode);
+            {
+                Interrupts::ScopedDisabler sd;
+                while (gKeyboard->any()) {
+                    any = true;
+                    PS2Keyboard::key_event_t evt;
+                    evt = gKeyboard->next();
+                    gKeyEvents.write(evt);
+                    LOG_DEBUG("ingested new keyboard event: %s '%c'", evt.down ? "down" : "up", evt.keycode);
+                }
+                if (any) gEventQueue.wakeall();
             }
-            if (any) gEventQueue.wakeall();
             gKeyIRQQueue->wait(gCurrentProcess);
         }
     }
