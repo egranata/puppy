@@ -36,6 +36,7 @@ namespace {
         uintptr_t start;
         uintptr_t virt_start;
         uintptr_t virt_end;
+        bool readonly;
     };
 
     template<typename EntryType>

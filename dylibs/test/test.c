@@ -4,5 +4,5 @@ extern int globalData;
 
 int testfunction(int x, int y) {
     ++globalData;
-    return x + other(y - 1);
+    return x + other(y - globalData);
 }

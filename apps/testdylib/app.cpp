@@ -21,7 +21,8 @@
 void load(char* file) {
     __unused void* dylib = dlopen(file, 0);
     auto fp = reinterpret_cast<int (*)(int, int)>(dlsym(RTLD_DEFAULT, "testfunction"));
-    printf("f(3,4) = %d\n", fp(3,4));
+    printf("first call of f(3,4) = %d\n", fp(3,4));
+    printf("second call of f(3,4) = %d\n", fp(3,4));
 }
 
 int main(int argc, char** argv) {

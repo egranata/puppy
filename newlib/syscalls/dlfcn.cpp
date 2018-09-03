@@ -40,8 +40,11 @@ namespace {
 
     struct loaded_elf_image_t {
         const char* path;
-        elf_header_t *header;
         uint8_t *stringtab;
+        struct {
+            elf_symtab_entry_t *symbols;
+            size_t count;
+        } symtab;
         struct {
             ph_load_info info[gMaxProgramHeaders];
             size_t count;
@@ -80,6 +83,17 @@ namespace {
         i->next = (loaded_elf_images_t*)calloc(1, sizeof(loaded_elf_images_t));
     }
 
+    static bool do_protect_readonly(loaded_elf_image_t* dest) {
+        for (auto i = 0u; i < dest->headers.count; ++i) {
+            auto&& phdr = dest->headers.info[i];
+            if (phdr.readonly) {
+                protect((void*)phdr.virt_start, VM_REGION_READONLY);
+            }
+        }
+
+        return true;
+    }
+
     static bool do_copy_program(uint8_t* src, uint8_t* dst, const elf_program_t& phdr, loaded_elf_image_t* dest) {
         size_t len = phdr.memsz;
         size_t flen = phdr.filesz;
@@ -112,6 +126,7 @@ namespace {
 
         klog("program header vaddr=%p offset=%p rgn_ptr=%p size=%u (%u rounded)", phdr.vaddr, phdr.offset, rgn_ptr, phdr.memsz, rgn_size);
 
+        dest->headers.info[dest->headers.count].readonly = !phdr.writable();
         dest->headers.info[dest->headers.count].start = phdr.vaddr;
         dest->headers.info[dest->headers.count].offset = phdr.offset;
         dest->headers.info[dest->headers.count].size = phdr.memsz;
@@ -222,13 +237,29 @@ namespace {
             if (sec.stringTable()) {
                 const char *sec_name = (const char*)&sec_names[sec.name];
                 if (0 == strcmp(sec_name, ".strtab")) {
-                    dest->stringtab = (uint8_t*)sec.content(header);
+                    dest->stringtab = (uint8_t*)malloc(sec.size);
+                    memcpy(dest->stringtab, sec.content(header), sec.size);
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    bool do_get_symbol_table(elf_header_t* header, loaded_elf_image_t* dest) {
+        auto symtab = header->getSymbolTable();
+        if (symtab == nullptr) return true;
+
+        elf_symtab_entry_t* symbol = (elf_symtab_entry_t*)symtab->content(header);
+        size_t num_symbols = symtab->size / sizeof(elf_symtab_entry_t);
+
+        dest->symtab.symbols = (elf_symtab_entry_t*)calloc(sizeof(elf_symtab_entry_t), num_symbols);
+        dest->symtab.count = num_symbols;
+
+        memcpy(dest->symtab.symbols, symbol, symtab->size);
+
+        return true;
     }
 
     static bool do_load_elf(elf_header_t* header, loaded_elf_image_t* dest) {
@@ -243,7 +274,9 @@ namespace {
 
         if (false == do_get_string_table(header, dest)) return false;
 
-        dest->header = header;
+        if (false == do_get_symbol_table(header, dest)) return false;
+
+        if (false == do_protect_readonly(dest)) return false;
 
         do_insert_dylib(dest);
 
@@ -264,18 +297,21 @@ NEWLIB_IMPL_REQUIREMENT void *dlopen(const char *path, int /* flags: unused */) 
     loaded_elf_image_t *elf_img = (loaded_elf_image_t*)calloc(1, sizeof(loaded_elf_image_t));
     elf_img->path = strdup(path);
 
-    // TODO: release on fail
-    return do_load_elf((elf_header_t*)data, elf_img) ? elf_img : nullptr;
+    bool ok = do_load_elf((elf_header_t*)data, elf_img);
+    // make it fairly clear when someone is poking at the buffer after we're done with it
+    bzero(data, file_stat.st_size);
+    free(data);
+
+    // TODO: on fail, undo everything that was loaded
+    return ok ? elf_img : nullptr;
 }
 
 namespace {
     void* do_dlsym(loaded_elf_image_t* elf_image, const char* target) {
         if (elf_image == nullptr) return nullptr;
 
-        auto symtab = elf_image->header->getSymbolTable();
-
-        elf_symtab_entry_t* symbol = (elf_symtab_entry_t*)symtab->content(elf_image->header);
-        size_t num_symbols = symtab->size / sizeof(elf_symtab_entry_t);
+        elf_symtab_entry_t* symbol = elf_image->symtab.symbols;
+        size_t num_symbols = elf_image->symtab.count;
         uint8_t* names = elf_image->stringtab;
         for (auto i = 0u; i < num_symbols; ++i, ++symbol) {
             if (symbol->name == 0) continue;
