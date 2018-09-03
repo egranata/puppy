@@ -32,7 +32,6 @@ class PIT {
 
         static PIT& get();
 
-        static uint64_t getUptime();
         static uint64_t getBootTimestamp();
 
         // in order to keep things expedient there is only a small number
@@ -42,6 +41,7 @@ class PIT {
         bool addInterruptFunction(pit_func_f);
         void removeInterruptFunction(pit_func_f);
 
+        void disable();
     private:
         PIT();
 

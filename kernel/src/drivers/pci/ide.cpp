@@ -18,7 +18,6 @@
 #include <kernel/i386/primitives.h>
 #include <kernel/log/log.h>
 #include <kernel/libc/memory.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/sys/unions.h>
 
 LOG_TAG(DISKACCESS, 2);

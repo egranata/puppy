@@ -15,7 +15,6 @@
 #include <kernel/tasks/scheduler.h>
 #include <kernel/process/manager.h>
 #include <kernel/process/current.h>
-#include <kernel/drivers/pit/pit.h>
 
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>

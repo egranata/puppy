@@ -15,7 +15,7 @@
 #include <kernel/tasks/awaker.h>
 #include <kernel/process/manager.h>
 #include <kernel/process/current.h>
-#include <kernel/drivers/pit/pit.h>
+#include <kernel/time/manager.h>
 
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
@@ -28,7 +28,7 @@ namespace tasks::awaker {
             if (sq.empty()) {
                 pmm.yield();
             } else {
-                auto now = PIT::getUptime();
+                auto now = TimeManager::get().millisUptime();
                 auto top = sq.top();
                 if (top->state == process_t::State::EXITED) {
                     pmm.enqueueForDeath(sq.pop());

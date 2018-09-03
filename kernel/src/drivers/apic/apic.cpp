@@ -22,13 +22,29 @@
 #include <kernel/i386/idt.h>
 #include <kernel/panic/panic.h>
 #include <kernel/boot/phase.h>
+#include <kernel/time/manager.h>
+#include <kernel/drivers/pit/pit.h>
+
+static void timer(GPR&, InterruptStack& stack, void*) {
+    // LOG_DEBUG("APIC timer ticks");
+    APIC::get().EOI();
+
+    TimeManager::get().tick(stack);
+}
 
 namespace boot::apic {
+        // TODO: should this be a configuration parameter?
+        static constexpr uint32_t gMillisPerTick = 5;
+
         uint32_t init() {
             auto& apic(APIC::get());
             bootphase_t::printf("Calbrating APIC timer...");
             auto ticks_per_ms = apic.calibrate();
             bootphase_t::printf("%u ticks/ms\n", ticks_per_ms);
+            Interrupts::get().sethandler(APIC::gAPICTimerIRQ, "APIC", timer);
+            PIT::get().disable();
+            TimeManager::get().registerTimeSource("APIC", gMillisPerTick);
+            apic.tickEvery(gMillisPerTick);
             return 0;
         }
 
@@ -50,6 +66,10 @@ void APIC::EOI() {
 
 uint32_t APIC::getTimerCurrent() const {
     return mAPICRegisters[gTimerCurrentCount];
+}
+
+void APIC::tickEvery(uint32_t ms) {
+    configure(mTicksPerMs * ms);
 }
 
 void APIC::configure(uint32_t ticks) {

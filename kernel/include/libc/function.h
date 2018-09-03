@@ -20,6 +20,8 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/forward.h>
 #include <kernel/libc/memory.h>
+#include <kernel/libc/enableif.h>
+#include <kernel/panic/panic.h>
 
 template<typename T>
 class function;
@@ -39,9 +41,14 @@ class function<Ret(Args...)> {
             size_t size;
         } mData;
 
-        template<typename Callable>
-        static Ret docall(Callable* c, Args&&... args) {
-            return (*c)(forward<Args>(args)...);
+        template<typename Callable, typename R = Ret>
+        static typename enable_if<is_same<Callable, decltype(nullptr)>::value, R>::type docall(Callable*, Args&&...) {
+            PANIC("attempting to call a nullptr function object");
+        }
+
+        template<typename Callable, typename R = Ret>
+        static typename enable_if<negate<is_same<Callable, decltype(nullptr)>>::value, R>::type docall(Callable* c, Args&&... args) {
+            return (*c)(forward<Args&&>(args)...);
         }
 
         template<typename Callable>
@@ -56,6 +63,7 @@ class function<Ret(Args...)> {
 
     public:
         function() : mCall(nullptr), mNew(nullptr), mDelete(nullptr), mData{nullptr,0} {}
+        function(decltype(nullptr)) = delete;
 
         template<typename Callable>
         function(Callable c) : mCall((call_t)docall<Callable>), mNew((new_t)donew<Callable>), mDelete((delete_t)dodelete<Callable>), mData{malloc(sizeof(Callable)), sizeof(Callable)} {
@@ -74,6 +82,39 @@ class function<Ret(Args...)> {
             }
         }
 
+        function<Ret(Args...)>& operator=(const function<Ret(Args...)>& other) {
+            if (mData.buf && mData.size && mDelete) {
+                mDelete(mData.buf);
+            }
+
+            mCall = other.mCall;
+            mNew = other.mNew;
+            mDelete = other.mDelete;
+            mData.size = other.mData.size;
+
+            if (mCall) {
+                mData.buf = malloc(mData.size);
+                mNew(mData.buf, other.mData.buf);
+            }
+
+            return *this;
+        }
+        function<Ret(Args...)>& operator=(const function<Ret(Args...)>&&) = delete;
+
+        function<Ret(Args...)>& operator=(const decltype(nullptr)&) = delete;
+        function<Ret(Args...)>& operator=(const decltype(nullptr)&&) {
+            if (mData.buf && mData.size && mDelete) {
+                mDelete(mData.buf);
+            }
+
+            mCall = nullptr;
+            mNew = nullptr;
+            mDelete = nullptr;
+            mData = {nullptr, 0};
+
+            return *this;
+        }
+
         ~function() {
             if (mData.buf && mData.size) {
                 mDelete(mData.buf);
@@ -85,7 +126,7 @@ class function<Ret(Args...)> {
         }
 
         Ret operator()(Args&&... args) {
-            return mCall(mData.buf, forward<Args>(args)...);
+            return mCall(mData.buf, forward<Args&&>(args)...);
         }
 };
 

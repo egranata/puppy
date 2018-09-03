@@ -21,6 +21,9 @@ namespace boot {
     namespace info {
         uint32_t init();
     }
+    namespace time {
+        uint32_t init();
+    }
     namespace pic {
         uint32_t init();
         bool fail(uint32_t);
@@ -131,7 +134,15 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "Setup Scheduler Timer",
+        description : "Parse Time Manager",
+        visible : false,
+        operation : boot::time::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Setup Legacy PIT",
         visible : false,
         operation : boot::pit::init,
         onSuccess : nullptr,

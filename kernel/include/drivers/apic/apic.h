@@ -33,6 +33,8 @@ class APIC : NOCOPY {
         // it should be called during kernel initialization only
         uint32_t calibrate();
 
+        void tickEvery(uint32_t ms);
+
         uint32_t getTimerCurrent() const;
     private:
         void configure(uint32_t ticks);

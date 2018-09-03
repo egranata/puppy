@@ -20,7 +20,6 @@
 #include <kernel/libc/memory.h>
 #include <kernel/log/log.h>
 #include <kernel/panic/panic.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/libc/slist.h>
 #include <kernel/process/process.h>
 #include <kernel/mm/virt.h>
@@ -36,6 +35,7 @@
 #include <kernel/tasks/collector.h>
 #include <kernel/tasks/deleter.h>
 #include <kernel/tasks/keybqueue.h>
+#include <kernel/time/manager.h>
 
 LOG_TAG(TIMING, 2);
 
@@ -64,6 +64,12 @@ namespace boot::task {
         // enable real fault handlers
     	proc.installexceptionhandlers();
         LOG_INFO("real fault handlers enabled");
+
+        TimeManager::get().registerTickHandler([] (InterruptStack& stack, const uint64_t&) -> bool {
+            bool can_yield = ProcessManager::isinterruptible(stack.eip);
+            ProcessManager::get().tick(can_yield);
+            return true;
+        });
 
         return 0;
     }
@@ -472,7 +478,7 @@ ProcessManager::pid_t ProcessManager::getpid() {
 }
 
 void ProcessManager::sleep(uint32_t durationMs) {
-    gCurrentProcess->sleeptill = PIT::getUptime() + durationMs;
+    gCurrentProcess->sleeptill = TimeManager::get().millisUptime() + durationMs;
     LOG_DEBUG("task %u scheduled to sleep till %llu", gCurrentProcess->pid, gCurrentProcess->sleeptill);
     deschedule(gCurrentProcess, process_t::State::SLEEPING);
     gSleepQueue().insert(gCurrentProcess);
@@ -599,19 +605,18 @@ bool ProcessManager::isinterruptible(uintptr_t addr) {
     }
 }
 
-void ProcessManager::tick() {
+void ProcessManager::tick(bool can_yield) {
     auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.prio, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
-        gCurrentProcess->runtimestats.runtime += PIT::gTickDuration;
-        if (usedticks >= allowedticks) {
+        gCurrentProcess->runtimestats.runtime += TimeManager::get().millisPerTick();
+        if (can_yield && usedticks >= allowedticks) {
             yield(true);
         }
     }
 }
 
-void ProcessManager::yield(bool bytimer) {
-    if (!bytimer) gCurrentProcess->runtimestats.runtime += PIT::gTickDuration / 2;
+void ProcessManager::yield(bool /*bytimer*/) {
     switchtoscheduler();
 }
 

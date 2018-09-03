@@ -15,9 +15,9 @@
 #include <kernel/log/log.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/drivers/serial/serial.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/sys/config.h>
 #include <kernel/libc/bytesizes.h>
+#include <kernel/time/manager.h>
 
 namespace {
     LogBuffer* gInitialRingBuffer() {
@@ -61,10 +61,11 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     static constexpr size_t gBufferSize = 1024;    
     static char gBuffer[gBufferSize];
     size_t n = 0;
+    auto uptime = TimeManager::get().millisUptime();
     if (tag) {
-		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu (%s) ", PIT::getUptime(), filename, line, tag);
+		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu (%s) ", uptime, filename, line, tag);
     } else {
-		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", PIT::getUptime(), filename, line);
+		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", uptime, filename, line);
     }
 	vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
     const auto& buflen = strlen(gBuffer) + 1;

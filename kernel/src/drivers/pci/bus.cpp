@@ -18,7 +18,6 @@
 #include <kernel/log/log.h>
 #include <kernel/drivers/framebuffer/fb.h>
 #include <kernel/libc/sprint.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/boot/phase.h>
 
 namespace boot::pci {

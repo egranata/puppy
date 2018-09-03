@@ -76,7 +76,7 @@ class ProcessManager : NOCOPY {
         process_t *setup(const char* path, const char* args, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0);
         process_t* exec(const char* path, const char* args, uint32_t flags);
 
-        void tick();
+        void tick(bool can_yield);
 
         void ctxswitch(pid_t task);
         static void ctxswitch(process_t* task);

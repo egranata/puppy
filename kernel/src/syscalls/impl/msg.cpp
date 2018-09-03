@@ -16,8 +16,8 @@
 #include <kernel/process/manager.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/synch/semaphore.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/process/process.h>
+#include <kernel/time/manager.h>
 
 syscall_response_t msgsend_syscall_handler(uint32_t pid, uint32_t a1, uint32_t a2) {
     auto&& pmm(ProcessManager::get());
@@ -26,7 +26,7 @@ syscall_response_t msgsend_syscall_handler(uint32_t pid, uint32_t a1, uint32_t a
         return ERR(NO_SUCH_PROCESS);
     }
 
-    auto msg = message_t{PIT::getUptime(), gCurrentProcess->pid, a1, a2};
+    auto msg = message_t{TimeManager::get().millisUptime(), gCurrentProcess->pid, a1, a2};
 
     dest->msg.deliver(msg);
 

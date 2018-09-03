@@ -15,12 +15,12 @@
 #include <kernel/syscalls/handlers.h>
 #include <kernel/i386/reboot.h>
 #include <kernel/drivers/rtc/rtc.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/mm/phys.h>
 #include <kernel/process/current.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/log/log.h>
+#include <kernel/time/manager.h>
 
 HANDLER0(reboot) {
     reboot();
@@ -29,7 +29,7 @@ HANDLER0(reboot) {
 
 syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
     if (fill & INCLUDE_GLOBAL_INFO) {
-        dest->global.uptime = PIT::getUptime();
+        dest->global.uptime = TimeManager::get().millisUptime();
         dest->global.totalmem = PhysicalPageManager::get().gettotalmem();
         dest->global.freemem = PhysicalPageManager::get().getfreemem();
     }

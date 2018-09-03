@@ -15,7 +15,6 @@
 #include <kernel/tasks/deleter.h>
 #include <kernel/process/manager.h>
 #include <kernel/process/current.h>
-#include <kernel/drivers/pit/pit.h>
 #include <kernel/mm/phys.h>
 #include <kernel/mm/virt.h>
 #include <kernel/sys/globals.h>

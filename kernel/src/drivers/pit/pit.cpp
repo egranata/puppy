@@ -22,24 +22,14 @@
 #include <kernel/fs/memfs/memfs.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/fs/devfs/devfs.h>
-
-class PIT_UptimeFile : public MemFS::File {
-    public:
-        PIT_UptimeFile() : MemFS::File("uptime") {}
-        delete_ptr<MemFS::FileBuffer> content() override {
-            string buf('\0', 24);
-            sprint(&buf[0], 24, "%llu", PIT::getUptime());
-            return new MemFS::StringBuffer(buf);
-        }
-};
+#include <kernel/time/manager.h>
 
 namespace boot::pit {
         uint32_t init() {
             PIT::get();
             PIC::get().accept(PIT::gIRQNumber);
 
-            auto timer_dir = DevFS::get().getDeviceDirectory("timer");
-            timer_dir->add(new PIT_UptimeFile());
+            TimeManager::get().registerTimeSource("PIT", PIT::gTickDuration);
 
             return 0;
         }
@@ -83,17 +73,11 @@ void PIT::removeInterruptFunction(pit_func_f f) {
     }
 }
 
-static uint64_t gUptimeMs = 0;
-
-uint64_t PIT::getUptime() {
-    return __sync_add_and_fetch(&gUptimeMs, 0);
-}
-
 static void timer(GPR&, InterruptStack& stack, void*) {
-    // TODO: do not hardcode frequency to 100Hz
-    auto now = __sync_add_and_fetch(&gUptimeMs, PIT::gTickDuration);
-
     PIC::eoi(0);
+
+    // TODO: do not hardcode frequency to 100Hz
+    auto now = TimeManager::get().tick(stack);
 
     for(auto i = 0u; i < gInterruptFunctions.gNumFunctions; ++i) {
         if (auto f = gInterruptFunctions.mFunctions[i]) {
@@ -102,18 +86,21 @@ static void timer(GPR&, InterruptStack& stack, void*) {
             }
         }
     }
+}
 
-    if (ProcessManager::isinterruptible(stack.eip)) {
-        ProcessManager::get().tick();
-    }
+static void pit_eoi_only(GPR&, InterruptStack&, void*) {
+    PIC::eoi(0);
+}
+
+void PIT::disable() {
+    auto irq = PIC::gIRQNumber(gIRQNumber);
+    Interrupts::get().sethandler(irq, "PIT", pit_eoi_only);
 }
 
 PIT::PIT() {
     outb(gCommandPort, 0x34); iowait();
     outb(gDataPort, 0x9B); iowait();
     outb(gDataPort, 0x2E); iowait();
-
-    gUptimeMs = 0;
 
     auto irq = PIC::gIRQNumber(gIRQNumber);
     Interrupts::get().sethandler(irq, "PIT", timer);
