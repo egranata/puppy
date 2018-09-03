@@ -37,6 +37,7 @@ namespace {
         if (mod == 0) return s;
         return (s - mod) + gPageSize;
     }
+
     struct loaded_elf_image_t {
         const char* path;
         elf_header_t *header;
@@ -64,6 +65,20 @@ namespace {
             return 0;
         }
     };
+
+    struct loaded_elf_images_t {
+        loaded_elf_image_t* dylib;
+        loaded_elf_images_t* next;
+    } dylibs_set = {nullptr, nullptr};
+
+    static void do_insert_dylib(loaded_elf_image_t* dylib) {
+        loaded_elf_images_t* i = &dylibs_set;
+        while (i->dylib != nullptr) {
+            i = i->next;
+        }
+        i->dylib = dylib;
+        i->next = (loaded_elf_images_t*)calloc(1, sizeof(loaded_elf_images_t));
+    }
 
     static bool do_copy_program(uint8_t* src, uint8_t* dst, const elf_program_t& phdr, loaded_elf_image_t* dest) {
         size_t len = phdr.memsz;
@@ -230,6 +245,8 @@ namespace {
 
         dest->header = header;
 
+        do_insert_dylib(dest);
+
         return true;
     }
 }
@@ -251,23 +268,39 @@ NEWLIB_IMPL_REQUIREMENT void *dlopen(const char *path, int /* flags: unused */) 
     return do_load_elf((elf_header_t*)data, elf_img) ? elf_img : nullptr;
 }
 
-void *dlsym(void* handle, const char* target) {
-    loaded_elf_image_t* elf_image = (loaded_elf_image_t*)handle;
-    if (elf_image == nullptr) return nullptr;
+namespace {
+    void* do_dlsym(loaded_elf_image_t* elf_image, const char* target) {
+        if (elf_image == nullptr) return nullptr;
 
-    auto symtab = elf_image->header->getSymbolTable();
+        auto symtab = elf_image->header->getSymbolTable();
 
-    elf_symtab_entry_t* symbol = (elf_symtab_entry_t*)symtab->content(elf_image->header);
-    size_t num_symbols = symtab->size / sizeof(elf_symtab_entry_t);
-    uint8_t* names = elf_image->stringtab;
-    for (auto i = 0u; i < num_symbols; ++i, ++symbol) {
-        if (symbol->name == 0) continue;
-        if (0 == strcmp(target, (const char*)&names[symbol->name])) {
-            return (void*)elf_image->findRealAddress(symbol->value);
+        elf_symtab_entry_t* symbol = (elf_symtab_entry_t*)symtab->content(elf_image->header);
+        size_t num_symbols = symtab->size / sizeof(elf_symtab_entry_t);
+        uint8_t* names = elf_image->stringtab;
+        for (auto i = 0u; i < num_symbols; ++i, ++symbol) {
+            if (symbol->name == 0) continue;
+            if (0 == strcmp(target, (const char*)&names[symbol->name])) {
+                return (void*)elf_image->findRealAddress(symbol->value);
+            }
         }
-    }
 
-    return nullptr;
+        return nullptr;
+    }
+}
+
+void *dlsym(void* handle, const char* target) {
+    if (handle == RTLD_DEFAULT) {
+        loaded_elf_images_t* i = &dylibs_set;
+        while(i->dylib) {
+            void* candidate = do_dlsym(i->dylib, target);
+            if (candidate) return candidate;
+            i = i->next;
+        }
+        return nullptr;
+    } else {
+        loaded_elf_image_t* elf_image = (loaded_elf_image_t*)handle;
+        return do_dlsym(elf_image, target);
+    }
 }
 
 int dlclose(void* /* handle */) {

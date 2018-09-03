@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#define RTLD_DEFAULT ((void*)0x1) // search across all loaded dylibs
+
 void *dlopen(const char *filename, int);
 void *dlsym(void *handle, const char *symbol);
 int dlclose(void *handle);

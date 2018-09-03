@@ -19,8 +19,8 @@
 #include <newlib/dlfcn.h>
 
 void load(char* file) {
-    void* dylib = dlopen(file, 0);
-    auto fp = reinterpret_cast<int (*)(int, int)>(dlsym(dylib, "testfunction"));
+    __unused void* dylib = dlopen(file, 0);
+    auto fp = reinterpret_cast<int (*)(int, int)>(dlsym(RTLD_DEFAULT, "testfunction"));
     printf("f(3,4) = %d\n", fp(3,4));
 }
 
