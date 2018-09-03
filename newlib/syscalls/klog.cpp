@@ -12,32 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/syscalls.h>
 #include <newlib/stdlib.h>
-#include <newlib/sys/stat.h>
-#include <newlib/dlfcn.h>
+#include <newlib/string.h>
+#include <newlib/sys/unistd.h>
+#include <newlib/impl/klog.h>
+#include <newlib/impl/cenv.h>
+#include <stdarg.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdio.h>
 
-void load(char* file) {
-#if 1
-    __unused void* dylib = dlopen(file, 0);
-#else
-    FILE *f = fopen(file, "r");
-    struct stat s;
-    stat(file, &s);
-    uint8_t* buf = (uint8_t*)calloc(1, s.st_size);
-    fread(buf, 1, s.st_size, f);
-    fclose(f);
-    dlload_syscall(buf);
-#endif
-    auto fp = reinterpret_cast<int (*)(int, int)>(0x21d0);
-    printf("f(3,4) = %d\n", fp(3,4));
-}
-
-int main(int argc, char** argv) {
-    for (auto i = 1; i < argc; ++i) {
-        load(argv[i]);
-    }
-
-    return 0;
+void newlib::puppy::impl::klog(const char* fmt, ...) {
+    char buf[1024] = {0};
+    va_list ap;
+    va_start(ap, fmt);
+    vsprintf(buf, fmt, ap);
+    klog_syscall(buf);
+    va_end(ap);
 }

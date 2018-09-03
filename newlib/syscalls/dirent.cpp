@@ -20,10 +20,9 @@
 #include <newlib/strings.h>
 #include <newlib/string.h>
 #include <newlib/impl/absolutize.h>
+#include <newlib/impl/cenv.h>
 
-extern "C" int  errno;
-
-DIR* opendir(const char* path) {
+NEWLIB_IMPL_REQUIREMENT DIR* opendir(const char* path) {
     if (path == nullptr || path[0] == 0) return nullptr;
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) return nullptr;
@@ -35,7 +34,7 @@ DIR* opendir(const char* path) {
     return d;
 }
 
-int closedir(DIR* d) {
+NEWLIB_IMPL_REQUIREMENT int closedir(DIR* d) {
     bool ok = false;
     if (d) {
         ok = (0 == fclose_syscall(d->fhnd));
@@ -44,12 +43,12 @@ int closedir(DIR* d) {
     return ok ? 0 : 1;
 }
 
-int readdir_r(DIR*, struct dirent*, struct dirent**) {
+NEWLIB_IMPL_REQUIREMENT int readdir_r(DIR*, struct dirent*, struct dirent**) {
     errno = EINVAL;
     return -1;
 }
 
-struct dirent* readdir(DIR* dir) {
+NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
     if (!dir) return nullptr;
     bzero(&dir->current, sizeof(dirent));
 

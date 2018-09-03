@@ -29,7 +29,8 @@ extern "C" int  errno;
 #include <newlib/string.h>
 #include <newlib/strings.h>
 #include <newlib/impl/absolutize.h>
-#include <stdarg.h>
+#include <newlib/impl/cenv.h>
+#include <newlib/impl/klog.h>
 
 #include <kernel/syscalls/types.h>
 
@@ -37,17 +38,6 @@ extern "C" int  errno;
     errno = ev; \
     return -1; \
 }
-
-static __unused void klog(const char* fmt, ...) {
-    char buf[1024] = {0};
-    va_list ap;
-    va_start(ap, fmt);
-    vsprintf(buf, fmt, ap);
-    klog_syscall(buf);
-    va_end(ap);
-}
-
-#define NEWLIB_IMPL_REQUIREMENT extern "C"
 
 NEWLIB_IMPL_REQUIREMENT char* getcwd (char* buf = nullptr, size_t sz = 0) {
     if (buf == nullptr) sz = 0;

@@ -19,6 +19,8 @@
 
 #include <kernel/sys/stdint.h>
 
+struct elf_header_t;
+
 namespace {
     enum elf_type_t {
         none = 0x0,
@@ -27,9 +29,34 @@ namespace {
         dyn = 0x3,
         core = 0x4,
     };
-}
 
-struct elf_header_t;
+    struct ph_load_info {
+        uintptr_t offset;
+        uintptr_t size;
+        uintptr_t start;
+        uintptr_t virt_start;
+        uintptr_t virt_end;
+    };
+
+    template<typename EntryType>
+    struct rel_info_t {
+        uintptr_t offset;
+        size_t entry_size;
+        size_t table_size;
+
+        explicit operator bool() {
+            return offset != 0 && entry_size != 0 && table_size != 0;
+        }
+
+        size_t count() {
+            return table_size / entry_size;
+        }
+
+        EntryType* get(elf_header_t* header, size_t n = 0) {
+            return &((EntryType*)((uint8_t*)header + offset))[n];
+        }
+    };
+}
 
 struct process_loadinfo_t {
     uintptr_t eip;
@@ -125,9 +152,25 @@ struct elf_header_t {
         return ((elf_program_t*)((uint8_t*)this + phoff))[n];
     }
 
-    const elf_section_t* getDynamicSymbols() const;
+    const elf_section_t* getDynamicSymbols() const {
+        for (auto i = 0; i < shnum; ++i) {
+            if (section(i).dynamicInfo()) {
+                return &section(i);
+            }
+        }
 
-    const elf_program_t* getDynamic() const;
+        return nullptr;
+    }
+
+    const elf_program_t* getDynamic() const {
+        for (auto i = 0; i < phnum; ++i) {
+            if (program(i).dynamicInfo()) {
+                return &program(i);
+            }
+        }
+
+        return nullptr;
+    }
 
     const elf_section_t& strtable() const {
         return section(shstrndx);

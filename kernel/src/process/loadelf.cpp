@@ -32,53 +32,6 @@ namespace {
         char arguments[3712];
     };
     static_assert(sizeof(program_args_t) == VirtualPageManager::gPageSize);
-
-    struct ph_load_info {
-        uintptr_t offset;
-        uintptr_t size;
-        uintptr_t start;
-        uintptr_t virt_start;
-        uintptr_t virt_end;
-    };
-
-    template<typename EntryType>
-    struct rel_info_t {
-        uintptr_t offset;
-        size_t entry_size;
-        size_t table_size;
-
-        explicit operator bool() {
-            return offset != 0 && entry_size != 0 && table_size != 0;
-        }
-
-        size_t count() {
-            return table_size / entry_size;
-        }
-
-        EntryType* get(elf_header_t* header) {
-            return (EntryType*)((uint8_t*)header + offset);
-        }
-    };
-}
-
-const elf_program_t* elf_header_t::getDynamic() const {
-    for (auto i = 0; i < phnum; ++i) {
-        if (program(i).dynamicInfo()) {
-            return &program(i);
-        }
-    }
-
-    return nullptr;
-}
-
-const elf_section_t* elf_header_t::getDynamicSymbols() const {
-    for (auto i = 0; i < shnum; ++i) {
-        if (section(i).dynamicInfo()) {
-            return &section(i);
-        }
-    }
-
-    return nullptr;
 }
 
 static uintptr_t findRealAddress(uintptr_t offset, ph_load_info* ph, size_t phsz) {
