@@ -34,24 +34,10 @@ namespace {
     static_assert(sizeof(program_args_t) == VirtualPageManager::gPageSize);
 }
 
-static uintptr_t findRealAddress(uintptr_t offset, ph_load_info* ph, size_t phsz) {
-    for (auto i = 0u; i < phsz; ++i) {
-        TAG_DEBUG(LOADELF, "ph[%u].offset = %p, ph[%u].size = %u", i, ph[i].offset, i, ph[i].size);
-        if ((offset >= ph[i].start) && (ph[i].start + ph[i].size) >= offset) {
-            return ph[i].virt_start + offset - ph[i].start;
-        }
-    }
-
-    return 0;
-}
-
 elf_load_result_t load_elf_image(elf_header_t* header) {
     ph_load_info loaded_headers[10];
     bzero(&loaded_headers[0], sizeof(loaded_headers));
     int loaded_header_idx = 0;
-
-    rel_info_t<elf_rela_t> rela_info = {0};
-    rel_info_t<elf_rel_t> rel_info = {0};
 
     elf_load_result_t result{
         ok : true,
@@ -62,8 +48,6 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
 
     auto&& vmm(VirtualPageManager::get());
     auto&& memmgr(gCurrentProcess->getMemoryManager());
-
-    const bool is_dylib = header->isDylib();
 
     for (auto i = 0u; i < header->phnum; ++i) {
         auto&& pref = header->program(i);
@@ -86,12 +70,6 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
 
         auto vaddr = (uint8_t*)pref.vaddr;
 
-        if (is_dylib) {
-            mapopts = mapopts.rw(true);
-            auto rgn = memmgr->findAndMapRegion(pref.memsz, mapopts);
-            vaddr = (uint8_t*)rgn.from;
-        }
-
         loaded_headers[loaded_header_idx].start = pref.vaddr;
         loaded_headers[loaded_header_idx].offset = pref.offset;
         loaded_headers[loaded_header_idx].size = pref.memsz;
@@ -105,7 +83,7 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
         while(len != 0) {
             TAG_DEBUG(LOADELF, "start by mapping a page at %p", vaddr);
 
-            if (!is_dylib) vmm.mapAnyPhysicalPage((uintptr_t)vaddr, mapopts.rw(true));
+            vmm.mapAnyPhysicalPage((uintptr_t)vaddr, mapopts.rw(true));
             vaddr1 += VirtualPageManager::gPageSize;
 
             auto chunk = len;
@@ -129,11 +107,9 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
                 }
             }
 
-            if (!is_dylib) {
-                vmm.mapped((uintptr_t)vaddr, &mapopts);
-                mapopts.rw(pref.writable());
-                vmm.newoptions((uintptr_t)vaddr, mapopts);
-            }
+            vmm.mapped((uintptr_t)vaddr, &mapopts);
+            mapopts.rw(pref.writable());
+            vmm.newoptions((uintptr_t)vaddr, mapopts);
 
             len -= chunk;
             src += chunk;
@@ -143,100 +119,12 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
             }
             TAG_DEBUG(LOADELF, "len = %u flen = %u vaddr = %p src = %p", len, flen, vaddr, src);
         }
-        if (!is_dylib) memmgr->addMappedRegion(vaddr0, vaddr1-1);
+        
+        memmgr->addMappedRegion(vaddr0, vaddr1-1);
         loaded_headers[loaded_header_idx++].virt_end = (uintptr_t)vaddr1-1;
     }
 
     result.max_load_addr = maxprogaddr;
-
-    if (!is_dylib) return result;
-
-    auto dyn_sec = header->getDynamic();
-    if (dyn_sec == nullptr) return result;
-
-    TAG_DEBUG(LOADELF, "dynamic section at %p", dyn_sec);
-    elf_dynamic_entry_t* dyn_entry = (elf_dynamic_entry_t*)dyn_sec->content(header);
-    while (dyn_entry->tag != 0) {
-        TAG_DEBUG(LOADELF, "dynamic entry - tag = %u, val = %u", dyn_entry->tag, dyn_entry->value);
-        switch (dyn_entry->tag) {
-            case elf_dynamic_entry_t::kind_t::rel:
-                rel_info.offset = dyn_entry->value;
-                break;
-            case elf_dynamic_entry_t::kind_t::rela:
-                rela_info.offset = dyn_entry->value;
-                break;
-            case elf_dynamic_entry_t::kind_t::rel_entry_size:
-                rel_info.entry_size = dyn_entry->value;
-                break;
-            case elf_dynamic_entry_t::kind_t::rela_entry_size:
-                rela_info.entry_size = dyn_entry->value;
-                break;
-            case elf_dynamic_entry_t::kind_t::rel_table_size:
-                rel_info.table_size = dyn_entry->value;
-                break;
-            case elf_dynamic_entry_t::kind_t::rela_table_size:
-                rela_info.table_size = dyn_entry->value;
-                break;
-            default: break;
-        }
-        ++dyn_entry;
-    }
-
-    auto symsec = header->getDynamicSymbols();
-    if (symsec == nullptr) return result;
-    auto symtab = (elf_symtab_entry_t*)symsec->content(header);
-
-    if (rela_info) {
-        TAG_DEBUG(LOADELF, "found a RELA table at offset %u - it contains %u entries each of %u bytes",
-        rela_info.offset, rela_info.table_size / rela_info.entry_size, rela_info.entry_size);
-        auto rela_entry = rela_info.get(header);
-        for (auto i = 0u; i < rela_info.count(); ++i, ++rela_entry) {
-            TAG_DEBUG(LOADELF, "RELA entry: offset=%p, info=%u, addend=%u", rela_entry->offset, rela_entry->info, rela_entry->addend);
-            auto kind = rela_entry->kind();
-            auto sym_idx = rela_entry->idx();
-            auto sym = symtab[sym_idx];
-            TAG_DEBUG(LOADELF, "RELA(%u) entry patches symbol %u - type is %u value is %p", kind, sym_idx, sym.info, sym.value);
-        }
-    }
-
-    if (rel_info) {
-        TAG_DEBUG(LOADELF, "found a REL table at offset %u - it contains %u entries each of %u bytes",
-        rel_info.offset, rel_info.table_size / rel_info.entry_size, rel_info.entry_size);
-        auto rel_entry = rel_info.get(header);
-        for (auto i = 0u; i < rel_info.count(); ++i, ++rel_entry) {
-            TAG_DEBUG(LOADELF, "REL entry: offset=%p, info=%u", rel_entry->offset, rel_entry->info);
-            auto kind = rel_entry->kind();
-            auto sym_idx = rel_entry->idx();
-            auto sym = symtab[sym_idx];
-            TAG_DEBUG(LOADELF, "REL(%u) entry patches symbol %u - type is %u value is %p", kind, sym_idx, sym.info, sym.value);
-
-            switch (kind) {
-                case R_386_32: {
-                    auto virt_dest = findRealAddress(rel_entry->offset, loaded_headers, loaded_header_idx);
-                    TAG_DEBUG(LOADELF, "offset %x matches real address %x", rel_entry->offset, virt_dest);
-                    auto virt_value = findRealAddress(sym.value, loaded_headers, loaded_header_idx);
-                    TAG_DEBUG(LOADELF, "symbol value %x matches real address %x", sym.value, virt_value);
-                    uint32_t *virt_ptr = (uint32_t*)virt_dest;
-                    *virt_ptr = virt_value;
-                    TAG_DEBUG(LOADELF, "relocation value is %p=%p", virt_ptr,*virt_ptr);
-                }
-                    break;
-                case R_386_PC32: {
-                    auto virt_dest = findRealAddress(rel_entry->offset, loaded_headers, loaded_header_idx);
-                    TAG_DEBUG(LOADELF, "offset %x matches real address %x", rel_entry->offset, virt_dest);
-                    auto virt_value = findRealAddress(sym.value, loaded_headers, loaded_header_idx);
-                    TAG_DEBUG(LOADELF, "symbol value %x matches real address %x", sym.value, virt_value);
-                    uint32_t *virt_ptr = (uint32_t*)virt_dest;
-                    *virt_ptr = (virt_value - virt_dest - 4);
-                    TAG_DEBUG(LOADELF, "relocation value is %p=%p", virt_ptr,*virt_ptr);
-                }
-                    break;
-                default:
-                    TAG_DEBUG(LOADELF, "unsupported REL type");
-            }
-        }
-    }
-
     return result;
 }
 

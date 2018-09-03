@@ -107,7 +107,5 @@ syscall_response_t vmcheckreadable_syscall(uintptr_t arg1,size_t arg2);
 constexpr uint8_t vmcheckreadable_syscall_id = 0x2b;
 syscall_response_t vmcheckwritable_syscall(uintptr_t arg1,size_t arg2);
 constexpr uint8_t vmcheckwritable_syscall_id = 0x2c;
-syscall_response_t dlload_syscall(uint8_t* arg1);
-constexpr uint8_t dlload_syscall_id = 0xc9;
 
 #endif

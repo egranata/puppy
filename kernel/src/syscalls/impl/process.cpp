@@ -153,9 +153,3 @@ syscall_response_t setcurdir_syscall_handler(const char* arg) {
     gCurrentProcess->cwd = strdup(arg);
     return OK;
 }
-
-syscall_response_t dlload_syscall_handler(uint8_t *data) {
-    auto result = load_elf_image((elf_header_t*)data);
-    if (result.ok) return OK;
-    return ERR(NO_SUCH_FILE);
-}
