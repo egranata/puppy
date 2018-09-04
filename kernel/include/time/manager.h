@@ -35,15 +35,21 @@ class TimeManager : NOCOPY {
 
         uint64_t millisPerTick();
 
-        size_t registerTickHandler(tick_func_t);
+        size_t registerTickHandler(tick_func_t, uint32_t every_N);
         void unregisterTickHandler(size_t);
     private:
         static constexpr size_t gMaxTickFunctions = 10;
 
         uint64_t mMillisecondsSinceBoot;
+
         struct {
-            tick_func_t funcs[gMaxTickFunctions];
-            size_t count;
+            struct { 
+                tick_func_t func;
+                uint32_t every_N; // only run func every N ticks
+                uint32_t every_countdown; // how many ticks left before the next execution of func
+
+                explicit operator bool() { return (bool)func; }
+            } funcs[gMaxTickFunctions];
         } mTickHandlers;
 
         struct {

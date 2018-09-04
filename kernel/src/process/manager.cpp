@@ -69,7 +69,7 @@ namespace boot::task {
             bool can_yield = ProcessManager::isinterruptible(stack.eip);
             ProcessManager::get().tick(can_yield);
             return true;
-        });
+        }, 1);
 
         return 0;
     }
@@ -606,17 +606,19 @@ bool ProcessManager::isinterruptible(uintptr_t addr) {
 }
 
 void ProcessManager::tick(bool can_yield) {
+    if (gCurrentProcess) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, TimeManager::get().millisPerTick());
+
     auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.prio, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
-        gCurrentProcess->runtimestats.runtime += TimeManager::get().millisPerTick();
         if (can_yield && usedticks >= allowedticks) {
             yield(true);
         }
     }
 }
 
-void ProcessManager::yield(bool /*bytimer*/) {
+void ProcessManager::yield(bool bytimer) {
+    if (!bytimer && gCurrentProcess) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, 1);
     switchtoscheduler();
 }
 
