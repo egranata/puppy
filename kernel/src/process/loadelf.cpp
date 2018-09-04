@@ -19,7 +19,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/process/current.h>
 
-LOG_TAG(LOADELF, 0);
+LOG_TAG(LOADELF, 1);
 
 #define UNHAPPY(cause) { \
     TAG_ERROR(LOADELF, "failed to load ELF image: " #cause); \
@@ -52,11 +52,11 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
     for (auto i = 0u; i < header->phnum; ++i) {
         auto&& pref = header->program(i);
         
-        TAG_INFO(LOADELF, "program header idx = %u, offset = %p, vaddr = %p, paddr = %p, filesz = %u, memsz = %u, flags = %u, align = %u",
+        TAG_DEBUG(LOADELF, "program header idx = %u, offset = %p, vaddr = %p, paddr = %p, filesz = %u, memsz = %u, flags = %u, align = %u",
             i, pref.offset, pref.vaddr, pref.paddr, pref.filesz, pref.memsz, pref.flags, pref.align);
         
         if (!pref.loadable()) {
-            TAG_INFO(LOADELF, "program header is of type %u which is not loadable", pref.type);
+            TAG_DEBUG(LOADELF, "program header is of type %u which is not loadable", pref.type);
             continue;
         }
 
@@ -146,12 +146,12 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
     }
 
     auto maxprogaddr = VirtualPageManager::page(elf_load_info.max_load_addr);
-    TAG_INFO(LOADELF, "memory setup - max program address is %p", maxprogaddr);
+    TAG_DEBUG(LOADELF, "memory setup - max program address is %p", maxprogaddr);
     memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
     auto stackpermission = VirtualPageManager::map_options_t::userspace().clear(true);
     auto stackregion = memmgr->findAndZeroPageRegion(stacksize, stackpermission);
-    TAG_INFO(LOADELF, "stack is begin = %p, end = %p", stackregion.to, stackregion.from);
+    TAG_DEBUG(LOADELF, "stack is begin = %p, end = %p", stackregion.to, stackregion.from);
     const auto stackbegin = stackregion.to;
 
     maxprogaddr = VirtualPageManager::page(stackbegin + 1);

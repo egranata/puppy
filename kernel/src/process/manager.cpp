@@ -632,8 +632,6 @@ process_t::pid_t schedulerpid() {
 void ProcessManager::ready(process_t* task) {
     task->state = process_t::State::AVAILABLE;
     gReadyQueue().push_back(task);
-
-    LOG_DEBUG("process %u moved to state AVAILABLE", task->pid);
 }
 
 void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
@@ -656,8 +654,6 @@ void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
     if (numfound > 1) {
         PANIC("process enqueued for execution multiple times");
     }
-
-    LOG_DEBUG("process %u moved to state %u", task->pid, (uint8_t)newstate);
 }
 
 void ProcessManager::enqueueForDeath(process_t* task) {
