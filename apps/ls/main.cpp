@@ -83,11 +83,6 @@ int ls(const char* path) {
 }
 
 int main(int argc, const char** argv) {
-    if (argc == 1) {
-        printf("%s <path>\n", argv[0]);
-        exit(1);
-    }
-
-    const char* path = argv[1];
-    return ls(path);
+    if (argc == 1) return ls(".");
+    else return ls(argv[1]);
 }
