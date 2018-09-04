@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/memory.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/stdio.h>
-#include <libuserspace/syscalls.h>
-#include <muzzle/stdlib.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
 
 int main(int, const char**) {
     // TODO: this should be factored out somewhere
@@ -26,23 +24,32 @@ int main(int, const char**) {
 
     char *buffer = (char*)calloc(gLogBufferSize, 1);
 
-    cwrite("Writing log entries to stdout.. Press a key to keep scrolling\n");
+    puts("Writing log entries to stdout.. Press a key to keep scrolling\n");
 
     size_t n_written = 0;
 
     if (0 == klogread_syscall(buffer, gLogBufferSize, &log_stats)) {
-        printf("Total entries to log: %llu\nTotal written to log: %llu bytes (of which the largest individual entry was %u bytes)\n", log_stats.numentries,
-               log_stats.totalwritten, log_stats.largestentry);
+        printf("Total entries in log: %llu\n", log_stats.numentries);
+        printf("Total written to log: %llu bytes\n", log_stats.totalwritten);
+        printf("Largest entry in log: %u bytes\n", log_stats.largestentry);
+
+        puts("\n");
+
         for (auto i = 0u; i < gLogBufferSize; ++i) {
             auto c = buffer[i];
             if (c == '\n') ++n_written;
+            if (c == 0) break;
             putchar(c);
             if (n_written == 5) {
                 while (-1 == getchar());
                 n_written = 0;
             }
         }
-    }
 
-    return 0;
+        puts("End of log.\n");
+        return 0;
+    } else {
+        puts("Unable to read log.\n");
+        return 1;
+    }
 }
