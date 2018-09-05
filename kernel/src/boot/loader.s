@@ -100,7 +100,7 @@ __gdt: ; refer to tools/make_gdt_descriptor.cpp
 	dd 0x8500
 
     ; task segments [6...]
-	times 2000 dd 0
+	times 2000 dq 0
 
 __gdtinfo:
 	dw __gdtinfo - __gdt - 1

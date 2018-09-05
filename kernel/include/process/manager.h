@@ -78,7 +78,6 @@ class ProcessManager : NOCOPY {
 
         void tick(bool can_yield);
 
-        void ctxswitch(pid_t task);
         static void ctxswitch(process_t* task);
 
         void resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uint16_t cs, uint16_t ss);

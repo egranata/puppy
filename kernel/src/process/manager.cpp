@@ -435,11 +435,11 @@ process_t* ProcessManager::kspawn(const spawninfo_t& si) {
     return spawn(sinfo);
 }
 
-#define PID_TO_TSS_ENTRY(pid) ((((pid + 6)*8) << 16) | 0x1E50000000000ULL)
+#define GDT_IDX_TO_TSS_ENTRY(idx) (((idx * 8) << 16) | 0x1E50000000000ULL)
 
-static inline void doGDTSwitch(uint16_t pid) {
+static inline void doGDTSwitch(uint16_t, size_t gdtidx) {
     auto dtbl = addr_gdt<uint64_t*>();
-    dtbl[5] = PID_TO_TSS_ENTRY(pid);
+    dtbl[5] = GDT_IDX_TO_TSS_ENTRY(gdtidx);
     ::ctxswitch();
 }
 
@@ -452,17 +452,13 @@ void ProcessManager::ctxswitch(process_t* task) {
     }
 
     gCurrentProcess = task;
-    doGDTSwitch(task->pid);
+    doGDTSwitch(task->pid, task->gdtidx);
 }
 
 void ProcessManager::switchtoscheduler() {
     // cr0 is not part of the hardware context switch, save it upon switching to scheduler
     gCurrentProcess->cr0 = readcr0();
-    doGDTSwitch(gSchedulerTask->pid);
-}
-
-void ProcessManager::ctxswitch(pid_t task) {
-    ctxswitch(getprocess(task));
+    doGDTSwitch(gSchedulerTask->pid, gSchedulerTask->gdtidx);
 }
 
 #define GDT_ENTRY_TO_TSS_PTR(tssval) ((tssval & 0xFFFFFF0000ULL) >> 16) | ((tssval & 0xFF00000000000000ULL) >> 32)
