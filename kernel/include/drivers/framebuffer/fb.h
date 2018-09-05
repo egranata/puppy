@@ -80,6 +80,7 @@ class Framebuffer : NOCOPY {
         Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);
 
         uint32_t* getpixel(uint16_t x, uint16_t y);
+        void putdata(unsigned char* fontdata, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
         void putchar(uint16_t x, uint16_t y, uint8_t chr, uint8_t r, uint8_t g, uint8_t b);
         uint8_t* row(int16_t n) const;
 

@@ -18,7 +18,24 @@
 #include <kernel/libc/memory.h>
 #include <kernel/libc/string.h>
 
-#include "font.cpp"
+#include <xnu_font/font.c>
+
+#ifndef FONT_WIDTH
+	#ifdef ISO_CHAR_WIDTH
+		#define FONT_WIDTH ISO_CHAR_WIDTH
+	#else
+		#warning "unknown value of FONT_WIDTH: assuming default 8"
+		#define FONT_WIDTH 8
+	#endif
+#endif
+#ifndef FONT_HEIGHT
+	#ifdef ISO_CHAR_HEIGHT
+		#define FONT_HEIGHT ISO_CHAR_HEIGHT
+	#else
+		#warning "unknown value of FONT_HEIGHT: assuming default 16"
+		#define FONT_HEIGHT 16
+	#endif
+#endif
 
 static Framebuffer *gFramebuffer = nullptr;
 static uint8_t gFramebufferAlloc[sizeof(Framebuffer)];
@@ -144,25 +161,40 @@ void Framebuffer::paint(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b)
 	*p = b | (g << 8) | (r << 16);
 }
 
-void Framebuffer::putchar(uint16_t start_x, uint16_t start_y, uint8_t chr, uint8_t r, uint8_t g, uint8_t b) {
-    auto fontdata = &font[chr * FONT_HEIGHT];
+void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t start_y, uint8_t r, uint8_t g, uint8_t b) {
 	auto p0 = getpixel(start_x, start_y);
 	auto fg = b | (g << 8) | (r << 16);
 	auto p = p0;
 
     for (uint8_t i = 0u; i < FONT_HEIGHT; ++i, p += (mPitch >> 2)) {
 		auto&& fdi = fontdata[i];
-		auto q = p;
-        for (uint8_t j = 0u; j < FONT_WIDTH; ++j, q += (mBytesPerPixel >> 2)) {
-            if (fdi & (1 << (FONT_WIDTH-1-j))) {
-				*q = fg;
-            }
-        }
+		auto j = FONT_WIDTH - 1;
+		do {
+			auto light_up = 0 != (fdi & (1 << j));
+			if (light_up) p[j * (mBytesPerPixel >> 2)] = fg;
+			if (j == 0) break;
+			--j;
+		} while(true);
     }
 }
 
+void Framebuffer::putchar(uint16_t start_x, uint16_t start_y, uint8_t chr, uint8_t r, uint8_t g, uint8_t b) {
+    auto fontdata = &iso_font[chr * FONT_HEIGHT];
+	putdata(fontdata, start_x, start_y, r, g, b);
+}
+
 void Framebuffer::rewind(bool erase) {
-	LOG_DEBUG("asked to rewind - erase = %u - old coordinates x=%u y=%u", erase, mX, mY);
+	// we know FONT_HEIGHT to be 16 - but in the interest of pretending to be generalizing, just write *a lot* of extra bytes anyway
+	// (this is cheap because we always pass by pointer + it's just 40 bytes anyway & we're on a PC); as long as the size of the array
+	// is at least as large as FONT_HEIGHT we will be fine here; and the assert below will tell us if we ever need to add more
+	static unsigned char gFiller[] = {
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+	};
+	static_assert(sizeof(gFiller) >= FONT_HEIGHT);
+
 	if (mY > 0) {
 		mY -= FONT_WIDTH;
 	} else if (mX > 0) {
@@ -170,11 +202,7 @@ void Framebuffer::rewind(bool erase) {
 		mX -= FONT_HEIGHT;
 	}
 
-	LOG_DEBUG("asked to rewind - new coordinates x=%u y=%u", mX, mY);
-
-	if (erase) {
-		putchar(mX, mY, 0xdb, 0, 0, 0);
-	}
+	if (erase) putdata(gFiller, mX, mY, mBackground.r, mBackground.g, mBackground.b);
 }
 
 void Framebuffer::advance() {
