@@ -92,26 +92,44 @@ bool runInitScript() {
     return true;
 }
 
-bool runShell() {
+uint16_t runShell() {
     auto pid = exec("/system/apps/shell", nullptr, true);
-    return pid != 0;
+    return pid;
+}
+
+bool tryCollectShell(uint16_t pid) {
+    uint16_t collected = 0;
+    process_exit_status_t status(0);
+    if (0 == collectany_syscall(&collected, &status)) {
+        if (pid == collected) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int main(int, const char**) {
     printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
     klog_syscall("init is up and running");
 
+    uint16_t shell_pid;
+
     if (!runInitScript()) {
         klog_syscall("init could not run config - will exit");
         exit(1);
     }
 
-    if (!runShell()) {
+    if (0 == (shell_pid = runShell())) {
         klog_syscall("init could not run shell - will exit");
         exit(1);
     }
 
     while(true) {
+        if (tryCollectShell(shell_pid)) {
+            klog_syscall("shell has terminated - init will reboot");
+            reboot_syscall();
+        }
         // TODO: init could be receiving messages from the rest of the system
         // and execute system-y operations on behalf of the rest of the system
         yield();

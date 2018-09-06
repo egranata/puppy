@@ -100,7 +100,12 @@ int main(int, const char**) {
         }
         printf("%s ", prompt); fflush(stdout);
         size_t n = 0;
-        __getline(&buffer, &n, stdin);
+        size_t n_read = __getline(&buffer, &n, stdin);
+        if (n_read == (size_t)-1) {
+            if (feof(stdin)) {
+                exit(0);
+            }
+        }
         const char* program = trim(buffer);
         if (program != 0 && *program != 0) {
             bool letgo = ('&' == *program);
