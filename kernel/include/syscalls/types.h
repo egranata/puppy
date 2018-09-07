@@ -112,14 +112,15 @@ struct message_t {
 static constexpr size_t gMaxPathSize = 255;
 typedef char path_name_t[gMaxPathSize + 1];
 
-struct file_stat_t {
-    uint32_t size;
-};
-
 enum class file_kind_t {
     directory,
     file,
     blockdevice, /** see blockdevice_ioctl */
+};
+
+struct file_stat_t {
+    file_kind_t kind;
+    uint32_t size;
 };
 
 struct file_info_t {

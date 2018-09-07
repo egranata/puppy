@@ -61,6 +61,7 @@ uintptr_t ioctl(uint32_t fid, uintptr_t a1, uintptr_t a2) {
 
 // must be binary compatible with stat_t in filesystem
 struct stat_t {
+    file_kind_t kind;
     uint32_t size;
 };
 

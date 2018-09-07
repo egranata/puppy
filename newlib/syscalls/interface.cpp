@@ -152,6 +152,17 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
     bool ok = (0 == fstat_syscall(fd, (uint32_t)&fs));
 
     if (ok) {
+        switch (fs.kind) {
+            case file_kind_t::file:
+                st->st_mode = S_IFREG;
+                break;
+            case file_kind_t::directory:
+                st->st_mode = S_IFDIR;
+                break;
+            case file_kind_t::blockdevice:
+                st->st_mode = S_IFBLK;
+                break;
+        }
         st->st_size = fs.size;
         return 0;
     } else {

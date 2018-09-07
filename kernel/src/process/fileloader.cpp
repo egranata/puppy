@@ -59,7 +59,8 @@ void fileloader(uintptr_t) {
     if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file", 1);
 
     Filesystem::File::stat_t fstat{
-        size : 0
+        kind : file_kind_t::file,
+        size : 0,
     };
     if (file->stat(fstat) == false) UNHAPPY("unable to discover file size", 2);
     if (fstat.size == 0) UNHAPPY("file length == 0", 3);

@@ -75,6 +75,7 @@ class FATFileSystemFile : public Filesystem::File {
         }
 
         bool stat(stat_t& stat) override {
+            stat.kind = file_kind_t::file;
             stat.size = f_size(mFile);
             return true;
         }

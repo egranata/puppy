@@ -61,6 +61,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             }
 
             bool stat(stat_t& stat) {
+                stat.kind = mFile->kind();
                 stat.size = mContent->len();
                 return true;
             }

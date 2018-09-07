@@ -15,7 +15,6 @@
 #include <newlib/stdio.h>
 #include <newlib/syscalls.h>
 #include <newlib/stdlib.h>
-#include <newlib/sys/stat.h>
 #include <newlib/dlfcn.h>
 
 void load(char* file) {
