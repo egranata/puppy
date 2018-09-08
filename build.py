@@ -56,6 +56,7 @@ BASIC_CFLAGS = [
 BASIC_CPPFLAGS = [
     '-fno-exceptions',
     '-fno-rtti',
+    "-Wno-error=extra", # TODO: fix the underlying issue in EASTL/string.h
     '-std=c++14']
 BASIC_ASFLAGS = ["-f elf"]
 BASIC_LDFLAGS = ["-ffreestanding", "-nostdlib"]
@@ -264,7 +265,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/libcxxsupport.a", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+NEWLIB_DEPS = ["out/libeastl.a", "out/libcxxsupport.a", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
 
 LIBUSERSPACE_TOOLS = []
 
@@ -351,6 +352,12 @@ CxxSupport = Project(name="CxxSupport",
     linkerdeps=NEWLIB_DEPS)
 CxxSupport.link = CxxSupport.linkAr
 
+EASTL = Project(name="EASTL",
+    srcdir="third_party/EASTL/src",
+    ipaths=["include", "include/newlib", "include/EASTL"],
+    linkerdeps=NEWLIB_DEPS)
+EASTL.link = EASTL.linkAr
+
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
     assembler="nasm",
@@ -364,6 +371,7 @@ Userspace.build()
 NewlibInterface.build()
 NEWLIB_DEPS = [NewlibCrt0.build()] + NEWLIB_DEPS
 CxxSupport.build()
+EASTL.build()
 Checkup.build()
 
 print("newlib dependency list: %s" % ', '.join(NEWLIB_DEPS))

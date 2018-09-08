@@ -1,40 +1,50 @@
 # The Puppy Kernel
+[![](https://travis-ci.org/egranata/puppy.svg?branch=master)](https://travis-ci.org/egranata/puppy)
 
-Welcome to Puppy. Our current build status is: [![](https://travis-ci.org/egranata/puppy.svg?branch=master)](https://travis-ci.org/egranata/puppy)
+Welcome to Puppy.
 
-The Puppy project aims to build an operating system for x86 computers.
+Puppy is an operating system for IBM-compatible computers with 32-bit Intel CPUs (you may have heard of this kind of hardware under the name *personal computer*).
 
-More specifically, project goals include providing:
+More specifically, Puppy aims to provide:
 
-- preemptive multitasking of userspace processes (but not a preemptive kernel); ✅
-- support for memory protection; ✅
-- system call interface to userspace; ✅
-- booting on emulators **AND** real hardware; ✅
-- FAT filesystem on hard disks; ✅
-- program launcher (aka, shell);
-- a C/C++ standard library.
+- preemptive multitasking (but not a preemptive kernel); ✅
+- memory protection; ✅
+- system calls for userspace; ✅
+- FAT32 filesystems; ✅
+- support for actual physical x86 hardware; ✅
+- a C/C++ standard library for userspace programs;
+- ACPI support;
+- a functional userspace (custom built or ported as needed).
 
-Development of a GUI or porting to architectures other than 32-bit Intel (including but not limited to x86_64 or any ARM flavor) are explicit non-goals. It is also not a goal to develop a custom bootloader, Puppy just uses GRUB.
+Some additional goals and features are covered by https://github.com/egranata/puppy/issues. Even more things (e.g. support for USB, networking, ...) are definitely interesting and may become important as the core goals are fulfilled.
 
-Support for network connectivity, USB, or other interesting hardware would be nice to have.
+Porting to non-x86 architectures or development of a GUI are explicit non goals. It is also not a goal to develop custom bootloaders: GRUB is plenty enough!
 
 # Hardware requirements
 
-Most Puppy development and testing happens on QEMU, but the OS can also boot Bochs and - assuming a few hardware requirements are met - it will work on a real computer. If your hardware has a PS/2 keyboard and an IDE hard disk (or proper emulation of both...), then Puppy should boot. Feel free to test it out! I haven't tried other virtualizers, e.g. VirtualBox, VMWare, ..., but testing on those is definitely welcome.
+Puppy is actively tested on QEMU - and occasionally Bochs.
+![](docs/qemu.png)
 
-## Getting Started
+![](docs/bochs.png)
 
-Puppy is a C++ codebase. To build the OS into a bootable image, one needs:
-- an installation of Linux (or a Docker container thereof);
-- the NASM assembler;
-- a GCC cross compiler, as described at [http://wiki.osdev.org/GCC_Cross-Compiler];
-- Python 3;
-- GRUB 2;
-- Xorriso.
+Assuming a few requirements are met, Puppy should boot and work on an actual PC:
+- PS/2 keyboard;
+- A video card and screen with VBE support and capable of 800x600 or better;
+- APIC timer;
+- Intel CPU from - at least - the early-2000s (it might and should work on earlier HW, but it is untested);
+- at least 1GB of RAM (again, doesn't need nearly as much, but is untested).
 
-A reasonable approximation of the dependencies required and how to get them in place is described at `build/deps.sh`.
+If your system has a physical serial port, you should be able to collect kernel logs which might help in diagnosing boot-time issue. I personally use `picocom` for this purpose, but other emulators should work if they're capable of 8N1 115200 operation.
 
-Assuming those are in place, to compile the project, just type
+Puppy is untested on other emulators/VMs, such as VirtualBox and/or VMWare. Testing is welcome!
+
+# Software requirements
+
+To compile a Puppy image, you'll want to use Linux (native or in a VM/container - I do most of my development in Docker). Dependencies for compilation are aptly described by `build/deps.sh` (the script used to setup a CI instance).
+
+# Getting started
+
+Assuming you have the proper bits and pieces in place, to compile the project, just type
 
 ```
 $ ./build.py
@@ -47,3 +57,7 @@ The HD image includes the kernel, as well as a fairly minimal userspace + suite 
 A sample configuration for Bochs and QEMU launcher script can be found in the `build` directory.
 
 Please be aware that **this is not an officially supported Google product**.
+
+# Contributing
+
+Please see `CONTRIBUTING.md` and follow the instructions therein.

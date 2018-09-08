@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef LIBCXXSUP_MEMORY
-#define LIBCXXSUP_MEMORY
+#include <EASTL/new>
+#include <newlib/stdio.h>
+#include <libcxxsup/memory.h>
+#include <newlib/stdlib.h>
 
-#include <stdint.h>
-#include <stddef.h>
-
-void* operator new   (size_t);
-void* operator new[] (size_t);
-
-void operator delete   (void*);
-void operator delete[] (void*);
-
-void operator delete   (void*, size_t);
-void operator delete[] (void*, size_t);
-
-template<typename T>
-void* operator new(size_t, T* ptr) {
-    return ptr;
+void* operator new[](size_t size, const char*, int, unsigned, const char*, int) {
+    void* p = malloc(size);
+    return p;
 }
 
-#endif
+void* operator new[](size_t size, size_t, size_t, const char*, int, unsigned, const char*, int) {
+    void* p = malloc(size);
+    return p;
+}
