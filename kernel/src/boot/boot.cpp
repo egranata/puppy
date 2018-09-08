@@ -102,19 +102,19 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "Print System Info",
-        visible : false,
-        operation : boot::info::init,
-        onSuccess : nullptr,
-        onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
         description : "VFS",
         visible : false,
         operation : boot::vfs::init,
         onSuccess : nullptr,
         onFailure : boot::vfs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Print System Info",
+        visible : false,
+        operation : boot::info::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
     });
 
     registerBootPhase(bootphase_t{
