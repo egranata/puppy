@@ -13,22 +13,10 @@
 // limitations under the License.
 
 #include <kernel/libc/memory.h>
+#include <muzzle/string.h>
+#include <muzzle/stdlib.h>
 
 extern "C"
 void* memcopy(uint8_t* src, uint8_t* dst, size_t len) {
-	auto r = dst;
-
-	while(len & 3) {
-		*dst++ = *src++;
-		--len;		
-	}
-
-	uint32_t *xsrc = (uint32_t*)src;
-	uint32_t *xdst = (uint32_t*)dst;
-	while(len > 0) {
-		*xdst++ = *xsrc++;
-		len -= 4;
-	}
-
-	return r;
+	return memcpy(dst, src, len);
 }

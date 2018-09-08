@@ -219,7 +219,7 @@ void Framebuffer::nl() {
 		uint8_t* row1 = row(1);
 		uint8_t* rowlast = row(-1);
 		auto sz = size() - (FONT_HEIGHT * mPitch);
-		memcopy(row1, row0, sz);
+		memcpy(row0, row1, sz);
 		bzero(rowlast, FONT_HEIGHT * mPitch);
 		mX = FONT_HEIGHT*((mHeight / FONT_HEIGHT) -1);
 	}
