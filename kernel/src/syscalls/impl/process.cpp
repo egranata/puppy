@@ -25,6 +25,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/libc/string.h>
 #include <kernel/process/elf.h>
+#include <kernel/sys/globals.h>
 
 HANDLER0(yield) {
     ProcessManager::get().yield();
@@ -106,13 +107,14 @@ syscall_response_t clone_syscall_handler(uintptr_t neweip) {
 // if LSB == 1, bits[1:31] == required entries in process table
 syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count) {
     auto&& pmm = ProcessManager::get();
+    auto& vmm = VirtualPageManager::get();
 
     if (count == 0 || info == nullptr || count < pmm.numProcesses()) {
         return 1 | (pmm.numProcesses() << 1);
     }
 
     size_t i = 0;
-    pmm.foreach([info, &i] (const process_t* p) -> bool {
+    pmm.foreach([info, &i, &vmm] (const process_t* p) -> bool {
         process_info_t& pi = info[i++];
         pi.pid = p->pid;
         pi.ppid = p->ppid;
@@ -126,8 +128,18 @@ syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count)
         } else {
             bzero(&pi.args[0], sizeof(pi.args));
         }
-        pi.vmspace = p->memstats.available;
-        pi.pmspace = p->memstats.allocated;
+
+        if (pi.pid == 0) {
+            // special case the kernel to report its own memory size + heap size;
+            // that's a good guesstimate at the total working set of the running OS image
+            pi.vmspace = 1_GB;
+            pi.pmspace = (addr_kernel_end() - addr_kernel_start() + 1) + (vmm.getheap() - vmm.getheapbegin() + 1);
+        }
+        else {
+            pi.vmspace = p->memstats.available;
+            pi.pmspace = p->memstats.allocated;
+        }
+
         pi.runtime = p->runtimestats.runtime;
         return true;
     });
