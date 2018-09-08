@@ -32,7 +32,4 @@ private:
 	Serial();
 };
 
-Serial& operator<<(Serial&, const char*);
-Serial& operator<<(Serial&, char);
-
 #endif

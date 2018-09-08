@@ -44,8 +44,8 @@ Serial& Serial::get() {
 Serial::Serial() {
 	outb(irqregister(gCOM1), 0x00);
 	outb(linecommandport(gCOM1), 0x80);
-	outb(dataport(gCOM1), 0x03); // divisor is 0x??03
-	outb(irqregister(gCOM1), 0x00); // divisor is 0x0003 (38400 baud)
+	outb(dataport(gCOM1), 0x01); // divisor is 0x??01
+	outb(irqregister(gCOM1), 0x00); // divisor is 0x0001 (115200 baud)
 	outb(linecommandport(gCOM1), 0x03); // 8 bits, no parity, 1 stop bit
 	outb(fifocommandport(gCOM1), 0xC7); // FIFO, 14-byte threshold
 	outb(modemcommandport(gCOM1), 0x0B); // RTS/DSR set
@@ -63,11 +63,4 @@ Serial& Serial::putchar(char c) {
 	outb(dataport(gCOM1), c);
 	
 	return *this;
-}
-
-Serial& operator<<(Serial& serial, const char* s) {
-	return serial.write(s);
-}
-Serial& operator<<(Serial& serial, char c) {
-	return serial.putchar(c);
 }
