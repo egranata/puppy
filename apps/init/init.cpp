@@ -12,89 +12,116 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/exit.h>
-#include <libuserspace/file.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/yield.h>
-#include <libuserspace/stdio.h>
-#include <stdint.h>
-#include <libuserspace/exec.h>
-#include <libuserspace/getpid.h>
-#include <libuserspace/string.h>
-#include <kernel/sys/osinfo.h>
-#include <libuserspace/collect.h>
-#include <libuserspace/syscalls.h>
-#include <libuserspace/memory.h>
-#include <muzzle/stdlib.h>
-#include <muzzle/string.h>
-#include <libuserspace/shell.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+#include <newlib/sys/wait.h>
+#include <eastl/vector.h>
+#include <eastl/string.h>
+#include <eastl/unique_ptr.h>
+#include <sys/stat.h>
 
-static const char* trim(const char* s) {
-    while(s && *s == ' ') ++s;
-    return s;
+static const char* gConfigScript = "/system/config/init";
+
+namespace {
+    struct fd_delete {
+        public:
+            void operator()(FILE* f) {
+                fclose(f);
+            }
+    };
 }
 
-static char* bufgetline(char* src, char* dest, size_t maxlen) {
-    while(true) {
-        if (maxlen == 0) return src;
-        if (*src == 0) return src;
-        if (*src == '\n') return ++src;
-        *dest = *src;
-        ++dest;
-        ++src;
-        --maxlen;
+using safe_fd = eastl::unique_ptr<FILE, fd_delete>;
+
+bool readInitScript(eastl::string* dest) {
+    *dest = "";
+
+    struct stat fs;
+
+    safe_fd fd(fopen(gConfigScript, "r"));
+    if (fd == nullptr) {
+        printf("[init] warning: %s not found\n", gConfigScript);
+        return true;
     }
+
+    stat(gConfigScript, &fs);
+    if (fs.st_size == 0) return true;
+
+    eastl::unique_ptr<uint8_t> content((uint8_t*)calloc(fs.st_size, 1));
+    if (!content)
+        return false;
+
+    fread(content.get(), 1, fs.st_size, fd.get());
+
+    *dest = eastl::string((const char*)content.get());
+    return true;
+}
+
+eastl::vector<eastl::string> tokenize(eastl::string s) {
+    eastl::vector<eastl::string> result;
+
+    auto add_to_vec = [&result] (const eastl::string& line) {
+        if (line.empty()) return;
+        if (line[0] == '#') return;
+        result.push_back(line);
+    };
+
+    decltype(s)::size_type pos = 0;
+    auto end = eastl::string::npos;
+    while (true) {
+        auto nl = s.find('\n', pos);
+        if (nl == end) break;
+        eastl::string line = s.substr(pos, nl-pos);
+        pos = nl + 1;
+        add_to_vec(line);
+    }
+    if (pos != end) {
+        eastl::string line = s.substr(pos);
+        add_to_vec(line);
+    }
+    return result;
+}
+
+int runCommand(const eastl::string& line) {
+    uint16_t pid;
+    int result;
+
+    auto space = line.find(' ');
+    if (space == eastl::string::npos) {
+        pid = exec_syscall(line.c_str(), nullptr, 0);
+    } else {
+        auto program = line.substr(0, space);
+        auto args = line.substr(space + 1);
+        pid = exec_syscall(program.c_str(), args.c_str(), 0);
+    }
+    pid >>= 1;
+
+    while (pid != waitpid(pid, &result, 0));
+    if (WIFEXITED(result)) return WEXITSTATUS(result);
+    return result;
 }
 
 bool runInitScript() {
-    uint32_t fd = open("/system/config/init", gModeRead);
-    if (fd == gInvalidFd) {
-        printf("[init] warning: no /system/config/init script found\n");
-        return true;
-    }
-    uint32_t size = 0;
-    if (!fsize(fd, size)) {
-        close(fd);
-        return false;
-    }
-    if (size == 0) {
-        close(fd);
-        return true;
-    }
-    uint8_t* initfile = (uint8_t*)calloc(size, 1);
-    if (size != read(fd, size, initfile)) {
-        close(fd);
+    eastl::string content;
+    if (!readInitScript(&content)) {
         return false;
     }
 
-    char* src = (char*)initfile;
-    while(true) {
-        char buffer[512] = {0};
-        src = bufgetline(src, &buffer[0], 511);
-        if (buffer[0] == 0) break;
-        const char* cmdline = trim(&buffer[0]);
-        printf("[init] %s\n", cmdline);
-        auto result = shell(cmdline);
-        if (result.reason != process_exit_status_t::reason_t::cleanExit) {
-            printf("[init] non-clean exit in init script; exiting\n");
-            close(fd);
-            return false;
-        }
-        if (result.status != 0) {
-            printf("[init] non zero exit in init script; exiting\n");
-            close(fd);
-            return false;
-        }
-        if (*src == 0) break;
+    auto commands = tokenize(content);
+    for(const auto& command : commands) {
+        printf("[init] %s\n", command.c_str());
+        int result = runCommand(command);
+        if (result == 0) continue;
+        printf("[init] command exited as %d\n", result);
+        return false;
     }
-
-    close(fd);
     return true;
 }
 
 uint16_t runShell() {
-    auto pid = exec("/system/apps/shell", nullptr, true);
-    return pid;
+    auto pid = exec_syscall("/system/apps/shell", nullptr, PROCESS_IS_FOREGROUND);
+    return pid >> 1;
 }
 
 bool tryCollectShell(uint16_t pid) {
@@ -110,7 +137,7 @@ bool tryCollectShell(uint16_t pid) {
 }
 
 int main(int, const char**) {
-    printf("This is the init program for " OSNAME ".\nEventually this program will do great things.\n");
+    printf("This is the init program for Puppy.\nEventually this program will do great things.\n");
     klog_syscall("init is up and running");
 
     uint16_t shell_pid;
@@ -122,7 +149,7 @@ int main(int, const char**) {
 
     if (0 == (shell_pid = runShell())) {
         klog_syscall("init could not run shell - will exit");
-        exit(1);
+        exit(2);
     }
 
     while(true) {
@@ -132,6 +159,6 @@ int main(int, const char**) {
         }
         // TODO: init could be receiving messages from the rest of the system
         // and execute system-y operations on behalf of the rest of the system
-        yield();
+        yield_syscall();
     }
 }
