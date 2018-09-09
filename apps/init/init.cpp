@@ -16,9 +16,9 @@
 #include <newlib/stdio.h>
 #include <newlib/stdlib.h>
 #include <newlib/sys/wait.h>
-#include <eastl/vector.h>
-#include <eastl/string.h>
-#include <eastl/unique_ptr.h>
+#include <EASTL/vector.h>
+#include <EASTL/string.h>
+#include <EASTL/unique_ptr.h>
 #include <sys/stat.h>
 
 static const char* gConfigScript = "/system/config/init";
