@@ -64,10 +64,10 @@ struct process_t {
     MemoryManager mmap;
     struct ttyinfo_t {
         TTY* tty;
-        TTYFile* ttyfile;
+        TTYFile ttyfile;
 
         ttyinfo_t();
-        ttyinfo_t(TTY*, TTYFile*);
+        ttyinfo_t(TTY*);
         ttyinfo_t(const ttyinfo_t&) = delete;
         ttyinfo_t& operator=(const ttyinfo_t&);
         ~ttyinfo_t();

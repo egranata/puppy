@@ -16,12 +16,18 @@
 #include <kernel/process/manager.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/panic/panic.h>
 
 LOG_TAG(TTYFILE, 2);
 LOG_TAG(TTYEOF, 0);
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {
     mInput.clear();
+}
+
+void TTYFile::setTTY(TTY* tty) {
+    if (mTTY != nullptr) PANIC("cannot change underlying TTY");
+    mTTY = tty;
 }
 
 bool TTYFile::input_t::appendOne(char c) {

@@ -42,6 +42,11 @@ LOG_TAG(TIMING, 2);
 // this is THE current process information
 process_t *gCurrentProcess;
 
+extern "C" process_t *gParentProcess() {
+    if (gCurrentProcess) return ProcessManager::get().getprocess(gCurrentProcess->ppid);
+    return nullptr;
+}
+
 namespace boot::task {
     uint32_t init() {
         ProcessManager &proc(ProcessManager::get());
@@ -203,7 +208,6 @@ ProcessManager::ProcessManager() {
     }
 
     static TTY gDummyProcessTTY;
-    static TTYFile gDummyProcessTTYFile(&gDummyProcessTTY);
 
     // prepare the initial dummy task
     gDummyProcess.tss.cr3 = readcr3();
@@ -218,7 +222,7 @@ ProcessManager::ProcessManager() {
     gDummyProcess.priority.prio = gDummyProcess.priority.prio0 = 1;
     gDummyProcess.path = strdup("kernel task");
     gDummyProcess.gdtidx = gGDTBitmap().next();
-    gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY, &gDummyProcessTTYFile);
+    gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY);
 
     auto dtbl = addr_gdt<uint64_t*>();
 
@@ -763,11 +767,11 @@ uint64_t ProcessManager::fillGDT(process_t* process) {
 
 void ProcessManager::forwardTTY(process_t* process) {
     size_t ttyfd0=3, ttyfd1=3, ttyfd2=3;
-    bool ok0 = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd0);
-    bool ok1 = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd1);
-    bool ok2 = process->fds.set({nullptr, process->ttyinfo.ttyfile}, ttyfd2);
+    bool ok0 = process->fds.set({nullptr, &process->ttyinfo.ttyfile}, ttyfd0);
+    bool ok1 = process->fds.set({nullptr, &process->ttyinfo.ttyfile}, ttyfd1);
+    bool ok2 = process->fds.set({nullptr, &process->ttyinfo.ttyfile}, ttyfd2);
     if ((ok0 && 0 == ttyfd0) && (ok1 && 1 == ttyfd1) && (ok2 && 2 == ttyfd2)) {
-        LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, process->ttyinfo.ttyfile);
+        LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, &process->ttyinfo.ttyfile);
     } else {
         PANIC("unable to forward TTY to new process");
     }

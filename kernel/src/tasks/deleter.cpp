@@ -37,7 +37,6 @@ namespace tasks::deleter {
                 if (proc->path) free((void*)proc->path);
                 if (proc->args) free((void*)proc->args);
                 if (proc->cwd) free((void*)proc->cwd);
-                if (proc->ttyinfo.ttyfile) delete proc->ttyinfo.ttyfile;
 
                 auto dtbl = addr_gdt<uint64_t*>();
                 dtbl[proc->pid + val_numsysgdtentries<uint32_t>()] = 0;

@@ -38,6 +38,8 @@ namespace boot::task {
 
 #define PM_GLOBAL(Type, Name) static Type& Name();
 
+extern "C" process_t *gParentProcess();
+
 class ProcessManager : NOCOPY {
     public:
         // this is tied to the size of the GDT table prepared in loader.s
