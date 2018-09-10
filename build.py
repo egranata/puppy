@@ -391,7 +391,7 @@ DYLIBS = []
 TESTS = []
 
 INITRD_REFS = [] # apps for initrd
-APP_REFS = ["out/apps/newlibdemo"] # apps for main filesystem
+APP_REFS = [] # apps for main filesystem
 DYLIB_REFS = []
 TEST_REFS = []
 APP_PROJECTS = []
