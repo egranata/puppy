@@ -16,9 +16,12 @@
 #include <newlib/string.h>
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
+#include <newlib/sys/reent.h>
  
 extern void exit(int code);
 extern int main (int, char**);
+
+extern void  __sinit (struct _reent *);
 
 typedef void(*cdfunc)();
 
@@ -106,6 +109,9 @@ static size_t parseArgs(char* s, char** argv) {
 }
 
 void _start(char* program, char* cmdline) {
+    __sinit(_global_impure_ptr);
+    stdin->_flags |= __SLBF;
+
 	int ex = 0;
 
     runChain(ctors_chain);

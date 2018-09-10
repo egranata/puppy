@@ -19,7 +19,7 @@
 
 eastl::string getline(const char* prompt) {
     if (prompt == nullptr) prompt = "> ";
-    printf("%s", prompt); fflush(stdout);
+    printf("%s", prompt);
     char* data = nullptr;
     size_t len;
     __getline(&data, &len, stdin);

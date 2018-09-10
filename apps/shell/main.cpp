@@ -98,7 +98,7 @@ int main(int, const char**) {
         } else {
             strcpy(prompt, "shell>");
         }
-        printf("%s ", prompt); fflush(stdout);
+        printf("%s ", prompt);
         size_t n = 0;
         size_t n_read = __getline(&buffer, &n, stdin);
         if (n_read == (size_t)-1) {
