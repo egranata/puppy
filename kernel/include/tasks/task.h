@@ -15,10 +15,10 @@
 #ifndef TASKS_TASK
 #define TASKS_TASK
 
-#define KERNEL_TASK_NAMESPACE(name) namespace tasks { \
-    namespace name  { \
-        void task(); \
-    } \
+#define KERNEL_TASK_NAMESPACE(name) namespace tasks::name { \
+    void task(); \
 }
+
+#define KERNEL_TASK_NAMESPACE_OPEN(name) namespace tasks::name
 
 #endif

@@ -16,7 +16,12 @@
 #define TASKS_COLLECTOR
 
 #include <kernel/tasks/task.h>
+#include <kernel/synch/waitqueue.h>
 
-KERNEL_TASK_NAMESPACE(collector)
+KERNEL_TASK_NAMESPACE(collector);
+
+KERNEL_TASK_NAMESPACE_OPEN(collector) {
+    WaitQueue& queue();
+};
 
 #endif

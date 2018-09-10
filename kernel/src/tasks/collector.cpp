@@ -21,7 +21,13 @@
 
 LOG_TAG(COLLECTOR, 0);
 
-namespace tasks::collector {    
+KERNEL_TASK_NAMESPACE_OPEN(collector) {
+    WaitQueue& queue() {
+        static WaitQueue gQueue;
+
+        return gQueue;
+    }
+
     void task() {
         auto&& pmm(ProcessManager::get());
         while(true) {
@@ -33,7 +39,7 @@ namespace tasks::collector {
                 pmm.collect(child->pid);
                 TAG_DEBUG(COLLECTOR, "collection done");
             }
-            pmm.yield();
+            queue().wait(gCurrentProcess);
         }
     }
 }

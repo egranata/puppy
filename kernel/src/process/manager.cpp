@@ -533,6 +533,7 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
             (*c0)->ppid = gCollectorTask->pid;
             gCollectorTask->children.add(*c0);
             ++c0;
+            tasks::collector::queue().wakeall();
         }
 
         task->children.clear();
