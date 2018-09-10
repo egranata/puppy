@@ -53,6 +53,14 @@ namespace {
             rel_info_t<elf_rela_t> rela;
             rel_info_t<elf_rel_t> rel;
         } relocations;
+        struct {
+            uintptr_t location;
+            size_t size;
+        } init_array;
+        struct {
+            uintptr_t location;
+            size_t size;
+        } fini_array;
 
         template<typename T = uintptr_t>
         T findRealAddress(uintptr_t offset) {
@@ -179,6 +187,18 @@ namespace {
                 case elf_dynamic_entry_t::kind_t::rela_table_size:
                     dest->relocations.rela.table_size = dyn_entry->value;
                     break;
+                case elf_dynamic_entry_t::kind_t::init_array_addr:
+                    dest->init_array.location = dyn_entry->value;
+                    break;
+                case elf_dynamic_entry_t::kind_t::fini_array_addr:
+                    dest->fini_array.location = dyn_entry->value;
+                    break;
+                case elf_dynamic_entry_t::kind_t::init_array_size:
+                    dest->init_array.size = dyn_entry->value;
+                    break;
+                case elf_dynamic_entry_t::kind_t::fini_array_size:
+                    dest->fini_array.size = dyn_entry->value;
+                    break;
                 default: {
                     klog("ELF file %s has unknown dynamic tag %u", dest->path, dyn_entry->tag);
                     break;
@@ -262,6 +282,21 @@ namespace {
         return true;
     }
 
+    static bool do_execute_init(loaded_elf_image_t* dest) {
+        using init_func_t = void(*)();
+        if (dest->init_array.location == 0 || dest->init_array.size == 0) return true;
+
+        init_func_t *init_ptr = (init_func_t*)dest->findRealAddress(dest->init_array.location);
+        auto size = dest->init_array.size;
+        while(size) {
+            if (init_ptr && *init_ptr) (*init_ptr)();
+            ++init_ptr;
+            size -= sizeof(init_func_t);
+        }
+
+        return true;
+    }
+
     static bool do_load_elf(elf_header_t* header, loaded_elf_image_t* dest) {
         if (header == nullptr || false == header->sanitycheck()) return false;
         if (false == header->isDylib()) return false;
@@ -275,6 +310,8 @@ namespace {
         if (false == do_get_string_table(header, dest)) return false;
 
         if (false == do_get_symbol_table(header, dest)) return false;
+
+        if (false == do_execute_init(dest)) return false;
 
         if (false == do_protect_readonly(dest)) return false;
 
