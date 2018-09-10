@@ -265,7 +265,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/libeastl.a", "out/libcxxsupport.a", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+NEWLIB_DEPS = ["out/libeastl.a", "out/libcxxsupport.a", "newlib/lib/libm.a", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
 
 LIBUSERSPACE_TOOLS = []
 
