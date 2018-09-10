@@ -99,6 +99,7 @@ namespace {
 
         bool first = true;
         size_t dest_idx = 0;
+        dest[dest_idx] = '/';
         for (auto i = 0u; i < numparts; ++i) {
             auto& entry = parts[i];
             if (!entry.used) continue;
