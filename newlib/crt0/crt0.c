@@ -20,6 +20,32 @@
 extern void exit(int code);
 extern int main (int, char**);
 
+typedef void(*cdfunc)();
+
+typedef struct {
+    cdfunc* start;
+    cdfunc* end;
+} func_chain_t;
+
+#define CHAIN(name) \
+extern cdfunc __ ## name ## _start; \
+extern cdfunc __ ## name ## _end; \
+static func_chain_t name ## _ ## chain = { \
+    .start = & __ ## name ## _start, \
+    .end = & __ ## name ## _end \
+};
+
+static void runChain(func_chain_t chain) {
+    cdfunc* ptr = chain.start;
+    while(ptr != chain.end) {
+        if (ptr && *ptr) (*ptr)();
+        ++ptr;
+    }
+}
+
+CHAIN(ctors);
+CHAIN(dtors);
+
 // not all spaces are argument separators, but all spaces are
 // an upper bound on the number of arguments
 static size_t maxArgc(const char* s) {
@@ -82,6 +108,8 @@ static size_t parseArgs(char* s, char** argv) {
 void _start(char* program, char* cmdline) {
 	int ex = 0;
 
+    runChain(ctors_chain);
+
     size_t maxargc = maxArgc(cmdline);
     char** args = (char**)calloc(sizeof(char*), maxargc + 2);
     if (program == NULL) {
@@ -94,6 +122,8 @@ void _start(char* program, char* cmdline) {
     args[argcnt + 1] = NULL;
 	
 	ex = main(argcnt+1, args);
+
+    runChain(dtors_chain);
 
     exit(ex);
 }

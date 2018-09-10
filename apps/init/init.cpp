@@ -136,10 +136,12 @@ bool tryCollectShell(uint16_t pid) {
     return false;
 }
 
-int main(int, const char**) {
-    printf("This is the init program for Puppy.\nEventually this program will do great things.\n");
+static void __attribute__((constructor)) init_ctor() {
+    printf("Welcome to Puppy. init running!\n");
     klog_syscall("init is up and running");
+}
 
+int main(int, const char**) {
     uint16_t shell_pid;
 
     if (!runInitScript()) {
