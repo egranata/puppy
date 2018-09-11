@@ -16,7 +16,12 @@
 #define TASKS_DELETER
 
 #include <kernel/tasks/task.h>
+#include <kernel/synch/waitqueue.h>
 
-KERNEL_TASK_NAMESPACE(deleter)
+KERNEL_TASK_NAMESPACE(deleter);
+
+KERNEL_TASK_NAMESPACE_OPEN(deleter) {
+    WaitQueue& queue();
+};
 
 #endif

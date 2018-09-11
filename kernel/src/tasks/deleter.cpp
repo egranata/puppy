@@ -21,17 +21,22 @@
 
 #include <kernel/log/log.h>
 
-namespace tasks::deleter {
+KERNEL_TASK_NAMESPACE_OPEN(deleter) {
+    WaitQueue& queue() {
+        static WaitQueue gQueue;
+
+        return gQueue;
+    }
+
     void task() {
         auto&& pmm(PhysicalPageManager::get());
         auto&& vmm(VirtualPageManager::get());
-        auto& pm(ProcessManager::get());
         auto& col(ProcessManager::gCollectedProcessList());
         auto& pidBitmap(ProcessManager::gPidBitmap());
         auto& gdtBitmap(ProcessManager::gGDTBitmap());
         auto& procTable(ProcessManager::gProcessTable());
         while(true) {
-            if (!col.empty()) {
+            while (!col.empty()) {
                 auto proc = col.pop();
                 LOG_DEBUG("deleting process object for %u", proc->pid);
                 if (proc->path) free((void*)proc->path);
@@ -52,7 +57,7 @@ namespace tasks::deleter {
                 vmm.unmap((uintptr_t)proc);
             }
             
-            pm.yield();
-        }        
+            queue().wait(gCurrentProcess);
+        }
     }
 }

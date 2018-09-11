@@ -31,14 +31,16 @@ KERNEL_TASK_NAMESPACE_OPEN(collector) {
     void task() {
         auto&& pmm(ProcessManager::get());
         while(true) {
+
             auto&& children = gCurrentProcess->children;
-            if (!children.empty()) {
+            while (!children.empty()) {
                 TAG_DEBUG(COLLECTOR, "child list for pid %u is not empty", gCurrentProcess->pid);
                 auto child = children.top();
                 TAG_DEBUG(COLLECTOR, "child is %p %u", child, child->pid);
                 pmm.collect(child->pid);
                 TAG_DEBUG(COLLECTOR, "collection done");
             }
+
             queue().wait(gCurrentProcess);
         }
     }

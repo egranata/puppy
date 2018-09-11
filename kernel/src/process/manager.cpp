@@ -130,6 +130,7 @@ static void enqueueForCollection(process_t* task) {
     }
     LOG_DEBUG("process %u going on collected list", task->pid);
     ProcessManager::gCollectedProcessList().add(task);
+    tasks::deleter::queue().wakeall();
 }
 
 namespace {
