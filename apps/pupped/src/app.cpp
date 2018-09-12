@@ -36,6 +36,28 @@ namespace {
         return true;
     }
 
+    bool list(Document& doc) {
+        auto i = 0u;
+        for (const auto& line : doc.toLines()) {
+            if (i == doc.currentLine()) printf(">> ");
+            else                        printf("   ");
+            printf("%u: %s\n", i+1, line.c_str());
+            ++i;
+        }
+        if (i == doc.currentLine()) printf(">> current line appends at end\n");
+        return true;
+    }
+
+    bool position(Document& doc) {
+        printf("new line number: ");
+        size_t s = doc.currentLine();
+        auto ok = scanf("%u%*1[\n]", &s);
+        if (ok > 0) {
+            doc.move(s-1);
+            return true;
+        } else return false;
+    }
+
     bool save(Document& doc) {
         auto text = doc.toString();
         auto where = getline("dest file: ");
@@ -51,7 +73,9 @@ namespace {
 void loadCommands(Commands& cmds) {
     cmds.addCommand("append", append);
     cmds.addCommand("dump", dump);
+    cmds.addCommand("list", list);
     cmds.addCommand("save", save);
+    cmds.addCommand("position", position);
 }
 
 int main() {

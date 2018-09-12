@@ -15,6 +15,17 @@
  */
 
 #include "../include/commands.h"
+#include <newlib/stdio.h>
+
+Commands::Commands() {
+    addCommand("?", [this] (Document&) -> bool {
+        printf("Available commands: \n");
+        for (const auto& cmd : mCommands) {
+            printf("%s\n", cmd.first.c_str());
+        }
+        return true;
+    });
+}
 
 void Commands::addCommand(const eastl::string& name, CmdHandler f) {
     mCommands.emplace(name, f);

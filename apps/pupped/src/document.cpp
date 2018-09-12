@@ -43,3 +43,7 @@ eastl::string Document::toString() {
 
     return out;
 }
+
+eastl::vector<eastl::string> Document::toLines() {
+    return mLines;
+}

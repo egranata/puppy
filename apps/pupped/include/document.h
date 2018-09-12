@@ -31,6 +31,7 @@ class Document {
         void move(size_t newLine);
         void insert(const eastl::string& line);
         eastl::string toString();
+        eastl::vector<eastl::string> toLines();
     private:
         size_t mIndex;
         eastl::vector<eastl::string> mLines;

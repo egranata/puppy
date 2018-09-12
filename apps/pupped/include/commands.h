@@ -27,6 +27,8 @@ class Commands {
     public:
         using CmdHandler = eastl::function<bool(Document&)>;
 
+        Commands();
+
         void addCommand(const eastl::string& name, CmdHandler f);
         bool handleCommand(const eastl::string& command, Document& doc);
 
