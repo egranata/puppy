@@ -270,7 +270,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/libeastl.a", "out/libcxxsupport.a", "newlib/lib/libm.a", "newlib/lib/libc.a", "out/libnewlibinterface.a", "newlib/lib/libc.a"]
+NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
 
 LIBUSERSPACE_TOOLS = []
 
@@ -286,9 +286,9 @@ class UserspaceTool(Project):
             LIBUSERSPACE_TOOLS.append(name)
             ipaths = None
             ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"]
-            ldeps = ["out/libuserspace.a", "out/libmuzzle.a"]
+            ldeps = ["out/mnt/libs/libuserspace.a", "out/mnt/libs/libmuzzle.a"]
         elif stdlib == 'newlib':
-            ipaths=["include", "include/newlib"]
+            ipaths=["out/mnt/include", "out/mnt/include/newlib"]
             ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e_start"]
             # not a typo: libc depends on libinterface, but libinterface takes liberties with
             # symbols from libc - the simplest way to resolve this circular dependency is to
@@ -400,7 +400,6 @@ Muzzle.build()
 Kernel.build()
 Userspace.build()
 NewlibInterface.build()
-NEWLIB_DEPS = [NewlibCrt0.build()] + NEWLIB_DEPS
 CxxSupport.build()
 EASTL.build()
 Checkup.build()
@@ -421,6 +420,8 @@ if HDR_COPY_DURATION > 0: print("Header files copied in %s seconds" % HDR_COPY_D
 
 LIB_COPY_BEGIN = time.time()
 xcopy("out/lib*.a", "out/mnt/libs")
+xcopy("newlib/lib/lib*.a", "out/mnt/libs")
+copy("newlib/lib/crt0.o", "out/mnt/libs")
 LIB_COPY_END = time.time()
 LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
 if LIB_COPY_DURATION > 0: print("System libraries copied in %s seconds" % LIB_COPY_DURATION)
@@ -504,7 +505,7 @@ for test in TEST_DIRS:
                            cflags = BASIC_CFLAGS + [test_name_define],
                            cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + [test_name_define],
                            outwhere="out/tests",
-                           linkerdeps = ["out/libcheckup.a"])
+                           linkerdeps = ["out/mnt/libs/libcheckup.a"])
     TEST_PROJECTS.append(test_p.name)
     print(' ' * len(TEST_PRINT_PREFIX), end='', flush=True)
     print(test_p.name, end='', flush=True)
