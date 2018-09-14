@@ -285,11 +285,11 @@ class UserspaceTool(Project):
         if stdlib == 'libuserspace':
             LIBUSERSPACE_TOOLS.append(name)
             ipaths = None
-            ldflags = BASIC_LDFLAGS + ["-T build/app.ld", "-e__app_entry"]
+            ldflags = BASIC_LDFLAGS + ["-T out/mnt/libs/app.ld", "-e__app_entry"]
             ldeps = ["out/mnt/libs/libuserspace.a", "out/mnt/libs/libmuzzle.a"]
         elif stdlib == 'newlib':
             ipaths=["out/mnt/include", "out/mnt/include/newlib"]
-            ldflags = BASIC_LDFLAGS + ["-T build/newlib.ld", "-Wl,-e_start"]
+            ldflags = BASIC_LDFLAGS + ["-T out/mnt/libs/newlib.ld", "-Wl,-e_start"]
             # not a typo: libc depends on libinterface, but libinterface takes liberties with
             # symbols from libc - the simplest way to resolve this circular dependency is to
             # specify libc as dependency twice.. TODO would be using --start-group for this
@@ -422,6 +422,8 @@ LIB_COPY_BEGIN = time.time()
 xcopy("out/lib*.a", "out/mnt/libs")
 xcopy("newlib/lib/lib*.a", "out/mnt/libs")
 copy("newlib/lib/crt0.o", "out/mnt/libs")
+copy("build/app.ld", "out/mnt/libs")
+copy("build/newlib.ld", "out/mnt/libs")
 LIB_COPY_END = time.time()
 LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
 if LIB_COPY_DURATION > 0: print("System libraries copied in %s seconds" % LIB_COPY_DURATION)
