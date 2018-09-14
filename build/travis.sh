@@ -16,4 +16,4 @@
 
 # At this script, you're inside the source tree root
 
-sudo ./build.py
+sudo ./build.py -v

@@ -25,6 +25,8 @@ import subprocess
 import sys
 import time
 
+VERBOSE = "-v" in sys.argv
+
 MYPATH = os.path.abspath(os.getcwd())
 
 print("Building OS image from %s" % MYPATH)
@@ -75,11 +77,11 @@ def error(msg):
     raise SystemError # force the subprocesses to exit as brutally as possible
 
 def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
-    if printout: print("$ %s" % command)
+    if printout or VERBOSE: print("$ %s" % command)
     try:
         stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell)
         o = stdout.decode('utf-8')
-        if printout: print(o)
+        if printout or VERBOSE: print(o)
         return o
     except subprocess.CalledProcessError as e:
         print("$ %s" % command)        
