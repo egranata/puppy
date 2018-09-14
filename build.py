@@ -114,8 +114,13 @@ def copy(src, dst):
     shell(cmdline)
     return dst
 
+def xcopy(src, dst):
+    cmdline = 'cp %s "%s"' % (src, dst)
+    shell(cmdline)
+    return dst
+
 def rcopy(src, dst):
-    cmdline = 'cp -r "%s" "%s"' % (src, dst)
+    cmdline = 'cp -Lr "%s" "%s"' % (src, dst)
     shell(cmdline)
     return dst
 
@@ -307,6 +312,32 @@ class UserspaceTool(Project):
                          announce=announce)
         self.link = self.linkGcc
 
+def mountDiskImage(file, mpoint, count=64, bs=1024*1024):
+    # the -D option does not seem to exist on Travis
+    # but that's OK because in that case a new VM gets spawned
+    # at every rebuild, so don't fail for that reason
+    CMDLINE="losetup -D"
+    shell(CMDLINE, onerrignore=True)
+
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (file, bs, count)
+    shell(CMDLINE)
+    CMDLINE="fdisk %s" % file
+    shell(CMDLINE, stdin=open('build/fdisk.in'))
+
+    CMDLINE="losetup --find --show %s" % file
+    DISK_LO = shell(CMDLINE).splitlines()[0]
+
+    CMDLINE="losetup --offset $((2048*512)) --show --find %s" % file
+    PART_LO = shell(CMDLINE).splitlines()[0]
+
+    CMDLINE="mkfs.fat -F32 %s" % (PART_LO)
+    shell(CMDLINE)
+
+    CMDLINE="mount -o loop %s %s" % (PART_LO, mpoint)
+    shell(CMDLINE)
+
+    return (DISK_LO, PART_LO)
+
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
     assembler="nasm")
@@ -373,6 +404,26 @@ NEWLIB_DEPS = [NewlibCrt0.build()] + NEWLIB_DEPS
 CxxSupport.build()
 EASTL.build()
 Checkup.build()
+
+DISK_LO, PART_LO = mountDiskImage("out/os.img", "out/mnt")
+print("OS disk image mounted as %s : %s" % (DISK_LO, PART_LO))
+
+makeDir("out/mnt/apps")
+makeDir("out/mnt/libs")
+makeDir("out/mnt/tests")
+makeDir("out/mnt/include")
+
+HDR_COPY_BEGIN = time.time()
+rcopy("include", "out/mnt")
+HDR_COPY_END = time.time()
+HDR_COPY_DURATION = int(HDR_COPY_END - HDR_COPY_BEGIN)
+if HDR_COPY_DURATION > 0: print("Header files copied in %s seconds" % HDR_COPY_DURATION)
+
+LIB_COPY_BEGIN = time.time()
+xcopy("out/lib*.a", "out/mnt/libs")
+LIB_COPY_END = time.time()
+LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
+if LIB_COPY_DURATION > 0: print("System libraries copied in %s seconds" % LIB_COPY_DURATION)
 
 print("newlib dependency list: %s" % ', '.join(NEWLIB_DEPS))
 
@@ -505,33 +556,6 @@ CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3
 shell(CMDLINE)
 
 print("Generating os.img")
-
-# the -D option does not seem to exist on Travis
-# but that's OK because in that case a new VM gets spawned
-# at every rebuild, so don't fail for that reason
-CMDLINE="losetup -D"
-shell(CMDLINE, onerrignore=True)
-
-CMDLINE="dd if=/dev/zero of=out/os.img bs=1MB count=64"
-shell(CMDLINE)
-CMDLINE="fdisk out/os.img"
-shell(CMDLINE, stdin=open('build/fdisk.in'))
-
-CMDLINE="losetup --find --show out/os.img"
-DISK_LO = shell(CMDLINE).splitlines()[0]
-
-CMDLINE="losetup --offset $((2048*512)) --show --find out/os.img"
-PART_LO = shell(CMDLINE).splitlines()[0]
-
-CMDLINE="mkfs.fat -F32 %s" % (PART_LO)
-shell(CMDLINE)
-
-CMDLINE="mount -o loop %s out/mnt" % (PART_LO)
-shell(CMDLINE)
-
-makeDir("out/mnt/apps")
-makeDir("out/mnt/libs")
-makeDir("out/mnt/tests")
 
 for app in APP_REFS:
     copy(app, "out/mnt/apps/%s" % os.path.basename(app))
