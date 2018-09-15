@@ -1,0 +1,8 @@
+*cc1plus:
+   -fdiagnostics-color=always -ffreestanding -fno-builtin -fno-exceptions -fno-omit-frame-pointer -fno-stack-protector -funsigned-char -m32 -march=i686 -masm=intel -nostdlib -O2 -Wall -Werror -Wextra -Wno-error=format -Wno-main -Wno-missing-field-initializers -fno-exceptions -fno-rtti -Wno-error=extra -std=c++14
+
+*cc1_options:
+    -Iout/mnt/include -Iout/mnt/include/newlib
+
+*link_command:
+    %{!c:%(linker) -T out/mnt/libs/newlib.ld -e_start out/mnt/libs/crt0.o %X %i %{o*} out/mnt/libs/libeastl.a out/mnt/libs/libcxxsupport.a out/mnt/libs/libm.a out/mnt/libs/libc.a out/mnt/libs/libnewlibinterface.a out/mnt/libs/libc.a %(link_libgcc) -lgcc}

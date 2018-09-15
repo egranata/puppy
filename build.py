@@ -26,6 +26,7 @@ import sys
 import time
 
 VERBOSE = "-v" in sys.argv
+KEEP_MOUNTED = "-keep-mounted" in sys.argv
 
 MYPATH = os.path.abspath(os.getcwd())
 
@@ -63,6 +64,11 @@ BASIC_CPPFLAGS = [
 BASIC_ASFLAGS = ["-f elf"]
 BASIC_LDFLAGS = ["-ffreestanding", "-nostdlib"]
 
+USERSPACE_CFLAGS = ["-c"]
+USERSPACE_CPPFLAGS = [""]
+USERSPACE_ASFLAGS = ["-f elf"]
+USERSPACE_LDFLAGS = [""]
+
 def findSubdirectories(dir, self=True):
     if self:
         yield dir
@@ -73,7 +79,7 @@ def findSubdirectories(dir, self=True):
 
 def error(msg):
     print("error: %s" % msg)
-    shell("umount out/mnt", onerrignore=True)
+    if not KEEP_MOUNTED: shell("umount out/mnt", onerrignore=True)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
 def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
@@ -176,18 +182,20 @@ clearDir("out/mnt")
 clearDir("out/iso/boot/grub")
 
 class _BuildC(object):
-    def __init__(self, flags):
+    def __init__(self, gcc, flags):
+        self.gcc = gcc
         self.flags = flags
     
     def __call__(self, x):
-        return buildC(x, flags=self.flags)
+        return buildC(x, compiler=self.gcc, flags=self.flags)
 
 class _BuildCpp(object):
-    def __init__(self, flags):
+    def __init__(self, gcc, flags):
+        self.gcc = gcc
         self.flags = flags
     
     def __call__(self, x):
-        return buildCpp(x, flags=self.flags)
+        return buildCpp(x, compiler=self.gcc, flags=self.flags)
 
 # do not move the definition of the THE_POOL above here; because of how multiprocessing works
 # all the things that we want the pooled processes to see and use must be defined before the
@@ -195,7 +203,7 @@ class _BuildCpp(object):
 THE_POOL = Pool(5)
 
 class Project(object):
-    def __init__(self, name, srcdir, cflags=None, cppflags=None, asmflags=None, ldflags=None, ipaths=None, assembler="nasm", linkerdeps=None, outwhere="out", announce=True):
+    def __init__(self, name, srcdir, cflags=None, cppflags=None, asmflags=None, ldflags=None, ipaths=None, assembler="nasm", linkerdeps=None, outwhere="out", gcc="i686-elf-gcc", announce=True):
         self.name = name
         self.srcdir = srcdir
         self.cflags = ' '.join(cflags if cflags else BASIC_CFLAGS)
@@ -203,12 +211,13 @@ class Project(object):
         self.asmflags = ' '.join(asmflags if asmflags else BASIC_ASFLAGS)
         self.ldflags = ' '.join(ldflags if ldflags else BASIC_LDFLAGS)
         self.assembler = assembler
-        self.ipaths = ipaths if ipaths else ["include"]
+        self.ipaths = ipaths if ipaths is not None else ["include"]
         self.linkerdeps = linkerdeps if linkerdeps else []
         self.outwhere = outwhere
         self.announce = announce
         self.cflags = self.cflags + " %s " % ' '.join([" -I%s " % x for x in self.ipaths])
         self.cppflags = self.cppflags + " %s " % ' '.join([" -I%s " % x for x in self.ipaths])
+        self.gcc = gcc if gcc else "i686-elf-gcc"
 
     def findCFiles(self):
         return findAll(self.srcdir, "c")
@@ -220,10 +229,10 @@ class Project(object):
         return findAll(self.srcdir, "s")
 
     def buildCFiles(self):
-        return THE_POOL.map(_BuildC(self.cflags), self.findCFiles())
+        return THE_POOL.map(_BuildC(self.gcc, self.cflags), self.findCFiles())
 
     def buildCPPFiles(self):
-        return THE_POOL.map(_BuildCpp(self.cppflags), self.findCPPFiles())
+        return THE_POOL.map(_BuildCpp(self.gcc, self.cppflags), self.findCPPFiles())
 
     def buildSFiles(self):
         S_OUTPUT = []
@@ -242,7 +251,7 @@ class Project(object):
     def linkGcc(self, out):
         destfile = "%s/%s" % (self.outwhere, self.name.lower())
         out = out + self.linkerdeps
-        linkGcc(files=out, flags=self.ldflags, out=destfile)
+        linkGcc(linker=self.gcc, files=out, flags=self.ldflags, out=destfile)
         return destfile
 
     def linkDylib(self, out):
@@ -286,16 +295,19 @@ class UserspaceTool(Project):
 
         if stdlib == 'libuserspace':
             LIBUSERSPACE_TOOLS.append(name)
+            cflags = BASIC_CFLAGS + (cflags if cflags else [])
+            cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + (cppflags if cppflags else [])
             ipaths = None
             ldflags = BASIC_LDFLAGS + ["-T out/mnt/libs/app.ld", "-e__app_entry"]
             ldeps = ["out/mnt/libs/libuserspace.a", "out/mnt/libs/libmuzzle.a"]
+            gcc=None
         elif stdlib == 'newlib':
-            ipaths=["out/mnt/include", "out/mnt/include/newlib"]
-            ldflags = BASIC_LDFLAGS + ["-T out/mnt/libs/newlib.ld", "-Wl,-e_start"]
-            # not a typo: libc depends on libinterface, but libinterface takes liberties with
-            # symbols from libc - the simplest way to resolve this circular dependency is to
-            # specify libc as dependency twice.. TODO would be using --start-group for this
-            ldeps=NEWLIB_DEPS
+            cflags = USERSPACE_CFLAGS + (cflags if cflags else [])
+            cppflags = USERSPACE_CFLAGS + USERSPACE_CPPFLAGS + (cppflags if cppflags else [])
+            ipaths=[]
+            ldflags = USERSPACE_LDFLAGS
+            ldeps=[""]
+            gcc="build/gcc.sh"
         else:
             raise ValueError("stdlib should be either libuserspace or newlib")
 
@@ -311,6 +323,7 @@ class UserspaceTool(Project):
                          assembler="nasm",
                          linkerdeps=ldeps,
                          outwhere=outwhere,
+                         gcc=gcc,
                          announce=announce)
         self.link = self.linkGcc
 
@@ -507,8 +520,8 @@ for test in TEST_DIRS:
     test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
     test_p = UserspaceTool(name = os.path.basename(test),
                            srcdir = test,
-                           cflags = BASIC_CFLAGS + [test_name_define],
-                           cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + [test_name_define],
+                           cflags = [test_name_define],
+                           cppflags = [test_name_define],
                            outwhere="out/tests",
                            linkerdeps = ["out/mnt/libs/libcheckup.a"])
     TEST_PROJECTS.append(test_p.name)
@@ -595,8 +608,9 @@ copy("out/iso/boot/grub/grub.cfg", "out/mnt/boot/grub/grub.cfg")
 CMDLINE="df %s/out/mnt -BK --output=used" % (MYPATH)
 PART_USAGE = int(shell(CMDLINE).splitlines()[1][0:-1]) * 1024
 
-CMDLINE="umount out/mnt"
-shell(CMDLINE)
+if not KEEP_MOUNTED:
+    CMDLINE="umount out/mnt"
+    shell(CMDLINE)
 
 print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat("out/os.img").st_size, PART_USAGE))
 
