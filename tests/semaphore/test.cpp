@@ -16,37 +16,71 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/sema.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/clone.h>
-#include <libuserspace/sleep.h>
-#include <libuserspace/collect.h>
+#include <newlib/syscalls.h>
+#include <newlib/sys/collect.h>
+#include <newlib/unistd.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+
+static uint16_t clone(void (*func)()) {
+    auto ok = clone_syscall( (uintptr_t)func );
+    if (ok & 1) return 0;
+    return ok >> 1;
+}
+
+class Semaphore {
+    public:
+        Semaphore(const char*);
+        
+        void wait();
+        void signal();
+
+        uintptr_t handle();
+    private:
+        uintptr_t mHandle;
+};
+
+Semaphore::Semaphore(const char* key) {
+    mHandle = semget_syscall((uint32_t)key) >> 1;
+}
+
+void Semaphore::wait() {
+    semwait_syscall(mHandle);
+}
+
+void Semaphore::signal() {
+    semsignal_syscall(mHandle);
+}
+
+uintptr_t Semaphore::handle() {
+    return mHandle;
+}
 
 #define SEMA_NAME "/tests/semaphore/sema"
 
 void child1() {
-    sleep(800);
+    sleep(2);
     Semaphore sema(SEMA_NAME);
     sema.wait();
-    sleep(800);
+    sleep(2);
     sema.signal();
     exit(1);
 }
 
 void child2() {
-    sleep(400);
+    sleep(1);
     Semaphore sema(SEMA_NAME);
     sema.wait();
-    sleep(500);
+    sleep(1);
     sema.signal();
     exit(2);
 }
 
 void child3() {
-    sleep(350);
+    sleep(1);
     Semaphore sema(SEMA_NAME);
     sema.wait();
-    sleep(750);
+    sleep(2);
     sema.signal();
     exit(3);
 }
@@ -64,6 +98,10 @@ class TheTest : public Test {
             auto c1 = clone(child1);
             auto c2 = clone(child2);
             auto c3 = clone(child3);
+
+            CHECK_NOT_EQ(c1, 0);
+            CHECK_NOT_EQ(c2, 0);
+            CHECK_NOT_EQ(c3, 0);
 
             sema.signal();
 
