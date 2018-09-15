@@ -17,20 +17,14 @@
 #include <checkup/failure.h>
 #include <checkup/test.h>
 
-#include <libuserspace/memory.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/syscalls.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
 
-#include <muzzle/string.h>
-#include <muzzle/stdlib.h>
-
-Test::Test(const char* name) {
-    mName = (char*)calloc(1, strlen(name) + 1);
-    strcpy(mName, name);
-}
+Test::Test(const char* name) : mName(name ? name : "TEST") {}
 
 const char* Test::name() const {
-    return mName;
+    return mName.c_str();
 }
 
 bool Test::setup() {
@@ -40,7 +34,7 @@ bool Test::setup() {
 void Test::teardown() {}
 
 void Test::test() {
-    char buffer[64] = {0};
+    eastl::string pass;
 
     if (false == setup()) {
         FAIL("setup failed");
@@ -50,11 +44,9 @@ void Test::test() {
 
     teardown();
 
-    snprintf(&buffer[0], 64, "TEST[%s] PASS", name());
-    printf("%s\n", &buffer[0]);
-    klog_syscall(&buffer[0]);
+    pass = pass.append_sprintf("TEST[%s] PASS", name());
+    printf("%s\n", pass.c_str());
+    klog_syscall(pass.c_str());
 }
 
-Test::~Test() {
-    free(mName);
-}
+Test::~Test() = default;

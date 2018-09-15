@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-#include <checkup/failure.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/syscalls.h>
+#include <libcxxsup/cxa_guard.h>
 
-#include <EASTL/string.h>
-
-void __failed(const char* test, const char* file, int line, const char* condition) {
-    eastl::string buffer;
-    buffer = buffer.append_sprintf("TEST[%s] FAIL condition failed: %s at %s:%d", test, condition, file, line);
-
-    printf("%s\n", buffer.c_str());
-    klog_syscall(buffer.c_str());
-
-    exit(1);
+namespace __cxxabiv1 
+{
+	extern "C" int __cxa_guard_acquire (__guard *g) 
+	{
+		return !*(char *)(g);
+	}
+ 
+	extern "C" void __cxa_guard_release (__guard *g)
+	{
+		*(char *)g = 1;
+	}
+ 
+	extern "C" void __cxa_guard_abort (__guard *)
+	{
+ 
+	}
 }

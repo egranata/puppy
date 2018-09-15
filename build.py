@@ -407,7 +407,8 @@ EASTL.link = EASTL.linkAr
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
     assembler="nasm",
-    linkerdeps=["out/libuserspace.a", "out/libmuzzle.a"])
+    ipaths=["include", "include/newlib", "include/EASTL"],
+    linkerdeps=NEWLIB_DEPS)
 Checkup.link = Checkup.linkAr
 
 FatFS.build()

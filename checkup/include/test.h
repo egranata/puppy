@@ -17,6 +17,8 @@
 #ifndef CHECKUP_TEST
 #define CHECKUP_TEST
 
+#include <EASTL/string.h>
+
 class Test {
     public:
         const char* name() const;
@@ -33,7 +35,7 @@ class Test {
         ~Test();
 
     private:
-        char* mName;
+        eastl::string mName;
 };
 
 #endif
