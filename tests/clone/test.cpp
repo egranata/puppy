@@ -16,36 +16,42 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/memory.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/clone.h>
-#include <libuserspace/collect.h>
-#include <libuserspace/sleep.h>
+#include <newlib/sys/collect.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+#include <newlib/unistd.h>
+#include <newlib/syscalls.h>
 
 static struct {
     volatile uint32_t value;
 } gFoo;
 
 static void child1() {
-    sleep(1000);
+    sleep(1);
     exit(1);
 }
 
 static void child2() {
-    sleep(1000);
+    sleep(1);
     exit(2);
 }
 
 static void child3() {
     gFoo.value = 234;
-    sleep(1000);
+    sleep(1);
     exit(3);
 }
 
 static void child4() {
-    sleep(1000);
+    sleep(1);
     __asm__ volatile ("hlt");
     exit(4);
+}
+
+static uint16_t clone(void (*func)()) {
+    auto ok = clone_syscall( (uintptr_t)func );
+    if (ok & 1) return 0;
+    return ok >> 1;
 }
 
 class TheTest : public Test {
@@ -60,6 +66,11 @@ class TheTest : public Test {
             auto c2 = clone(child2);
             auto c3 = clone(child3);
             auto c4 = clone(child4);
+
+            CHECK_NOT_EQ(c1, 0);
+            CHECK_NOT_EQ(c2, 0);
+            CHECK_NOT_EQ(c3, 0);
+            CHECK_NOT_EQ(c4, 0);
 
             auto s1 = collect(c1);
             auto s2 = collect(c2);
