@@ -16,11 +16,43 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/message.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/getpid.h>
-#include <libuserspace/clone.h>
-#include <libuserspace/collect.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/syscalls.h>
+#include <newlib/sys/collect.h>
+#include <kernel/syscalls/types.h>
+#include <newlib/unistd.h>
+
+static uint16_t clone(void (*func)()) {
+    auto ok = clone_syscall( (uintptr_t)func );
+    if (ok & 1) return 0;
+    return ok >> 1;
+}
+
+struct message : public message_t {
+    public:
+        message() = default;
+        
+        static message receive();
+        static bool receive(message_t*);
+
+        static void send(uint16_t dest, uint32_t a1, uint32_t a2);
+};
+
+void message::send(uint16_t dest, uint32_t a1, uint32_t a2) {
+    msgsend_syscall(dest, a1, a2);
+}
+
+message message::receive() {
+    message msg;
+    msgrecv_syscall(&msg, true);
+    return msg;
+}
+
+bool message::receive(message_t* msg) {
+    auto ok = msgrecv_syscall(msg, false);
+    return ok == 0;
+}
 
 void sender() {
     auto parent = getppid();
@@ -51,6 +83,10 @@ class TheTest : public Test {
             auto csender = clone(sender);
             auto cforwarder = clone(forwarder);
             auto cnowait = clone(nowait);
+
+            CHECK_NOT_EQ(csender, 0);
+            CHECK_NOT_EQ(cforwarder, 0);
+            CHECK_NOT_EQ(cnowait, 0);
 
             auto msg1 = message::receive();
             CHECK_EQ(msg1.sender, csender);
