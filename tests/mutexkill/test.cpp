@@ -14,14 +14,54 @@
  * limitations under the License.
  */
 
+#include <stdint.h>
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/collect.h>
-#include <libuserspace/mutex.h>
-#include <libuserspace/clone.h>
-#include <libuserspace/getpid.h>
-#include <libuserspace/kill.h>
-#include <libuserspace/sleep.h>
+#include <newlib/sys/collect.h>
+#include <newlib/syscalls.h>
+#include <newlib/unistd.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+
+static uint16_t clone(void (*func)()) {
+    auto ok = clone_syscall( (uintptr_t)func );
+    if (ok & 1) return 0;
+    return ok >> 1;
+}
+
+class Mutex {
+    public:
+        Mutex(const char*);
+        
+        void lock();
+        void unlock();
+
+        bool trylock();
+
+        uintptr_t handle();
+    private:
+        uintptr_t mHandle;
+};
+
+Mutex::Mutex(const char* key) {
+    mHandle = mutexget_syscall((uint32_t)key) >> 1;
+}
+
+void Mutex::lock() {
+    mutexlock_syscall(mHandle);
+}
+
+void Mutex::unlock() {
+    mutexunlock_syscall(mHandle);
+}
+
+bool Mutex::trylock() {
+    return 0 == mutextrylock_syscall(mHandle);
+}
+
+uintptr_t Mutex::handle() {
+    return mHandle;
+}
 
 void lockMutex() {
     Mutex mutex("/testmutexkill/mutex");
@@ -42,8 +82,10 @@ class TheTest : public Test {
             lockMutex();
             auto cpid = clone(child);
 
-            sleep(2000); // HACK: race condition - hopefully the child has enough time to hang
-            kill(cpid);
+            CHECK_NOT_EQ(cpid, 0);
+
+            sleep(3); // HACK: race condition - hopefully the child has enough time to hang
+            kill_syscall(cpid);
 
             auto status = collect(cpid);
             CHECK_EQ(status.reason, process_exit_status_t::reason_t::killed);

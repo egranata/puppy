@@ -14,39 +14,80 @@
  * limitations under the License.
  */
 
+#include <stdint.h>
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <libuserspace/mutex.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/clone.h>
-#include <libuserspace/sleep.h>
-#include <libuserspace/collect.h>
+#include <newlib/sys/collect.h>
+#include <newlib/syscalls.h>
+#include <newlib/unistd.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
+
+static uint16_t clone(void (*func)()) {
+    auto ok = clone_syscall( (uintptr_t)func );
+    if (ok & 1) return 0;
+    return ok >> 1;
+}
+
+class Mutex {
+    public:
+        Mutex(const char*);
+        
+        void lock();
+        void unlock();
+
+        bool trylock();
+
+        uintptr_t handle();
+    private:
+        uintptr_t mHandle;
+};
+
+Mutex::Mutex(const char* key) {
+    mHandle = mutexget_syscall((uint32_t)key) >> 1;
+}
+
+void Mutex::lock() {
+    mutexlock_syscall(mHandle);
+}
+
+void Mutex::unlock() {
+    mutexunlock_syscall(mHandle);
+}
+
+bool Mutex::trylock() {
+    return 0 == mutextrylock_syscall(mHandle);
+}
+
+uintptr_t Mutex::handle() {
+    return mHandle;
+}
 
 #define MUTEX_NAME "/tests/mutex/mtx"
 
 void child1() {
-    sleep(800);
+    sleep(2);
     Mutex mtx(MUTEX_NAME);
     mtx.lock();
-    sleep(800);
+    sleep(2);
     mtx.unlock();
     exit(1);
 }
 
 void child2() {
-    sleep(400);
+    sleep(1);
     Mutex mtx(MUTEX_NAME);
     mtx.lock();
-    sleep(500);
+    sleep(2);
     mtx.unlock();
     exit(2);
 }
 
 void child3() {
-    sleep(350);
+    sleep(1);
     Mutex mtx(MUTEX_NAME);
     mtx.lock();
-    sleep(800);
+    sleep(2);
     mtx.unlock();
     exit(3);
 }
@@ -65,7 +106,11 @@ class TheTest : public Test {
             auto c2 = clone(child2);
             auto c3 = clone(child3);
 
-            sleep(500);
+            CHECK_NOT_EQ(c1, 0);
+            CHECK_NOT_EQ(c2, 0);
+            CHECK_NOT_EQ(c3, 0);
+
+            sleep(1);
             mtx.unlock();
 
             auto s1 = collect(c1);
