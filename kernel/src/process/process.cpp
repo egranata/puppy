@@ -53,6 +53,8 @@ void process_t::clone(process_t* other) {
     other->args = strdup(args);
     other->cwd = strdup(cwd);
 
+    other->environ = environ;
+
     other->state = process_t::State::NEW;
     other->sleeptill = 0;
     other->priority = priority;

@@ -58,6 +58,7 @@ struct process_t {
     const char* path;
     const char* args;
     const char* cwd;
+    char** environ;
     State state;
     uint64_t sleeptill;
     messages_t msg;

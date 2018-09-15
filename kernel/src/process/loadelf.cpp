@@ -157,10 +157,10 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
     maxprogaddr = VirtualPageManager::page(stackbegin + 1);
     memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
-    // gcc tends to expect ESP+4 to be available; we could leave a 4-byte gap
-    // but we're going to be pushing the args pointer below, so leave 16 now,
-    // and then with the pointer to args, we'll be at 8-byte aligned
-    loadinfo.stack = stackbegin - 16;
+    // gcc tends to expect ESP+4 to be available and we need to push 12 bytes worth
+    // of data - leave a margin such that ESP+4 is definitely available and we are 8-byte
+    // aligned (which matters for certain floating-point extensions...)
+    loadinfo.stack = stackbegin - 20;
 
     uint32_t *stack = (uint32_t*)loadinfo.stack;
     if (gCurrentProcess->args || gCurrentProcess->path) {
@@ -180,10 +180,14 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
             args_ptr->arguments, args_ptr->arguments,
             stack);
 
+        *stack = (uintptr_t)gCurrentProcess->environ;
+        --stack;
         *stack = (uintptr_t)&args_ptr->arguments[0];
         --stack;
         *stack = (uintptr_t)&args_ptr->name[0];
     } else {
+        *stack = (uintptr_t)gCurrentProcess->environ;
+        --stack;
         *stack = 0;
         --stack;
         *stack = 0;

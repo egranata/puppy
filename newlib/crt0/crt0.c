@@ -23,6 +23,8 @@ extern int main (int, char**);
 
 extern void  __sinit (struct _reent *);
 
+char** environ;
+
 typedef void(*cdfunc)();
 
 typedef struct {
@@ -108,7 +110,8 @@ static size_t parseArgs(char* s, char** argv) {
     return argn;
 }
 
-void _start(char* program, char* cmdline) {
+void _start(char* program, char* cmdline, char** envp) {
+    environ = envp;
     __sinit(_global_impure_ptr);
     stdin->_flags |= __SLBF;
 
