@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-#include <checkup/failure.h>
+#include <checkup/testplan.h>
 #include <checkup/test.h>
 #include <checkup/success.h>
 
-Test::Test(const char* name) : mName(name ? name : "TEST") {}
+TestPlan::TestPlan(const char* name) : mName(name ? name : "TestPlan") {}
 
-const char* Test::name() const {
+const char* TestPlan::name() {
     return mName.c_str();
 }
 
-bool Test::setup() {
-    return true;
+TestPlan& TestPlan::add(eastl::shared_ptr<Test> test) {
+    mTests.push_back(test);
+    return *this;
 }
 
-void Test::teardown() {}
-
-void Test::test() {
-    if (false == setup()) {
-        FAIL("setup failed");
+void TestPlan::test() {
+    for (auto& t : mTests) {
+        if (t) t->test();
     }
-
-    run();
-
-    teardown();
-
     __success(name());
 }
 
-Test::~Test() = default;
+TestPlan& TestPlan::defaultPlan(const char* name) {
+    static TestPlan gPlan(name);
+
+    return gPlan;
+}

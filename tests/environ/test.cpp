@@ -15,6 +15,7 @@
  */
 
 #include <checkup/test.h>
+#include <checkup/testplan.h>
 #include <checkup/assert.h>
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
@@ -100,7 +101,7 @@ class TestClone : public EnvironTest {
 
 class TestSpawn : public EnvironTest {
     public:
-        TestSpawn() : EnvironTest(TEST_NAME) {}
+        TestSpawn() : EnvironTest("environ.TestSpawn") {}
     protected:
         void run() override {
             setenv("PARENT", "CHILD", 1);
@@ -119,12 +120,11 @@ class TestSpawn : public EnvironTest {
 
 int main(int argc, char**) {
     if (argc == 1) {
-        Test* test = new TestSameProcess();
-        test->test();
-        test = new TestClone();
-        test->test();
-        test = new TestSpawn();
-        test->test();
+        TestPlan& plan(TestPlan::defaultPlan(TEST_NAME));
+        plan.add<TestSameProcess>()
+            .add<TestClone>()
+            .add<TestSpawn>();
+        plan.test();
         return 0;
     } else {
         if (do_check("PARENT", "CHILD")) {

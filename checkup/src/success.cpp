@@ -14,32 +14,14 @@
  * limitations under the License.
  */
 
-#include <checkup/failure.h>
-#include <checkup/test.h>
-#include <checkup/success.h>
+#include <EASTL/string.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
 
-Test::Test(const char* name) : mName(name ? name : "TEST") {}
-
-const char* Test::name() const {
-    return mName.c_str();
+void __success(const char* test) {
+    eastl::string pass;
+    pass = pass.append_sprintf("TEST[%s] PASS", test);
+    printf("%s\n", pass.c_str());
+    klog_syscall(pass.c_str());
 }
-
-bool Test::setup() {
-    return true;
-}
-
-void Test::teardown() {}
-
-void Test::test() {
-    if (false == setup()) {
-        FAIL("setup failed");
-    }
-
-    run();
-
-    teardown();
-
-    __success(name());
-}
-
-Test::~Test() = default;

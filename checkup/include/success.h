@@ -14,32 +14,9 @@
  * limitations under the License.
  */
 
-#include <checkup/failure.h>
-#include <checkup/test.h>
-#include <checkup/success.h>
+#ifndef CHECKUP_SUCCESS
+#define CHECKUP_SUCCESS
 
-Test::Test(const char* name) : mName(name ? name : "TEST") {}
+void __success(const char* test);
 
-const char* Test::name() const {
-    return mName.c_str();
-}
-
-bool Test::setup() {
-    return true;
-}
-
-void Test::teardown() {}
-
-void Test::test() {
-    if (false == setup()) {
-        FAIL("setup failed");
-    }
-
-    run();
-
-    teardown();
-
-    __success(name());
-}
-
-Test::~Test() = default;
+#endif
