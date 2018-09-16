@@ -24,23 +24,33 @@ class TheTest : public Test {
         TheTest() : Test(TEST_NAME) {}
     
     protected:
+        void check(const char* n, const char* value) {
+            const char* true_value = getenv(n);
+            printf("environ[%s] = %p %s\n", n, true_value, true_value);
+            if (value == nullptr) {
+                CHECK_EQ(true_value, nullptr);
+            } else {
+                CHECK_EQ(0, strcmp(true_value, value));
+            }
+        }
+
         void run() override {
             int w = setenv("NAME", "VALUE", 1);
 
             CHECK_EQ(w, 0);
-            CHECK_EQ(0, strcmp(getenv("NAME"), "VALUE"));
+            check("NAME", "VALUE");
 
             w = setenv("NAME", "SOMETHINGELSE", 0);
             CHECK_EQ(w, 0);
-            CHECK_EQ(0, strcmp(getenv("NAME"), "VALUE"));
+            check("NAME", "VALUE");
 
             w = setenv("NAME", "SOMETHINGELSE", 1);
             CHECK_EQ(w, 0);
-            CHECK_EQ(0, strcmp(getenv("NAME"), "SOMETHINGELSE"));
+            check("NAME", "SOMETHINGELSE");
 
             int c = unsetenv("NAME");
             CHECK_EQ(c, 0);
-            CHECK_EQ(nullptr, getenv("NAME"));
+            check("NAME", nullptr);
         }
 };
 

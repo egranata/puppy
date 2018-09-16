@@ -28,6 +28,18 @@ KERNEL_TASK_NAMESPACE_OPEN(deleter) {
         return gQueue;
     }
 
+    void freeEnvironment(char** env) {
+        size_t i = 0;
+        while(env != nullptr) {
+            LOG_DEBUG("trying to delete environ[%u] = %p", i, env[i]);
+            if (env[i]) free(env[i]);
+            else break;
+            ++i;
+        }
+        LOG_DEBUG("trying to free environ = %p", env);
+        free(env);
+    }
+
     void task() {
         auto&& pmm(PhysicalPageManager::get());
         auto&& vmm(VirtualPageManager::get());
@@ -42,6 +54,8 @@ KERNEL_TASK_NAMESPACE_OPEN(deleter) {
                 if (proc->path) free((void*)proc->path);
                 if (proc->args) free((void*)proc->args);
                 if (proc->cwd) free((void*)proc->cwd);
+
+                if (proc->environ) freeEnvironment(proc->environ);
 
                 auto dtbl = addr_gdt<uint64_t*>();
                 dtbl[proc->pid + val_numsysgdtentries<uint32_t>()] = 0;

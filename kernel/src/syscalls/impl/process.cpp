@@ -51,10 +51,10 @@ HANDLER0(getppid) {
     return (gCurrentProcess->ppid << 1) | OK;
 }
 
-syscall_response_t exec_syscall_handler(const char* path, const char* args, uint32_t flags) {
+syscall_response_t exec_syscall_handler(const char* path, const char* args, char** env, uint32_t flags) {
     auto&& pmm = ProcessManager::get();
 
-    auto newproc = pmm.exec(path, args, flags);
+    auto newproc = pmm.exec(path, args, (const char**)env, flags);
     if (flags & PROCESS_IS_FOREGROUND) {
         newproc->ttyinfo.tty->pushfg(newproc->pid);
     }

@@ -146,6 +146,7 @@ namespace {
         eip : (uintptr_t)&entry, \
         priority : sched ? 1 : 0, \
         argument : 0, \
+        environment : nullptr, \
         name : nm, \
         cwd : "/", \
         schedulable : sched, \
@@ -187,7 +188,7 @@ void task0() {
 
     {
         auto&& pmm(ProcessManager::get());
-        gInitTask = pmm.setup("/initrd/init", nullptr);
+        gInitTask = pmm.setup("/initrd/init", nullptr, nullptr);
         gInitTask->flags.system = true;
         gInitTask->ttyinfo.tty->pushfg(gInitTask->pid);
         LOG_DEBUG("init process ready as %p %u", gInitTask, (uint32_t)gInitTask->pid);
@@ -247,7 +248,7 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
-process_t* ProcessManager::exec(const char* path, const char* args, uint32_t flags) {
+process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
@@ -255,6 +256,7 @@ process_t* ProcessManager::exec(const char* path, const char* args, uint32_t fla
         eip : (uintptr_t)&fileloader,
         priority : gDefaultBasePriority,
         argument : 0,
+        environment : env,
         name : path,
         cwd : (flags & PROCESS_INHERITS_CWD ? gCurrentProcess->cwd : "/"),
         schedulable : true,
@@ -268,7 +270,7 @@ process_t* ProcessManager::exec(const char* path, const char* args, uint32_t fla
     return nullptr;
 }
 
-process_t* ProcessManager::setup(const char* path, const char* args, uint8_t prio, uintptr_t argp) {
+process_t* ProcessManager::setup(const char* path, const char* args, const char** env, uint8_t prio, uintptr_t argp) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
@@ -276,6 +278,7 @@ process_t* ProcessManager::setup(const char* path, const char* args, uint8_t pri
         eip : (uintptr_t)&fileloader,
         priority : prio,
         argument : argp,
+        environment : env,
         name : path,
         cwd : "/",
         schedulable : true,
@@ -360,6 +363,22 @@ void ProcessManager::foreach(function<bool(const process_t*)> f) {
     gProcessTable().foreach(f);
 }
 
+static char** copyEnvironment(process_t* dest, const char** env) {
+    size_t envs = 0;
+    while(env != nullptr) {
+        if (env[envs] == nullptr) break;
+        ++envs;
+    }
+
+    dest->environ = (char**)malloc(sizeof(char*) * (envs + 1));
+    dest->environ[envs] = nullptr;
+    for (auto i = 0u; i < envs; ++i) {
+        dest->environ[i] = strdup(env[i]);
+    }
+
+    return dest->environ;
+}
+
 process_t* ProcessManager::spawn(const spawninfo_t& si) {
     if (mProcessPagesLow == 0 || mProcessPagesHigh == 0) {
         PANIC("set process table location before spawning");
@@ -379,6 +398,8 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     if (si.clone) {
         LOG_DEBUG("new process is cloned");
         gCurrentProcess->clone(process);
+    } else {
+        copyEnvironment(process, si.environment);
     }
 
     if (si.name) process->path = strdup(si.name);
@@ -422,8 +443,8 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         gReadyQueue().push_back(process);
         process->state = process_t::State::AVAILABLE;
     } else {
-        LOG_DEBUG("process %u is not schedulable", process->pid);        
-        process->state = process_t::State::NEW;        
+        LOG_DEBUG("process %u is not schedulable", process->pid);
+        process->state = process_t::State::NEW;
     }
 
     forwardTTY(process);
@@ -744,6 +765,7 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip) {
         eip : (uintptr_t)clone_start,
         priority : gCurrentProcess->priority.prio,
         argument : eip,
+        environment : nullptr,
         name : gCurrentProcess->path,
         cwd : gCurrentProcess->cwd,
         schedulable : true,

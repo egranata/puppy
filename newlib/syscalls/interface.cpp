@@ -15,6 +15,7 @@
 #include <newlib/sys/errno.h>
 #undef errno
 extern "C" int  errno;
+extern "C" char **environ;
 
 #include <newlib/sys/kill.h>
 #include <newlib/sys/stat.h>
@@ -295,7 +296,7 @@ NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags)
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
 
-    auto eo = exec_syscall(rp.ptr, args, flags);
+    auto eo = exec_syscall(rp.ptr, args, environ, flags);
     if (eo & 1) return -1;
     return eo >> 1;
 }
@@ -314,5 +315,3 @@ NEWLIB_IMPL_REQUIREMENT int chdir(const char *path) {
     if (ok == 0) return 0;
     ERR_EXIT(EFAULT);
 }
-
-NEWLIB_IMPL_REQUIREMENT char **environ;

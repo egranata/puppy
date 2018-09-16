@@ -17,5 +17,6 @@
 
 extern "C"
 uint16_t exec(const char* path, const char* args, bool fg) {
-    return exec_syscall(path, args, fg ? PROCESS_IS_FOREGROUND : 0) >> 1;
+    // libuserspace does not support environment variables!
+    return exec_syscall(path, args, nullptr, fg ? PROCESS_IS_FOREGROUND : 0) >> 1;
 }

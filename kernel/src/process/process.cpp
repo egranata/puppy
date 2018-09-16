@@ -15,7 +15,7 @@
 #include <kernel/process/process.h>
 #include <kernel/libc/string.h>
 
-process_t::process_t() : tss(), mmap(this), ttyinfo(), exitstatus(0), children() {
+process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;
     state = State::AVAILABLE;
     sleeptill = 0;
@@ -53,7 +53,7 @@ void process_t::clone(process_t* other) {
     other->args = strdup(args);
     other->cwd = strdup(cwd);
 
-    other->environ = environ;
+    other->environ = nullptr; // the environment does not need to be copied
 
     other->state = process_t::State::NEW;
     other->sleeptill = 0;

@@ -63,6 +63,7 @@ class ProcessManager : NOCOPY {
             uintptr_t eip; /** what address to start running from */
             uint8_t priority; /** initial process priority */
             uintptr_t argument; /** a pointer to be pushed onto the stack for the entry point to consume */
+            const char** environment; /** a pointer to a list of strings that are to be passed to the process as its environment */
             const char* name;
             const char* cwd;
 
@@ -75,8 +76,8 @@ class ProcessManager : NOCOPY {
         process_t *kspawn(const spawninfo_t&);
 
         // TODO: merge setup and exec
-        process_t *setup(const char* path, const char* args, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0);
-        process_t* exec(const char* path, const char* args, uint32_t flags);
+        process_t *setup(const char* path, const char* args, const char** env, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0);
+        process_t* exec(const char* path, const char* args, const char** env, uint32_t flags);
 
         void tick(bool can_yield);
 

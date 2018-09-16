@@ -20,6 +20,7 @@
 #include <EASTL/string.h>
 #include <EASTL/unique_ptr.h>
 #include <sys/stat.h>
+#include <newlib/unistd.h>
 
 static const char* gConfigScript = "/system/config/init";
 
@@ -89,11 +90,11 @@ int runCommand(const eastl::string& line) {
 
     auto space = line.find(' ');
     if (space == eastl::string::npos) {
-        pid = exec_syscall(line.c_str(), nullptr, 0);
+        pid = exec_syscall(line.c_str(), nullptr, environ, 0);
     } else {
         auto program = line.substr(0, space);
         auto args = line.substr(space + 1);
-        pid = exec_syscall(program.c_str(), args.c_str(), 0);
+        pid = exec_syscall(program.c_str(), args.c_str(), environ, 0);
     }
     pid >>= 1;
 
@@ -120,7 +121,7 @@ bool runInitScript() {
 }
 
 uint16_t runShell() {
-    auto pid = exec_syscall("/system/apps/shell", nullptr, PROCESS_IS_FOREGROUND);
+    auto pid = exec_syscall("/system/apps/shell", nullptr, environ, PROCESS_IS_FOREGROUND);
     return pid >> 1;
 }
 

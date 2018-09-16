@@ -48,7 +48,7 @@ extern syscall_response_t fclose_syscall_handler(uint32_t arg1);
 extern syscall_response_t fclose_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t fread_syscall_handler(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 extern syscall_response_t fread_syscall_helper(SyscallManager::Request& req);
-extern syscall_response_t exec_syscall_handler(const char* arg1,const char* arg2,uint32_t arg3);
+extern syscall_response_t exec_syscall_handler(const char* arg1,const char* arg2,char** arg3,uint32_t arg4);
 extern syscall_response_t exec_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t kill_syscall_handler(uint32_t arg1);
 extern syscall_response_t kill_syscall_helper(SyscallManager::Request& req);
@@ -238,10 +238,11 @@ static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t exec_syscall_helper(SyscallManager::Request& req) {
-	return exec_syscall_handler((const char*)req.arg1,(const char*)req.arg2,(uint32_t)req.arg3);
+	return exec_syscall_handler((const char*)req.arg1,(const char*)req.arg2,(char**)req.arg3,(uint32_t)req.arg4);
 }
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(char**) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t kill_syscall_helper(SyscallManager::Request& req) {

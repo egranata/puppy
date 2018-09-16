@@ -52,7 +52,6 @@ extern "C"
 void fileloader(uintptr_t) {
     auto&& vm(VirtualPageManager::get());
     auto&& vfs(VFS::get());
-    auto memmgr = gCurrentProcess->getMemoryManager();
 
     LOG_DEBUG("launching process %u (%s)", gCurrentProcess->pid, gCurrentProcess->path);
     auto fhandle = vfs.open(gCurrentProcess->path, FILE_OPEN_READ | FILE_NO_CREATE);
@@ -71,11 +70,6 @@ void fileloader(uintptr_t) {
     for (auto i = 0u; i < pages; ++i) {
         vm.mapAnyPhysicalPage(gInitialLoadAddress + (i * VirtualPageManager::gPageSize), bufferopts);
     }
-
-    auto environ_opts = VirtualPageManager::map_options_t().clear(true).rw(true).user(true);
-    gCurrentProcess->environ = (char**)memmgr->findAndMapRegion(VirtualPageManager::gPageSize, environ_opts).from;
-
-    LOG_DEBUG("environ will be a page-sized block at %p", gCurrentProcess->environ);
 
     LOG_DEBUG("file size: %u - mapped %u pages at %p for read", fstat.size, pages, gInitialLoadAddress);
 

@@ -19,6 +19,8 @@
 #include <kernel/libc/memory.h>
 #include <kernel/process/current.h>
 
+extern "C" char *stpcpy(char *__restrict, const char *__restrict);
+
 LOG_TAG(LOADELF, 1);
 
 #define UNHAPPY(cause) { \
@@ -128,6 +130,38 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
     return result;
 }
 
+static void environmentSize(size_t& num_vars, size_t& payload_size) {
+    num_vars = payload_size = 0;
+    size_t idx = 0;
+    while(gCurrentProcess->environ && gCurrentProcess->environ[idx]) {
+        num_vars += 1;
+        payload_size += strlen(gCurrentProcess->environ[idx]);
+        ++idx;
+    }
+}
+
+static char** copyEnvironmentToUserland(MemoryManager* memmgr) {
+    size_t num_vars = 0;
+    size_t payload_size = 0;
+
+    environmentSize(num_vars, payload_size);
+
+    // however many pointers environ[i] + the total size of all the strings + all the terminal \0 bytes + the final environ[size] == nullptr
+    size_t total_chunk_size = num_vars * sizeof(char*) + payload_size + num_vars + sizeof(char*);
+
+    auto map_opts = VirtualPageManager::map_options_t().clear(true).rw(false).user(true);
+
+    char** dest_environ = (char**)memmgr->findAndMapRegion(total_chunk_size, map_opts).from;
+    char* dest_payloads = (char*)(dest_environ + (num_vars + 1));
+
+    for (auto i = 0u; i < num_vars; ++i) {
+        dest_environ[i] = dest_payloads;
+        dest_payloads = stpcpy(dest_payloads, gCurrentProcess->environ[i]) + 1;
+    }
+
+    return dest_environ;
+}
+
 extern "C"
 process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
     auto&& memmgr(gCurrentProcess->getMemoryManager());
@@ -180,13 +214,13 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
             args_ptr->arguments, args_ptr->arguments,
             stack);
 
-        *stack = (uintptr_t)gCurrentProcess->environ;
+        *stack = (uintptr_t)copyEnvironmentToUserland(memmgr);
         --stack;
         *stack = (uintptr_t)&args_ptr->arguments[0];
         --stack;
         *stack = (uintptr_t)&args_ptr->name[0];
     } else {
-        *stack = (uintptr_t)gCurrentProcess->environ;
+        *stack = (uintptr_t)copyEnvironmentToUserland(memmgr);
         --stack;
         *stack = 0;
         --stack;
