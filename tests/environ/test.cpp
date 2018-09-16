@@ -18,22 +18,47 @@
 #include <checkup/assert.h>
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
+#include <newlib/syscalls.h>
+#include <newlib/sys/collect.h>
+#include <newlib/sys/process.h>
+#include <newlib/unistd.h>
 
-class TheTest : public Test {
-    public:
-        TheTest() : Test(TEST_NAME) {}
-    
+static uint16_t clone(void (*func)()) {
+    auto ok = clone_syscall( (uintptr_t)func );
+    if (ok & 1) return 0;
+    return ok >> 1;
+}
+
+static bool do_check(const char* n, const char* value) {
+    const char* true_value = getenv(n);
+    printf("[%u] environ[%s] = %p %s (wanted is %s)\n", getpid(), n, true_value, true_value, value);
+    if (value == nullptr) {
+        return true_value == nullptr;
+    } else {
+        return 0 == strcmp(true_value, value);
+    }
+}
+
+static void child_main() {
+    if (do_check("PARENT", "CHILD")) {
+        setenv("CHILD", "WHATEVER", 1);
+        if (do_check("CHILD", "WHATEVER")) exit(0);
+    }
+    exit(1);
+}
+
+class EnvironTest : public Test {
     protected:
-        void check(const char* n, const char* value) {
-            const char* true_value = getenv(n);
-            printf("environ[%s] = %p %s\n", n, true_value, true_value);
-            if (value == nullptr) {
-                CHECK_EQ(true_value, nullptr);
-            } else {
-                CHECK_EQ(0, strcmp(true_value, value));
-            }
+        EnvironTest(const char* name) : Test(name) {}
+        void check(const char* n, const char* v) {
+            CHECK_TRUE(do_check(n, v));
         }
+};
 
+class TestSameProcess : public EnvironTest {
+    public:
+        TestSameProcess() : EnvironTest("environ.TestSameProcess") {}
+    protected:
         void run() override {
             int w = setenv("NAME", "VALUE", 1);
 
@@ -54,8 +79,58 @@ class TheTest : public Test {
         }
 };
 
-int main() {
-    Test* test = new TheTest();
-    test->test();
-    return 0;
+class TestClone : public EnvironTest {
+    public:
+        TestClone() : EnvironTest("environ.TestClone") {}
+    protected:
+        void run() override {
+            setenv("PARENT", "CHILD", 1);
+            check("PARENT", "CHILD");
+
+            auto cpid = clone(child_main);
+            CHECK_NOT_EQ(cpid, 0);
+
+            auto status = collect(cpid);
+            CHECK_EQ(status.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(status.status, 0);
+
+            CHECK_TRUE(do_check("CHILD", nullptr));
+        }
+};
+
+class TestSpawn : public EnvironTest {
+    public:
+        TestSpawn() : EnvironTest(TEST_NAME) {}
+    protected:
+        void run() override {
+            setenv("PARENT", "CHILD", 1);
+            check("PARENT", "CHILD");
+
+            auto cpid = spawn("/system/tests/environ", "check", SPAWN_FOREGROUND);
+            CHECK_NOT_EQ(cpid, 0);
+
+            auto status = collect(cpid);
+            CHECK_EQ(status.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(status.status, 0);
+
+            CHECK_TRUE(do_check("CHILD", nullptr));
+        }
+};
+
+int main(int argc, char**) {
+    if (argc == 1) {
+        Test* test = new TestSameProcess();
+        test->test();
+        test = new TestClone();
+        test->test();
+        test = new TestSpawn();
+        test->test();
+        return 0;
+    } else {
+        if (do_check("PARENT", "CHILD")) {
+            setenv("CHILD", "WHATEVER", 1);
+            if (do_check("CHILD", "WHATEVER")) exit(0);
+        }
+        exit(1);
+    }
 }

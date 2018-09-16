@@ -56,6 +56,7 @@ enum {
 enum {
     PROCESS_IS_FOREGROUND = 0x1, // the new process will acquire foreground on the tty
     PROCESS_INHERITS_CWD  = 0x2, // the new process will share the parent's CWD (if not set, defaults to "/")
+    PROCESS_NOT_VALID_FLAG0 = 0x4,  // this is used by newlib to mean "do not inherit environment variables"
 };
 
 struct process_exit_status_t {

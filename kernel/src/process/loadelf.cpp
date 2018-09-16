@@ -22,6 +22,7 @@
 extern "C" char *stpcpy(char *__restrict, const char *__restrict);
 
 LOG_TAG(LOADELF, 1);
+LOG_TAG(COPYENV, 0);
 
 #define UNHAPPY(cause) { \
     TAG_ERROR(LOADELF, "failed to load ELF image: " #cause); \
@@ -149,10 +150,13 @@ static char** copyEnvironmentToUserland(MemoryManager* memmgr) {
     // however many pointers environ[i] + the total size of all the strings + all the terminal \0 bytes + the final environ[size] == nullptr
     size_t total_chunk_size = num_vars * sizeof(char*) + payload_size + num_vars + sizeof(char*);
 
-    auto map_opts = VirtualPageManager::map_options_t().clear(true).rw(false).user(true);
+    auto map_opts = VirtualPageManager::map_options_t().clear(true).rw(true).user(true);
 
     char** dest_environ = (char**)memmgr->findAndMapRegion(total_chunk_size, map_opts).from;
     char* dest_payloads = (char*)(dest_environ + (num_vars + 1));
+
+    TAG_DEBUG(COPYENV, "copying %u environment variables, environ map starts at %p, payload is of size %u and starts at %p",
+        num_vars, dest_environ, payload_size, dest_payloads);
 
     for (auto i = 0u; i < num_vars; ++i) {
         dest_environ[i] = dest_payloads;

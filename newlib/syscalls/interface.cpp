@@ -32,7 +32,7 @@ extern "C" char **environ;
 #include <newlib/impl/absolutize.h>
 #include <newlib/impl/cenv.h>
 #include <newlib/impl/klog.h>
-
+#include <newlib/sys/process.h>
 #include <kernel/syscalls/types.h>
 
 #define ERR_EXIT(ev) { \
@@ -296,7 +296,10 @@ NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags)
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
 
-    auto eo = exec_syscall(rp.ptr, args, environ, flags);
+    bool clear_env = PROCESS_EMPTY_ENVIRONMENT == (flags & PROCESS_EMPTY_ENVIRONMENT);
+    flags &= ~PROCESS_EMPTY_ENVIRONMENT;
+
+    auto eo = exec_syscall(rp.ptr, args, clear_env ? nullptr : environ, flags);
     if (eo & 1) return -1;
     return eo >> 1;
 }

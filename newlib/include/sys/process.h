@@ -27,6 +27,9 @@ extern "C" {
 #define PROCESS_INHERITS_CWD 2
 #define PROCESS_DEFAULT_CWD 0
 
+#define PROCESS_INHERITS_ENVIRONMENT 0
+#define PROCESS_EMPTY_ENVIRONMENT 4
+
 int spawn(const char* path, const char* args, int flags);
 
 #ifdef __cplusplus
