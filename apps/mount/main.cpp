@@ -13,11 +13,9 @@
 // limitations under the License.
 
 #include <stdint.h>
-#include <libuserspace/exit.h>
-#include <libuserspace/file.h>
-#include <libuserspace/memory.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/syscalls.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdio.h>
+#include <newlib/stdlib.h>
 
 static void usage(const char* name) {
     printf("%s: <device> <path>\n", name);
@@ -33,11 +31,11 @@ int main(int argc, const char** argv) {
     const char* mountpoint = argv[2];
     if (*mountpoint == '/') ++mountpoint;
 
-    auto fd = open(dev, gModeRead);
-    if (fd == gInvalidFd) {
+    auto fd = fopen(dev, "r");
+    if (fd == nullptr) {
         printf("Could not open %s\n", dev);
         exit(1);
     }
 
-    return trymount_syscall(fd, mountpoint); // returns 0 on success
+    return trymount_syscall(fileno(fd), mountpoint); // returns 0 on success
 }
