@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json, os, subprocess, time, sys
+import json, os, subprocess, time, sys, tempfile
 
 CMDLINE='qemu-system-i386 -drive format=raw,media=disk,file=out/os.img -display none -serial file:out/kernel.log -m 768 -d guest_errors ' + \
         '-rtc base=localtime -monitor stdio -smbios type=0,vendor="Puppy" -smbios type=1,manufacturer="Puppy",product="Puppy System",serial="P0PP1"'
@@ -26,7 +26,9 @@ def ensureGone(path):
         pass
 
 def spawn():
-    return subprocess.Popen(CMDLINE, shell=True, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=os.getcwd())
+    fout = tempfile.TemporaryFile()
+    ferr = tempfile.TemporaryFile()
+    return subprocess.Popen(CMDLINE, shell=True, stdin=subprocess.PIPE, stdout=fout, stderr=ferr, cwd=os.getcwd())
 
 def readLog():
     with open('out/kernel.log') as f:
@@ -56,33 +58,36 @@ def sendString(qemu, s):
     say(qemu, "sendkey kp_enter")
     qemu.stdin.flush()
 
-ensureGone("out/kernel.log")
+def quit(qemu, ec):
+    say(qemu, "q")
+    qemu.communicate()
+    sys.exit(ec)
 
+def waitFor(prefix, deadline, condition):
+    print("%s..." % prefix, end='', flush=True)
+    while deadline > 0:
+        time.sleep(1)
+        print('.', end='', flush=True)
+        deadline = deadline - 1
+        if condition():
+            print("PASS")
+            return True
+    print("FAIL")
+    print(readLog())
+    quit(qemu, 1)
+
+ensureGone("out/kernel.log")
 qemu = spawn()
 
-time.sleep(10)
-
-if checkAlive():
-    print('\n\nPuppy booted!')
-else:
-    print("\n\nerror: no OS alive")
-    sys.exit(1)
+waitFor("Boot", 15, checkAlive)
 
 TEST_PLAN = json.load(open(sys.argv[1], "r"))
-print(TEST_PLAN)
 
 for tid in TEST_PLAN:
     TEST = TEST_PLAN[tid]
-    path = "&%s" % TEST["path"]
+    path = "%s" % TEST["path"]
     wait = int(TEST["wait"])
     sendString(qemu, path)
-    time.sleep(wait)
-    if checkTestPass(tid):
-        print("\n\%s test passed!" % tid)
-    else:
-        print("\n\n%s test not passed" % tid)
-        sys.exit(1)
+    waitFor(tid, wait, lambda: checkTestPass(tid))
 
-
-say(qemu, "q")
-qemu.communicate()
+quit(qemu, 0)
