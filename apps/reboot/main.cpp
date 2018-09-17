@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/syscalls.h>
+#include <newlib/syscalls.h>
 
 int main() {
     reboot_syscall();
