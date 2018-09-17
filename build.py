@@ -283,33 +283,14 @@ class Project(object):
 
 NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
 
-LIBUSERSPACE_TOOLS = []
-
 class UserspaceTool(Project):
-    def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", stdlib=None, linkerdeps=[], announce=False):
-        if stdlib is None:
-            if os.path.exists(os.path.join(srcdir, "newlib.use")):
-                stdlib = 'newlib'
-            else:
-                stdlib = 'libuserspace'
-
-        if stdlib == 'libuserspace':
-            LIBUSERSPACE_TOOLS.append(name)
-            cflags = BASIC_CFLAGS + (cflags if cflags else [])
-            cppflags = BASIC_CFLAGS + BASIC_CPPFLAGS + (cppflags if cppflags else [])
-            ipaths = None
-            ldflags = BASIC_LDFLAGS + ["-T out/mnt/libs/app.ld", "-e__app_entry"]
-            ldeps = ["out/mnt/libs/libuserspace.a", "out/mnt/libs/libmuzzle.a"]
-            gcc=None
-        elif stdlib == 'newlib':
-            cflags = USERSPACE_CFLAGS + (cflags if cflags else [])
-            cppflags = USERSPACE_CFLAGS + USERSPACE_CPPFLAGS + (cppflags if cppflags else [])
-            ipaths=[]
-            ldflags = USERSPACE_LDFLAGS
-            ldeps=[""]
-            gcc="build/gcc.sh"
-        else:
-            raise ValueError("stdlib should be either libuserspace or newlib")
+    def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
+        cflags = USERSPACE_CFLAGS + (cflags if cflags else [])
+        cppflags = USERSPACE_CFLAGS + USERSPACE_CPPFLAGS + (cppflags if cppflags else [])
+        ipaths=[]
+        ldflags = USERSPACE_LDFLAGS
+        ldeps=[""]
+        gcc="build/gcc.sh"
 
         ldeps = linkerdeps + ldeps
 
@@ -373,12 +354,6 @@ Kernel = Project(name="Kernel",
     linkerdeps=["out/libmuzzle.a", "out/libfatfs.a"])
 Kernel.link = Kernel.linkGcc
 
-Userspace = Project(name="Userspace",
-    srcdir="libuserspace/src",
-    assembler="nasm",
-    linkerdeps=["out/libmuzzle.a"])
-Userspace.link = Userspace.linkAr
-
 NewlibInterface = Project(name="NewlibInterface",
     srcdir="newlib/syscalls",
     assembler="nasm",
@@ -414,7 +389,6 @@ Checkup.link = Checkup.linkAr
 FatFS.build()
 Muzzle.build()
 Kernel.build()
-Userspace.build()
 NewlibInterface.build()
 NEWLIB_CRT0 = NewlibCrt0.build()
 CxxSupport.build()
@@ -553,12 +527,6 @@ print("Built %d dylibs %d apps and %d tests in %s seconds" %
      len(APP_PROJECTS),
      len(TEST_PROJECTS),
      USER_CONTENT_DURATION))
-
-if len(LIBUSERSPACE_TOOLS) > 0:
-    print("%d programs buit with libuserspace (%s) - please consider switching to newlib instead" %
-         (len(LIBUSERSPACE_TOOLS), ', '.join(LIBUSERSPACE_TOOLS)))
-else:
-    print("The entire userspace is built with newlib - please consider removing libuserspace")
 
 INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
 shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
