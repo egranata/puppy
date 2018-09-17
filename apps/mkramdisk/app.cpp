@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/exit.h>
-#include <libuserspace/file.h>
-#include <libuserspace/printf.h>
-#include <libuserspace/stdio.h>
-#include <libuserspace/string.h>
-#include <muzzle/stdlib.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+#include <newlib/sys/ioctl.h>
 
 int main(int argc, const char** argv) {
     if (argc != 2) {
@@ -30,13 +27,13 @@ int main(int argc, const char** argv) {
     auto size = 512 * atoi(arg);
     printf("About to create a RAM disk volume of %u bytes...\n", size);
 
-    auto fd = open("/devices/ramdisk/new", gModeRead);
-    if (fd == gInvalidFd) {
+    auto fd = fopen("/devices/ramdisk/new", "r");
+    if (fd == nullptr) {
         printf("error: cannot open ramdisk device\n");
         exit(2);
     }
 
-    int result = ioctl(fd, 0x4449534b, size);
+    int result = ioctl(fileno(fd), 0x4449534b, size);
     if (result != 0x7FFFFFFF) {
         printf("/devices/ramdisk/vol%u should now be a valid RAM disk\n", result);
     } else {
