@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-// This file should be includable from both kernel and userspace - it is meant to contain common macros and types that enable
-// libuserspace and the kernel's system call interface to safely agree on the definition of data structures
+// This file should be includable from both kernel and userspace - it is meant to contain common macros and types for the kernel <--> userspace interface
 #ifndef SYSCALLS_TYPES
 #define SYSCALLS_TYPES
 
