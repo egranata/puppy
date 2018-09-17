@@ -328,3 +328,9 @@ global haltforever
 haltforever:
 	hlt
 	jmp haltforever
+
+global readfpsw
+readfpsw:
+	xor eax, eax
+	fnstsw ax
+	ret

@@ -148,4 +148,7 @@ void writemsr(uint32_t reg, uint64_t value);
 extern "C"
 void haltforever();
 
+extern "C"
+uint32_t readfpsw();
+
 #endif

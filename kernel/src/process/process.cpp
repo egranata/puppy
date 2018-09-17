@@ -14,6 +14,7 @@
 
 #include <kernel/process/process.h>
 #include <kernel/libc/string.h>
+#include <kernel/i386/primitives.h>
 
 process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;
@@ -62,6 +63,9 @@ void process_t::clone(process_t* other) {
 
     mmap.clone(&other->mmap);
     // tty is cloned in ProcessManager
+
+    fpsave((uintptr_t)&fpstate[0]);
+    memcpy(other->fpstate, fpstate, sizeof(fpstate));
 
     other->flags.system = flags.system;
 

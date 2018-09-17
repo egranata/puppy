@@ -58,10 +58,10 @@ void dumpErrorState(GPR& gpr, InterruptStack& stack) {
 
 	#undef GPREG
 
-    LOG_ERROR("flags = %p", stack.eflags);
+    LOG_ERROR("flags = %p, x87 status = %x", stack.eflags, readfpsw());
     LOG_ERROR("segments: cs: %p, ds: %p, es: %p, fs: %p, gs: %p, ss: %p", stack.cs, readds(), reades(), readfs(), readgs(), readss());
 
-    sprint(&buffer[0], 1024, "eflags = %x\n", stack.eflags);
+    sprint(&buffer[0], 1024, "eflags = %x, x87 status = %x\n", stack.eflags, readfpsw());
     fb.write(&buffer[0]);
 
 	fb.write("\nSegment registers:\n",Framebuffer::color_t::blue());
