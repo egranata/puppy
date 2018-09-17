@@ -24,25 +24,25 @@ void printchar(char c) {
     }
 }
 
-void dump(FILE* f) {
+bool dump(FILE* f) {
+    bool is_nl = false;
     while(true) {
         auto c = fgetc(f);
         if (c == EOF) break;
         fputc(c, stdout);
+        is_nl = (c == '\n');
     }
     fclose(f);
+    return is_nl;
 }
 
 void cat(const char* path) {
-    printf("Printout of %s\n", path);
-    printf("==============================================================================\n");
     auto fd = fopen(path, "r'");
     if (fd == nullptr) {
         printf("could not open %s - exiting\n", path);
         exit(1);
     }
-    dump(fd);
-    printf("==============================================================================\n");    
+    if (!dump(fd)) fputc('\n', stdout);
 }
 
 int main(int argc, const char** argv) {
