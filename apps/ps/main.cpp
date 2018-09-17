@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libuserspace/printf.h>
-#include <libuserspace/syscalls.h>
-#include <kernel/syscalls/types.h>
-#include <libuserspace/memory.h>
+#include <newlib/syscalls.h>
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
 
 int main() {
     auto sz = proctable_syscall(nullptr, 0);

@@ -557,6 +557,8 @@ print("Built %d dylibs %d apps and %d tests in %s seconds" %
 if len(LIBUSERSPACE_TOOLS) > 0:
     print("%d programs buit with libuserspace (%s) - please consider switching to newlib instead" %
          (len(LIBUSERSPACE_TOOLS), ', '.join(LIBUSERSPACE_TOOLS)))
+else:
+    print("The entire userspace is built with newlib - please consider removing libuserspace")
 
 INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
 shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
