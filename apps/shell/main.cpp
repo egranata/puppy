@@ -23,10 +23,12 @@
 #include <newlib/sys/wait.h>
 #include <newlib/sys/unistd.h>
 
-void handleExitStatus(uint16_t pid, int exitcode) {
+#include <EASTL/string.h>
+
+void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {
         int status = WEXITSTATUS(exitcode);
-        if (status) {
+        if (status || anyExit) {
             printf("[child %u] exited - status %d\n", pid, status);
         }
     } else if(WIFSIGNALED(exitcode)) {
@@ -37,24 +39,47 @@ void handleExitStatus(uint16_t pid, int exitcode) {
     }
 }
 
+eastl::string getCurrentDirectory() {
+    eastl::string cwds;
+
+    auto cwd = getcwd(nullptr, 0);
+    if (cwd && cwd[0]) cwds.append_sprintf("%s", cwd);
+
+    free(cwd);
+    return cwds;
+}
+
 void tryCollect() {
     int pid = 0;
     int exitcode = 0;
     pid = wait(&exitcode);
     if (pid != -1) {
-        handleExitStatus(pid, exitcode);
+        handleExitStatus(pid, exitcode, true);
     }
 }
 
-static char* trim(char* s) {
-    while(s && *s == ' ') ++s;
-    s[strcspn(s, "\n")] = 0; // replace \n with 0; TODO: do not replace embedded newlines
-    return s;
+static void trim(eastl::string& s) {
+    s.erase(0, s.find_first_not_of(' '));
+    s.erase(s.find_last_not_of(' ') + 1);
 }
 
 static void cd_exec(const char* args) {
     if (chdir(args)) {
         printf("can't set cwd to '%s'\n", args);
+    } else {
+        setenv("PWD", getCurrentDirectory().c_str(), 1);
+    }
+}
+
+static void env_exec(const char* args) {
+    if (args) {
+        auto val = getenv(args);
+        printf("%s=%s\n", args, val);
+    } else {
+        auto i = 0;
+        while(environ && environ[i]) {
+            printf("%s\n", environ[i++]);
+        }
     }
 }
 
@@ -65,6 +90,7 @@ struct builtin_cmd_t {
 
 builtin_cmd_t builtin_cmds[] = {
     {"cd", cd_exec},
+    {"env", env_exec},
     {nullptr, nullptr}
 };
 
@@ -84,48 +110,74 @@ static bool tryExecBuiltin(const char* program, const char* args) {
     return false;
 }
 
+eastl::string getline(const char* prompt, bool& eof) {
+    if (prompt == nullptr) prompt = "> ";
+    printf("%s", prompt);
+    char* data = nullptr;
+    size_t len;
+    size_t n_read = __getline(&data, &len, stdin);
+    if (n_read == (size_t)-1 && feof(stdin)) {
+        eof = true;
+        return eastl::string();
+    }
+    eof = false;
+    auto out = eastl::string(data);
+    free(data);
+    if (!out.empty() && out[out.size() - 1] == '\n') {
+        out.pop_back();
+    }
+    return out;
+}
+
+void getPrompt(eastl::string& prompt) {
+    auto cwd = getCurrentDirectory();
+    prompt.clear();
+
+    if (cwd.empty()) {
+        prompt.append_sprintf("shell> ");
+    } else {
+        prompt.append_sprintf("%s$ ", cwd.c_str());
+    }
+}
+
+static void runInShell(const char* program, const char* args, bool is_bg) {
+    if (is_bg || !tryExecBuiltin(program, args)) {
+        auto chld = spawn(program, args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
+        if (is_bg) {
+            printf("[child %u] spawned\n", chld);
+        } else {
+            int exitcode = 0;
+            waitpid(chld, &exitcode, 0);
+            handleExitStatus(chld, exitcode, false);
+        }
+    }
+}
+
 int main(int, const char**) {
+    setenv("PWD", getCurrentDirectory().c_str(), 1);
+
     klog_syscall("shell is up and running");
-    char* prompt = (char*)malloc(1024);
+    bool eof = false;
+    eastl::string prompt;
 
     while(true) {
-        char* buffer = nullptr;
-        bzero(prompt, 1024);
-        if (prompt == getcwd(prompt, 1021)) {
-            auto len = strlen(prompt);
-            prompt[len] = '$';
-            prompt[len+1] = 0;
-        } else {
-            strcpy(prompt, "shell>");
-        }
-        printf("%s ", prompt);
-        size_t n = 0;
-        size_t n_read = __getline(&buffer, &n, stdin);
-        if (n_read == (size_t)-1) {
-            if (feof(stdin)) {
-                exit(0);
-            }
-        }
-        const char* program = trim(buffer);
-        if (program != 0 && *program != 0) {
-            bool letgo = ('&' == *program);
-            if (letgo) ++program;
-            char* args = (char*)strchr(program, ' ');
-            if (args != nullptr) {
-                *args = 0;
-                ++args;
-            }
-            // background execution makes no sense for builtins, so if it was asked, just go straight to spawn
-            if (letgo || !tryExecBuiltin(program, args)) {
-                auto chld = spawn(program, args, PROCESS_INHERITS_CWD | (letgo ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
-                if (!letgo) {
-                    int exitcode = 0;
-                    waitpid(chld, &exitcode, 0);
-                    handleExitStatus(chld, exitcode);
-                }
-            }
-        }
         tryCollect();
-        free(buffer);
+
+        getPrompt(prompt);
+        auto cmdline = getline(prompt.c_str(), eof);
+        if (eof) exit(0);
+        trim(cmdline);
+        if(cmdline.empty()) continue;
+
+        const bool is_bg = (cmdline.back() == '&');
+        if (is_bg) cmdline.pop_back();
+        size_t arg_sep = cmdline.find(' ');
+        if (arg_sep == eastl::string::npos) {
+            runInShell(cmdline.c_str(), nullptr, is_bg);
+        } else {
+            auto program = cmdline.substr(0, arg_sep);
+            auto args = cmdline.substr(arg_sep + 1);
+            runInShell(program.c_str(), args.c_str(), is_bg);
+        }
     }
 }
