@@ -281,7 +281,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
+NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
@@ -386,6 +386,12 @@ Checkup = Project(name="Checkup",
     linkerdeps=NEWLIB_DEPS)
 Checkup.link = Checkup.linkAr
 
+Parson = Project(name="Parson",
+    srcdir="third_party/parson",
+    ipaths=["include", "include/newlib", "include/EASTL"],
+    linkerdeps=NEWLIB_DEPS)
+Parson.link = Parson.linkAr
+
 FatFS.build()
 Muzzle.build()
 Kernel.build()
@@ -394,6 +400,7 @@ NEWLIB_CRT0 = NewlibCrt0.build()
 CxxSupport.build()
 EASTL.build()
 Checkup.build()
+Parson.build()
 
 DISK_LO, PART_LO = mountDiskImage("out/os.img", "out/mnt")
 print("OS disk image mounted as %s : %s" % (DISK_LO, PART_LO))
