@@ -143,7 +143,7 @@ void Framebuffer::setCol(uint16_t c) {
 }
 
 void Framebuffer::cls() {
-	bzero((void*)base(), size());
+	memset_pattern4((void*)base(), (uint32_t)mBackground, size());
 	setRow(0);
 	setCol(0);
 }
@@ -220,7 +220,7 @@ void Framebuffer::nl() {
 		uint8_t* rowlast = row(-1);
 		auto sz = size() - (FONT_HEIGHT * mPitch);
 		memcpy(row0, row1, sz);
-		bzero(rowlast, FONT_HEIGHT * mPitch);
+		memset_pattern4((void*)rowlast, (uint32_t)mBackground, FONT_HEIGHT * mPitch);
 		mX = FONT_HEIGHT*((mHeight / FONT_HEIGHT) -1);
 	}
 }

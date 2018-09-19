@@ -31,3 +31,28 @@ const char* strprefix(const char* prefix, const char* full) {
 		default: return nullptr;
 	}
 }
+
+void memset_pattern4(void *b, uint32_t pattern, size_t len) {
+	uint32_t *buffer = (uint32_t*)b;
+	while (len >= 4) {
+		*buffer = pattern;
+		++buffer;
+		len -= 4;
+	}
+	uint8_t *remainder = (uint8_t*)buffer;
+	switch (len) {
+		case 0: break;
+		case 1:
+			*remainder = pattern & 0xFF;
+			break;
+		case 2:
+			*remainder = pattern & 0xFF;
+			*(remainder+1) = (pattern & 0xFF00) >> 8;
+			break;
+		case 3:
+			*remainder = pattern & 0xFF;
+			*(remainder+1) = (pattern & 0xFF00) >> 8;
+			*(remainder+2) = (pattern & 0xFF0000) >> 16;
+			break;
+	}
+}

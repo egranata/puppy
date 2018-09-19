@@ -73,4 +73,6 @@ const char* num2str(NumType n, char* buffer, size_t buf_size, uint32_t base = 10
     return &buffer[idx];
 }
 
+void memset_pattern4(void *b, uint32_t pattern, size_t len);
+
 #endif
