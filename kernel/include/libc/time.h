@@ -35,4 +35,6 @@ struct time_components_t {
 
 uint64_t time_components_to_epoch(time_components_t);
 
+void epoch_to_time_and_date_components(uint64_t, date_components_t&, time_components_t&);
+
 #endif

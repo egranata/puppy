@@ -78,3 +78,25 @@ uint64_t date_components_to_epoch(date_components_t cs) {
 uint64_t time_components_to_epoch(time_components_t cs) {
     return cs.second + (60 * (cs.minute + (60 * cs.hour)));
 }
+
+void epoch_to_time_and_date_components(uint64_t timestamp, date_components_t& date, time_components_t& time) {
+    auto wc_portion = timestamp % gSecondsInDay;
+    timestamp = timestamp / gSecondsInDay;
+
+    time.second = wc_portion % 60;
+    wc_portion /= 60;
+    time.minute = wc_portion % 60;
+    time.hour = wc_portion / 60;
+
+    // the below courtesy of http://howardhinnant.github.io/date_algorithms.html
+    timestamp += 719468;
+    uint64_t era = timestamp / 146097;
+    uint64_t doe = (uint64_t)(timestamp - era * 146097);
+    uint64_t yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;
+    date.year = yoe + era * 400;
+    uint64_t doy = doe - (365*yoe + yoe/4 - yoe/100);
+    uint64_t mp = (5*doy + 2)/153;
+    date.day = doy - (153*mp+2)/5 + 1;
+    date.month = mp + (mp < 10 ? 3 : -9);
+    date.year += (date.month <= 2);
+}
