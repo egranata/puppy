@@ -22,17 +22,20 @@
 #include <kernel/log/log.h>
 #include <kernel/panic/panic.h>
 #include <kernel/time/manager.h>
+#include <kernel/boot/phase.h>
 
 static uint64_t gBoot_RTC_Timestamp = 0;
 
 namespace boot::rtc {
     uint32_t init() {
         RTC::get();
-    	LOG_INFO("RTC gathered - timestamp is %llu", gBoot_RTC_Timestamp);
 
         TimeManager::get().UNIXtimeIncrement(gBoot_RTC_Timestamp);
-
         PIC::get().accept(RTC::gIRQNumber);
+
+    	LOG_INFO("RTC gathered - timestamp is %llu", gBoot_RTC_Timestamp);
+        bootphase_t::printf("UNIX timestamp at boot: %llu\n", gBoot_RTC_Timestamp);
+
         return 0;
     }
 

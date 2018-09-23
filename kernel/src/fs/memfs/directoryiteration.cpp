@@ -29,12 +29,14 @@ Filesystem::Directory* MemFS::opendir(const char* path) {
 
         bool next(fileinfo_t& fi) override {
             if (mCurrent == mEnd) return false;
+
             bzero(&fi.name[0], sizeof(fi.name));
             strncpy(fi.name, mCurrent->name(), sizeof(fi.name));
             fi.kind = mCurrent->kind();
-            ++mCurrent;
             fi.size = 0;
-            fi.time = 0;
+            fi.time = mCurrent->time();
+
+            ++mCurrent;
             return true;
         }
 

@@ -15,6 +15,7 @@
  */
 
 #include <kernel/fs/memfs/memfs.h>
+#include <kernel/time/manager.h>
 
 Filesystem::FilesystemObject::kind_t MemFS::Entity::kind() const {
     return mKind;
@@ -23,8 +24,14 @@ const char* MemFS::Entity::name() const {
     return mName.c_str();
 }
 
-MemFS::Entity::Entity(Filesystem::FilesystemObject::kind_t k, const char* name) : mKind(k), mName(name) {}
+MemFS::Entity::Entity(Filesystem::FilesystemObject::kind_t k, const char* name) : mKind(k), mName(name) {
+    mTime = TimeManager::get().UNIXtime();
+}
 
 void MemFS::Entity::name(const char* buf) {
     mName.reset(buf);
+}
+
+uint64_t MemFS::Entity::time() {
+    return mTime;
 }

@@ -93,6 +93,9 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace time_files {
+        uint32_t init();
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -105,17 +108,9 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "VFS",
+        description : "Parse Time Manager",
         visible : false,
-        operation : boot::vfs::init,
-        onSuccess : nullptr,
-        onFailure : boot::vfs::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Print System Info",
-        visible : false,
-        operation : boot::info::init,
+        operation : boot::time::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
@@ -137,19 +132,27 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
+        description : "VFS",
+        visible : false,
+        operation : boot::vfs::init,
+        onSuccess : nullptr,
+        onFailure : boot::vfs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Print System Info",
+        visible : false,
+        operation : boot::info::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
         description : "Setup keyboard",
         visible : false,
         operation : boot::ps2::init,
         onSuccess : nullptr,
         onFailure : boot::ps2::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Parse Time Manager",
-        visible : false,
-        operation : boot::time::init,
-        onSuccess : nullptr,
-        onFailure : nullptr
     });
 
     registerBootPhase(bootphase_t{
@@ -246,6 +249,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::irqcount::init,
         onSuccess : nullptr,
         onFailure : boot::irqcount::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Forward date/time to userspace",
+        visible : false,
+        operation : boot::time_files::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
     });
 
     registerBootPhase(bootphase_t{

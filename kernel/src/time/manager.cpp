@@ -31,12 +31,29 @@ namespace {
                 return new MemFS::StringBuffer(buf);
             }
     };
+    class NowFile : public MemFS::File {
+        public:
+            NowFile() : MemFS::File("now") {}
+            delete_ptr<MemFS::FileBuffer> content() override {
+                string buf('\0', 24);
+                sprint(&buf[0], 24, "%llu", TimeManager::get().UNIXtime());
+                return new MemFS::StringBuffer(buf);
+            }
+    };
 }
 
 namespace boot::time {
     uint32_t init() {
-        auto timer_dir = DevFS::get().getDeviceDirectory("timer");
+        TimeManager::get();
+        return 0;
+    }
+}
+
+namespace boot::time_files {
+    uint32_t init() {
+        auto timer_dir = DevFS::get().getDeviceDirectory("time");
         timer_dir->add(new UptimeFile());
+        timer_dir->add(new NowFile());
 
         return 0;
     }

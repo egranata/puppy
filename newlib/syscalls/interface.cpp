@@ -256,7 +256,7 @@ NEWLIB_IMPL_REQUIREMENT int write(int file, char *ptr, int len) {
 NEWLIB_IMPL_REQUIREMENT int gettimeofday (struct timeval *__restrict __p, void *__restrict /**__tz: no timezone support */) {
     char* buf = nullptr;
     size_t n = 0;
-    FILE *f = fopen("/devices/rtc/now", "r");
+    FILE *f = fopen("/devices/time/now", "r");
     if (f == nullptr) return -1;
     __getline(&buf, &n, f);
     fclose(f);

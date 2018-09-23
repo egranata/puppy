@@ -28,12 +28,14 @@ protected:
         public:
             virtual Filesystem::FilesystemObject::kind_t kind() const;
             const char* name() const;
+            uint64_t time();
         protected:
             Entity(Filesystem::FilesystemObject::kind_t k, const char* name);
             void name(const char* buf);
         private:
             Filesystem::FilesystemObject::kind_t mKind;
             string mName;
+            uint64_t mTime;
     };
 public:
     MemFS();
