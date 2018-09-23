@@ -103,7 +103,7 @@ class FATFileSystemFile : public Filesystem::File {
 
         bool stat(stat_t& stat) override {
             stat.kind = file_kind_t::file;
-            stat.size = mFileInfo.fsize;
+            stat.size = mFileInfo.fsize ? mFileInfo.fsize : f_size(mFile);
             stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);
             return true;
         }
@@ -180,7 +180,8 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
         switch(f_stat(fullpath, &fileInfo)) {
             case FR_OK: break;
             default:
-                return nullptr;
+                bzero(&fileInfo, sizeof(fileInfo));
+                break;
         }
 
         switch (f_open(fil, fullpath, realmode)) {
