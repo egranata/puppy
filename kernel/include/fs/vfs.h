@@ -46,6 +46,7 @@ class VFS : NOCOPY {
     private:
         struct mount_t {
             const char* path;
+            uint64_t when;
             Filesystem* fs;
         };
         slist<mount_t> mMounts;

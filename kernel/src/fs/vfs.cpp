@@ -21,10 +21,11 @@
 #include <kernel/fs/initrd/fs.h>
 #include <kernel/boot/bootinfo.h>
 #include <kernel/fs/devfs/devfs.h>
+#include <kernel/time/manager.h>
 
 namespace boot::vfs {
     uint32_t init() {
-    	auto bootmodules(bootmodinfo());        
+    	auto bootmodules(bootmodinfo());
         auto& vfs(VFS::get());
 
         vfs.mount("devices", DevFS::get().getMemFS());
@@ -61,7 +62,10 @@ VFS::VFS() : mMounts() {
 bool VFS::mount(const char* path, Filesystem* fs) {
     if (path[0] == '/') ++path;
     LOG_DEBUG("mounting /%s as %p", path, fs);
-    mMounts.add(mount_t{strdup(path), fs});
+    mMounts.add(mount_t{
+        strdup(path),
+        TimeManager::get().UNIXtime(),
+        fs});
     return true;
 }
 
@@ -198,7 +202,7 @@ class RootDirectory : public Filesystem::Directory {
             strncpy(fi.name, mi.path, gMaxPathSize);
             fi.kind = Filesystem::FilesystemObject::kind_t::directory;
             fi.size = 0;
-            fi.time = 0;
+            fi.time = mi.when;
 
             ++mIterator;
 
