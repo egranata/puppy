@@ -73,8 +73,19 @@ static void cd_exec(const char* args) {
 
 static void env_exec(const char* args) {
     if (args) {
-        auto val = getenv(args);
-        printf("%s=%s\n", args, val);
+        char* eq = strchr(args, '=');
+        if (eq == nullptr) {
+                auto val = getenv(args);
+                printf("%s=%s\n", args, val);
+        } else {
+            // env ENVV= deletes the variable
+            if (eq[1] == 0) {
+                *eq = 0;
+                unsetenv(args);
+            } else {
+                putenv((char*)args);
+            }
+        }
     } else {
         auto i = 0;
         while(environ && environ[i]) {
