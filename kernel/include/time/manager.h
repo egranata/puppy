@@ -35,12 +35,17 @@ class TimeManager : NOCOPY {
 
         uint64_t millisPerTick();
 
+        uint64_t UNIXtime();
+        void UNIXtimeIncrement(uint64_t seconds = 1);
+
         size_t registerTickHandler(tick_func_t, uint32_t every_N);
         void unregisterTickHandler(size_t);
     private:
         static constexpr size_t gMaxTickFunctions = 10;
 
         uint64_t mMillisecondsSinceBoot;
+
+        uint64_t mUNIXTimestamp;
 
         struct {
             struct { 

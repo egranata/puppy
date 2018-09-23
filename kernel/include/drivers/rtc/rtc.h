@@ -46,8 +46,6 @@ class RTC : NOCOPY {
         };
         static RTC& get();
 
-        uint64_t timestamp() const;
-
         static constexpr uint16_t gSelectPort = 0x70;
         static constexpr uint16_t gDataPort = 0x71;
 
@@ -55,8 +53,6 @@ class RTC : NOCOPY {
 
         static constexpr uint8_t gStatusRegisterC = 0x0C;
     private:
-        
-
         static constexpr uint8_t gSecondsRegister = 0x00;
         static constexpr uint8_t gMinutesRegister = 0x02;
         static constexpr uint8_t gHoursRegister = 0x04;

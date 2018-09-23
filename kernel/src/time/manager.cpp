@@ -83,7 +83,7 @@ uint64_t TimeManager::millisUptime() {
     return __sync_add_and_fetch(&mMillisecondsSinceBoot, 0);
 }
 
-TimeManager::TimeManager() : mMillisecondsSinceBoot(0) {
+TimeManager::TimeManager() : mMillisecondsSinceBoot(0), mUNIXTimestamp(0) {
     bzero(&mTickHandlers, sizeof(mTickHandlers));
     bzero(&mTimeSource, sizeof(mTimeSource));
 }
@@ -104,4 +104,12 @@ void TimeManager::unregisterTickHandler(size_t i) {
     if (i == (size_t)-1) return;
     if (i >= gMaxTickFunctions) return;
     mTickHandlers.funcs[i].func = nullptr;
+}
+
+uint64_t TimeManager::UNIXtime() {
+    return __sync_add_and_fetch(&mUNIXTimestamp, 0);
+}
+
+void TimeManager::UNIXtimeIncrement(uint64_t seconds) {
+    __sync_add_and_fetch(&mUNIXTimestamp, seconds);
 }

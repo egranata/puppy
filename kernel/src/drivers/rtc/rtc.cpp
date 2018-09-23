@@ -21,24 +21,16 @@
 #include <kernel/libc/time.h>
 #include <kernel/log/log.h>
 #include <kernel/panic/panic.h>
+#include <kernel/time/manager.h>
 
-class RTC_NowFile : public MemFS::File {
-    public:
-        RTC_NowFile() : MemFS::File("now") {}
-        delete_ptr<MemFS::FileBuffer> content() override {
-            string buf('\0', 24);
-            sprint(&buf[0], 24, "%llu", RTC::get().timestamp());
-            return new MemFS::StringBuffer(buf);
-        }
-};
+static uint64_t gBoot_RTC_Timestamp = 0;
 
 namespace boot::rtc {
     uint32_t init() {
-        auto &&rtc(RTC::get());
-    	LOG_INFO("RTC gathered - timestamp is %llu", rtc.timestamp());
+        RTC::get();
+    	LOG_INFO("RTC gathered - timestamp is %llu", gBoot_RTC_Timestamp);
 
-        auto dir = DevFS::get().getDeviceDirectory("rtc");
-        dir->add(new RTC_NowFile());
+        TimeManager::get().UNIXtimeIncrement(gBoot_RTC_Timestamp);
 
         PIC::get().accept(RTC::gIRQNumber);
         return 0;
@@ -75,20 +67,16 @@ uint64_t RTC::cmos_now_t::timestamp() const {
     return val;
 }
 
-static uint64_t gTimestamp = 0;
 static uint8_t gIncrement = 0;
 
 static void rtchandler(GPR&, InterruptStack&, void*) {
     outb(RTC::gSelectPort, RTC::gNMI | RTC::gStatusRegisterC);
     inb(RTC::gDataPort);
 
-    __sync_fetch_and_add(&gTimestamp, gIncrement);
+    TimeManager::get().UNIXtimeIncrement(gIncrement);
     gIncrement = 1 - gIncrement;
-    PIC::eoi(8);
-}
 
-uint64_t RTC::timestamp() const {
-    return __sync_fetch_and_add(&gTimestamp, 0);
+    PIC::eoi(8);
 }
 
 RTC& RTC::get() {
@@ -154,7 +142,7 @@ RTC::RTC() {
         rightnow.time.hour, rightnow.time.minute, rightnow.time.second,
         rightnow.date.month, rightnow.date.day, rightnow.date.year);
 
-    __sync_fetch_and_add(&gTimestamp, rightnow.timestamp());
+    gBoot_RTC_Timestamp = rightnow.timestamp();
 
     // interrupts should be disabled when doing this
     bool IF = (readflags() & 0x200) != 0;
