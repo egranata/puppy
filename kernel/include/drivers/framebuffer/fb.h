@@ -43,12 +43,12 @@ class Framebuffer : NOCOPY {
 
         static Framebuffer* init(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);
 
-        void paint(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
+        void paint(uint16_t x, uint16_t y, const color_t&);
         Framebuffer& write(const char* s);
-        Framebuffer& write(const char* s, color_t color);
+        Framebuffer& write(const char* s, const color_t&);
 
         Framebuffer& putc(char c);
-        Framebuffer& putc(char c, color_t color);
+        Framebuffer& putc(char c, const color_t&);
 
         uintptr_t base() const;
         uintptr_t end() const;
@@ -69,8 +69,8 @@ class Framebuffer : NOCOPY {
         color_t getfg();
         color_t getbg();
 
-        void setfg(color_t c);
-        void setbg(color_t c);
+        void setfg(const color_t&);
+        void setbg(const color_t&, bool recolor);
 
         uintptr_t map(uintptr_t base);
 
@@ -79,9 +79,10 @@ class Framebuffer : NOCOPY {
     private:
         Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);
 
+        void recolor(const color_t& oc, const color_t& nc);
         uint32_t* getpixel(uint16_t x, uint16_t y);
-        void putdata(unsigned char* fontdata, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
-        void putchar(uint16_t x, uint16_t y, uint8_t chr, uint8_t r, uint8_t g, uint8_t b);
+        void putdata(unsigned char* fontdata, uint16_t x, uint16_t y, const color_t&);
+        void putchar(uint16_t x, uint16_t y, uint8_t chr, const color_t&);
         uint8_t* row(int16_t n) const;
 
         void advance();

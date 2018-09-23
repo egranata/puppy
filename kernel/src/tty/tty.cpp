@@ -173,5 +173,6 @@ void TTY::setForegroundColor(uint32_t color) {
 }
 
 void TTY::setBackgroundColor(uint32_t color) {
-    mFramebuffer.setbg(Framebuffer::color_t(color));
+    const bool recolor = true;
+    mFramebuffer.setbg(Framebuffer::color_t(color), recolor);
 }

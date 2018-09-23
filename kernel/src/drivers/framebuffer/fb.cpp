@@ -124,11 +124,13 @@ uint16_t Framebuffer::column() const {
 	return mY;
 }
 
-void Framebuffer::setfg(Framebuffer::color_t c) {
+void Framebuffer::setfg(const color_t& c) {
 	mForeground = c;
 }
-void Framebuffer::setbg(Framebuffer::color_t c) {
+void Framebuffer::setbg(const color_t& c, bool recolor) {
+	auto oldBackground = mBackground;
 	mBackground = c;
+	if (recolor) this->recolor(oldBackground, mBackground);
 }
 
 void Framebuffer::setRow(uint16_t r) {
@@ -156,14 +158,26 @@ uint8_t* Framebuffer::row(int16_t n) const {
 	}
 }
 
-void Framebuffer::paint(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
-    auto p = getpixel(x, y);
-	*p = b | (g << 8) | (r << 16);
+void Framebuffer::recolor(const color_t& Old, const color_t& New) {
+	uint32_t oldVal = (uint32_t)Old;
+	uint32_t newVal = (uint32_t)New;
+
+	for(uint16_t x = 0; x < mHeight; ++x) {
+		for (uint16_t y = 0; y < mWidth; ++y) {
+			auto p = getpixel(x,y);
+			if (*p == oldVal) *p = newVal;
+		}
+	}
 }
 
-void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t start_y, uint8_t r, uint8_t g, uint8_t b) {
+void Framebuffer::paint(uint16_t x, uint16_t y, const color_t& color) {
+    auto p = getpixel(x, y);
+	*p = (uint32_t)color;
+}
+
+void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t start_y, const color_t& color) {
 	auto p0 = getpixel(start_x, start_y);
-	auto fg = b | (g << 8) | (r << 16);
+	auto fg = (uint32_t)color;
 	auto p = p0;
 
     for (uint8_t i = 0u; i < FONT_HEIGHT; ++i, p += (mPitch >> 2)) {
@@ -178,9 +192,9 @@ void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t st
     }
 }
 
-void Framebuffer::putchar(uint16_t start_x, uint16_t start_y, uint8_t chr, uint8_t r, uint8_t g, uint8_t b) {
+void Framebuffer::putchar(uint16_t start_x, uint16_t start_y, uint8_t chr, const color_t& color) {
     auto fontdata = &iso_font[chr * FONT_HEIGHT];
-	putdata(fontdata, start_x, start_y, r, g, b);
+	putdata(fontdata, start_x, start_y, color);
 }
 
 void Framebuffer::rewind(bool erase) {
@@ -202,7 +216,7 @@ void Framebuffer::rewind(bool erase) {
 		mX -= FONT_HEIGHT;
 	}
 
-	if (erase) putdata(gFiller, mX, mY, mBackground.r, mBackground.g, mBackground.b);
+	if (erase) putdata(gFiller, mX, mY, mBackground);
 }
 
 void Framebuffer::advance() {
@@ -249,7 +263,7 @@ Framebuffer& Framebuffer::putc(char c) {
 	return putc(c, mForeground);
 }
 
-Framebuffer& Framebuffer::putc(char c, color_t color) {
+Framebuffer& Framebuffer::putc(char c, const color_t& color) {
 	switch (c) {
 		case '\n':
 			nl();
@@ -258,7 +272,7 @@ Framebuffer& Framebuffer::putc(char c, color_t color) {
 			rewind(true);
 			break;
 		default:
-			putchar(mX, mY, c, color.r, color.g, color.b);
+			putchar(mX, mY, c, color);
 			advance();
 			break;
 	}
@@ -269,7 +283,7 @@ Framebuffer& Framebuffer::write(const char* s) {
     return write(s, mForeground);
 }
 
-Framebuffer& Framebuffer::write(const char* s, Framebuffer::color_t color) {
+Framebuffer& Framebuffer::write(const char* s, const color_t& color) {
 	if (s != nullptr) {
 		while(auto c = *s) {
 			putc(c, color);
