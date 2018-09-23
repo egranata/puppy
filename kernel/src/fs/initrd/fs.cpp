@@ -46,7 +46,7 @@ Initrd* Initrd::tryget(uintptr_t address) {
             return nullptr;
     }
     #undef CHECK
-    if (header->ver != 1) {
+    if (header->ver != Initrd::header_t::gExpectedVersion) {
         LOG_WARNING("found initrd version unknown to kernel: %u", header->ver);
         return nullptr;
     }
@@ -66,7 +66,7 @@ Filesystem::File* Initrd::open(const char* path, uint32_t mode) {
         if (f == nullptr) continue;
         if (0 == strcmp((const char*)f->name, path)) {
             LOG_DEBUG("match found - size %u, start pointer %p", f->size, mBase + f->start);
-            return new InitrdFile(mBase + f->start, f->size);
+            return new InitrdFile(mBase + f->start, f->size, f->timestamp);
         }
     }
     return nullptr;

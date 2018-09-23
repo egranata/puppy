@@ -33,8 +33,8 @@ size_t InitrdFile::write(size_t, char*) {
 
 bool InitrdFile::stat(Filesystem::File::stat_t& stat) {
     stat.size = mFileSize;
-    stat.time = 0;
+    stat.time = mTimestamp;
     return true;
 }
 
-InitrdFile::InitrdFile(uint8_t *base, uint32_t size) : mPointer(base), mSizeLeft(size), mFileSize(size) {}
+InitrdFile::InitrdFile(uint8_t *base, uint32_t size, uint64_t time) : mPointer(base), mSizeLeft(size), mFileSize(size), mTimestamp(time) {}

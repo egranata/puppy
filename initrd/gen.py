@@ -14,24 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import argparse
+import calendar
 import sys
 import io
 import struct
 import os
 import os.path
 
+VERSION = 2
+
+def unixnow():
+    return calendar.timegm(datetime.utcnow().utctimetuple())
+
 def writeHeader(stream):
-    header = struct.pack('<B3sBBBB', 0x80, b'IRD', 1, 0, 0, 0)
+    header = struct.pack('<B3sBBBB', 0x80, b'IRD', VERSION, 0, 0, 0)
     stream.write(header)
 
 def writeFile(stream, f):
     name = os.path.basename(f.path)
-    entry = struct.pack('<64sII', bytes(name, 'utf-8'), f.size, f.offset)
+    entry = struct.pack('<64sIIQ', bytes(name, 'utf-8'), f.size, f.offset, unixnow())
     stream.write(entry)
 
 def writeNullFile(stream):
-    entry = struct.pack('<64sII', b'', 0, 0)
+    entry = struct.pack('<64sIIQ', b'', 0, 0, 0)
     stream.write(entry)
 
 def writeTable(stream, files):
@@ -59,7 +66,7 @@ class InputFile(object):
         self.offset = offset
 
 def genInputFiles(files):
-    offset = 4620
+    offset = 5132
     l = []
     for f in files:
         f = InputFile(f, offset)

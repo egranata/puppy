@@ -26,12 +26,13 @@ class InitrdFile : public Filesystem::File, NOCOPY {
         size_t read(size_t, char*) override;
         size_t write(size_t, char*) override;
         bool stat(stat_t&) override;
-        InitrdFile(uint8_t *base, uint32_t size);
+        InitrdFile(uint8_t *base, uint32_t size, uint64_t time);
 
     private:
         uint8_t *mPointer;
         uint32_t mSizeLeft;
         uint32_t mFileSize;
+        uint64_t mTimestamp;
 };
 
 #endif

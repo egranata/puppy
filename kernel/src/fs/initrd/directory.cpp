@@ -25,7 +25,7 @@ bool InitrdDirectory::next(fileinfo_t& fi) {
     auto&& f = mFiles->files[mIndex++];
     fi.kind = fileinfo_t::kind_t::file;
     fi.size = f.size;
-    fi.time = 0;
+    fi.time = f.timestamp;
     bzero(fi.name, sizeof(fi.name));
     strncpy(fi.name, (char*)f.name, gMaxPathSize);
     

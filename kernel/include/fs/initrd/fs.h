@@ -25,6 +25,8 @@ class InitrdDirectory;
 class Initrd : public Filesystem {
     private:
         struct header_t {
+            static constexpr uint8_t gExpectedVersion = 2;
+
             uint8_t magic[4];
             uint8_t ver;
             uint8_t reserved[3];
@@ -33,6 +35,7 @@ class Initrd : public Filesystem {
             uint8_t name[64];
             uint32_t size;
             uint32_t start;
+            uint64_t timestamp;
         } __attribute__((packed));
         struct files_t {
             uint32_t count;
@@ -42,7 +45,7 @@ class Initrd : public Filesystem {
             header_t header;
             files_t table;
         } __attribute__((packed));
-        static_assert(4620 == sizeof(preamble_t));
+        static_assert(5132 == sizeof(preamble_t));
         uint8_t *mBase;
         header_t *mHeader;
         files_t *mFiles;
