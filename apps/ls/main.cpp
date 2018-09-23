@@ -16,6 +16,7 @@
 #include <newlib/stdint.h>
 #include <newlib/stdio.h>
 #include <newlib/stdlib.h>
+#include <newlib/time.h>
 
 uint32_t gNumFiles = 0;
 uint32_t gNumDirectories = 0;
@@ -47,7 +48,13 @@ bool doesPrintSize(int kind) {
 }
 
 void print(dirent* entry) {
+    char time_info[64] = {0};
+
     if (entry == nullptr) return;
+
+    auto lt = localtime(&entry->d_time);
+    strftime(&time_info[0], sizeof(time_info) - 1, "%D %I:%M%p", lt);
+    printf("%s ", &time_info[0]);
 
     gTotalSize += entry->d_size;
 

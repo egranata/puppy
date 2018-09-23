@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include <newlib/stdint.h>
+#include <newlib/time.h>
 
 #define DT_UNKNOWN       0
 #define DT_CHR           2
@@ -21,6 +22,7 @@ struct dirent {
     uint16_t d_reclen; // size of this record
     uint8_t d_type; // entry type
     uint32_t d_size; // size of the filesystem object
+    time_t d_time; // time information associated to this entry
     char d_name[255 + 1];
 };
 

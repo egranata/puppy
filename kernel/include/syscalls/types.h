@@ -121,11 +121,13 @@ enum class file_kind_t {
 struct file_stat_t {
     file_kind_t kind;
     uint32_t size;
+    uint64_t time;
 };
 
 struct file_info_t {
     using kind_t = file_kind_t;
     uint32_t size;
+    uint64_t time;
     path_name_t name;
     file_kind_t kind;
 };

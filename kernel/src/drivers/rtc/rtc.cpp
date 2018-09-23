@@ -18,6 +18,7 @@
 #include <kernel/i386/idt.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/libc/sprint.h>
+#include <kernel/libc/time.h>
 #include <kernel/log/log.h>
 #include <kernel/panic/panic.h>
 
@@ -60,68 +61,16 @@ bool RTC::cmos_now_t::operator==(const cmos_now_t& n) const {
     return (n.date == date) && (n.time == time);
 }
 
-static bool leap(uint16_t year) {
-    if (0 != (year % 4)) return false;
-    if (0 != (year % 100)) return true;
-    return 0 == (year % 400);    
-}
-
-bool RTC::cmos_now_t::leap() const {
-    return ::leap(date.year);
-}
-
-static uint8_t gDays[] = {
-    0,
-    31, // Jan
-    28, // Feb
-    31, // Mar
-    30, // Apr
-    31, // May
-    30, // Jun
-    31, // Jul
-    31, // Aug
-    30, // Sep
-    31, // Oct
-    30, // Nov
-    31 // Dec
-};
-
-static uint8_t gLeapDays[] = {
-    0,
-    31, // Jan
-    29, // Feb
-    31, // Mar
-    30, // Apr
-    31, // May
-    30, // Jun
-    31, // Jul
-    31, // Aug
-    30, // Sep
-    31, // Oct
-    30, // Nov
-    31 // Dec
-};
-
-static constexpr uint64_t gSecondsInDay = 60 /* secs/min */ * 60 /* min/hr */ * 24 /* hr */;
-
 uint64_t RTC::cmos_now_t::timestamp() const {
-    uint64_t val = 0;
-
-    // add up all years until the current one
-    for (auto y = 1970u; y < date.year; ++y) {
-        val += gSecondsInDay * (::leap(y) ? 366 : 365);
-    }
-
-    // for the current year, add up months fully elapsed
-    for (auto m = 1; m < date.month; ++m) {
-        val += gSecondsInDay * m[leap() ? gLeapDays : gDays];
-    }
-
-    // for the current month, add up days fully elapsed
-    val += (date.day - 1) * gSecondsInDay;
-
-    // and now add time components
-    val += time.second + (60 * (time.minute + (60 * time.hour)));
+    uint64_t val = date_components_to_epoch(date_components_t{
+        date.day,
+        date.month,
+        date.year
+    }) + time_components_to_epoch(time_components_t{
+        time.hour,
+        time.minute,
+        time.second
+    });
 
     return val;
 }

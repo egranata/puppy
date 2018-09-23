@@ -42,7 +42,6 @@ class RTC : NOCOPY {
 
             bool operator==(const cmos_now_t&) const;
             void tick();
-            bool leap() const;
             uint64_t timestamp() const;
         };
         static RTC& get();

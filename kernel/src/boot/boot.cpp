@@ -129,6 +129,14 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
+        description : "Setup date/time",
+        visible : false,
+        operation : boot::rtc::init,
+        onSuccess : nullptr,
+        onFailure : boot::rtc::fail
+    });
+
+    registerBootPhase(bootphase_t{
         description : "Setup keyboard",
         visible : false,
         operation : boot::ps2::init,
@@ -150,14 +158,6 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::pit::init,
         onSuccess : nullptr,
         onFailure : boot::pit::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Setup date/time",
-        visible : false,
-        operation : boot::rtc::init,
-        onSuccess : nullptr,
-        onFailure : boot::rtc::fail
     });
 
     registerBootPhase(bootphase_t{

@@ -17,9 +17,12 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/log/log.h>
 #include <kernel/libc/memory.h>
+#include <kernel/libc/time.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/deleteptr.h>
 #include <kernel/syscalls/types.h>
+
+LOG_TAG(FATCALENDAR, 0);
 
 static uint8_t gNextId() {
     static uint8_t gId = 0;
@@ -28,6 +31,30 @@ static uint8_t gNextId() {
         PANIC("unable to mount more than 10 FAT devices");
     }
     return id;
+}
+
+static uint64_t fatDateToUnix(uint16_t fdate) {
+    auto day = fdate & 31;
+    auto month = (fdate >> 5) & 15;
+    auto year = (fdate >> 9) & 127;
+    LOG_DEBUG("out of fdate=%x, day=%u month=%u year=%u", fdate, day, month, year);
+    return date_components_to_epoch({
+        (uint8_t)day,
+        (uint8_t)month,
+        (uint16_t)(year + 1980)
+    });
+}
+
+static uint64_t fatTimeToUnix(uint16_t ftime) {
+    auto second = 2 * (ftime & 31); // FAT uses an "every other second" model
+    auto minute = (ftime >> 5) & 63;
+    auto hour = (ftime >> 11) & 31;
+    LOG_DEBUG("out of ftime=%x, hour=%u minute=%u second=%u", ftime, hour, minute, second);
+    return time_components_to_epoch({
+        (uint8_t)hour,
+        (uint8_t)minute,
+        (uint8_t)second
+    });
 }
 
 FATFileSystem::FATFileSystem(Volume* vol) {
@@ -46,7 +73,7 @@ FATFileSystem::FATFileSystem(Volume* vol) {
 
 class FATFileSystemFile : public Filesystem::File {
     public:
-        FATFileSystemFile(FIL *file) : mFile(file) {}
+        FATFileSystemFile(FIL *file, FILINFO fi) : mFile(file), mFileInfo(fi) {}
 
         bool seek(size_t pos) override {
             switch (f_lseek(mFile, pos)) {
@@ -76,7 +103,8 @@ class FATFileSystemFile : public Filesystem::File {
 
         bool stat(stat_t& stat) override {
             stat.kind = file_kind_t::file;
-            stat.size = f_size(mFile);
+            stat.size = mFileInfo.fsize;
+            stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);
             return true;
         }
 
@@ -92,6 +120,7 @@ class FATFileSystemFile : public Filesystem::File {
 
     private:
         FIL *mFile;
+        FILINFO mFileInfo;
 };
 
 class FATFileSystemDirectory : public Filesystem::Directory {
@@ -107,6 +136,7 @@ class FATFileSystemDirectory : public Filesystem::Directory {
                     bzero(fi.name, sizeof(fi.name));
                     strncpy(fi.name, fil.fname, sizeof(fi.name));
                     fi.size = fil.fsize;
+                    fi.time = fatDateToUnix(fil.fdate) + fatTimeToUnix(fil.ftime);
                     fi.kind = (fil.fattrib & AM_DIR) ? file_kind_t::directory : file_kind_t::file;
                     return true;
             }
@@ -136,6 +166,7 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
     {
         delete_ptr<char> fullpath_delptr(fullpath);
         delete_ptr<FIL> fil_delptr(fil);
+        FILINFO fileInfo;
 
         auto realmode = 0;
         if (mode & FILE_OPEN_READ) realmode |= FA_READ;
@@ -146,10 +177,16 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
 
         LOG_DEBUG("VFS mode: %x, FatFS mode: %x", mode, realmode);
 
+        switch(f_stat(fullpath, &fileInfo)) {
+            case FR_OK: break;
+            default:
+                return nullptr;
+        }
+
         switch (f_open(fil, fullpath, realmode)) {
             case FR_OK:
                 LOG_DEBUG("returning file handle %p for %s", fil, fullpath);
-                return new FATFileSystemFile(fil_delptr.reset());
+                return new FATFileSystemFile(fil_delptr.reset(), fileInfo);
             default:
                 return nullptr;
         }

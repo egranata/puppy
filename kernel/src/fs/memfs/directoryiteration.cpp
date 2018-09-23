@@ -34,6 +34,7 @@ Filesystem::Directory* MemFS::opendir(const char* path) {
             fi.kind = mCurrent->kind();
             ++mCurrent;
             fi.size = 0;
+            fi.time = 0;
             return true;
         }
 

@@ -114,7 +114,7 @@ HANDLER2(fseek,fid,pos) {
         } else {
             return ERR(NO_SUCH_FILE);
         }
-    }    
+    }
 }
 
 HANDLER3(fioctl,fid,a1,a2) {
@@ -159,6 +159,7 @@ syscall_response_t freaddir_syscall_handler(uint16_t fid, file_info_t* info) {
             if (ok) {
                 info->kind = finfo.kind;
                 info->size = finfo.size;
+                info->time = finfo.time;
                 bzero(info->name, sizeof(info->name));
                 strncpy(info->name, finfo.name, gMaxPathSize);
                 return OK;

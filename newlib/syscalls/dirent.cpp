@@ -59,6 +59,7 @@ NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
         strncpy(dir->current.d_name, fi.name, gMaxPathSize);
         dir->current.d_ino = 0;
         dir->current.d_size = fi.size;
+        dir->current.d_time = fi.time;
         switch (fi.kind) {
             case file_kind_t::blockdevice:
                 dir->current.d_type = DT_BLK;

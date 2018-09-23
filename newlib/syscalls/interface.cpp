@@ -165,6 +165,7 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
                 break;
         }
         st->st_size = fs.size;
+        st->st_atime = fs.time;
         return 0;
     } else {
         errno = EIO;

@@ -198,9 +198,10 @@ class RootDirectory : public Filesystem::Directory {
             strncpy(fi.name, mi.path, gMaxPathSize);
             fi.kind = Filesystem::FilesystemObject::kind_t::directory;
             fi.size = 0;
-            
+            fi.time = 0;
+
             ++mIterator;
-            
+
             return true;
         }
     private:

@@ -33,6 +33,7 @@ size_t InitrdFile::write(size_t, char*) {
 
 bool InitrdFile::stat(Filesystem::File::stat_t& stat) {
     stat.size = mFileSize;
+    stat.time = 0;
     return true;
 }
 
