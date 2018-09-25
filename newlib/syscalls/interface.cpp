@@ -301,7 +301,7 @@ NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags)
     flags &= ~PROCESS_EMPTY_ENVIRONMENT;
 
     auto eo = exec_syscall(rp.ptr, args, clear_env ? nullptr : environ, flags);
-    if (eo & 1) return -1;
+    if (eo & 1) ERR_EXIT(ECHILD);
     return eo >> 1;
 }
 

@@ -225,6 +225,7 @@ ProcessManager::ProcessManager() {
     gDummyProcess.path = strdup("kernel task");
     gDummyProcess.gdtidx = gGDTBitmap().next();
     gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY);
+    gDummyProcess.flags.system = true;
 
     auto dtbl = addr_gdt<uint64_t*>();
 
@@ -385,6 +386,15 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     }
     if (si.cr3 == 0) {
         PANIC("set a valid non-zero CR3 before spawning");
+    }
+
+    if (gCurrentProcess) {
+        if (!gCurrentProcess->flags.system) {
+            if (si.priority > gCurrentProcess->priority.prio0) {
+                LOG_ERROR("cannot spawn a process with higher priority(%u) than its parent's(%u)", si.priority, gCurrentProcess->priority.prio0);
+                return nullptr;
+            }
+        }
     }
 
     bool ok = false;

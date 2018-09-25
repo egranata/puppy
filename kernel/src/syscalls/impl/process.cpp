@@ -55,9 +55,10 @@ syscall_response_t exec_syscall_handler(const char* path, const char* args, char
     auto&& pmm = ProcessManager::get();
 
     auto newproc = pmm.exec(path, args, (const char**)env, flags);
-    if (flags & PROCESS_IS_FOREGROUND) {
-        newproc->ttyinfo.tty->pushfg(newproc->pid);
-    }
+
+    if (newproc == nullptr) return ERR(NO_SUCH_PROCESS);
+
+    if (flags & PROCESS_IS_FOREGROUND) newproc->ttyinfo.tty->pushfg(newproc->pid);
     return OK | (newproc->pid << 1);
 }
 
@@ -99,6 +100,8 @@ syscall_response_t clone_syscall_handler(uintptr_t neweip) {
     auto&& pmm = ProcessManager::get();
 
     auto newproc = pmm.cloneProcess(neweip);
+
+    if (newproc == nullptr) return ERR(NO_SUCH_PROCESS);
 
     return OK | (newproc->pid << 1);
 }
