@@ -36,6 +36,11 @@ namespace newlib::puppy::impl {
         }
 
         template<typename U = T>
+        U* get() {
+            return (U*)ptr;
+        }
+
+        template<typename U = T>
         scoped_ptr_t<T>& operator=(const scoped_ptr_t<U>&) = delete;
 
         ~scoped_ptr_t() {
