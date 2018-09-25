@@ -109,6 +109,16 @@ struct message_t {
     uint32_t arg2;
 };
 
+enum class process_state_t : uint8_t {
+    NEW, /** created and not schedulable */
+    AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */
+    WAITING, /** in a waitqueue */
+    SLEEPING, /** waiting to be woken up at sleeptill */
+    EXITED, /** waiting for parent to collect */
+    COLLECTED, /** waiting to be torn down by the system */
+    COLLECTING, /** waiting to collect a child */
+};
+
 static constexpr size_t gMaxPathSize = 255;
 typedef char path_name_t[gMaxPathSize + 1];
 
@@ -138,6 +148,7 @@ struct process_info_t {
 
     pid_t pid;
     pid_t ppid;
+    process_state_t state;
     char path[gMaxPathSize];
     char args[gMaxCommandLineSize];
 

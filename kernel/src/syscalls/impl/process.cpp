@@ -118,6 +118,7 @@ syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count)
         process_info_t& pi = info[i++];
         pi.pid = p->pid;
         pi.ppid = p->ppid;
+        pi.state = p->state;
         if (p->path) {
             strncpy(&pi.path[0], p->path, sizeof(pi.path));
         } else {

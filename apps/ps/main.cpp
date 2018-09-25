@@ -16,17 +16,30 @@
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
 
+static const char* state2String(process_state_t state) {
+    switch (state) {
+        case process_state_t::NEW:        return "New       ";
+        case process_state_t::AVAILABLE:  return "Available ";
+        case process_state_t::WAITING:    return "Waiting   ";
+        case process_state_t::SLEEPING:   return "Sleeping  ";
+        case process_state_t::EXITED:     return "Exited    ";
+        case process_state_t::COLLECTED:  return "Collected ";
+        case process_state_t::COLLECTING: return "Collecting";
+        default:                          return "Unknown   ";
+    }
+}
+
 int main() {
     auto sz = proctable_syscall(nullptr, 0);
     sz >>= 1;
     process_info_t* ptable = new process_info_t[sz];
     proctable_syscall(ptable, sz);
 
-    printf("PID    PPID       NAME                    VM            PM               RT\n");
+    printf("PID    PPID       STATE          NAME                    VM            PM               RT\n");
     for (auto i = 0u; i < sz; ++i) {
         auto& p = ptable[i];
-        printf("%-7u%-7u    %-20.20s    %-.10u    %-.10u       %-4u\n",
-               p.pid, p.ppid, p.path, p.vmspace, p.pmspace, p.runtime);
+        printf("%-7u%-7u    %s     %-20.20s    %-.10u    %-.10u       %-4llu\n",
+               p.pid, p.ppid, state2String(p.state), p.path, p.vmspace, p.pmspace, p.runtime);
     }
 
     return 0;

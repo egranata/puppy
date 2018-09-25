@@ -38,16 +38,7 @@ class Mutex;
 
 struct process_t {
     static constexpr size_t gDefaultStackSize = 4_MB;
-
-    enum class State : uint8_t {
-        NEW, /** created and not schedulable */
-        AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */
-        WAITING, /** in a waitqueue */
-        SLEEPING, /** waiting to be woken up at sleeptill */
-        EXITED, /** waiting for parent to collect */
-        COLLECTED, /** waiting to be torn down by the system */
-        COLLECTING, /** waiting to collect a child */
-    };
+    using State = process_state_t;
     typedef uint16_t pid_t;
 
     TaskStateSegment tss;
