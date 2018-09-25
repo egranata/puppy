@@ -28,48 +28,32 @@ namespace tasks::scheduler {
             auto cur_task = gCurrentProcess;
             
             auto next_task = ready.front();
-            #if LOG_SCHEDULER
             LOG_DEBUG("front of ready queue is %p", next_task);
-            #endif
             ready.erase(ready.begin());
-            #if LOG_SCHEDULER
             LOG_DEBUG("erased front of ready queue");
-            #endif
 
             switch(next_task->state) {
                 case process_t::State::AVAILABLE:
-                    #if LOG_SCHEDULER
                     LOG_DEBUG("next_task = %p %u is available, scheduling", next_task, next_task->pid);
-                    #endif
                     break;
                 case process_t::State::EXITED:
                     pmm.enqueueForDeath(next_task);
                     /* fallthrough */
                 default:
-                    #if LOG_SCHEDULER
                     LOG_DEBUG("next_task = %p %u is not available, keep going", next_task, next_task->pid);
-                    #endif
                     continue;
             }
 
             ready.push_back(next_task);
 
-            #if LOG_SCHEDULER
             LOG_DEBUG("cur_task = %p %u - next_task = %p %u", cur_task, cur_task->pid, next_task, next_task->pid);
-            #endif
 
             if (next_task == cur_task) {
-                #if LOG_SCHEDULER
                 LOG_DEBUG("task %u yielding to itself, so nothing to see here", cur_task->pid);        
-                #endif
             } else {
-                #if LOG_SCHEDULER
                 LOG_DEBUG("task %u yielding to task %u", cur_task->pid, next_task->pid);
-                #endif
                 ProcessManager::ctxswitch(next_task);
-                #if LOG_SCHEDULER
                 LOG_DEBUG("back from yielding");
-                #endif
             }
         }
     }
