@@ -162,10 +162,20 @@ syscall_response_t getcurdir_syscall_handler(char* dest, size_t* sz) {
 }
 
 syscall_response_t setcurdir_syscall_handler(const char* arg) {
+    auto&& vfs(VFS::get());
+
     if (!VFS::isAbsolutePath(arg)) {
         return ERR(NO_SUCH_FILE);
     }
-    if (gCurrentProcess->cwd) free((void*)gCurrentProcess->cwd);
-    gCurrentProcess->cwd = strdup(arg);
-    return OK;
+
+    auto&& isdir = vfs.opendir(arg);
+    if (isdir.first == nullptr || isdir.second == nullptr) {
+        return ERR(NO_SUCH_FILE);
+    } else {
+        isdir.first->close(isdir.second);
+
+        if (gCurrentProcess->cwd) free((void*)gCurrentProcess->cwd);
+        gCurrentProcess->cwd = strdup(arg);
+        return OK;
+    }
 }

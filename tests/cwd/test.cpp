@@ -43,6 +43,7 @@ class TheTest : public Test {
             CHECK_EQ(0, strcmp("/system", cwd));
             readFile("../tmp/file.txt", msg);
             readFile("/tmp/file.txt", msg);
+            CHECK_EQ(-1, chdir("/noSuchPath"));
         }
 
     private:
