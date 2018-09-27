@@ -191,7 +191,16 @@ static VFSFilesystem gVFSFilesystem;
 
 class RootDirectory : public Filesystem::Directory {
     public:
-        RootDirectory() : mIterator(VFS::get().mMounts.begin()), mEnd(VFS::get().mMounts.end()) {}
+        RootDirectory() : mIterator(VFS::get().mMounts.begin()), mEnd(VFS::get().mMounts.end()) {
+            mTime = TimeManager::get().UNIXtime();
+        }
+
+        bool stat(stat_t& stat) {
+            stat.kind = file_kind_t::directory;
+            stat.size = 0;
+            stat.time = mTime;
+            return true;
+        }
 
         bool next(fileinfo_t& fi) {
             if (mIterator == mEnd) return false;
@@ -211,6 +220,7 @@ class RootDirectory : public Filesystem::Directory {
     private:
         decltype(VFS::mMounts)::iterator mIterator;
         decltype(VFS::mMounts)::iterator mEnd;
+        uint64_t mTime;
 };
 
 VFS::filehandle_t VFS::opendir(const char* path) {

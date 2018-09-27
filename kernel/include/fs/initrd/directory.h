@@ -24,6 +24,8 @@
 class InitrdDirectory : public Filesystem::Directory, NOCOPY {
     public:
         bool next(fileinfo_t&) override;
+        bool stat(stat_t& stat) override;
+
         InitrdDirectory(Initrd::files_t*);
 
     private:

@@ -97,7 +97,7 @@ HANDLER2(fstat,fid,dst) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            return ((Filesystem::File*)file.second)->stat(*stat) ? OK : ERR(NO_SUCH_FILE);
+            return file.second->stat(*stat) ? OK : ERR(NO_SUCH_FILE);
         } else {
             return ERR(NO_SUCH_FILE);
         }

@@ -125,7 +125,7 @@ class FATFileSystemFile : public Filesystem::File {
 
 class FATFileSystemDirectory : public Filesystem::Directory {
     public:
-        FATFileSystemDirectory(DIR* dir) : mDir(dir) {}
+        FATFileSystemDirectory(DIR* dir, FILINFO fi) : mDir(dir), mFileInfo(fi) {}
 
         bool next(fileinfo_t& fi) override {
             FILINFO fil;
@@ -142,6 +142,13 @@ class FATFileSystemDirectory : public Filesystem::Directory {
             }
         }
 
+        bool stat(stat_t& stat) override {
+            stat.kind = file_kind_t::directory;
+            stat.size = 0;
+            stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);
+            return true;
+        }
+
         ~FATFileSystemDirectory() {
             if (mDir != nullptr) {
                 f_closedir(mDir);
@@ -152,6 +159,7 @@ class FATFileSystemDirectory : public Filesystem::Directory {
 
     private:
         DIR* mDir;
+        FILINFO mFileInfo;
 };
 
 Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
@@ -238,11 +246,19 @@ Filesystem::Directory* FATFileSystem::opendir(const char* path) {
     delete_ptr<char> fullpath((char*)calloc(len, 1));
     sprint(fullpath.get(), len, "%d:%s", mFatFS.pdrv, path);
     delete_ptr<DIR> dir((DIR*)calloc(sizeof(DIR), 1));
+    
+    FILINFO fileInfo;
+    switch(f_stat(fullpath.get(), &fileInfo)) {
+        case FR_OK: break;
+        default:
+            bzero(&fileInfo, sizeof(fileInfo));
+            break;
+    }
 
     switch(f_opendir(dir.get(), fullpath.get())) {
         case FR_OK:
             LOG_DEBUG("returning handle %p for directory %s", dir.get(), fullpath.get());
-            return new FATFileSystemDirectory(dir.reset());
+            return new FATFileSystemDirectory(dir.reset(), fileInfo);
         default:
             return nullptr;
     }

@@ -25,10 +25,14 @@ class Filesystem {
     public:
         class FilesystemObject {
             public:
+                using stat_t = file_stat_t;
+
                 static constexpr size_t gFilenameSize = 32;
                 typedef unsigned char filename_t[gFilenameSize];
                 using kind_t = file_kind_t;
                 virtual ~FilesystemObject() = default;
+
+                virtual bool stat(stat_t&) = 0;
 
                 kind_t kind() const;
                 void kind(kind_t);
@@ -44,7 +48,7 @@ class Filesystem {
                 virtual bool seek(size_t) = 0;
                 virtual size_t read(size_t, char*) = 0;
                 virtual size_t write(size_t, char*) = 0;
-                virtual bool stat(stat_t&) = 0;
+                
                 virtual uintptr_t ioctl(uintptr_t, uintptr_t);
 
                 virtual ~File() = default;
@@ -56,9 +60,9 @@ class Filesystem {
         class Directory : public FilesystemObject {
             public:
                 using fileinfo_t = file_info_t;
+                using stat_t = file_stat_t;
 
                 virtual bool next(fileinfo_t&) = 0;
-
                 virtual ~Directory() = default;
 
             protected:
