@@ -212,10 +212,25 @@ static void runInShell(const char* program, const char* args, bool is_bg) {
     }
 }
 
-int main(int, const char**) {
+static void runInitShellTasks() {
+    klog_syscall("shell is up and running");
+}
+
+int main(int argc, const char** argv) {
     setenv("PWD", getCurrentDirectory().c_str(), 1);
 
-    klog_syscall("shell is up and running");
+    bool is_init_shell = false;
+    for (int i = 1; i < argc; ++i) {
+        if (0 == strcmp(argv[i], "--init")) {
+            is_init_shell = true;
+            break;
+        }
+    }
+
+    if (is_init_shell) {
+        runInitShellTasks();
+    }
+
     bool eof = false;
     eastl::string prompt;
 

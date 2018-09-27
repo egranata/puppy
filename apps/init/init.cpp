@@ -121,7 +121,7 @@ bool runInitScript() {
 }
 
 uint16_t runShell() {
-    auto pid = exec_syscall("/system/apps/shell", nullptr, environ, PROCESS_IS_FOREGROUND);
+    auto pid = exec_syscall("/system/apps/shell", "--init", environ, PROCESS_IS_FOREGROUND);
     return pid >> 1;
 }
 
