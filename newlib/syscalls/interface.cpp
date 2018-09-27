@@ -41,6 +41,12 @@ extern "C" char **environ;
     return -1; \
 }
 
+NEWLIB_IMPL_REQUIREMENT int access(const char *fn, int /*flags: if a file exists, it should be possible to read/write it*/) {
+    struct stat s;
+    if (stat(fn, &s)) ERR_EXIT(errno);
+    return 0;
+}
+
 NEWLIB_IMPL_REQUIREMENT char* getcwd (char* buf = nullptr, size_t sz = 0) {
     if (buf == nullptr) sz = 0;
     auto ok = getcurdir_syscall(buf, &sz);
