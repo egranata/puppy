@@ -21,6 +21,26 @@
 
 LOG_TAG(FILEIO, 2);
 
+static Filesystem::File* asFile(Filesystem::FilesystemObject* object) {
+    switch (object->kind()) {
+        case file_kind_t::directory: return nullptr;
+        case file_kind_t::blockdevice:
+        case file_kind_t::file: return (Filesystem::File*)object;
+    }
+
+    return nullptr;
+}
+
+static Filesystem::Directory* asDirectory(Filesystem::FilesystemObject* object) {
+    switch (object->kind()) {
+        case file_kind_t::directory: return (Filesystem::Directory*)object;
+        case file_kind_t::blockdevice:
+        case file_kind_t::file: return nullptr;
+    }
+
+    return nullptr;
+}
+
 syscall_response_t fopen_syscall_handler(const char* path, uint32_t mode) {
     auto&& vfs(VFS::get());
 
@@ -65,7 +85,9 @@ HANDLER3(fread,fid,len,buf) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            auto sz = ((Filesystem::File*)file.second)->read(len, buffer);
+            auto realFile = asFile(file.second);
+            if (realFile == nullptr) return ERR(NOT_A_FILE);
+            auto sz = realFile->read(len, buffer);
             TAG_DEBUG(FILEIO, "read %u bytes to handle %u", sz, fid);
             return OK | (sz << 1);
         } else {
@@ -81,7 +103,9 @@ HANDLER3(fwrite,fid,len,buf) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            auto sz = ((Filesystem::File*)file.second)->write(len, buffer);
+            auto realFile = asFile(file.second);
+            if (realFile == nullptr) return ERR(NOT_A_FILE);
+            auto sz = realFile->write(len, buffer);
             TAG_DEBUG(FILEIO, "written %u bytes to handle %u", sz, fid);
             return OK | (sz << 1);
         } else {
@@ -110,7 +134,9 @@ HANDLER2(fseek,fid,pos) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            return ((Filesystem::File*)file.second)->seek(pos) ? OK : ERR(NO_SUCH_FILE);
+            auto realFile = asFile(file.second);
+            if (realFile == nullptr) return ERR(NOT_A_FILE);
+            return realFile->seek(pos) ? OK : ERR(NO_SUCH_FILE);
         } else {
             return ERR(NO_SUCH_FILE);
         }
@@ -123,7 +149,9 @@ HANDLER3(fioctl,fid,a1,a2) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            auto ret = ((Filesystem::File*)file.second)->ioctl(a1,a2);
+            auto realFile = asFile(file.second);
+            if (realFile == nullptr) return ERR(NOT_A_FILE);
+            auto ret = realFile->ioctl(a1,a2);
             return OK | (ret << 1);
         } else {
             return ERR(NO_SUCH_FILE);
@@ -155,7 +183,9 @@ syscall_response_t freaddir_syscall_handler(uint16_t fid, file_info_t* info) {
         return ERR(NO_SUCH_FILE);
     } else {
         if (file.second) {
-            auto ok = ((Filesystem::Directory*)file.second)->next(finfo);
+            auto realDirectory = asDirectory(file.second);
+            if (realDirectory == nullptr) return ERR(NOT_A_FILE);
+            auto ok = realDirectory->next(finfo);
             if (ok) {
                 info->kind = finfo.kind;
                 info->size = finfo.size;

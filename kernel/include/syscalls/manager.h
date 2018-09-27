@@ -44,6 +44,7 @@ class SyscallManager : NOCOPY {
         DEFINE_ERROR(NO_SUCH_OBJECT, 10);
         DEFINE_ERROR(NOT_ALLOWED, 11);
         DEFINE_ERROR(ALREADY_LOCKED, 12);
+        DEFINE_ERROR(NOT_A_FILE, 13);
 
         struct Request {
             uint8_t code;
