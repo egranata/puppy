@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdint.h>
+#include <stdint.h>
 #include <newlib/stdio.h>
 #include <newlib/stdlib.h>
 #include <newlib/string.h>
@@ -26,6 +26,9 @@
 
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
+
+#include "include/builtin.h"
+#include "include/cwd.h"
 
 void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {
@@ -62,16 +65,6 @@ eastl::vector<eastl::string> getPathEntries() {
     return result;
 }
 
-eastl::string getCurrentDirectory() {
-    eastl::string cwds;
-
-    auto cwd = getcwd(nullptr, 0);
-    if (cwd && cwd[0]) cwds.append_sprintf("%s", cwd);
-
-    free(cwd);
-    return cwds;
-}
-
 void tryCollect() {
     int pid = 0;
     int exitcode = 0;
@@ -84,64 +77,6 @@ void tryCollect() {
 static void trim(eastl::string& s) {
     s.erase(0, s.find_first_not_of(' '));
     s.erase(s.find_last_not_of(' ') + 1);
-}
-
-static void cd_exec(const char* args) {
-    if (chdir(args)) {
-        printf("can't set cwd to '%s'\n", args);
-    } else {
-        setenv("PWD", getCurrentDirectory().c_str(), 1);
-    }
-}
-
-static void env_exec(const char* args) {
-    if (args) {
-        char* eq = strchr(args, '=');
-        if (eq == nullptr) {
-                auto val = getenv(args);
-                printf("%s=%s\n", args, val);
-        } else {
-            // env ENVV= deletes the variable
-            if (eq[1] == 0) {
-                *eq = 0;
-                unsetenv(args);
-            } else {
-                putenv((char*)args);
-            }
-        }
-    } else {
-        auto i = 0;
-        while(environ && environ[i]) {
-            printf("%s\n", environ[i++]);
-        }
-    }
-}
-
-struct builtin_cmd_t {
-    const char* command;
-    void(*executor)(const char*);
-};
-
-builtin_cmd_t builtin_cmds[] = {
-    {"cd", cd_exec},
-    {"env", env_exec},
-    {nullptr, nullptr}
-};
-
-static bool tryExecBuiltin(const char* program, const char* args) {
-    size_t i = 0u;
-
-    while (builtin_cmds[i].command) {
-        if (0 == strcmp(builtin_cmds[i].command, program)) {
-            if (builtin_cmds[i].executor) {
-                builtin_cmds[i].executor(args);
-            }
-            return true;
-        }
-        ++i;
-    }
-
-    return false;
 }
 
 eastl::string getline(const char* prompt, bool& eof) {
@@ -216,6 +151,22 @@ static void runInitShellTasks() {
     klog_syscall("shell is up and running");
 }
 
+static void processInput(eastl::string cmdline) {
+    trim(cmdline);
+    if(cmdline.empty()) return;
+
+    const bool is_bg = (cmdline.back() == '&');
+    if (is_bg) cmdline.pop_back();
+    size_t arg_sep = cmdline.find(' ');
+    if (arg_sep == eastl::string::npos) {
+        runInShell(cmdline.c_str(), nullptr, is_bg);
+    } else {
+        auto program = cmdline.substr(0, arg_sep);
+        auto args = cmdline.substr(arg_sep + 1);
+        runInShell(program.c_str(), args.c_str(), is_bg);
+    }
+}
+
 int main(int argc, const char** argv) {
     setenv("PWD", getCurrentDirectory().c_str(), 1);
 
@@ -240,18 +191,6 @@ int main(int argc, const char** argv) {
         getPrompt(prompt);
         auto cmdline = getline(prompt.c_str(), eof);
         if (eof) exit(0);
-        trim(cmdline);
-        if(cmdline.empty()) continue;
-
-        const bool is_bg = (cmdline.back() == '&');
-        if (is_bg) cmdline.pop_back();
-        size_t arg_sep = cmdline.find(' ');
-        if (arg_sep == eastl::string::npos) {
-            runInShell(cmdline.c_str(), nullptr, is_bg);
-        } else {
-            auto program = cmdline.substr(0, arg_sep);
-            auto args = cmdline.substr(arg_sep + 1);
-            runInShell(program.c_str(), args.c_str(), is_bg);
-        }
+        processInput(cmdline);
     }
 }
