@@ -22,8 +22,10 @@
 #include <newlib/sys/process.h>
 #include <newlib/sys/wait.h>
 #include <newlib/sys/unistd.h>
+#include <newlib/sys/stat.h>
 
 #include <EASTL/string.h>
+#include <EASTL/vector.h>
 
 void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {
@@ -37,6 +39,27 @@ void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     } else {
         printf("[child %u] terminated - exit status %d\n", pid, exitcode);
     }
+}
+
+eastl::vector<eastl::string> getPathEntries() {
+    eastl::vector<eastl::string> result;
+
+    char* path = getenv("PATH");
+    if (path == nullptr || path[0] == 0) return result;
+
+    eastl::string s_path(path);
+    while(true) {
+        size_t pos = s_path.find(':');
+        if (pos == eastl::string::npos) {
+            result.push_back(s_path);
+            break;
+        }
+        auto item = s_path.substr(0, pos);
+        s_path = s_path.substr(pos+1);
+        result.push_back(item);
+    }
+
+    return result;
 }
 
 eastl::string getCurrentDirectory() {
@@ -151,9 +174,34 @@ void getPrompt(eastl::string& prompt) {
     }
 }
 
+eastl::string getProgramPath(const char* program) {
+    eastl::string program_s(program);
+
+    // absolute or relative paths get returned as-is
+    if (program[0] == '/') return program_s;
+    if (program_s.find("./") != eastl::string::npos) return program_s;
+
+    // plain executable names get searched in PATH
+    auto path_candidates = getPathEntries();
+    for (auto& path_candidate : path_candidates) {
+        eastl::string candidate;
+        candidate.append_sprintf("%s/%s", path_candidate.c_str(), program);
+        struct stat st;
+        if (stat(candidate.c_str(), &st)) continue;
+        return candidate;
+    }
+
+    return eastl::string();
+}
+
 static void runInShell(const char* program, const char* args, bool is_bg) {
     if (is_bg || !tryExecBuiltin(program, args)) {
-        auto chld = spawn(program, args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
+        auto real_program = getProgramPath(program);
+        if (real_program.empty()) {
+            printf("%s: not found in PATH\n", program);
+            return;
+        }
+        auto chld = spawn(real_program.c_str(), args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
         if (is_bg) {
             printf("[child %u] spawned\n", chld);
         } else {
