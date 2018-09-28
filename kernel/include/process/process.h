@@ -69,7 +69,7 @@ struct process_t {
         uint8_t prio; // current priority
     } priority;
     uint8_t usedticks;
-    uint8_t fpstate[108];
+    uint8_t fpstate[512] __attribute__((aligned(16))); // TODO: FPU state takes 108 bytes - could we dynamically shrink this?
     Handletable<VFS::filehandle_t, 32> fds;
     Handletable<Semaphore*, 32> semas;
     Handletable<Mutex*, 32> mutexes;

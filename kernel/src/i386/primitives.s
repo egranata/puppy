@@ -283,15 +283,29 @@ fpinit:
 _fpinit_cw:
 	dw 0x37A
 
-global fpsave
-fpsave:
+global fpsave_sse
+fpsave_sse:
+	mov eax, [esp + 4]
+	fxsave [eax]
+	xor eax, eax
+	ret
+
+global fprestore_sse
+fprestore_sse:
+	mov eax, [esp + 4]
+	fxrstor [eax]
+	xor eax, eax
+	ret
+
+global fpsave_fpu
+fpsave_fpu:
 	mov eax, [esp + 4]
 	fnsave [eax]
 	xor eax, eax
 	ret
 
-global fprestore
-fprestore:
+global fprestore_fpu
+fprestore_fpu:
 	mov eax, [esp + 4]
 	frstor [eax]
 	xor eax, eax

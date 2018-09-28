@@ -14,6 +14,8 @@
 
 #include <kernel/i386/primitives.h>
 #include <kernel/log/log.h>
+#include <kernel/i386/cpuid.h>
+#include <kernel/boot/phase.h>
 
 namespace boot::i386 {
     uint32_t init() {
@@ -22,11 +24,42 @@ namespace boot::i386 {
         // must set this bit
         static constexpr uint32_t rdtsc_ring3_prevent = 0x4;
 
+        static constexpr uint32_t no_x87_emu = ~(1 << 2);
+        static constexpr uint32_t fwait_ts = 1 << 1;
+
+        static constexpr uint32_t osfxsr = 1 << 9;
+        static constexpr uint32_t unmasked_smid_except = 1 << 10;
+
+        // prevent userspace from accessing detailed timing information
         auto original_cr4 = readcr4();
         auto cr4 = original_cr4 | rdtsc_ring3_prevent;
         cr4 &= ~rdpcm_ring3_allow;
         writecr4(cr4);
         cr4 = readcr4();
+
+        auto& cpuid(CPUID::get());
+        if (!cpuid.getFeatures().sse) {
+            bootphase_t::printf("No SSE support detected; leaving disabled\n");
+            fpsave = fpsave_fpu;
+            fprestore = fprestore_fpu;
+        } else {
+            // enable SSE floating point state
+            auto original_cr0 = readcr0();
+            auto cr0 = original_cr0 & no_x87_emu;
+            cr0 |= fwait_ts;
+            writecr0(cr0);
+            cr4 |= osfxsr;
+            cr4 |= unmasked_smid_except;
+            writecr4(cr4);
+            fpsave = fpsave_sse;
+            fprestore = fprestore_sse;
+            LOG_DEBUG("original CR0 = %p, final CR0 = %p", original_cr0, cr0);
+        }
+
+        LOG_DEBUG("fpsave = %p, fprestore = %p [SSE variant is %p,%p; FPU variant is %p,%p]",
+            fpsave, fprestore,
+            fpsave_sse, fprestore_sse,
+            fpsave_fpu, fprestore_fpu);
 
         LOG_DEBUG("original CR4 = %p, final CR4 = %p", original_cr4, cr4);
 

@@ -124,11 +124,17 @@ uint32_t cpuinfo(uint32_t eax, uint32_t* ebx, uint32_t* ecx, uint32_t* edx);
 extern "C"
 uint32_t insd(uint16_t port);
 
-extern "C"
-void fpsave(uintptr_t where);
+typedef void(*fpsave_f)(uintptr_t);
+typedef void(*fprestore_f)(uintptr_t);
 
-extern "C"
-void fprestore(uintptr_t where);
+extern fpsave_f fpsave;
+extern fprestore_f fprestore;
+
+extern "C" void fpsave_fpu(uintptr_t where);
+extern "C" void fprestore_fpu(uintptr_t where);
+
+extern "C" void fpsave_sse(uintptr_t where);
+extern "C" void fprestore_sse(uintptr_t where);
 
 extern "C"
 void fpinit();
