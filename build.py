@@ -79,7 +79,7 @@ def findSubdirectories(dir, self=True):
 
 def error(msg):
     print("error: %s" % msg)
-    if not KEEP_MOUNTED: shell("umount out/mnt", onerrignore=True)
+    if not KEEP_MOUNTED: shell("umount --lazy --force --verbose out/mnt", onerrignore=True)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
 def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
