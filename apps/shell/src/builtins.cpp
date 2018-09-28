@@ -21,6 +21,8 @@
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
 
+void comment_exec(const char*) {}
+
 void cd_exec(const char* args) {
     if (chdir(args)) {
         printf("can't set cwd to '%s'\n", args);
