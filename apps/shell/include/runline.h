@@ -12,26 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cwd.h"
-#include <newlib/unistd.h>
+#ifndef SHELL_RUNLINE
+#define SHELL_RUNLINE
 
-eastl::string getCurrentDirectory() {
-    eastl::string cwds;
+#include <EASTL/string.h>
 
-    auto cwd = getcwd(nullptr, 0);
-    if (cwd && cwd[0]) cwds.append_sprintf("%s", cwd);
+void runline(eastl::string cmdline);
 
-    free(cwd);
-    return cwds;
-}
-
-void getPrompt(eastl::string& prompt) {
-    auto cwd = getCurrentDirectory();
-    prompt.clear();
-
-    if (cwd.empty()) {
-        prompt.append_sprintf("shell> ");
-    } else {
-        prompt.append_sprintf("%s$ ", cwd.c_str());
-    }
-}
+#endif

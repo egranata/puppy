@@ -18,5 +18,6 @@
 #include <EASTL/string.h>
 
 eastl::string getCurrentDirectory();
+void getPrompt(eastl::string& prompt);
 
 #endif

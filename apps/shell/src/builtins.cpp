@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "../include/cwd.h"
+
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
 #include <newlib/string.h>
 #include <newlib/strings.h>
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
-
-#include "../include/cwd.h"
 
 void cd_exec(const char* args) {
     if (chdir(args)) {

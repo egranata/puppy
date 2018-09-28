@@ -29,141 +29,26 @@
 
 #include "include/builtin.h"
 #include "include/cwd.h"
-
-void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
-    if (WIFEXITED(exitcode)) {
-        int status = WEXITSTATUS(exitcode);
-        if (status || anyExit) {
-            printf("[child %u] exited - status %d\n", pid, status);
-        }
-    } else if(WIFSIGNALED(exitcode)) {
-        int sig = WTERMSIG(exitcode);
-        printf("[child %u] terminated - signal %d\n", pid, sig);
-    } else {
-        printf("[child %u] terminated - exit status %d\n", pid, exitcode);
-    }
-}
-
-eastl::vector<eastl::string> getPathEntries() {
-    eastl::vector<eastl::string> result;
-
-    char* path = getenv("PATH");
-    if (path == nullptr || path[0] == 0) return result;
-
-    eastl::string s_path(path);
-    while(true) {
-        size_t pos = s_path.find(':');
-        if (pos == eastl::string::npos) {
-            result.push_back(s_path);
-            break;
-        }
-        auto item = s_path.substr(0, pos);
-        s_path = s_path.substr(pos+1);
-        result.push_back(item);
-    }
-
-    return result;
-}
-
-void tryCollect() {
-    int pid = 0;
-    int exitcode = 0;
-    pid = wait(&exitcode);
-    if (pid != -1) {
-        handleExitStatus(pid, exitcode, true);
-    }
-}
-
-static void trim(eastl::string& s) {
-    s.erase(0, s.find_first_not_of(' '));
-    s.erase(s.find_last_not_of(' ') + 1);
-}
-
-eastl::string getline(const char* prompt, bool& eof) {
-    if (prompt == nullptr) prompt = "> ";
-    printf("%s", prompt);
-    char* data = nullptr;
-    size_t len;
-    size_t n_read = __getline(&data, &len, stdin);
-    if (n_read == (size_t)-1 && feof(stdin)) {
-        eof = true;
-        return eastl::string();
-    }
-    eof = false;
-    auto out = eastl::string(data);
-    free(data);
-    if (!out.empty() && out[out.size() - 1] == '\n') {
-        out.pop_back();
-    }
-    return out;
-}
-
-void getPrompt(eastl::string& prompt) {
-    auto cwd = getCurrentDirectory();
-    prompt.clear();
-
-    if (cwd.empty()) {
-        prompt.append_sprintf("shell> ");
-    } else {
-        prompt.append_sprintf("%s$ ", cwd.c_str());
-    }
-}
-
-eastl::string getProgramPath(const char* program) {
-    eastl::string program_s(program);
-
-    // absolute or relative paths get returned as-is
-    if (program[0] == '/') return program_s;
-    if (program_s.find("./") != eastl::string::npos) return program_s;
-
-    // plain executable names get searched in PATH
-    auto path_candidates = getPathEntries();
-    for (auto& path_candidate : path_candidates) {
-        eastl::string candidate;
-        candidate.append_sprintf("%s/%s", path_candidate.c_str(), program);
-        struct stat st;
-        if (stat(candidate.c_str(), &st)) continue;
-        return candidate;
-    }
-
-    return eastl::string();
-}
-
-static void runInShell(const char* program, const char* args, bool is_bg) {
-    if (is_bg || !tryExecBuiltin(program, args)) {
-        auto real_program = getProgramPath(program);
-        if (real_program.empty()) {
-            printf("%s: not found in PATH\n", program);
-            return;
-        }
-        auto chld = spawn(real_program.c_str(), args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
-        if (is_bg) {
-            printf("[child %u] spawned\n", chld);
-        } else {
-            int exitcode = 0;
-            waitpid(chld, &exitcode, 0);
-            handleExitStatus(chld, exitcode, false);
-        }
-    }
-}
+#include "include/exit.h"
+#include "include/path.h"
+#include "include/runline.h"
+#include "include/str.h"
 
 static void runInitShellTasks() {
     klog_syscall("shell is up and running");
 }
 
-static void processInput(eastl::string cmdline) {
-    trim(cmdline);
-    if(cmdline.empty()) return;
+static int interactiveLoop() {
+    bool eof = false;
+    eastl::string prompt;
 
-    const bool is_bg = (cmdline.back() == '&');
-    if (is_bg) cmdline.pop_back();
-    size_t arg_sep = cmdline.find(' ');
-    if (arg_sep == eastl::string::npos) {
-        runInShell(cmdline.c_str(), nullptr, is_bg);
-    } else {
-        auto program = cmdline.substr(0, arg_sep);
-        auto args = cmdline.substr(arg_sep + 1);
-        runInShell(program.c_str(), args.c_str(), is_bg);
+    while(true) {
+        tryCollect();
+
+        getPrompt(prompt);
+        auto cmdline = getline(prompt.c_str(), eof);
+        if (eof) return 0;
+        runline(cmdline);
     }
 }
 
@@ -182,15 +67,5 @@ int main(int argc, const char** argv) {
         runInitShellTasks();
     }
 
-    bool eof = false;
-    eastl::string prompt;
-
-    while(true) {
-        tryCollect();
-
-        getPrompt(prompt);
-        auto cmdline = getline(prompt.c_str(), eof);
-        if (eof) exit(0);
-        processInput(cmdline);
-    }
+    return interactiveLoop();
 }
