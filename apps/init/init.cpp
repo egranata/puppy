@@ -138,7 +138,6 @@ bool tryCollectShell(uint16_t pid) {
 }
 
 static void __attribute__((constructor)) init_ctor() {
-    printf("Welcome to Puppy. init running!\n");
     klog_syscall("init is up and running");
 }
 

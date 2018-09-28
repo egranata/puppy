@@ -1,0 +1,4 @@
+Welcome to Puppy!
+This is the Puppy interactive shell. To run a program just type its name.
+A few builtin commands are also available (e.g. cd to change directory).
+If you run into any issues please report them at https://github.com/egranata/puppy/issues

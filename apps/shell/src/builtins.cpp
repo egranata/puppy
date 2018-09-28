@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "../include/cwd.h"
+#include "../include/runfile.h"
 
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
@@ -22,6 +23,10 @@
 #include <newlib/unistd.h>
 
 void comment_exec(const char*) {}
+
+void script_exec(const char* args) {
+    runfile(args);
+}
 
 void cd_exec(const char* args) {
     if (chdir(args)) {

@@ -565,6 +565,8 @@ for test in TEST_REFS:
 
 makeDir("out/mnt/config")
 copy("build/config/init", "out/mnt/config/init")
+copy("build/config/shell.sh", "out/mnt/config/shell.sh")
+copy("build/config/motd", "out/mnt/config/motd")
 copy("build/config/colors", "out/mnt/config/colors")
 copy("LICENSE", "out/mnt/config/LICENSE")
 

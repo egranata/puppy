@@ -31,10 +31,12 @@
 #include "include/cwd.h"
 #include "include/exit.h"
 #include "include/path.h"
+#include "include/runfile.h"
 #include "include/runline.h"
 #include "include/str.h"
 
 static void runInitShellTasks() {
+    runfile("/system/config/shell.sh");
     klog_syscall("shell is up and running");
 }
 

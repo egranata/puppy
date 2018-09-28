@@ -20,11 +20,13 @@
 void cd_exec(const char* args);
 void env_exec(const char* args);
 void comment_exec(const char* args);
+void script_exec(const char* args);
 
 builtin_cmd_t builtin_cmds[] = {
     {"cd", cd_exec},
     {"env", env_exec},
     {"#", comment_exec},
+    {"script", script_exec},
     {nullptr, nullptr}
 };
 
