@@ -50,17 +50,14 @@ void appkiller(const char* cause, GPR& gpr, InterruptStack& stack) {
     reaper(ew);
 }
 
-static bool iskernelbug(const InterruptStack& stack) {
+extern "C" bool isKernelStack(const InterruptStack& stack) {
     return VirtualPageManager::iskernel(stack.eip) && (0 == (stack.cs & 0x1));
 }
 
 #define EXCEPTIONHANDLER(name, description) \
 static void name ## _handler (GPR& gpr, InterruptStack& stack, void*) { \
-    if (iskernelbug(stack)) { \
-        PANICFORWARD( description, gpr, stack ); \
-    } else { \
-        rettokiller(), appkiller( description , gpr, stack ); \
-    } \
+    if (isKernelStack(stack)) { PANICFORWARD( description, gpr, stack ); } \
+    else { APP_PANIC(description, gpr, stack); } \
 }
 
 static void fpuerror(GPR&, InterruptStack&, void*) {
@@ -79,7 +76,7 @@ EXCEPTIONHANDLER(doublefault, "double fault");
 EXCEPTIONHANDLER(invalidtss, "invalid task state");
 EXCEPTIONHANDLER(nosuchsegment, "missing segment loaded");
 EXCEPTIONHANDLER(nosuchstack, "invalid stack");
-EXCEPTIONHANDLER(gpf, "general protection fault");
+// GPF is handled separately as it can be recoverable
 // page fault is handled separately as it is recoverable
 EXCEPTIONHANDLER(fperror, "floating point error");
 EXCEPTIONHANDLER(alignment, "alignment error");
@@ -100,7 +97,7 @@ void ProcessManager::installexceptionhandlers() {
     HANDLERINSTALL(0x0A, invalidtss); // I'll be damned if userspace generates this
     HANDLERINSTALL(0x0B, nosuchsegment);
     HANDLERINSTALL(0x0C, nosuchstack);
-    HANDLERINSTALL(0x0D, gpf);
+    // 0x0D set below
     // 0x0E set below
     HANDLERINSTALL(0x10, fperror);
     HANDLERINSTALL(0x11, alignment);
@@ -110,6 +107,6 @@ void ProcessManager::installexceptionhandlers() {
     HANDLERINSTALL(0x1E, security);
 
     interrupts.sethandler(0x07, "fpuerror", fpuerror);
-
+    interrupts.sethandler(0x0D, "gpf", GPF_handler);
     interrupts.sethandler(0x0E, "pageflt", pageflt_handler);
 }
