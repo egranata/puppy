@@ -4,7 +4,7 @@ ata0-master: type=disk, path=out/os.img, mode=flat, translation=lba
 boot: disk
 log: out/bochslog.txt
 clock: sync=slowdown, time0=local, rtc_sync=1
-cpu: count=1, ips=85000000
+cpu: count=1, ips=85000000, ignore_bad_msrs=0
 com1: enabled=1, mode=file, dev=out/kernel.log
 keyboard: type=mf, serial_delay=200, paste_delay=100000
 keyboard: user_shortcut=ctrl-alt-del
