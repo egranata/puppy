@@ -52,12 +52,12 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
                 return r;
             }
 
-            uintptr_t ioctl(uintptr_t a, uintptr_t b) {
-                return mFile->ioctl(a,b);
+            size_t write(size_t n, char* src) {
+                return mContent->write(n, src);
             }
 
-            size_t write(size_t, char*) {
-                return 0;
+            uintptr_t ioctl(uintptr_t a, uintptr_t b) {
+                return mFile->ioctl(a,b);
             }
 
             bool stat(stat_t& stat) {

@@ -45,6 +45,7 @@ public:
             virtual ~FileBuffer() = default;
             virtual size_t len() = 0;
             virtual bool at(size_t idx, uint8_t *dest) = 0;
+            virtual size_t write(size_t, char*) { return 0; }
     };
 
     class EmptyBuffer : public FileBuffer {
