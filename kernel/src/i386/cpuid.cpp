@@ -96,22 +96,22 @@ CPUID::CPUID() {
     }
 }
 
-const char* CPUID::getVendorString() {
+const char* CPUID::getVendorString() const {
     return mVendorString;
 }
 
-const char* CPUID::getBrandString() {
+const char* CPUID::getBrandString() const {
     return mBrandString;
 }
 
-const CPUID::Signature& CPUID::getSignature() {
+const CPUID::Signature& CPUID::getSignature() const {
     return mSignature;
 }
 
-const CPUID::Features& CPUID::getFeatures() {
+const CPUID::Features& CPUID::getFeatures() const {
     return mFeatures;
 }
 
-uint32_t CPUID::getMaxBasicLeaf() {
+uint32_t CPUID::getMaxBasicLeaf() const {
     return mMaxBasicLeaf;
 }

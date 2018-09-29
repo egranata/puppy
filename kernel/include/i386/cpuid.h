@@ -40,12 +40,13 @@ class CPUID {
 
         static CPUID& get();
 
-        const char* getVendorString();
-        const char* getBrandString();
-        const Signature& getSignature();
-        const Features& getFeatures();
+        const char* getVendorString() const;
+        const char* getBrandString() const;
 
-        uint32_t getMaxBasicLeaf();
+        const Signature& getSignature() const;
+        const Features& getFeatures() const;
+
+        uint32_t getMaxBasicLeaf() const;
     private:
         bool getleaf(uint32_t leaf, uint32_t* eax = nullptr, uint32_t *ebx = nullptr, uint32_t* ecx = nullptr, uint32_t* edx = nullptr);
 

@@ -16,6 +16,7 @@
 #include <kernel/log/log.h>
 #include <kernel/i386/cpuid.h>
 #include <kernel/boot/phase.h>
+#include <kernel/drivers/cpu/device.h>
 
 namespace boot::i386 {
     uint32_t init() {
@@ -62,6 +63,8 @@ namespace boot::i386 {
             fpsave_fpu, fprestore_fpu);
 
         LOG_DEBUG("original CR4 = %p, final CR4 = %p", original_cr4, cr4);
+
+        CPUDevice::get();
 
         return 0;
     }
