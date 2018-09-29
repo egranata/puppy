@@ -21,6 +21,7 @@
 #include <kernel/libc/string.h>
 #include <kernel/libc/str.h>
 #include <kernel/i386/primitives.h>
+#include <kernel/process/exceptions.h>
 
 class FeaturesFile : public MemFS::File {
     public:
@@ -53,9 +54,31 @@ class BrandingFile : public MemFS::File {
         }
 };
 
+// _check_msr(uint32_t)
+// this function tries to read the MSR passed as input, and returns (uint64_t)1
+// if the read was successful; if the read failed, _failsafe below kicks in via GPF recovery
+// and returns 0; because MSR availability is a constant attribute of the CPU, one can write
+// if (_check_msr(id)) return buffer(readmsr(id));
+// else return nullptr;
+// without fear of a race condition
+asm("_check_msr: mov ecx, [esp + 4]\n"
+    "            rdmsr\n"
+    "            xor edx, edx\n"
+    "            mov eax, 1\n"
+    "            ret");
+
+asm("_failsafe: xor eax, eax\n"
+    "           xor edx, edx\n"
+    "           ret");
+
+namespace {
+    extern "C" uint64_t _check_msr(uint32_t);
+    extern "C" uint64_t _failsafe();
+}
+
 class MSRFile : public MemFS::File {
     public:
-        MSRFile(uint32_t msr) : MemFS::File(nullptr), mMSRId(msr) {
+        MSRFile(uint32_t msr) : MemFS::File(nullptr), mValid(2), mMSRId(msr) {
             char buf[24] = {0};
             char* ptr = (char*)num2str(mMSRId, &buf[2], 21, 16, false);
             ptr[-2] = '0'; ptr[-1] = 'x';
@@ -63,13 +86,24 @@ class MSRFile : public MemFS::File {
         }
 
         delete_ptr<MemFS::FileBuffer> content() override {
+            if (mValid == 2) {
+                pushGPFRecovery((uintptr_t)_failsafe);
+                mValid = _check_msr(mMSRId);
+                popGPFRecovery((uintptr_t)_failsafe);
+            }
+
+            if (mValid == 0) return nullptr;
+
+            delete_ptr<MemFS::FileBuffer> result;
             string buf('\0', 4096);
             auto value = readmsr(mMSRId);
             sprint(&buf[0], 4096, "%llu", value);
-            return new MemFS::StringBuffer(buf);
+            result.reset(new MemFS::StringBuffer(buf));
+            return result;
         }
 
     private:
+        uint64_t mValid;
         uint32_t mMSRId;
 };
 
@@ -100,6 +134,9 @@ CPUDevice::CPUDevice() : mDeviceDirectory(nullptr) {
     mMSRDirectory->add(new MSRFile(0x034));
     mMSRDirectory->add(new MSRFile(0x0E7));
     mMSRDirectory->add(new MSRFile(0x0E8));
+    mMSRDirectory->add(new MSRFile(0x174));
+    mMSRDirectory->add(new MSRFile(0x175));
+    mMSRDirectory->add(new MSRFile(0x176));
     mMSRDirectory->add(new MSRFile(0x1A0));
     mMSRDirectory->add(new MSRFile(0x1B0));
     mMSRDirectory->add(new MSRFile(0x199));
