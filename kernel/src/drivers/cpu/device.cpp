@@ -20,6 +20,7 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/str.h>
+#include <kernel/i386/primitives.h>
 
 class FeaturesFile : public MemFS::File {
     public:
@@ -52,6 +53,26 @@ class BrandingFile : public MemFS::File {
         }
 };
 
+class MSRFile : public MemFS::File {
+    public:
+        MSRFile(uint32_t msr) : MemFS::File(nullptr), mMSRId(msr) {
+            char buf[24] = {0};
+            char* ptr = (char*)num2str(mMSRId, &buf[2], 21, 16, false);
+            ptr[-2] = '0'; ptr[-1] = 'x';
+            name(&ptr[-2]);
+        }
+
+        delete_ptr<MemFS::FileBuffer> content() override {
+            string buf('\0', 4096);
+            auto value = readmsr(mMSRId);
+            sprint(&buf[0], 4096, "%llu", value);
+            return new MemFS::StringBuffer(buf);
+        }
+
+    private:
+        uint32_t mMSRId;
+};
+
 CPUDevice& CPUDevice::get() {
     static CPUDevice gDevice;
 
@@ -62,9 +83,25 @@ MemFS::Directory* CPUDevice::deviceDirectory() {
     return mDeviceDirectory;
 }
 
+MemFS::Directory* CPUDevice::msrDirectory() {
+    return mMSRDirectory;
+}
+
 CPUDevice::CPUDevice() : mDeviceDirectory(nullptr) {
     DevFS& devfs(DevFS::get());
     mDeviceDirectory = devfs.getDeviceDirectory("cpu");
+    mMSRDirectory = new MemFS::Directory("msr");
+
+    mDeviceDirectory->add(mMSRDirectory);
+
     mDeviceDirectory->add(new FeaturesFile());
     mDeviceDirectory->add(new BrandingFile());
+
+    mMSRDirectory->add(new MSRFile(0x034));
+    mMSRDirectory->add(new MSRFile(0x0E7));
+    mMSRDirectory->add(new MSRFile(0x0E8));
+    mMSRDirectory->add(new MSRFile(0x1A0));
+    mMSRDirectory->add(new MSRFile(0x1B0));
+    mMSRDirectory->add(new MSRFile(0x199));
+    mMSRDirectory->add(new MSRFile(0x19C));
 }

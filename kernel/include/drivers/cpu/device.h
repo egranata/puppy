@@ -25,9 +25,11 @@ class CPUDevice : NOCOPY {
     public:
         static CPUDevice& get();
         MemFS::Directory* deviceDirectory();
+        MemFS::Directory* msrDirectory();
     private:
         CPUDevice();
         MemFS::Directory* mDeviceDirectory;
+        MemFS::Directory* mMSRDirectory;
 };
 
 #endif
