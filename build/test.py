@@ -53,6 +53,10 @@ def sendString(qemu, s):
             say(qemu, "sendkey shift-7")
         elif c == '\n':
             say(qemu, "sendkey kp_enter")
+        elif c == '.':
+            say(qemu, "sendkey dot")
+        elif c == ' ':
+            say(qemu, "sendkey spc")
         else:
             say(qemu, "sendkey %s" % c)
     say(qemu, "sendkey kp_enter")
@@ -65,12 +69,13 @@ def quit(qemu, ec):
 
 def waitFor(prefix, deadline, condition):
     print("%s..." % prefix, end='', flush=True)
-    while deadline > 0:
+    expired = 0
+    while expired < deadline:
         time.sleep(1)
         print('.', end='', flush=True)
-        deadline = deadline - 1
+        expired = expired + 1
         if condition():
-            print("PASS")
+            print("PASS (in %d of %d seconds)" % (expired, deadline))
             return True
     print("FAIL")
     print(readLog())
@@ -83,11 +88,11 @@ waitFor("Boot", 15, checkAlive)
 
 TEST_PLAN = json.load(open(sys.argv[1], "r"))
 
-for tid in TEST_PLAN:
-    TEST = TEST_PLAN[tid]
-    path = "%s" % TEST["path"]
+sendString(qemu, "script /system/config/test.sh")
+
+for TEST in TEST_PLAN:
     wait = int(TEST["wait"])
-    sendString(qemu, path)
+    tid = TEST["id"]
     waitFor(tid, wait, lambda: checkTestPass(tid))
 
 quit(qemu, 0)

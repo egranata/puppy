@@ -490,7 +490,7 @@ for app in APP_DIRS:
 
 print('')
 
-TEST_PLAN = {}
+TEST_PLAN = []
 KNOWN_FAIL_TESTS = ["tests_mutexkill"]
 
 TEST_PRINT_PREFIX="Building tests: "
@@ -515,11 +515,11 @@ for test in TEST_DIRS:
     print("(%d bytes) " % os.stat(test_o).st_size)
     test_ref = "/system/%s" % (test_o.replace("out/", "")) # this is a bit hacky..
     if test_name not in KNOWN_FAIL_TESTS:
-        TEST_PLAN[test_name] = {
+        TEST_PLAN.append({
             "path" : test_ref,
             "id" : test_name,
-            "wait" : "10" # allow tests to wait for more or less than 10 seconds
-        }
+            "wait" : "15" # allow tests to wait for more or less than 15 seconds
+        })
 
 with open("out/testplan.json", "w") as f:
     json.dump(TEST_PLAN, f)
@@ -554,6 +554,8 @@ shell(CMDLINE)
 
 print("Generating os.img")
 
+makeDir("out/mnt/config")
+
 for app in APP_REFS:
     copy(app, "out/mnt/apps/%s" % os.path.basename(app))
 
@@ -561,9 +563,13 @@ for lib in DYLIB_REFS:
     copy(lib, "out/mnt/libs/%s" % os.path.basename(lib))
 
 for test in TEST_REFS:
-    copy(test, "out/mnt/tests/%s" % os.path.basename(test))
+    test_name = os.path.basename(test)
+    copy(test, "out/mnt/tests/%s" % test_name)
 
-makeDir("out/mnt/config")
+with open("out/mnt/config/test.sh", "w") as testScript:
+    for test in TEST_PLAN:
+            print("%s" % test['path'], file=testScript)
+
 copy("build/config/init", "out/mnt/config/init")
 copy("build/config/shell.sh", "out/mnt/config/shell.sh")
 copy("build/config/motd", "out/mnt/config/motd")
