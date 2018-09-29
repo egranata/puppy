@@ -23,10 +23,7 @@ LOG_TAG(MEMFS, 1);
 Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     class FileStream : public Filesystem::File {
         public:
-            FileStream(MemFS::File* file) {
-                mFile = file;
-                mContent.reset(file->content().reset());
-                mIndex = 0;
+            FileStream(MemFS::File* file, MemFS::FileBuffer* buffer) : mFile(file), mContent(buffer), mIndex(0) {
                 kind(file->kind());
             }
 
@@ -84,7 +81,9 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             TAG_DEBUG(MEMFS, "cannot open a directory object as file");
             return nullptr;
     }
-    auto result = new FileStream((MemFS::File*)entity);
-    return result;
+    MemFS::File* theFile = (MemFS::File*)entity;
+    MemFS::FileBuffer* theBuffer = theFile->content().reset();
+    if (theFile && theBuffer) return new FileStream(theFile, theBuffer);
+    return nullptr;
 }
 
