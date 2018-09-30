@@ -63,9 +63,12 @@ class ProcessManager : NOCOPY {
             uintptr_t eip; /** what address to start running from */
             uint8_t priority; /** initial process priority */
             uintptr_t argument; /** a pointer to be pushed onto the stack for the entry point to consume */
+
             const char** environment; /** a pointer to a list of strings that are to be passed to the process as its environment */
             const char* name;
             const char* cwd;
+
+            exec_fileop_t* fileops; /** nullptr - or a pointer to a sequence of operations, terminated by END_OF_LIST */
 
             bool schedulable; /** should this process be scheduled */
             bool system; /** is this a system process */
@@ -77,7 +80,7 @@ class ProcessManager : NOCOPY {
 
         // TODO: merge setup and exec
         process_t *setup(const char* path, const char* args, const char** env, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0);
-        process_t* exec(const char* path, const char* args, const char** env, uint32_t flags);
+        process_t* exec(const char* path, const char* args, const char** env, uint32_t flags, exec_fileop_t* fileops);
 
         void tick(bool can_yield);
 
@@ -128,6 +131,7 @@ class ProcessManager : NOCOPY {
 
         uint64_t fillGDT(process_t*);
         void forwardTTY(process_t*);
+        void execFileops(process_t* parent, process_t *child, exec_fileop_t *fops);
 
         void switchtoscheduler();
         void exit(process_t*, process_exit_status_t);

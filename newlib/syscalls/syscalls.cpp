@@ -82,8 +82,8 @@ syscall_response_t fdup_syscall(uint32_t arg1) {
 syscall_response_t fread_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 	return syscall3(fread_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
 }
-syscall_response_t exec_syscall(const char* arg1,const char* arg2,char** arg3,uint32_t arg4) {
-	return syscall4(exec_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3,(uint32_t)arg4);
+syscall_response_t exec_syscall(const char* arg1,const char* arg2,char** arg3,uint32_t arg4,exec_fileop_t* arg5) {
+	return syscall5(exec_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3,(uint32_t)arg4,(uint32_t)arg5);
 }
 syscall_response_t kill_syscall(uint32_t arg1) {
 	return syscall1(kill_syscall_id,(uint32_t)arg1);

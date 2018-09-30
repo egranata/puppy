@@ -15,7 +15,7 @@
     {"name":"fclose",           "argc":1},
     {"name":"fdup",             "argtypes":["uint32_t"]},
     {"name":"fread",            "argc":3},
-    {"name":"exec",             "argtypes":["const char*", "const char*", "char**", "uint32_t"]},
+    {"name":"exec",             "argtypes":["const char*", "const char*", "char**", "uint32_t", "exec_fileop_t*"]},
     {"name":"kill",             "argc":1},
     {"name":"fstat",            "argc":2},
     {"name":"fseek",            "argc":2},

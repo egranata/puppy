@@ -90,11 +90,11 @@ int runCommand(const eastl::string& line) {
 
     auto space = line.find(' ');
     if (space == eastl::string::npos) {
-        pid = exec_syscall(line.c_str(), nullptr, environ, 0);
+        pid = exec_syscall(line.c_str(), nullptr, environ, 0, nullptr);
     } else {
         auto program = line.substr(0, space);
         auto args = line.substr(space + 1);
-        pid = exec_syscall(program.c_str(), args.c_str(), environ, 0);
+        pid = exec_syscall(program.c_str(), args.c_str(), environ, 0, nullptr);
     }
     pid >>= 1;
 
@@ -121,7 +121,7 @@ bool runInitScript() {
 }
 
 uint16_t runShell() {
-    auto pid = exec_syscall("/system/apps/shell", "--init", environ, PROCESS_IS_FOREGROUND);
+    auto pid = exec_syscall("/system/apps/shell", "--init", environ, PROCESS_IS_FOREGROUND, nullptr);
     return pid >> 1;
 }
 

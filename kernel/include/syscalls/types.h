@@ -171,4 +171,18 @@ struct winsize_t { // the return of TIOCGWINSZ
   unsigned short ws_ypixel;	/* vertical size, pixels */
 };
 
+struct exec_fileop_t {
+    enum class operation : uint8_t {
+        END_OF_LIST = 0, // all param values ignored; stop parsing
+        CLOSE_CHILD_FD, // param1, the file descriptor to close
+        DUP_PARENT_FD, // param1, the file descriptor to fdup - on return, param2 contains the descriptor in the child
+        DUP_CHILD_FD, // param1, the file descriptor to fdup
+    };
+
+    operation op;
+    size_t  param1;
+    size_t  param2; // reserved for future evolutions
+    void*     param3; // reserved for future evolutions
+};
+
 #endif

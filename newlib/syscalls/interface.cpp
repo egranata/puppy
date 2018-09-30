@@ -323,7 +323,7 @@ static int newProcessImpl(const char* path, const char* args, char** env, int fl
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
 
-    auto eo = exec_syscall(rp.ptr, args, env, flags);
+    auto eo = exec_syscall(rp.ptr, args, env, flags, nullptr);
     if (eo & 1) ERR_EXIT(ECHILD);
     return eo >> 1;
 }

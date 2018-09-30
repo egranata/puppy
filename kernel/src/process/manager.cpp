@@ -38,6 +38,7 @@
 #include <kernel/time/manager.h>
 
 LOG_TAG(TIMING, 2);
+LOG_TAG(FILEOPS, 0);
 
 // this is THE current process information
 process_t *gCurrentProcess;
@@ -149,6 +150,7 @@ namespace {
         environment : nullptr, \
         name : nm, \
         cwd : "/", \
+        fileops : nullptr, \
         schedulable : sched, \
         system : true, \
     }, \
@@ -249,7 +251,7 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
-process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags) {
+process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags, exec_fileop_t* fops) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
@@ -260,6 +262,7 @@ process_t* ProcessManager::exec(const char* path, const char* args, const char**
         environment : env,
         name : path,
         cwd : (flags & PROCESS_INHERITS_CWD ? gCurrentProcess->cwd : "/"),
+        fileops : fops,
         schedulable : true,
     };
 
@@ -282,6 +285,7 @@ process_t* ProcessManager::setup(const char* path, const char* args, const char*
         environment : env,
         name : path,
         cwd : "/",
+        fileops : nullptr,
         schedulable : true,
     };
 
@@ -458,6 +462,8 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     }
 
     forwardTTY(process);
+
+    execFileops(gCurrentProcess, process, si.fileops);
 
     gCurrentProcess->children.add(process);
 
@@ -778,6 +784,7 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip) {
         environment : nullptr,
         name : gCurrentProcess->path,
         cwd : gCurrentProcess->cwd,
+        fileops : nullptr,
         schedulable : true,
         system : gCurrentProcess->flags.system,
         clone : true
@@ -808,5 +815,52 @@ void ProcessManager::forwardTTY(process_t* process) {
         LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, &process->ttyinfo.ttyfile);
     } else {
         PANIC("unable to forward TTY to new process");
+    }
+}
+
+void ProcessManager::execFileops(process_t* parent, process_t* child, exec_fileop_t *fops) {
+    if (fops == nullptr) return;
+    while(fops->op != exec_fileop_t::operation::END_OF_LIST) {
+        switch (fops->op) {
+            case exec_fileop_t::operation::CLOSE_CHILD_FD: {
+                auto child_fd = fops->param1;
+                VFS::filehandle_t child_handle = {nullptr, nullptr};
+                bool ok = child->fds.is(child_fd, &child_handle);
+                if (ok) {
+                    if (child_handle.first && child_handle.second) {
+                        child_handle.first->close(child_handle.second);
+                    }
+                }
+                child->fds.clear(child_fd);
+                TAG_DEBUG(FILEOPS, "closed handle %u in child process %u", child_fd, child->pid);
+            }
+                break;
+            case exec_fileop_t::operation::DUP_PARENT_FD: {
+                auto parent_fd = fops->param1;
+                VFS::filehandle_t parent_handle = {nullptr, nullptr};
+                bool ok = parent->fds.is(parent_fd, &parent_handle);
+                if (!ok) {
+                    TAG_ERROR(FILEOPS, "file handle %u in parent process %u is not available; can't duplicate", parent_fd, parent->pid);
+                } else {
+                    if (parent_handle.second) {
+                        parent_handle.second->incref();
+                        ok = child->fds.set(parent_handle, fops->param2);
+                        if (!ok) {
+                            TAG_ERROR(FILEOPS, "failed to duplicate handle %u from process %u in child process %u", parent_fd, parent->pid, child->pid);
+                        } else {
+                            TAG_DEBUG(FILEOPS, "handle %u from parent %u will be handle %u in child %u", parent_fd, parent->pid, fops->param2, child->pid);
+                        }
+                    }
+                }
+            }
+                break;
+            case exec_fileop_t::operation::DUP_CHILD_FD:
+                TAG_ERROR(FILEOPS, "DUP_CHILD_FD is not implemented yet");
+                break;
+            default:
+                LOG_WARNING("unknown fileop value: %u", fops->op);
+                break;
+        }
+        ++fops;
     }
 }

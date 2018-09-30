@@ -51,7 +51,7 @@ syscall_response_t fdup_syscall(uint32_t arg1);
 constexpr uint8_t fdup_syscall_id = 0xf;
 syscall_response_t fread_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 constexpr uint8_t fread_syscall_id = 0x10;
-syscall_response_t exec_syscall(const char* arg1,const char* arg2,char** arg3,uint32_t arg4);
+syscall_response_t exec_syscall(const char* arg1,const char* arg2,char** arg3,uint32_t arg4,exec_fileop_t* arg5);
 constexpr uint8_t exec_syscall_id = 0x11;
 syscall_response_t kill_syscall(uint32_t arg1);
 constexpr uint8_t kill_syscall_id = 0x12;
