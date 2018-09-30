@@ -18,8 +18,8 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/panic/panic.h>
 
-LOG_TAG(TTYFILE, 0);
-LOG_TAG(TTYEOF, 0);
+LOG_TAG(TTYFILE, 2);
+LOG_TAG(TTYEOF, 2);
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {
     mInput.clear();
