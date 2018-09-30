@@ -77,6 +77,7 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
         .arg2 = gpr.ecx,
         .arg3 = gpr.edx,
         .arg4 = gpr.edi,
+        .arg5 = gpr.esi,
 
         .eflags = stack.eflags,
         .eip = stack.eip

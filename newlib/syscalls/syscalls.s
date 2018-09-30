@@ -80,3 +80,26 @@ syscall4:
     pop ecx
     pop ebx
     ret
+
+; uint32_t syscall5(uint8_t n, uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4);
+global syscall5
+syscall5:
+    push ebx
+    push ecx
+    push edx
+    push edi
+    push esi
+    xor eax, eax
+    mov esi, [esp + 44]
+    mov edi, [esp + 40]
+    mov edx, [esp + 36]
+    mov ecx, [esp + 32]
+    mov ebx, [esp + 28]
+    mov al, [esp + 24]
+    int 0x80
+    pop esi
+    pop edi
+    pop edx
+    pop ecx
+    pop ebx
+    ret

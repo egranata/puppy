@@ -220,6 +220,9 @@ def genCommonImpl(table):
         f.write('extern "C"\n')
         f.write("syscall_response_t syscall4(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);\n\n")
 
+        f.write('extern "C"\n')
+        f.write("syscall_response_t syscall5(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);\n\n")
+
         for syscall in table:
             f.write(syscall.commonImpl()); f.write("\n")
 
