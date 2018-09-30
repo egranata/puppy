@@ -35,9 +35,20 @@ void TTY::write(size_t sz, const char* buffer) {
 void TTY::pushfg(uint16_t pid) {
     LOG_DEBUG("tty foreground given to %u", pid);
     mForeground.push(pid);
+    mForegroundWQ.wakeall();
 }
 
 uint16_t TTY::popfg() {
+    class WakeOnExit {
+        public:
+            WakeOnExit(WaitQueue* wq) : mWQ(wq) {}
+            ~WakeOnExit() {
+                    mWQ->wakeall();
+            }
+        private:
+            WaitQueue* mWQ;
+    } wake(&mForegroundWQ);
+
     auto&& pmm(ProcessManager::get());
 
     if (mForeground.empty()) return 0;
@@ -96,9 +107,6 @@ bool TTY::interceptChords(const PS2Keyboard::key_event_t& evt) {
 #undef KEY
 
 int TTY::read() {
-    // TODO: TTY spawns a kernel thread that reads and buffers keyboard events    
-
-    auto&& pmm(ProcessManager::get());
     bool allow = false;
     
     do {
@@ -109,7 +117,7 @@ int TTY::read() {
         }
 
         if (false == allow) {
-            pmm.yield();
+            mForegroundWQ.wait(gCurrentProcess);
         }
     } while(false == allow);
 

@@ -19,6 +19,7 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/synch/semaphore.h>
+#include <kernel/synch/waitqueue.h>
 #include <kernel/libc/queue.h>
 #include <kernel/libc/atomic.h>
 #include <kernel/libc/fixstack.h>
@@ -61,6 +62,7 @@ class TTY {
         queue<char, gQueueSize> mInQueue;
         Framebuffer& mFramebuffer;
         bool mEOF;
+        WaitQueue mForegroundWQ;
 };
 
 #endif
