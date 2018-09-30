@@ -207,3 +207,21 @@ syscall_response_t mkdir_syscall_handler(const char* path) {
 
     return vfs.mkdir(path) ? OK : ERR(NO_SUCH_FILE);
 }
+
+syscall_response_t fdup_syscall_handler(uint32_t fid) {
+    VFS::filehandle_t file = {nullptr, nullptr};
+    if (!gCurrentProcess->fds.is(fid,&file)) {
+        return ERR(NO_SUCH_FILE);
+    } else if (file.second == nullptr) {
+        return ERR(NO_SUCH_FILE);
+    } else {
+        file.second->incref();
+        size_t newfid = 0;
+        bool ok = gCurrentProcess->fds.set(file, newfid);
+        if (ok) {
+            LOG_DEBUG("file handle %u duplicated as handle %u in process %u", fid, newfid, gCurrentProcess->pid);
+            return OK | (newfid << 1);
+        }
+        return ERR(NO_SUCH_FILE);
+    }
+}

@@ -31,6 +31,9 @@ syscall_response_t syscall3(uint8_t, uint32_t, uint32_t, uint32_t);
 extern "C"
 syscall_response_t syscall4(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
 
+extern "C"
+syscall_response_t syscall5(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+
 syscall_response_t yield_syscall() {
 	return syscall0(yield_syscall_id);
 }
@@ -72,6 +75,9 @@ syscall_response_t fopen_syscall(const char* arg1,uint32_t arg2) {
 }
 syscall_response_t fclose_syscall(uint32_t arg1) {
 	return syscall1(fclose_syscall_id,(uint32_t)arg1);
+}
+syscall_response_t fdup_syscall(uint32_t arg1) {
+	return syscall1(fdup_syscall_id,(uint32_t)arg1);
 }
 syscall_response_t fread_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 	return syscall3(fread_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
