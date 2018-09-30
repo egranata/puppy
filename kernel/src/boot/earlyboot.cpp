@@ -36,7 +36,7 @@ static constexpr size_t multibootOffset(uintptr_t multiboot_data) {
 }
 
 static void early_opcodehandler(GPR& gpr, InterruptStack& stack, void*) {
-	LOG_ERROR("invalid instruction [eip = %p]", gpr.cr2, stack.eip);
+	LOG_ERROR("invalid instruction [eip = %p]", stack.eip);
 	PANICFORWARD("invalid instruction. see log for details.", gpr, stack);
 }
 

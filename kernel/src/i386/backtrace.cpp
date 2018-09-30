@@ -21,7 +21,8 @@ void Backtrace::backtrace(const GPR& gpr, callback f, size_t depth) {
 
 	for (size_t i = 0; i < depth; ++i) {
         if (frame == nullptr) break;
-        
+        if (!vmm.mapped((uintptr_t)frame)) break;
+
         auto eip = frame[1];
         auto fp = frame[0];
         
