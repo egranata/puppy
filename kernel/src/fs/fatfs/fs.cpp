@@ -234,7 +234,7 @@ bool FATFileSystem::del(const char* path) {
     }
 }
 
-void FATFileSystem::close(Filesystem::FilesystemObject* f) {
+void FATFileSystem::doClose(Filesystem::FilesystemObject* f) {
     LOG_DEBUG("closing filesystem object %p", f);
     delete f;
 }

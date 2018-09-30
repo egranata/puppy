@@ -62,7 +62,7 @@ class Initrd : public Filesystem {
         File* open(const char* path, uint32_t mode) override;
         Directory* opendir(const char* path) override;
 
-        void close(FilesystemObject*) override;
+        void doClose(FilesystemObject*) override;
 };
 
 #endif

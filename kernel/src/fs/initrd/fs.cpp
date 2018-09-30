@@ -71,7 +71,7 @@ Filesystem::File* Initrd::open(const char* path, uint32_t mode) {
     }
     return nullptr;
 }
-void Initrd::close(Filesystem::FilesystemObject* f) {
+void Initrd::doClose(Filesystem::FilesystemObject* f) {
     delete f;
 }
 

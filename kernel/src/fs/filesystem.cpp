@@ -13,8 +13,29 @@
 // limitations under the License.
 
 #include <kernel/fs/filesystem.h>
+#include <kernel/log/log.h>
 
-Filesystem::FilesystemObject::FilesystemObject(kind_t kind) : mKind(kind) {}
+Filesystem::FilesystemObject::FilesystemObject(kind_t kind) : mRefcount(1), mKind(kind) {}
+
+uint32_t Filesystem::FilesystemObject::refcount() const {
+    return mRefcount.load();
+}
+
+uint32_t Filesystem::FilesystemObject::incref() {
+    while(true) {
+        uint32_t current = mRefcount.load();
+        uint32_t wanted = (current == UINT32_MAX) ? current : current+1;
+        if (mRefcount.cmpxchg(current, wanted)) return wanted;
+    }
+}
+
+uint32_t Filesystem::FilesystemObject::decref() {
+    while(true) {
+        uint32_t current = mRefcount.load();
+        uint32_t wanted = (current == 0) ? current : current-1;
+        if (mRefcount.cmpxchg(current, wanted)) return wanted;
+    }
+}
 
 Filesystem::FilesystemObject::kind_t Filesystem::FilesystemObject::kind() const {
     return mKind;
@@ -37,4 +58,11 @@ bool Filesystem::del(const char*) {
 
 bool Filesystem::mkdir(const char*) {
     return false;
+}
+
+void Filesystem::close(FilesystemObject* object) {
+    if (0 == object->decref()) {
+        LOG_DEBUG("%p refcount is 0; go ahead and nuke it from orbit", object);
+        doClose(object);
+    }
 }

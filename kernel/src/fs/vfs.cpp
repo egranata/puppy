@@ -182,7 +182,7 @@ public:
             return nullptr;
         }
 
-        void close(FilesystemObject* obj) {
+        void doClose(FilesystemObject* obj) {
             delete obj;
         }
 };

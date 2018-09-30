@@ -35,7 +35,7 @@ class FATFileSystem : public Filesystem {
         Directory* opendir(const char* path) override;
         bool mkdir(const char* path) override;
 
-        void close(FilesystemObject*) override;
+        void doClose(FilesystemObject*) override;
 
     private:
         FATFS mFatFS;

@@ -22,7 +22,7 @@ MemFS::Directory* MemFS::root() {
     return &mRootDirectory;
 }
 
-void MemFS::close(FilesystemObject* object) {
+void MemFS::doClose(FilesystemObject* object) {
     delete object;
 }
 

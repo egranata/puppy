@@ -20,6 +20,7 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/str.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/libc/atomic.h>
 
 class Filesystem {
     public:
@@ -36,8 +37,13 @@ class Filesystem {
 
                 kind_t kind() const;
                 void kind(kind_t);
+
+                uint32_t refcount() const;
+                uint32_t incref();
+                uint32_t decref();
             protected:
                 FilesystemObject(kind_t);
+                atomic<uint32_t> mRefcount;
             private:
                 kind_t mKind;
         };
@@ -76,7 +82,8 @@ class Filesystem {
         virtual Directory* opendir(const char* path) = 0;
         virtual bool mkdir(const char* path);
 
-        virtual void close(FilesystemObject*) = 0;
+        virtual void doClose(FilesystemObject*) = 0;
+        void close(FilesystemObject*);
 };
 
 #endif
