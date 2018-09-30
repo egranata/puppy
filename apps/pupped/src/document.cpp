@@ -31,6 +31,16 @@ void Document::insert(const eastl::string& line) {
     ++mIndex;
 }
 
+void Document::clear() {
+    mIndex = 0;
+    mLines.clear();
+}
+
+void Document::deleteCurrentLine() {
+    if (mIndex == mLines.size()) return;
+    mLines.erase(mLines.begin() + mIndex);
+}
+
 eastl::string Document::toString() {
     eastl::string out;
     bool first = true;

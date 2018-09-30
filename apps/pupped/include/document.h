@@ -28,6 +28,9 @@ class Document {
         bool empty() { return mLines.empty(); }
         size_t currentLine() { return mIndex; }
 
+        void clear();
+        void deleteCurrentLine();
+
         void move(size_t newLine);
         void insert(const eastl::string& line);
         eastl::string toString();

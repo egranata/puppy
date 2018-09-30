@@ -30,6 +30,11 @@ namespace {
         }
     }
 
+    bool delline(Document& doc) {
+        doc.deleteCurrentLine();
+        return true;
+    }
+
     bool dump(Document& doc) {
         auto text = doc.toString();
         printf("\n%s\n", text.c_str());
@@ -58,6 +63,30 @@ namespace {
         } else return false;
     }
 
+    bool load(Document& doc) {
+        doc.clear();
+
+        auto where = getline("source file: ");
+        FILE* f = fopen(where.c_str(), "r");
+        if (f == nullptr) return false;
+
+        eastl::string line;
+        while(!feof(f)) {
+            int c = fgetc(f);
+            if (c == EOF) break;
+            if (c == '\n') {
+                doc.insert(line);
+                line.clear();
+            } else {
+                line += (char)c;
+            }
+        }
+        if (!line.empty()) doc.insert(line);
+
+        fclose(f);
+        return true;
+    }
+
     bool save(Document& doc) {
         auto text = doc.toString();
         auto where = getline("dest file: ");
@@ -68,14 +97,22 @@ namespace {
 
         return true;
     }
+
+    bool quit(Document&) {
+        exit(0);
+        return true;
+    }
 }
 
 void loadCommands(Commands& cmds) {
     cmds.addCommand("append", append);
+    cmds.addCommand("delete", delline);
     cmds.addCommand("dump", dump);
     cmds.addCommand("list", list);
+    cmds.addCommand("load", load);
     cmds.addCommand("save", save);
     cmds.addCommand("position", position);
+    cmds.addCommand("quit", quit);
 }
 
 int main() {
