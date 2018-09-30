@@ -18,7 +18,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/panic/panic.h>
 
-LOG_TAG(TTYFILE, 2);
+LOG_TAG(TTYFILE, 0);
 LOG_TAG(TTYEOF, 0);
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {
@@ -133,6 +133,7 @@ entry:
         if (mInput.emptyRead()) {
             if (n0 == 0) {
                 TAG_DEBUG(TTYFILE, "the TTY is empty and nothing was read, but we're not in EOF mode; try again");
+                mMode = mode_t::READ_FROM_IRQ;
                 goto entry;
             } else {
                 TAG_DEBUG(TTYFILE, "the TTY is empty - get out with %u bytes read", n0);
