@@ -126,6 +126,7 @@ enum class file_kind_t {
     directory,
     file,
     blockdevice, /** see blockdevice_ioctl */
+    pipe,
 };
 
 struct file_stat_t {

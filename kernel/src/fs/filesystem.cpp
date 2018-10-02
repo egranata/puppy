@@ -66,3 +66,11 @@ void Filesystem::close(FilesystemObject* object) {
         doClose(object);
     }
 }
+
+DeleterFS* DeleterFS::theDeleterFS() {
+    static DeleterFS gFS;
+
+    return &gFS;
+}
+
+DeleterFS::DeleterFS() = default;

@@ -43,5 +43,6 @@
     {"name":"proctable",        "argtypes":["process_info_t*", "size_t"]},
     {"name":"mutextrylock",     "argtypes":["uint32_t"]},
     {"name":"vmcheckreadable",  "argtypes":["uintptr_t", "size_t"]},
-    {"name":"vmcheckwritable",  "argtypes":["uintptr_t", "size_t"]}
+    {"name":"vmcheckwritable",  "argtypes":["uintptr_t", "size_t"]},
+    {"name":"pipe",             "argc":0}
 ]}

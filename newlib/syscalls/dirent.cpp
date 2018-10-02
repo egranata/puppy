@@ -70,6 +70,9 @@ NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
             case file_kind_t::file:
                 dir->current.d_type = DT_REG;
                 break;
+            case file_kind_t::pipe:
+                dir->current.d_type = DT_PIPE;
+                break;
         }
         return &dir->current;
     } else {

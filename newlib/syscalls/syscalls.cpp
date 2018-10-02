@@ -169,3 +169,6 @@ syscall_response_t vmcheckreadable_syscall(uintptr_t arg1,size_t arg2) {
 syscall_response_t vmcheckwritable_syscall(uintptr_t arg1,size_t arg2) {
 	return syscall2(vmcheckwritable_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
+syscall_response_t pipe_syscall() {
+	return syscall0(pipe_syscall_id);
+}

@@ -86,4 +86,20 @@ class Filesystem {
         void close(FilesystemObject*);
 };
 
+// This is a minimal implementation of a Filesystem only valid for deleting standalone objects
+class DeleterFS : public Filesystem {
+    public:
+        static DeleterFS* theDeleterFS();
+
+        File* open(const char*, uint32_t) override { return nullptr; }
+        bool del(const char*) override { return false; }
+        Directory* opendir(const char*) override { return nullptr; }
+        bool mkdir(const char*) override { return false; }
+        void doClose(FilesystemObject* object) override {
+            delete object;
+        }
+    private:
+        DeleterFS();
+};
+
 #endif

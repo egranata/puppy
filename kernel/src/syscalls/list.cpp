@@ -108,6 +108,8 @@ extern syscall_response_t vmcheckreadable_syscall_handler(uintptr_t arg1,size_t 
 extern syscall_response_t vmcheckreadable_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t vmcheckwritable_syscall_handler(uintptr_t arg1,size_t arg2);
 extern syscall_response_t vmcheckwritable_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t pipe_syscall_handler();
+extern syscall_response_t pipe_syscall_helper(SyscallManager::Request&);
 
 void SyscallManager::sethandlers() {
 	handle(1, yield_syscall_helper, false); 
@@ -155,6 +157,7 @@ void SyscallManager::sethandlers() {
 	handle(43, mutextrylock_syscall_helper, false); 
 	handle(44, vmcheckreadable_syscall_helper, false); 
 	handle(45, vmcheckwritable_syscall_helper, false); 
+	handle(46, pipe_syscall_helper, false); 
 }
 
 syscall_response_t yield_syscall_helper(SyscallManager::Request&) {
@@ -411,4 +414,9 @@ syscall_response_t vmcheckwritable_syscall_helper(SyscallManager::Request& req) 
 }
 static_assert(sizeof(uintptr_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(size_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+
+syscall_response_t pipe_syscall_helper(SyscallManager::Request&) {
+	return pipe_syscall_handler();
+}
+
 

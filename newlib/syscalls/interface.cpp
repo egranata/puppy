@@ -165,6 +165,9 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
             case file_kind_t::blockdevice:
                 st->st_mode = S_IFBLK;
                 break;
+            case file_kind_t::pipe:
+                st->st_mode = S_IFIFO;
+                break;
         }
         st->st_size = fs.size;
         st->st_atime = fs.time;

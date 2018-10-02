@@ -18,6 +18,9 @@
 #include <kernel/synch/mutexmanager.h>
 #include <kernel/process/manager.h>
 #include <kernel/log/log.h>
+#include <kernel/synch/pipe.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/fs/filesystem.h>
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -103,4 +106,21 @@ syscall_response_t mutextrylock_syscall_handler(uint32_t idx) {
 
     auto ok = mutex->trylock();
     return ok ? OK : ERR(ALREADY_LOCKED);
+}
+
+syscall_response_t pipe_syscall_handler() {
+    VFS::filehandle_t pipe_handle = {
+        DeleterFS::theDeleterFS(),
+        new Pipe()
+    };
+
+    size_t pipe_fd;
+
+    bool ok = gCurrentProcess->fds.set(pipe_handle, pipe_fd);
+    if (!ok) {
+        delete pipe_handle.second;
+        return ERR(NO_SUCH_FILE);
+    } else {
+        return OK | (pipe_fd << 1);
+    }
 }

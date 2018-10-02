@@ -12,6 +12,7 @@ extern "C" {
 #include <newlib/time.h>
 
 #define DT_UNKNOWN       0
+#define DT_PIPE          1
 #define DT_CHR           2
 #define DT_DIR           4
 #define DT_BLK           6

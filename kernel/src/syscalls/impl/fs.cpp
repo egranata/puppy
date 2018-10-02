@@ -25,7 +25,9 @@ static Filesystem::File* asFile(Filesystem::FilesystemObject* object) {
     switch (object->kind()) {
         case file_kind_t::directory: return nullptr;
         case file_kind_t::blockdevice:
-        case file_kind_t::file: return (Filesystem::File*)object;
+        case file_kind_t::file:
+        case file_kind_t::pipe:
+            return (Filesystem::File*)object;
     }
 
     return nullptr;
@@ -35,6 +37,7 @@ static Filesystem::Directory* asDirectory(Filesystem::FilesystemObject* object) 
     switch (object->kind()) {
         case file_kind_t::directory: return (Filesystem::Directory*)object;
         case file_kind_t::blockdevice:
+        case file_kind_t::pipe:
         case file_kind_t::file: return nullptr;
     }
 
