@@ -39,9 +39,9 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            size_t pipe_fd = pipe_syscall();
-            CHECK_EQ(0, (pipe_fd & 1));
-            pipe_fd >>= 1;
+            int pipefd[2] = {0,0};
+            CHECK_EQ(0, pipe(pipefd));
+
             exec_fileop_t fops[] = {
                 exec_fileop_t{
                     .op = exec_fileop_t::operation::CLOSE_CHILD_FD,
@@ -51,7 +51,7 @@ class TheTest : public Test {
                 },
                 exec_fileop_t{
                     .op = exec_fileop_t::operation::DUP_PARENT_FD,
-                    .param1 = pipe_fd,
+                    .param1 = (size_t)pipefd[1],
                     .param2 = 0,
                     .param3 = nullptr,
                 },
@@ -63,7 +63,7 @@ class TheTest : public Test {
                 },
             };
 
-            FILE* fpipe = fdopen(pipe_fd, "r");
+            FILE* fpipe = fdopen(pipefd[0], "r");
 
             auto wrPid = clone(writeTask, fops);
 

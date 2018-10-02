@@ -358,3 +358,13 @@ NEWLIB_IMPL_REQUIREMENT int chdir(const char *path) {
     if (ok == 0) return 0;
     ERR_EXIT(EFAULT);
 }
+
+NEWLIB_IMPL_REQUIREMENT int pipe (int fd[2]) {
+    size_t pipe_fd = pipe_syscall();
+
+    if (pipe_fd & 1) ERR_EXIT(EMFILE);
+
+    fd[0] = pipe_fd >> 1;
+    fd[1] = pipe_fd >> 1;
+    return 0;
+}
