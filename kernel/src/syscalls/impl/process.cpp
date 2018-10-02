@@ -96,10 +96,10 @@ HANDLER2(prioritize,pid,prio) {
     }
 }
 
-syscall_response_t clone_syscall_handler(uintptr_t neweip) {
+syscall_response_t clone_syscall_handler(uintptr_t neweip, exec_fileop_t* fops) {
     auto&& pmm = ProcessManager::get();
 
-    auto newproc = pmm.cloneProcess(neweip);
+    auto newproc = pmm.cloneProcess(neweip, fops);
 
     if (newproc == nullptr) return ERR(NO_SUCH_PROCESS);
 

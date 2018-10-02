@@ -121,7 +121,7 @@ class ProcessManager : NOCOPY {
         // cannot be defined via PM_GLOBAL because of macro expansion limitations (hint: would look like a 3-arg macro)
         static pqueue<process_t*, processcomparator>& gSleepQueue();
 
-        process_t* cloneProcess(uintptr_t eip);
+        process_t* cloneProcess(uintptr_t eip, exec_fileop_t* fileops);
 
         size_t numProcesses();
         void foreach(function<bool(const process_t*)>);

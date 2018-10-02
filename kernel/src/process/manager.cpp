@@ -773,7 +773,7 @@ begin:
     return result;
 }
 
-process_t* ProcessManager::cloneProcess(uintptr_t eip) {
+process_t* ProcessManager::cloneProcess(uintptr_t eip, exec_fileop_t* fops) {
     auto&& vm(VirtualPageManager::get());
 
     spawninfo_t si {
@@ -784,7 +784,7 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip) {
         environment : nullptr,
         name : gCurrentProcess->path,
         cwd : gCurrentProcess->cwd,
-        fileops : nullptr,
+        fileops : fops,
         schedulable : true,
         system : gCurrentProcess->flags.system,
         clone : true

@@ -23,7 +23,7 @@
 #include <newlib/stdlib.h>
 
 static uint16_t clone(void (*func)()) {
-    auto ok = clone_syscall( (uintptr_t)func );
+    auto ok = clone_syscall( (uintptr_t)func, nullptr );
     if (ok & 1) return 0;
     return ok >> 1;
 }

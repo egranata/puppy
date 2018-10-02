@@ -142,8 +142,8 @@ syscall_response_t trymount_syscall(uint32_t arg1,const char* arg2) {
 syscall_response_t collectany_syscall(uint16_t* arg1,process_exit_status_t* arg2) {
 	return syscall2(collectany_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
-syscall_response_t clone_syscall(uintptr_t arg1) {
-	return syscall1(clone_syscall_id,(uint32_t)arg1);
+syscall_response_t clone_syscall(uintptr_t arg1,exec_fileop_t* arg2) {
+	return syscall2(clone_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
 syscall_response_t fdel_syscall(const char* arg1) {
 	return syscall1(fdel_syscall_id,(uint32_t)arg1);
