@@ -75,9 +75,9 @@ size_t PipeBuffer::read(size_t n, char* data) {
 }
 
 size_t PipeBuffer::write(size_t n, char* data) {
-    // if a tree falls in the forest and nobody is listening...
-    if (!isReadFileOpen()) return n;
     while (0 == mFreeSpace) {
+        // if a tree falls in the forest and nobody is listening...
+        if (!isReadFileOpen()) return n;
         mFullWQ.wait(gCurrentProcess);
     }
 
