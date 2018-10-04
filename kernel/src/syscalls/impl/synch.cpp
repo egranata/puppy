@@ -108,19 +108,28 @@ syscall_response_t mutextrylock_syscall_handler(uint32_t idx) {
     return ok ? OK : ERR(ALREADY_LOCKED);
 }
 
-syscall_response_t pipe_syscall_handler() {
-    VFS::filehandle_t pipe_handle = {
-        DeleterFS::theDeleterFS(),
-        new Pipe()
+syscall_response_t pipe_syscall_handler(size_t *read_fd, size_t *write_fd) {
+    auto pipeManager(PipeManager::get());
+
+    auto pipe_files = pipeManager->pipe();
+    VFS::filehandle_t pipe_reader = {
+        pipeManager,
+        pipe_files.first
+    };
+    VFS::filehandle_t pipe_writer = {
+        pipeManager,
+        pipe_files.second
     };
 
-    size_t pipe_fd;
+    bool read_ok = gCurrentProcess->fds.set(pipe_reader, *read_fd);
+    bool write_ok = gCurrentProcess->fds.set(pipe_writer, *write_fd);
 
-    bool ok = gCurrentProcess->fds.set(pipe_handle, pipe_fd);
+    bool ok = read_ok && write_ok;
     if (!ok) {
-        delete pipe_handle.second;
+        pipeManager->close(pipe_reader.second);
+        pipeManager->close(pipe_writer.second);
         return ERR(NO_SUCH_FILE);
     } else {
-        return OK | (pipe_fd << 1);
+        return OK;
     }
 }

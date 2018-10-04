@@ -14,23 +14,30 @@
 
 #include <kernel/synch/pipe.h>
 #include <kernel/process/manager.h>
+#include <kernel/panic/panic.h>
 
-Pipe::Pipe() {
-    kind(file_kind_t::pipe);
-    mReadPointer = mWritePointer = 0;
-    mFreeSpace = gBufferSize;
+PipeBuffer::PipeBuffer() {
     bzero(&mBuffer[0], gBufferSize);
+    mReadPointer = mWritePointer = 0;
+    mReadFileOpen = mWriteFileOpen = true;
+    mFreeSpace = gBufferSize;
 }
 
-bool Pipe::stat(stat_t&) {
-    return false; // TODO: it should be possible to stat() a pipe
+void PipeBuffer::closeReadFile() {
+    mReadFileOpen = false;
+}
+bool PipeBuffer::isReadFileOpen() const {
+    return mReadFileOpen;
 }
 
-bool Pipe::seek(size_t) {
-    return false;
+void PipeBuffer::closeWriteFile() {
+    mWriteFileOpen = false;
+}
+bool PipeBuffer::isWriteFileOpen() const {
+    return mWriteFileOpen;
 }
 
-bool Pipe::tryPutchar(char c) {
+bool PipeBuffer::tryPutchar(char c) {
     if (mFreeSpace == 0) return false;
 
     mBuffer[mWritePointer] = c;
@@ -39,7 +46,7 @@ bool Pipe::tryPutchar(char c) {
     return true;
 }
 
-bool Pipe::tryGetchar(char& c) {
+bool PipeBuffer::tryGetchar(char& c) {
     if (mFreeSpace == gBufferSize) return false;
 
     c = mBuffer[mReadPointer];
@@ -48,7 +55,7 @@ bool Pipe::tryGetchar(char& c) {
     return true;
 }
 
-size_t Pipe::read(size_t n, char* data) {
+size_t PipeBuffer::read(size_t n, char* data) {
     while (gBufferSize == mFreeSpace) {
         mEmptyWQ.wait(gCurrentProcess);
     }
@@ -63,7 +70,7 @@ size_t Pipe::read(size_t n, char* data) {
     return count;
 }
 
-size_t Pipe::write(size_t n, char* data) {
+size_t PipeBuffer::write(size_t n, char* data) {
     while (0 == mFreeSpace) {
         mFullWQ.wait(gCurrentProcess);
     }
@@ -78,3 +85,60 @@ size_t Pipe::write(size_t n, char* data) {
     return count;
 }
 
+PipeManager* PipeManager::get() {
+    static PipeManager gManager;
+
+    return &gManager;
+}
+
+PipeManager::PipeManager() = default;
+
+void PipeManager::doClose(FilesystemObject* file) {
+    if (file->kind() != file_kind_t::pipe) {
+        PANIC("cannot close a non-pipe via PipeManager");
+    }
+
+    PipeManager::PipeFile* pipeFile = (PipeManager::PipeFile*)file;
+
+    PipeBuffer *pipeBuffer = pipeFile->buffer();
+    if (pipeFile->isReadFile()) pipeBuffer->closeReadFile();
+    if (pipeFile->isWriteFile()) pipeBuffer->closeWriteFile();
+
+    if ((pipeBuffer->isReadFileOpen() == false) && (pipeBuffer->isWriteFileOpen() == false)) {
+        delete pipeBuffer;
+    }
+
+    delete file;
+}
+
+PipeManager::PipeFile::PipeFile(PipeBuffer* buffer) : mBuffer(buffer) {
+    kind(file_kind_t::pipe);
+}
+
+PipeManager::ReadFile::ReadFile(PipeBuffer* buffer) : PipeFile(buffer) {}
+PipeManager::WriteFile::WriteFile(PipeBuffer* buffer) : PipeFile(buffer) {}
+
+// TODO: could we support these?
+bool PipeManager::PipeFile::stat(stat_t&) { return false; }
+bool PipeManager::PipeFile::seek(size_t) { return false; }
+
+size_t PipeManager::PipeFile::read(size_t, char*) { return 0; }
+size_t PipeManager::PipeFile::write(size_t, char*) { return 0; }
+
+size_t PipeManager::ReadFile::read(size_t n, char* d) {
+    return mBuffer->read(n, d);
+}
+
+size_t PipeManager::WriteFile::write(size_t n, char* d) {
+    return mBuffer->write(n, d);
+}
+
+pair<PipeManager::ReadFile*, PipeManager::WriteFile*> PipeManager::pipe() {
+    pair<PipeManager::ReadFile*, PipeManager::WriteFile*> result;
+
+    PipeBuffer *buffer = new PipeBuffer();
+    result.first = new PipeManager::ReadFile(buffer);
+    result.second = new PipeManager::WriteFile(buffer);
+
+    return result;
+}

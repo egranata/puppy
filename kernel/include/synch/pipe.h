@@ -21,19 +21,25 @@
 #include <kernel/libc/bytesizes.h>
 #include <kernel/fs/filesystem.h>
 #include <kernel/synch/waitqueue.h>
+#include <kernel/libc/pair.h>
 
-class Pipe : public Filesystem::File {
+class PipeBuffer {
     public:
         static constexpr size_t gBufferSize = 4_KB;
 
-        Pipe();
-        bool stat(stat_t&) override;
-        bool seek(size_t) override;
-        size_t read(size_t, char*) override;
-        size_t write(size_t, char*) override;
+        PipeBuffer();
+
+        size_t read(size_t, char*);
+        size_t write(size_t, char*);
+
+        void closeReadFile();
+        bool isReadFileOpen() const;
+
+        void closeWriteFile();
+        bool isWriteFileOpen() const;
 
     private:
-        char mBuffer[Pipe::gBufferSize];
+        char mBuffer[gBufferSize];
         size_t mReadPointer;
         size_t mWritePointer;
         size_t mFreeSpace;
@@ -43,6 +49,54 @@ class Pipe : public Filesystem::File {
 
         WaitQueue mFullWQ;
         WaitQueue mEmptyWQ;
+
+        bool mReadFileOpen;
+        bool mWriteFileOpen;
+};
+
+class PipeManager : public Filesystem {
+    public:
+        static PipeManager* get();
+
+        File* open(const char*, uint32_t) override { return nullptr; }
+        bool del(const char*) override { return false; }
+        Directory* opendir(const char*) override { return nullptr; }
+        bool mkdir(const char*) override { return false; }
+        void doClose(FilesystemObject* object) override;
+
+        class PipeFile : public Filesystem::File {
+            public:
+                PipeFile(PipeBuffer *);
+                bool stat(stat_t&) override;
+                bool seek(size_t) override;
+                size_t read(size_t, char*) override;
+                size_t write(size_t, char*) override;
+
+                PipeBuffer* buffer() const { return mBuffer; }
+                virtual bool isReadFile() const = 0;
+                virtual bool isWriteFile() const { return !isReadFile(); }
+
+            protected:
+                PipeBuffer *mBuffer;
+        };
+
+        class ReadFile : public PipeFile {
+            public:
+                ReadFile(PipeBuffer*);
+                size_t read(size_t, char*) override;
+                bool isReadFile() const override { return true; }
+        };
+        class WriteFile : public PipeFile {
+            public:
+                WriteFile(PipeBuffer*);
+                size_t write(size_t, char*) override;
+                bool isReadFile() const override { return false; }
+        };
+
+        pair<ReadFile*, WriteFile*> pipe();
+
+    private:
+        PipeManager();
 };
 
 #endif

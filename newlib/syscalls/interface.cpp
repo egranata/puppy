@@ -360,11 +360,7 @@ NEWLIB_IMPL_REQUIREMENT int chdir(const char *path) {
 }
 
 NEWLIB_IMPL_REQUIREMENT int pipe (int fd[2]) {
-    size_t pipe_fd = pipe_syscall();
-
-    if (pipe_fd & 1) ERR_EXIT(EMFILE);
-
-    fd[0] = pipe_fd >> 1;
-    fd[1] = pipe_fd >> 1;
+    size_t pipe_ok = pipe_syscall((size_t*)&fd[0], (size_t*)&fd[1]);
+    if (pipe_ok & 1) ERR_EXIT(EMFILE);
     return 0;
 }
