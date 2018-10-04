@@ -87,4 +87,5 @@ sudo ln -s -f $prefix/bin/* /usr/local/bin/
 sudo apt-get update
 sudo apt-get install python3 genisoimage xorriso nasm
 sudo apt-get install qemu
+sudo apt-get install dosfstools mtools
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc grub2

@@ -26,7 +26,6 @@ import sys
 import time
 
 VERBOSE = "-v" in sys.argv
-KEEP_MOUNTED = "-keep-mounted" in sys.argv
 
 MYPATH = os.path.abspath(os.getcwd())
 
@@ -79,7 +78,6 @@ def findSubdirectories(dir, self=True):
 
 def error(msg):
     print("error: %s" % msg)
-    if not KEEP_MOUNTED: shell("umount --lazy --force --verbose out/mnt", onerrignore=True)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
 def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
@@ -308,31 +306,23 @@ class UserspaceTool(Project):
                          announce=announce)
         self.link = self.linkGcc
 
-def mountDiskImage(file, mpoint, count=64, bs=1024*1024):
-    # the -D option does not seem to exist on Travis
-    # but that's OK because in that case a new VM gets spawned
-    # at every rebuild, so don't fail for that reason
-    CMDLINE="losetup -D"
-    shell(CMDLINE, onerrignore=True)
+def createDiskImage(file, megsOfSize=64):
+    headerFile = "%s" % file
+    fatFile = "%s.fat" % file
 
-    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (file, bs, count)
+    megsOfFATVolume = megsOfSize - 1
+
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (headerFile, 1024*1024, 1)
     shell(CMDLINE)
-    CMDLINE="fdisk %s" % file
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (fatFile, 1024*1024, megsOfFATVolume)
+    shell(CMDLINE)
+    CMDLINE="fdisk %s" % headerFile
     shell(CMDLINE, stdin=open('build/fdisk.in'))
 
-    CMDLINE="losetup --find --show %s" % file
-    DISK_LO = shell(CMDLINE).splitlines()[0]
-
-    CMDLINE="losetup --offset $((2048*512)) --show --find %s" % file
-    PART_LO = shell(CMDLINE).splitlines()[0]
-
-    CMDLINE="mkfs.fat -F32 %s" % (PART_LO)
+    CMDLINE="mkfs.fat -F32 %s" % (fatFile)
     shell(CMDLINE)
 
-    CMDLINE="mount -o loop %s %s" % (PART_LO, mpoint)
-    shell(CMDLINE)
-
-    return (DISK_LO, PART_LO)
+    return (headerFile, fatFile)
 
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
@@ -402,8 +392,9 @@ EASTL.build()
 Checkup.build()
 Parson.build()
 
-DISK_LO, PART_LO = mountDiskImage("out/os.img", "out/mnt")
-print("OS disk image mounted as %s : %s" % (DISK_LO, PART_LO))
+IMG_FILE = "out/os.img"
+ROOT_DISK, FAT_DISK = createDiskImage(IMG_FILE)
+print("OS disk image parts: %s and %s" % (ROOT_DISK, FAT_DISK))
 
 makeDir("out/mnt/apps")
 makeDir("out/mnt/libs")
@@ -585,21 +576,32 @@ sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").repl
 sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm -v").replace('\n', ''))
 write("out/mnt/config/sysinfo", sysinfo)
 
-CMDLINE="grub-install -v --modules=\"part_msdos biosdisk fat multiboot configfile\" --target i386-pc --root-directory=\"%s/out/mnt\" %s" % (MYPATH, DISK_LO)
-shell(CMDLINE)
+makeDir("out/mnt/boot")
+rcopy("build/grub", "out/mnt/boot")
 
 copy("out/kernel", "out/mnt/boot/puppy")
 copy("out/iso/boot/initrd.img", "out/mnt/boot/initrd.img")
 copy("out/iso/boot/grub/grub.cfg", "out/mnt/boot/grub/grub.cfg")
 
-CMDLINE="df %s/out/mnt -BK --output=used" % (MYPATH)
-PART_USAGE = int(shell(CMDLINE).splitlines()[1][0:-1]) * 1024
+CMDLINE="mcopy -s -i %s out/mnt/* ::/" % (FAT_DISK)
+shell(CMDLINE)
 
-if not KEEP_MOUNTED:
-    CMDLINE="umount out/mnt"
-    shell(CMDLINE)
+CMDLINE="du -ks out/mnt"
+PART_USAGE = int(shell(CMDLINE).splitlines()[0].split()[0]) * 1024
 
-print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat("out/os.img").st_size, PART_USAGE))
+CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=512 count=1 of=%s" % (ROOT_DISK)
+shell(CMDLINE)
+
+CMDLINE="grub-mkimage -c build/earlygrub.cfg -O i386-pc -o out/boot.ldr -p /boot/grub part_msdos biosdisk fat multiboot configfile"
+shell(CMDLINE)
+
+CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (ROOT_DISK)
+shell(CMDLINE)
+
+CMDLINE="cat %s >> %s" % (FAT_DISK, ROOT_DISK)
+shell(CMDLINE)
+
+print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat(ROOT_DISK).st_size, PART_USAGE))
 
 BUILD_END = time.time()
 print("Build took %s seconds" % int(BUILD_END - BUILD_START))
