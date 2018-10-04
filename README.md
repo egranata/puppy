@@ -12,7 +12,7 @@ More specifically, Puppy aims to provide:
 - system calls for userspace; ✅
 - FAT32 filesystems; ✅
 - support for actual physical x86 hardware; ✅
-- a C/C++ standard library for userspace programs;
+- a C/C++ standard library for userspace programs; ✅
 - ACPI support;
 - a functional userspace (custom built or ported as needed).
 
