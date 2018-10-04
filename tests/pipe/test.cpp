@@ -22,8 +22,10 @@
 #include <newlib/unistd.h>
 #include <newlib/syscalls.h>
 
+#define TEST_MESSAGE "I am going to write some text to my stdout and then exit\n"
+
 static void writeTask() {
-    printf("I am going to write some text to my stdout and then exit\n");
+    printf(TEST_MESSAGE);
     exit(0);
 }
 
@@ -66,19 +68,15 @@ class TheTest : public Test {
             FILE* fpipe = fdopen(pipefd[0], "r");
 
             auto wrPid = clone(writeTask, fops);
+            fclose_syscall(pipefd[1]);
 
-            // TODO: check the sleep/wake behavior
-            CHECK_EQ(fgetc(fpipe), 'I');
-            CHECK_EQ(fgetc(fpipe), ' ');
-            CHECK_EQ(fgetc(fpipe), 'a');
-            CHECK_EQ(fgetc(fpipe), 'm');
-            CHECK_EQ(fgetc(fpipe), ' ');
-            CHECK_EQ(fgetc(fpipe), 'g');
-            CHECK_EQ(fgetc(fpipe), 'o');
-            CHECK_EQ(fgetc(fpipe), 'i');
-            CHECK_EQ(fgetc(fpipe), 'n');
-            CHECK_EQ(fgetc(fpipe), 'g');
-            CHECK_EQ(fgetc(fpipe), ' ');
+            char buf[1024] = {0};
+            size_t count = fread(buf, 1, 1024, fpipe);
+            CHECK_NOT_EQ(0, count);
+            CHECK_EQ(0, strcmp(&buf[0], TEST_MESSAGE));
+            count = fread(buf, 1, 1024, fpipe);
+            CHECK_EQ(0, count);
+            CHECK_TRUE(feof(fpipe));
 
             auto s = collect(wrPid);
             CHECK_EQ(s.reason, process_exit_status_t::reason_t::cleanExit);

@@ -25,6 +25,7 @@ PipeBuffer::PipeBuffer() {
 
 void PipeBuffer::closeReadFile() {
     mReadFileOpen = false;
+    mFullWQ.wakeall(); // if anyone is waiting to write, let them try...
 }
 bool PipeBuffer::isReadFileOpen() const {
     return mReadFileOpen;
@@ -32,6 +33,7 @@ bool PipeBuffer::isReadFileOpen() const {
 
 void PipeBuffer::closeWriteFile() {
     mWriteFileOpen = false;
+    mEmptyWQ.wakeall(); // if anyone is trying to read, let them try...
 }
 bool PipeBuffer::isWriteFileOpen() const {
     return mWriteFileOpen;
@@ -57,6 +59,8 @@ bool PipeBuffer::tryGetchar(char& c) {
 
 size_t PipeBuffer::read(size_t n, char* data) {
     while (gBufferSize == mFreeSpace) {
+        // no point on waiting on a writer that is gone
+        if (!isWriteFileOpen()) break;
         mEmptyWQ.wait(gCurrentProcess);
     }
 
@@ -71,6 +75,8 @@ size_t PipeBuffer::read(size_t n, char* data) {
 }
 
 size_t PipeBuffer::write(size_t n, char* data) {
+    // if a tree falls in the forest and nobody is listening...
+    if (!isReadFileOpen()) return n;
     while (0 == mFreeSpace) {
         mFullWQ.wait(gCurrentProcess);
     }
