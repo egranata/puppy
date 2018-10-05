@@ -14,8 +14,7 @@
 
 #include <newlib/sys/vm.h>
 #include <kernel/syscalls/types.h>
-
-#define NEWLIB_IMPL_REQUIREMENT extern "C" 
+#include <newlib/impl/cenv.h>
 
 NEWLIB_IMPL_REQUIREMENT int readable(void* p, size_t sz) {
     return 0 == vmcheckreadable_syscall((uintptr_t)p, sz);

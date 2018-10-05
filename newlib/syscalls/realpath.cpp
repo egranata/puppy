@@ -16,6 +16,7 @@
 #include <newlib/string.h>
 #include <kernel/syscalls/types.h>
 #include <newlib/impl/scoped_ptr.h>
+#include <newlib/impl/cenv.h>
 
 using newlib::puppy::impl::scoped_ptr_t;
 
@@ -117,8 +118,6 @@ namespace {
         return true;
     }
 }
-
-#define NEWLIB_IMPL_REQUIREMENT extern "C"
 
 NEWLIB_IMPL_REQUIREMENT char* realpath(const char *__restrict path, char *__restrict resolved_path) {
     if (path == nullptr || path[0] == 0) return nullptr;
