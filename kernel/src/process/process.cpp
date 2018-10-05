@@ -24,6 +24,7 @@ process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitsta
     args = nullptr;
     path = nullptr;
     cwd = strdup("/");
+    flags.due_for_reschedule = false;
 }
 
 process_t::ttyinfo_t::ttyinfo_t() : tty(nullptr), ttyfile(nullptr) {

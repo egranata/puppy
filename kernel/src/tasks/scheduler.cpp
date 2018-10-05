@@ -49,9 +49,10 @@ namespace tasks::scheduler {
             LOG_DEBUG("cur_task = %p %u - next_task = %p %u", cur_task, cur_task->pid, next_task, next_task->pid);
 
             if (next_task == cur_task) {
-                LOG_DEBUG("task %u yielding to itself, so nothing to see here", cur_task->pid);        
+                LOG_DEBUG("task %u yielding to itself, so nothing to see here", cur_task->pid);
             } else {
                 LOG_DEBUG("task %u yielding to task %u", cur_task->pid, next_task->pid);
+                next_task->flags.due_for_reschedule = false;
                 ProcessManager::ctxswitch(next_task);
                 LOG_DEBUG("back from yielding");
             }

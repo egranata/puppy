@@ -23,6 +23,8 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(RESCHEDULE, 0);
+
 namespace boot::syscalls {
     uint32_t init() {
         SyscallManager::get();
@@ -98,6 +100,11 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
         }
     } else {
         gpr.eax = ERR(NO_SUCH_SYSCALL);
+    }
+
+    if (gCurrentProcess->flags.due_for_reschedule) {
+        TAG_DEBUG(RESCHEDULE, "process %u forced to yield by flag", gCurrentProcess->pid);
+        ProcessManager::get().yield();
     }
 }
 

@@ -650,8 +650,9 @@ void ProcessManager::tick(bool can_yield) {
     auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.prio, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
-        if (can_yield && usedticks >= allowedticks) {
-            yield(true);
+        if (usedticks >= allowedticks) {
+            if (can_yield) yield(true);
+            else gCurrentProcess->flags.due_for_reschedule = true;
         }
     }
 }
