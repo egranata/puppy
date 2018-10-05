@@ -28,7 +28,7 @@ static void runInShell(const char* program, const char* args, bool is_bg) {
             printf("%s: not found in PATH\n", program);
             return;
         }
-        auto chld = spawn(real_program.c_str(), args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND));
+        auto chld = spawn(real_program.c_str(), args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND), nullptr);
         if (is_bg) {
             printf("[child %u] spawned\n", chld);
         } else {

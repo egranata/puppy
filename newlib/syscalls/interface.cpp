@@ -321,12 +321,12 @@ static char* concatArray(char** str) {
     return dest_ptr.reset();
 }
 
-static int newProcessImpl(const char* path, const char* args, char** env, int flags) {
+static int newProcessImpl(const char* path, const char* args, char** env, int flags, exec_fileop_t* fops) {
     if (path == nullptr || path[0] == 0) ERR_EXIT(ENOENT);
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
 
-    auto eo = exec_syscall(rp.ptr, args, env, flags, nullptr);
+    auto eo = exec_syscall(rp.ptr, args, env, flags, fops);
     if (eo & 1) ERR_EXIT(ECHILD);
     return eo >> 1;
 }
@@ -334,14 +334,14 @@ static int newProcessImpl(const char* path, const char* args, char** env, int fl
 NEWLIB_IMPL_REQUIREMENT int execve(char* path, char** argv, char** env) {
     newlib::puppy::impl::scoped_ptr_t<char> args = concatArray(argv);
 
-    return newProcessImpl((const char*)path, (const char*)args.get(), env, PROCESS_IS_FOREGROUND | PROCESS_INHERITS_CWD);
+    return newProcessImpl((const char*)path, (const char*)args.get(), env, PROCESS_IS_FOREGROUND | PROCESS_INHERITS_CWD, nullptr);
 }
 
-NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags) {
+NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags, exec_fileop_t* fops) {
     const bool clear_env = PROCESS_EMPTY_ENVIRONMENT == (flags & PROCESS_EMPTY_ENVIRONMENT);
     flags &= ~PROCESS_EMPTY_ENVIRONMENT;
 
-    return newProcessImpl(path, args, clear_env ? nullptr : environ, flags);
+    return newProcessImpl(path, args, clear_env ? nullptr : environ, flags, fops);
 }
 
 NEWLIB_IMPL_REQUIREMENT unsigned int sleep(unsigned int seconds) {
