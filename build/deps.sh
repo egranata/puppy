@@ -18,10 +18,15 @@
 target=i686-elf
 prefix=$HOME/cross/$target
 
-# TODO: see if we can preserve VM state
 mkdir -p /tmp/toolchain
-cd /tmp/toolchain
-rm -rf /tmp/toolchain/*
+pushd /tmp/toolchain
+
+# Download binutils sources if they are not yet downloaded.
+if [ ! -f binutils-2.29.tar.bz2 ]
+then
+    wget -c -O binutils-2.29.tar.bz2 https://gcc.gnu.org/pub/binutils/releases/binutils-2.29.tar.bz2
+    tar -xf binutils-2.29.tar.bz2
+fi
 
 # Download gcc sources if they are not yet downloaded.
 if [ ! -f gcc-7.2.0.tar.gz ]
@@ -30,7 +35,7 @@ then
     tar -xf gcc-7.2.0.tar.gz
 
     # download GCC prereqs
-    cd /tmp/toolchain/gcc-7.2.0
+    pushd gcc-7.2.0
 
     curl http://gcc.gnu.org/pub/gcc/infrastructure/gmp-6.1.0.tar.bz2 > gmp.tar.bz2
     tar -xf gmp.tar.bz2
@@ -47,42 +52,36 @@ then
     curl http://gcc.gnu.org/pub/gcc/infrastructure/isl-0.16.1.tar.bz2 > isl.tar.bz2
     tar -xf isl.tar.bz2
     mv isl-0.16.1 isl
+
+    popd
 fi
 
-cd /tmp/toolchain
-
-# Download binutils sources if they are not yet downloaded.
-if [ ! -f binutils-2.29.tar.bz2 ]
+# Build cross compiler is missing.
+if [ ! -f $prefix/bin/i686-elf-gcc ]
 then
-    wget -c -O binutils-2.29.tar.bz2 https://gcc.gnu.org/pub/binutils/releases/binutils-2.29.tar.bz2
-    tar -xf binutils-2.29.tar.bz2
+    # Create build paths.
+    mkdir -p /tmp/toolchain/build-binutils
+    mkdir -p /tmp/toolchain/build-gcc
+
+    # Build binutils.
+    cd /tmp/toolchain/build-binutils
+    sudo rm -rf *
+    /tmp/toolchain/binutils-2.29/configure --target=$target --prefix=$prefix --with-sysroot --disable-nls --disable-werror 2>&1
+    make all 2>&1
+    make install 2>&1
+    sudo rm -rf *
+
+    # Build gcc and libgcc.
+    cd /tmp/toolchain/build-gcc
+    /tmp/toolchain/gcc-7.2.0/configure --target=$target --prefix=$prefix --disable-nls --enable-languages=c,c++ --without-headers 2>&1
+    make all-gcc 2>&1
+    make install-gcc 2>&1
+    make all-target-libgcc 2>&1
+    make install-target-libgcc 2>&1
 fi
 
-# Create build paths.
-mkdir -p /tmp/toolchain/build-binutils
-mkdir -p /tmp/toolchain/build-gcc
-
-# Build binutils.
-cd /tmp/toolchain/build-binutils
-sudo rm -rf *
-/tmp/toolchain/binutils-2.29/configure --target=$target --prefix=$prefix --with-sysroot --disable-nls --disable-werror 2>&1
-make all 2>&1
-make install 2>&1
-sudo rm -rf *
-
-export PATH=$PATH:$prefix/bin
-
-# Build gcc and libgcc.
-cd /tmp/toolchain/build-gcc
-/tmp/toolchain/gcc-7.2.0/configure --target=$target --prefix=$prefix --disable-nls --enable-languages=c,c++ --without-headers 2>&1
-make all-gcc 2>&1
-make install-gcc 2>&1
-make all-target-libgcc 2>&1
-make install-target-libgcc 2>&1
-
-# Make sure that our cross compiler will be found by creating links.
-# Alternative: Add the $prefix/bin directory to your $PATH.
 sudo ln -s -f $prefix/bin/* /usr/local/bin/
+export PATH=$PATH:$prefix/bin
 
 sudo apt-get update
 sudo apt-get install python3 genisoimage xorriso nasm
