@@ -24,10 +24,6 @@ int main(int, const char**) {
 
     char *buffer = (char*)calloc(gLogBufferSize, 1);
 
-    puts("Writing log entries to stdout.. Press a key to keep scrolling\n");
-
-    size_t n_written = 0;
-
     if (0 == klogread_syscall(buffer, gLogBufferSize, &log_stats)) {
         printf("Total entries in log: %llu\n", log_stats.numentries);
         printf("Total written to log: %llu bytes\n", log_stats.totalwritten);
@@ -37,13 +33,8 @@ int main(int, const char**) {
 
         for (auto i = 0u; i < gLogBufferSize; ++i) {
             auto c = buffer[i];
-            if (c == '\n') ++n_written;
             if (c == 0) break;
             putchar(c);
-            if (n_written == 5) {
-                while (-1 == getchar());
-                n_written = 0;
-            }
         }
 
         puts("End of log.\n");
