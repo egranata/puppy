@@ -19,7 +19,7 @@ target=i686-elf
 prefix=$HOME/cross/$target
 
 mkdir -p /tmp/toolchain
-pushd /tmp/toolchain
+cd /tmp/toolchain
 
 # Download binutils sources if they are not yet downloaded.
 if [ ! -f binutils-2.29.tar.bz2 ]
@@ -35,7 +35,7 @@ then
     tar -xf gcc-7.2.0.tar.gz
 
     # download GCC prereqs
-    pushd gcc-7.2.0
+    cd gcc-7.2.0
 
     curl http://gcc.gnu.org/pub/gcc/infrastructure/gmp-6.1.0.tar.bz2 > gmp.tar.bz2
     tar -xf gmp.tar.bz2
@@ -53,7 +53,7 @@ then
     tar -xf isl.tar.bz2
     mv isl-0.16.1 isl
 
-    popd
+    cd ..
 fi
 
 # Build cross compiler is missing.
