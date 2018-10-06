@@ -190,7 +190,7 @@ void task0() {
 
     {
         auto&& pmm(ProcessManager::get());
-        gInitTask = pmm.setup("/initrd/init", nullptr, nullptr);
+        gInitTask = pmm.exec("/initrd/init", nullptr, nullptr, PROCESS_IS_FOREGROUND);
         gInitTask->flags.system = true;
         gInitTask->ttyinfo.tty->pushfg(gInitTask->pid);
         LOG_DEBUG("init process ready as %p %u", gInitTask, (uint32_t)gInitTask->pid);
@@ -251,30 +251,7 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
-process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags, exec_fileop_t* fops) {
-    auto&& vmm(VirtualPageManager::get());
-
-    spawninfo_t si {
-        cr3 : vmm.createAddressSpace(),
-        eip : (uintptr_t)&fileloader,
-        priority : gDefaultBasePriority,
-        argument : 0,
-        environment : env,
-        name : path,
-        cwd : (flags & PROCESS_INHERITS_CWD ? gCurrentProcess->cwd : "/"),
-        fileops : fops,
-        schedulable : true,
-    };
-
-    if (auto process = spawn(si)) {
-        if (args) process->args = strdup(args);
-        return process;
-    }
-
-    return nullptr;
-}
-
-process_t* ProcessManager::setup(const char* path, const char* args, const char** env, uint8_t prio, uintptr_t argp) {
+process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags, uint8_t prio, uintptr_t argp, exec_fileop_t* fops) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
@@ -284,8 +261,8 @@ process_t* ProcessManager::setup(const char* path, const char* args, const char*
         argument : argp,
         environment : env,
         name : path,
-        cwd : "/",
-        fileops : nullptr,
+        cwd : (flags & PROCESS_INHERITS_CWD ? gCurrentProcess->cwd : "/"),
+        fileops : fops,
         schedulable : true,
     };
 

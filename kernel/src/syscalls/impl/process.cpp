@@ -54,7 +54,7 @@ HANDLER0(getppid) {
 syscall_response_t exec_syscall_handler(const char* path, const char* args, char** env, uint32_t flags, exec_fileop_t* fileops) {
     auto&& pmm = ProcessManager::get();
 
-    auto newproc = pmm.exec(path, args, (const char**)env, flags, fileops);
+    auto newproc = pmm.exec(path, args, (const char**)env, flags, ProcessManager::gDefaultBasePriority, 0, fileops);
 
     if (newproc == nullptr) return ERR(NO_SUCH_PROCESS);
 
