@@ -18,6 +18,7 @@
 #define PROCESS_ELF
 
 #include <kernel/sys/stdint.h>
+#include <kernel/process/fileloader.h>
 
 struct elf_header_t;
 
@@ -59,16 +60,14 @@ namespace {
     };
 }
 
-struct process_loadinfo_t {
-    uintptr_t eip;
-    uintptr_t stack;
-};
-
 struct elf_load_result_t {
     bool ok;
     const char* error;
     uintptr_t max_load_addr;
 };
+
+extern "C" bool elf_can_load(uintptr_t load0);
+extern "C" process_loadinfo_t elf_do_load(uintptr_t load0, size_t stacksize);
 
 elf_load_result_t load_elf_image(elf_header_t* header);
 

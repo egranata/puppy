@@ -48,6 +48,17 @@ static uint32_t roundup(uint32_t size) {
 
 static constexpr uint32_t gInitialLoadAddress = 2_GB;
 
+exec_format_loader_t gExecutableLoaders[] = {
+    exec_format_loader_t{
+        .can_handle_f = elf_can_load,
+        .load_f = elf_do_load
+    },
+    exec_format_loader_t{
+        .can_handle_f = nullptr,
+        .load_f = nullptr,
+    },
+};
+
 extern "C"
 void fileloader(uintptr_t) {
     auto&& vm(VirtualPageManager::get());
@@ -79,14 +90,26 @@ void fileloader(uintptr_t) {
     fhandle.first = nullptr;
     fhandle.second = nullptr;
 
-    elf_header_t *header = (elf_header_t*)gInitialLoadAddress;
+    exec_format_loader_t *loader_f = nullptr;
 
-    auto loadinfo = load_main_binary(header, process_t::gDefaultStackSize);
+    {
+        size_t i = 0;
+        for(; gExecutableLoaders[i].load_f; ++i) {
+            if (gExecutableLoaders[i].can_handle_f(gInitialLoadAddress)) {
+                loader_f = &gExecutableLoaders[i];
+                break;
+            }
+        }
+    }
+
+    if (loader_f == nullptr) UNHAPPY("no loader for this format", 5);
+
+    auto loadinfo = loader_f->load_f(gInitialLoadAddress, process_t::gDefaultStackSize);
 
     vm.unmaprange(gInitialLoadAddress, gInitialLoadAddress + pages * VirtualPageManager::gPageSize);
 
-    if (loadinfo.eip == 0) UNHAPPY("invalid ELF binary", 5);
-    if (loadinfo.stack == 0) UNHAPPY("malformed stack", 6);
+    if (loadinfo.eip == 0) UNHAPPY("invalid binary", 6);
+    if (loadinfo.stack == 0) UNHAPPY("malformed stack", 7);
 
     LOG_DEBUG("setting up FPU for process %u", gCurrentProcess->pid);
     // don't trigger FPU exception on setup - there's no valid state to restore anyway
@@ -98,6 +121,6 @@ void fileloader(uintptr_t) {
     toring3(loadinfo.eip, loadinfo.stack);
 
     // we should never ever ever get back here...
-    UNHAPPY("how did we get back to the loader?", 7);
+    UNHAPPY("how did we get back to the loader?", 8);
     while(true);
 }

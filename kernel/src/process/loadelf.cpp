@@ -37,6 +37,16 @@ namespace {
     static_assert(sizeof(program_args_t) == VirtualPageManager::gPageSize);
 }
 
+extern "C" bool elf_can_load(uintptr_t load0) {
+    elf_header_t *header = (elf_header_t*)load0;
+    return header->sanitycheck();
+}
+
+extern "C" process_loadinfo_t elf_do_load(uintptr_t load0, size_t stacksize) {
+    elf_header_t *header = (elf_header_t*)load0;
+    return load_main_binary(header, stacksize);
+}
+
 elf_load_result_t load_elf_image(elf_header_t* header) {
     ph_load_info loaded_headers[10];
     bzero(&loaded_headers[0], sizeof(loaded_headers));
