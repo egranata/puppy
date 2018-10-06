@@ -512,6 +512,9 @@ for test in TEST_DIRS:
             "wait" : "15" # allow tests to wait for more or less than 15 seconds
         })
 
+# provide a consistent sort order for test execution regardless of underlying FS
+TEST_PLAN.sort(key=lambda test: test["id"])
+
 with open("out/testplan.json", "w") as f:
     json.dump(TEST_PLAN, f)
 
@@ -557,7 +560,7 @@ for test in TEST_REFS:
     test_name = os.path.basename(test)
     copy(test, "out/mnt/tests/%s" % test_name)
 
-with open("out/mnt/config/test.sh", "w") as testScript:
+with open("out/mnt/tests/runall.sh", "w") as testScript:
     print("#!/system/apps/shell", file=testScript)
     for test in TEST_PLAN:
             print("%s" % test['path'], file=testScript)

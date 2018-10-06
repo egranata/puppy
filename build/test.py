@@ -88,7 +88,7 @@ waitFor("Boot", 15, checkAlive)
 
 TEST_PLAN = json.load(open(sys.argv[1], "r"))
 
-sendString(qemu, "script /system/config/test.sh")
+sendString(qemu, "/system/tests/runall.sh")
 
 for TEST in TEST_PLAN:
     wait = int(TEST["wait"])
