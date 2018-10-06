@@ -188,4 +188,17 @@ struct exec_fileop_t {
     void*     param3; // reserved for future evolutions
 };
 
+// TODO: deprecate old message_t and rename this new one
+struct new_message_t {
+    static constexpr size_t gTotalSize = 4096; // TODO: expose the size of a page globally
+    struct header_t {
+        kpid_t sender;
+        uint64_t timestamp;
+        size_t payload_size;
+    } header;
+    uint8_t payload[gTotalSize - sizeof(header)];
+};
+
+static_assert(sizeof(new_message_t) == new_message_t::gTotalSize);
+
 #endif
