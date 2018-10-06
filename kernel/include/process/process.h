@@ -39,13 +39,12 @@ class Mutex;
 struct process_t {
     static constexpr size_t gDefaultStackSize = 4_MB;
     using State = process_state_t;
-    typedef uint16_t pid_t;
 
     TaskStateSegment tss;
     size_t gdtidx;
     uintptr_t cr0;
-    pid_t pid;
-    pid_t ppid;
+    kpid_t pid;
+    kpid_t ppid;
     const char* path;
     const char* args;
     const char* cwd;

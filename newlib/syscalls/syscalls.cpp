@@ -103,7 +103,7 @@ syscall_response_t freaddir_syscall(uint16_t arg1,file_info_t* arg2) {
 syscall_response_t getppid_syscall() {
 	return syscall0(getppid_syscall_id);
 }
-syscall_response_t collect_syscall(uint16_t arg1,process_exit_status_t* arg2) {
+syscall_response_t collect_syscall(kpid_t arg1,process_exit_status_t* arg2) {
 	return syscall2(collect_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
 syscall_response_t semget_syscall(uint32_t arg1) {
@@ -139,7 +139,7 @@ syscall_response_t setregionperms_syscall(uint32_t arg1,uint32_t arg2) {
 syscall_response_t trymount_syscall(uint32_t arg1,const char* arg2) {
 	return syscall2(trymount_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
-syscall_response_t collectany_syscall(uint16_t* arg1,process_exit_status_t* arg2) {
+syscall_response_t collectany_syscall(kpid_t* arg1,process_exit_status_t* arg2) {
 	return syscall2(collectany_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
 syscall_response_t clone_syscall(uintptr_t arg1,exec_fileop_t* arg2) {

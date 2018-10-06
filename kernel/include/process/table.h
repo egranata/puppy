@@ -21,10 +21,11 @@
 #include <kernel/panic/panic.h>
 #include <muzzle/string.h>
 #include <kernel/libc/function.h>
+#include <kernel/syscalls/types.h>
 
 class process_t;
 
-template<size_t NumProcesses, typename PidType = uint16_t>
+template<size_t NumProcesses, typename PidType = kpid_t>
 class ProcessTable {
     public:
         ProcessTable() {

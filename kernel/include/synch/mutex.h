@@ -17,10 +17,11 @@
 #ifndef SYNCH_MUTEX
 #define SYNCH_MUTEX
 
-#include <kernel/sys/stdint.h>
+#include <stdint.h>
 #include <kernel/synch/refcount.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/synch/waitqueue.h>
+#include <kernel/syscalls/types.h>
 
 struct process_t;
 
@@ -40,7 +41,7 @@ class Mutex : public refcounted<Mutex> {
 
         char* mKey;
         bool mLocked;
-        uint16_t mPid;
+        kpid_t mPid;
         WaitQueue mWQ;
 
         friend class MutexManager;

@@ -143,12 +143,14 @@ struct file_info_t {
     file_kind_t kind;
 };
 
+// make sure that userspace can define its own pid_t with different requirements than our version here
+typedef uint16_t kpid_t;
+
 struct process_info_t {
-    using pid_t = uint16_t;
     static constexpr size_t gMaxCommandLineSize = 128;
 
-    pid_t pid;
-    pid_t ppid;
+    kpid_t pid;
+    kpid_t ppid;
     process_state_t state;
     char path[gMaxPathSize];
     char args[gMaxCommandLineSize];

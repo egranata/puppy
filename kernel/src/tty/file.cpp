@@ -179,7 +179,7 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
     switch (a1) {
         case IOCTL_FOREGROUND:
             // TODO: should processes be allowed to push themselves to the foreground freely?
-            mTTY->pushfg((uint16_t)a2);
+            mTTY->pushfg((kpid_t)a2);
             return 1;
         case IOCTL_BACKGROUND:
             mTTY->popfg();

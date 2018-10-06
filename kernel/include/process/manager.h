@@ -56,8 +56,6 @@ class ProcessManager : NOCOPY {
         // NB: implementation of this is in process/exceptions.h
         void installexceptionhandlers();
 
-        using pid_t = process_t::pid_t;
-
         struct spawninfo_t {
             uintptr_t cr3; /** the root of the address space */
             uintptr_t eip; /** what address to start running from */
@@ -86,19 +84,19 @@ class ProcessManager : NOCOPY {
 
         void resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uint16_t cs, uint16_t ss);
 
-        pid_t getpid();
+        kpid_t getpid();
         void yield(bool bytimer=false);
         void sleep(uint32_t durationMs);
         void exit(process_exit_status_t);
-        void kill(pid_t);
+        void kill(kpid_t);
 
-        pid_t initpid();
-        pid_t schedulerpid();
+        kpid_t initpid();
+        kpid_t schedulerpid();
 
-        process_t* getprocess(pid_t pid);
+        process_t* getprocess(kpid_t pid);
 
-        process_exit_status_t collect(pid_t pid);
-        bool collectany(pid_t*, process_exit_status_t*);
+        process_exit_status_t collect(kpid_t pid);
+        bool collectany(kpid_t*, process_exit_status_t*);
 
         void ready(process_t*);
         void deschedule(process_t*, process_t::State);

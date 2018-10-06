@@ -19,12 +19,13 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/panic/panic.h>
+#include <kernel/syscalls/types.h>
 
 #define PB_INDICES(n) \
 auto B = n / 8; \
 auto b = n % 8
 
-template<size_t NumProcesses, size_t NumBytes = NumProcesses / 8, typename PidType = uint16_t>
+template<size_t NumProcesses, size_t NumBytes = NumProcesses / 8, typename PidType = kpid_t>
 class ProcessBitmap {
     public:
         ProcessBitmap() {

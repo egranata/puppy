@@ -482,13 +482,13 @@ void ProcessManager::switchtoscheduler() {
 
 #define GDT_ENTRY_TO_TSS_PTR(tssval) ((tssval & 0xFFFFFF0000ULL) >> 16) | ((tssval & 0xFF00000000000000ULL) >> 32)
 
-process_t* ProcessManager::getprocess(ProcessManager::pid_t pid) {
+process_t* ProcessManager::getprocess(kpid_t pid) {
     return gProcessTable().get(pid);
 }
 
 #undef GDT_ENTRY_TO_TSS_PTR
 
-ProcessManager::pid_t ProcessManager::getpid() {
+kpid_t ProcessManager::getpid() {
     return gCurrentProcess->pid;
 }
 
@@ -512,7 +512,7 @@ void ProcessManager::resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uin
     tss.ss = ss;
 }
 
-void ProcessManager::kill(pid_t pid) {
+void ProcessManager::kill(kpid_t pid) {
     process_exit_status_t es(process_exit_status_t::reason_t::killed, 0);
     auto task = getprocess(pid);
     LOG_DEBUG("task %u %p killing task %u %p", gCurrentProcess->pid, gCurrentProcess, task->pid, task);
@@ -639,10 +639,10 @@ void ProcessManager::yield(bool bytimer) {
     switchtoscheduler();
 }
 
-process_t::pid_t ProcessManager::initpid() {
+kpid_t ProcessManager::initpid() {
     return gInitTask->pid;
 }
-process_t::pid_t schedulerpid() {
+kpid_t schedulerpid() {
     return gSchedulerTask->pid;
 }
 
@@ -681,7 +681,7 @@ void ProcessManager::enqueueForDeath(process_t* task) {
     gExitedProcesses().set(task);
 }
 
-bool ProcessManager::collectany(pid_t* pid, process_exit_status_t* status) {
+bool ProcessManager::collectany(kpid_t* pid, process_exit_status_t* status) {
     auto c0 = gCurrentProcess->children.begin();
     auto ce = gCurrentProcess->children.end();
 
@@ -697,7 +697,7 @@ bool ProcessManager::collectany(pid_t* pid, process_exit_status_t* status) {
     return false;
 }
 
-process_exit_status_t ProcessManager::collect(pid_t pid) {
+process_exit_status_t ProcessManager::collect(kpid_t pid) {
 begin:
     auto task = getprocess(pid);
 

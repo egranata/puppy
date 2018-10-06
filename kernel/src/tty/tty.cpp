@@ -32,13 +32,13 @@ void TTY::write(size_t sz, const char* buffer) {
     mWriteSemaphore.signal();
 }
 
-void TTY::pushfg(uint16_t pid) {
+void TTY::pushfg(kpid_t pid) {
     LOG_DEBUG("tty foreground given to %u", pid);
     mForeground.push(pid);
     mForegroundWQ.wakeall();
 }
 
-uint16_t TTY::popfg() {
+kpid_t TTY::popfg() {
     class WakeOnExit {
         public:
             WakeOnExit(WaitQueue* wq) : mWQ(wq) {}

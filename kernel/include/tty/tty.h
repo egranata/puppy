@@ -17,7 +17,7 @@
 #ifndef TTY_TTY
 #define TTY_TTY
 
-#include <kernel/sys/stdint.h>
+#include <stdint.h>
 #include <kernel/synch/semaphore.h>
 #include <kernel/synch/waitqueue.h>
 #include <kernel/libc/queue.h>
@@ -25,6 +25,7 @@
 #include <kernel/libc/fixstack.h>
 #include <kernel/drivers/framebuffer/fb.h>
 #include <kernel/drivers/ps2/keyboard.h>
+#include <kernel/syscalls/types.h>
 
 class TTY {
     public:
@@ -35,8 +36,8 @@ class TTY {
         void write(size_t sz, const char* buffer);
         int read();
 
-        void pushfg(uint16_t);
-        uint16_t popfg();
+        void pushfg(kpid_t);
+        kpid_t popfg();
         void resetEOF();
 
         void setPosition(uint16_t row, uint16_t col);

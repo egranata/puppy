@@ -64,7 +64,7 @@ extern syscall_response_t freaddir_syscall_handler(uint16_t arg1,file_info_t* ar
 extern syscall_response_t freaddir_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t getppid_syscall_handler();
 extern syscall_response_t getppid_syscall_helper(SyscallManager::Request&);
-extern syscall_response_t collect_syscall_handler(uint16_t arg1,process_exit_status_t* arg2);
+extern syscall_response_t collect_syscall_handler(kpid_t arg1,process_exit_status_t* arg2);
 extern syscall_response_t collect_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t semget_syscall_handler(uint32_t arg1);
 extern syscall_response_t semget_syscall_helper(SyscallManager::Request& req);
@@ -88,7 +88,7 @@ extern syscall_response_t setregionperms_syscall_handler(uint32_t arg1,uint32_t 
 extern syscall_response_t setregionperms_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t trymount_syscall_handler(uint32_t arg1,const char* arg2);
 extern syscall_response_t trymount_syscall_helper(SyscallManager::Request& req);
-extern syscall_response_t collectany_syscall_handler(uint16_t* arg1,process_exit_status_t* arg2);
+extern syscall_response_t collectany_syscall_handler(kpid_t* arg1,process_exit_status_t* arg2);
 extern syscall_response_t collectany_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t clone_syscall_handler(uintptr_t arg1,exec_fileop_t* arg2);
 extern syscall_response_t clone_syscall_helper(SyscallManager::Request& req);
@@ -291,9 +291,9 @@ syscall_response_t getppid_syscall_helper(SyscallManager::Request&) {
 
 
 syscall_response_t collect_syscall_helper(SyscallManager::Request& req) {
-	return collect_syscall_handler((uint16_t)req.arg1,(process_exit_status_t*)req.arg2);
+	return collect_syscall_handler((kpid_t)req.arg1,(process_exit_status_t*)req.arg2);
 }
-static_assert(sizeof(uint16_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(kpid_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(process_exit_status_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t semget_syscall_helper(SyscallManager::Request& req) {
@@ -360,9 +360,9 @@ static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t collectany_syscall_helper(SyscallManager::Request& req) {
-	return collectany_syscall_handler((uint16_t*)req.arg1,(process_exit_status_t*)req.arg2);
+	return collectany_syscall_handler((kpid_t*)req.arg1,(process_exit_status_t*)req.arg2);
 }
-static_assert(sizeof(uint16_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(kpid_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(process_exit_status_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t clone_syscall_helper(SyscallManager::Request& req) {
