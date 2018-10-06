@@ -558,6 +558,7 @@ for test in TEST_REFS:
     copy(test, "out/mnt/tests/%s" % test_name)
 
 with open("out/mnt/config/test.sh", "w") as testScript:
+    print("#!/system/apps/shell", file=testScript)
     for test in TEST_PLAN:
             print("%s" % test['path'], file=testScript)
 

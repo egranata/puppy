@@ -14,27 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef PROCESS_FILELOADER
-#define PROCESS_FILELOADER
+#ifndef PROCESS_SHEBANG
+#define PROCESS_SHEBANG
 
 #include <kernel/sys/stdint.h>
+#include <kernel/process/fileloader.h>
 
-struct process_loadinfo_t {
-    uintptr_t eip;
-    uintptr_t stack;
-};
-
-extern "C"
-void fileloader(uintptr_t argument);
-
-extern "C"
-process_loadinfo_t load_binary(const char* path);
-
-struct exec_format_loader_t {
-    bool (*can_handle_f)(uintptr_t load0);
-    process_loadinfo_t (*load_f)(uintptr_t load0, size_t stack);
-};
-
-extern exec_format_loader_t gExecutableLoaders[];
+extern "C" bool shebang_can_load(uintptr_t load0);
+extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t stacksize);
 
 #endif
