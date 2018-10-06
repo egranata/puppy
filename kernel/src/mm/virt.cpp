@@ -248,6 +248,7 @@ uintptr_t VirtualPageManager::mapZeroPage(uintptr_t virt, const map_options_t& o
 	tbl.user(opts.user());
 	tbl.page(gZeroPagePhysical);
 	tbl.zpmap(true);
+	tbl.frompmm(false); // do not assume physical memory backing this page
 	invtlb(virt);
 
 	return virt;
@@ -398,14 +399,21 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 
 	const bool wasthere = tbl.present();
 	const bool isuserspace = !iskernel(virt);
+	const bool isfrompmm = tbl.frompmm();
+
+	if (isfrompmm && !wasthere) {
+		LOG_ERROR("virtual page %p is marked not present but frompmm", virt);
+		PANIC("non-present page cannot be backed by physical memory");
+	}
 
 	tbl.present(false);
 	tbl.zpmap(false); // make sure we don't think this is a zeropage mapping
+	tbl.frompmm(false); // do not assume this page is bound to any physical storage
 	invtlb(virt);
 
 	uintptr_t phys = 0;
 
-	if (tbl.frompmm()) {
+	if (isfrompmm) {
 		auto& pmm(PhysicalPageManager::get());
 		phys = tbl.page();
 		pmm.dealloc(tbl.page());
