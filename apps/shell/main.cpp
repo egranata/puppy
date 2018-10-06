@@ -69,5 +69,11 @@ int main(int argc, const char** argv) {
         runInitShellTasks();
     }
 
-    return interactiveLoop();
+    if (argc == 1 || (argc == 2 && is_init_shell))
+        return interactiveLoop();
+    else {
+        // TODO: proper exit code
+        runfile(argv[1]);
+        return 0;
+    }
 }

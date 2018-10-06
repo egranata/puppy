@@ -22,8 +22,6 @@
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
 
-void comment_exec(const char*) {}
-
 void script_exec(const char* args) {
     runfile(args);
 }
