@@ -113,6 +113,10 @@ const char* MessageQueueFile::name() const {
     return mBuffer->name();
 }
 
+MessageQueueBuffer* MessageQueueFile::buffer() const {
+    return mBuffer;
+}
+
 MessageQueueReadFile::MessageQueueReadFile(MessageQueueBuffer* buf) : MessageQueueFile(buf) {
     mBuffer->openReader();
 }
@@ -166,7 +170,20 @@ MessageQueueReadFile* MessageQueueFS::msgqueue(const char* path) {
     return new MessageQueueReadFile(buffer);
 }
 
-void MessageQueueFS::doClose(FilesystemObject*) {}
+void MessageQueueFS::doClose(FilesystemObject* file) {
+    if (file->kind() != file_kind_t::msgqueue) {
+        PANIC("MessageQueueFS cannot close anything but message queues");
+    }
+
+    MessageQueueFile *mqFile = (MessageQueueFile*)file;
+    MessageQueueBuffer *mqBuffer = mqFile->buffer();
+    if (mqFile->isReader()) mqBuffer->closeReader();
+    if (mqFile->isWriter()) mqBuffer->closeWriter();
+
+    mQueues.release(mqBuffer->name());
+
+    delete mqFile;
+}
 
 MessageQueueFS* MessageQueueFS::get() {
     static MessageQueueFS gFS;

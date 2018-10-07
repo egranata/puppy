@@ -75,6 +75,7 @@ class MessageQueueFile : public Filesystem::File {
         bool isWriter() const { return !isReader(); }
 
         const char* name() const;
+        MessageQueueBuffer* buffer() const;
 
         // subclasses must override one of these
         size_t read(size_t, char*) override { return 0; }
