@@ -34,6 +34,9 @@ const char* kind2Str(int kind) {
         case DT_CHR:
             ++gNumDevices;
             return "<CHR>";
+        case DT_QUEUE:
+            ++gNumDevices;
+            return "<QUE>";
         case DT_REG:
             ++gNumFiles;
             __attribute__ ((fallthrough));

@@ -106,7 +106,7 @@ size_t MessageQueueBuffer::write(size_t n, char* dest) {
 }
 
 MessageQueueFile::MessageQueueFile(MessageQueueBuffer* buf) : mBuffer(buf) {
-    //kind(msgqueue);
+    kind(file_kind_t::msgqueue);
 }
 
 const char* MessageQueueFile::name() const {

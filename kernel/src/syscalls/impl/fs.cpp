@@ -27,6 +27,7 @@ static Filesystem::File* asFile(Filesystem::FilesystemObject* object) {
         case file_kind_t::blockdevice:
         case file_kind_t::file:
         case file_kind_t::pipe:
+        case file_kind_t::msgqueue:
             return (Filesystem::File*)object;
     }
 
@@ -38,6 +39,7 @@ static Filesystem::Directory* asDirectory(Filesystem::FilesystemObject* object) 
         case file_kind_t::directory: return (Filesystem::Directory*)object;
         case file_kind_t::blockdevice:
         case file_kind_t::pipe:
+        case file_kind_t::msgqueue:
         case file_kind_t::file: return nullptr;
     }
 

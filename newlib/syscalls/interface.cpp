@@ -168,6 +168,9 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
             case file_kind_t::pipe:
                 st->st_mode = S_IFIFO;
                 break;
+            case file_kind_t::msgqueue:
+                st->st_mode = S_IFQUEUE;
+                break;
         }
         st->st_size = fs.size;
         st->st_atime = fs.time;

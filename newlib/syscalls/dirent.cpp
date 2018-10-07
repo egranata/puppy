@@ -48,6 +48,7 @@ NEWLIB_IMPL_REQUIREMENT int readdir_r(DIR*, struct dirent*, struct dirent**) {
     return -1;
 }
 
+#define MATCH(x, y) case file_kind_t:: x: dir->current.d_type = y; break
 NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
     if (!dir) return nullptr;
     bzero(&dir->current, sizeof(dirent));
@@ -61,21 +62,15 @@ NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
         dir->current.d_size = fi.size;
         dir->current.d_time = fi.time;
         switch (fi.kind) {
-            case file_kind_t::blockdevice:
-                dir->current.d_type = DT_BLK;
-                break;
-            case file_kind_t::directory:
-                dir->current.d_type = DT_DIR;
-                break;
-            case file_kind_t::file:
-                dir->current.d_type = DT_REG;
-                break;
-            case file_kind_t::pipe:
-                dir->current.d_type = DT_PIPE;
-                break;
+            MATCH(blockdevice, DT_BLK);
+            MATCH(directory,   DT_DIR);
+            MATCH(file,        DT_REG);
+            MATCH(pipe,        DT_PIPE);
+            MATCH(msgqueue,    DT_QUEUE);
         }
         return &dir->current;
     } else {
         return nullptr;
     }
 }
+#undef MATCH
