@@ -23,10 +23,11 @@
 #include <kernel/synch/waitqueue.h>
 #include <kernel/libc/str.h>
 #include <kernel/mm/memmgr.h>
+#include <kernel/libc/keyedstore.h>
 
 class MessageQueueBuffer {
     public:
-        MessageQueueBuffer(size_t numMessages);
+        MessageQueueBuffer(const char* name, size_t numMessages);
         ~MessageQueueBuffer();
 
         size_t read(size_t, char*);
@@ -35,8 +36,12 @@ class MessageQueueBuffer {
         size_t numReaders() const;
         size_t numWriters() const;
 
+        void openWriter();
+        void openReader();
         void closeWriter();
         void closeReader();
+
+        const char* name() const;
     private:
         MemoryManager::region_t mBufferRgn;
 
@@ -54,11 +59,13 @@ class MessageQueueBuffer {
 
         WaitQueue mFullWQ;
         WaitQueue mEmptyWQ;
+
+        string mName;
 };
 
 class MessageQueueFile : public Filesystem::File {
     public:
-        MessageQueueFile(MessageQueueBuffer*, const char*);
+        MessageQueueFile(MessageQueueBuffer*);
 
         bool stat(stat_t&) override { return false; }
         bool seek(size_t) override { return false; }
@@ -75,23 +82,43 @@ class MessageQueueFile : public Filesystem::File {
     
     protected:
         MessageQueueBuffer* mBuffer;
-
-    private:
-        string mName;
 };
 
 class MessageQueueReadFile : public MessageQueueFile {
     public:
-        MessageQueueReadFile(MessageQueueBuffer*, const char*);
+        MessageQueueReadFile(MessageQueueBuffer*);
         size_t read(size_t, char*) override;
         bool isReader() const override { return true; }
 };
 
 class MessageQueueWriteFile : public MessageQueueFile {
     public:
-        MessageQueueWriteFile(MessageQueueBuffer*, const char*);
+        MessageQueueWriteFile(MessageQueueBuffer*);
         size_t write(size_t, char*) override;
         bool isReader() const override { return false; }
+};
+
+class MessageQueueFS : public Filesystem {
+    public:
+        static MessageQueueFS* get();
+
+        File* open(const char*, uint32_t) override;
+        bool del(const char*) override { return false; }
+        Directory* opendir(const char*) override { return nullptr; }
+        bool mkdir(const char*) override { return false; }
+        void doClose(FilesystemObject* object) override;
+
+        MessageQueueReadFile* msgqueue(const char* path);
+
+    private:
+        MessageQueueFS();
+        class Store : public KeyedStore<MessageQueueBuffer> {
+            public:
+                Store();
+                MessageQueueBuffer* getIfExisting(const char* name);
+                MessageQueueBuffer* makeNew(const char* name);
+                bool release(const char* key);
+        } mQueues;
 };
 
 #endif

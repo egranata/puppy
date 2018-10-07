@@ -50,10 +50,14 @@ class KeyedStore {
 
         template<typename ...Args>
         T* getOrMake(const char* key, Args&&... args) {
+            makeOrNull(key, args...); // create if not existing; do nothing otherwise
+            return getOrNull(key); // return if it exists (if it didn't before, it sure does now)
+        }
+
+        template<typename ...Args>
+        T* makeOrNull(const char* key, Args&&... args) {
             val_t* pointer = nullptr;
-            if (mHash.find(key, &pointer)) {
-                return ++pointer->second, pointer->first;
-            }
+            if (mHash.find(key, &pointer)) return nullptr;
 
             pointer = new val_t(new T(key, forward<Args>(args)...), 1);
             mHash.insert(key, pointer);

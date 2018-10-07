@@ -15,7 +15,7 @@
 #include <kernel/synch/msgqueue.h>
 #include <kernel/process/current.h>
 
-MessageQueueBuffer::MessageQueueBuffer(size_t numMessages) : mReadPointer(0), mWritePointer(0), mNumReaders(1), mNumWriters(0), mFullWQ(), mEmptyWQ() {
+MessageQueueBuffer::MessageQueueBuffer(const char* name, size_t numMessages) : mReadPointer(0), mWritePointer(0), mNumReaders(0), mNumWriters(0), mFullWQ(), mEmptyWQ(), mName(name) {
     VirtualPageManager::map_options_t rgnOptions = VirtualPageManager::map_options_t()
         .rw(true)
         .user(false)
@@ -24,6 +24,10 @@ MessageQueueBuffer::MessageQueueBuffer(size_t numMessages) : mReadPointer(0), mW
     mBufferRgn = gCurrentProcess->getMemoryManager()->findAndZeroPageRegion(numMessages * sizeof(new_message_t), rgnOptions);
     mBuffer = (new_message_t*)mBufferRgn.from;
     mTotalSize = mFreeSize = numMessages;
+}
+
+const char* MessageQueueBuffer::name() const {
+    return mName.c_str();
 }
 
 MessageQueueBuffer::~MessageQueueBuffer() {
@@ -38,6 +42,13 @@ size_t MessageQueueBuffer::numReaders() const {
 }
 size_t MessageQueueBuffer::numWriters() const {
     return mNumWriters;
+}
+
+void MessageQueueBuffer::openWriter() {
+    ++mNumWriters;
+}
+void MessageQueueBuffer::openReader() {
+    ++mNumReaders;
 }
 
 void MessageQueueBuffer::closeWriter() {
@@ -94,12 +105,20 @@ size_t MessageQueueBuffer::write(size_t n, char* dest) {
     } else return 0;
 }
 
-MessageQueueFile::MessageQueueFile(MessageQueueBuffer* buf, const char* name) : mBuffer(buf), mName(name) {
+MessageQueueFile::MessageQueueFile(MessageQueueBuffer* buf) : mBuffer(buf) {
     //kind(msgqueue);
 }
 
-MessageQueueReadFile::MessageQueueReadFile(MessageQueueBuffer* buf, const char* name) : MessageQueueFile(buf, name) {}
-MessageQueueWriteFile::MessageQueueWriteFile(MessageQueueBuffer* buf, const char* name) : MessageQueueFile(buf, name) {}
+const char* MessageQueueFile::name() const {
+    return mBuffer->name();
+}
+
+MessageQueueReadFile::MessageQueueReadFile(MessageQueueBuffer* buf) : MessageQueueFile(buf) {
+    mBuffer->openReader();
+}
+MessageQueueWriteFile::MessageQueueWriteFile(MessageQueueBuffer* buf) : MessageQueueFile(buf) {
+    mBuffer->openWriter();
+}
 
 size_t MessageQueueReadFile::read(size_t n, char* dest) {
     return mBuffer->read(n, dest);
@@ -108,3 +127,50 @@ size_t MessageQueueReadFile::read(size_t n, char* dest) {
 size_t MessageQueueWriteFile::write(size_t n, char* dest) {
     return mBuffer->write(n, dest);
 }
+
+MessageQueueFS::Store::Store() : KeyedStore() {}
+
+MessageQueueBuffer* MessageQueueFS::Store::getIfExisting(const char* name) {
+    return getOrNull(name);
+}
+
+MessageQueueBuffer* MessageQueueFS::Store::makeNew(const char* name) {
+    return this->KeyedStore::makeOrNull(name, 256);
+}
+
+bool MessageQueueFS::Store::release(const char* key) {
+    return this->KeyedStore::release(key);
+}
+
+MessageQueueFS::MessageQueueFS() : mQueues() {}
+
+#define FORBIDDEN_MODE(x) if ((mode & (x)) == (x)) return nullptr;
+Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
+    FORBIDDEN_MODE(FILE_OPEN_READ | FILE_OPEN_WRITE);
+    FORBIDDEN_MODE(FILE_OPEN_APPEND);
+
+    if (mode & FILE_OPEN_READ) {
+        return msgqueue(name);
+    } else if (mode & FILE_OPEN_WRITE) {
+        MessageQueueBuffer *buffer = mQueues.getIfExisting(name);
+        if (buffer == nullptr) return nullptr;
+        return new MessageQueueWriteFile(buffer);
+    } else return nullptr;
+}
+#undef FORBIDDEN_MODE
+
+MessageQueueReadFile* MessageQueueFS::msgqueue(const char* path) {
+    MessageQueueBuffer* buffer = mQueues.makeNew(path);
+    if (buffer == nullptr) return nullptr;
+    if (buffer->numReaders() > 0) return nullptr;
+    return new MessageQueueReadFile(buffer);
+}
+
+void MessageQueueFS::doClose(FilesystemObject*) {}
+
+MessageQueueFS* MessageQueueFS::get() {
+    static MessageQueueFS gFS;
+
+    return &gFS;
+}
+
