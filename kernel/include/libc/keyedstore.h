@@ -21,12 +21,15 @@
 #include <kernel/libc/pair.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/forward.h>
+#include <kernel/libc/str.h>
 
 template<typename T, size_t N = 1024>
 class KeyedStore {
     private:
         struct helper {
-            static size_t index(const char* s) {
+            static size_t index(const string& st) {
+                if (st.c_str() == nullptr || st.size() == 0) return 0;
+                const char* s = st.c_str();
                 if (s == nullptr) return 0;
                 if (*s == 0) return 0;
                 size_t i = 0;
@@ -36,16 +39,17 @@ class KeyedStore {
                 return i;
             }
             
-            static bool eq(const char* s1, const char* s2) {
-                return 0 == strcmp(s1, s2);
+            static bool eq(const string& s1, const string& s2) {
+                return (s1 == s2);
             }
         };
     
     using val_t = pair<T*, uint32_t>;
 
-    hash<const char*, val_t*, helper, helper, N> mHash;
+    hash<string, val_t*, helper, helper, N> mHash;
 
     protected:
+#define SKEY (string(key))
         KeyedStore() : mHash() {}
 
         template<typename ...Args>
@@ -57,16 +61,16 @@ class KeyedStore {
         template<typename ...Args>
         T* makeOrNull(const char* key, Args&&... args) {
             val_t* pointer = nullptr;
-            if (mHash.find(key, &pointer)) return nullptr;
+            if (mHash.find(SKEY, &pointer)) return nullptr;
 
             pointer = new val_t(new T(key, forward<Args>(args)...), 1);
-            mHash.insert(key, pointer);
+            mHash.insert(SKEY, pointer);
             return pointer->first;
         }
 
         T* getOrNull(const char* key) {
             val_t* pointer = nullptr;
-            if (mHash.find(key, &pointer)) {
+            if (mHash.find(SKEY, &pointer)) {
                 return ++pointer->second, pointer->first;
             }
             
@@ -75,9 +79,9 @@ class KeyedStore {
 
         bool release(const char* key) {
             val_t* pointer = nullptr;
-            if (mHash.find(key, &pointer)) {
+            if (mHash.find(SKEY, &pointer)) {
                 if (--pointer->second == 0) {
-                    mHash.erase(key);
+                    mHash.erase(SKEY);
                     delete pointer->first;
                     delete pointer;
                     return true;
@@ -85,6 +89,7 @@ class KeyedStore {
             }
             return false;
         }
+#undef SKEY
 };
 
 #endif
