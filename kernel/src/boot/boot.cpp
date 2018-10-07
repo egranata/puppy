@@ -96,6 +96,10 @@ namespace boot {
     namespace time_files {
         uint32_t init();
     }
+    namespace msg_queue {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -273,6 +277,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::ramdevice::init,
         onSuccess : nullptr,
         onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare message queues support",
+        visible : false,
+        operation : boot::msg_queue::init,
+        onSuccess : nullptr,
+        onFailure : boot::msg_queue::fail
     });
 
     registerBootPhase(bootphase_t{

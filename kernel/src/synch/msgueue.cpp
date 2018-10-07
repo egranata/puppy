@@ -14,6 +14,19 @@
 
 #include <kernel/synch/msgqueue.h>
 #include <kernel/process/current.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/boot/phase.h>
+
+namespace boot::msg_queue {
+    uint32_t init() {
+        bool ok = VFS::get().mount("queues", MessageQueueFS::get());
+        return ok ? 0 : 0xFF;
+    }
+    bool fail(uint32_t) {
+        bootphase_t::printf("unable to mount /queues");
+        return bootphase_t::gPanic;
+    }
+}
 
 MessageQueueBuffer::MessageQueueBuffer(const char* name, size_t numMessages) : mReadPointer(0), mWritePointer(0), mNumReaders(0), mNumWriters(0), mFullWQ(), mEmptyWQ(), mName(name) {
     VirtualPageManager::map_options_t rgnOptions = VirtualPageManager::map_options_t()
