@@ -16,6 +16,9 @@
 #include <kernel/process/current.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/boot/phase.h>
+#include <kernel/log/log.h>
+
+LOG_TAG(MQ, 1);
 
 namespace boot::msg_queue {
     uint32_t init() {
@@ -171,16 +174,27 @@ Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
     } else if (mode & FILE_OPEN_WRITE) {
         MessageQueueBuffer *buffer = mQueues.getIfExisting(name);
         if (buffer == nullptr) return nullptr;
-        return new MessageQueueWriteFile(buffer);
+        auto writefile = new MessageQueueWriteFile(buffer);
+
+        TAG_INFO(MQ, "for msgqueue %p (path %s) returning new writefile %p",
+            buffer, name, writefile);
+
+        return writefile;
     } else return nullptr;
 }
 #undef FORBIDDEN_MODE
 
 MessageQueueReadFile* MessageQueueFS::msgqueue(const char* path) {
     MessageQueueBuffer* buffer = mQueues.makeNew(path);
+
     if (buffer == nullptr) return nullptr;
     if (buffer->numReaders() > 0) return nullptr;
-    return new MessageQueueReadFile(buffer);
+    auto readfile = new MessageQueueReadFile(buffer);
+
+    TAG_INFO(MQ, "created new msgqueue %p for path %s - returning readfile %p",
+        buffer, path, readfile);
+
+    return readfile;
 }
 
 void MessageQueueFS::doClose(FilesystemObject* file) {
@@ -193,7 +207,12 @@ void MessageQueueFS::doClose(FilesystemObject* file) {
     if (mqFile->isReader()) mqBuffer->closeReader();
     if (mqFile->isWriter()) mqBuffer->closeWriter();
 
-    mQueues.release(mqBuffer->name());
+    const size_t nr = mqBuffer->numReaders();
+    const size_t nw = mqBuffer->numWriters();
+    const bool erased = mQueues.release(mqBuffer->name());
+
+    TAG_INFO(MQ, "msgqueue file %p (of msgqueue %p) has %u readers and %u writers; it was%serased",
+        mqFile, mqBuffer, nr, nw, erased ? " " : " not ");
 
     delete mqFile;
 }
