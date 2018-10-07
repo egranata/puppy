@@ -17,6 +17,9 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/boot/phase.h>
 #include <kernel/log/log.h>
+#include <kernel/time/manager.h>
+#include <kernel/libc/string.h>
+#include <kernel/libc/memory.h>
 
 LOG_TAG(MQ, 1);
 
@@ -106,15 +109,23 @@ size_t MessageQueueBuffer::read(size_t n, char* dest) {
         return n;
     } else return 0;
 }
-size_t MessageQueueBuffer::write(size_t n, char* dest) {
-    if (n != sizeof(new_message_t)) return 0;
+size_t MessageQueueBuffer::write(size_t n, char* src) {
+    if (n > new_message_t::gBodySize) return 0;
+
+    new_message_t msg;
+    auto&& tmgr(TimeManager::get());
+
+    msg.header.sender = gCurrentProcess->pid;
+    msg.header.timestamp = tmgr.UNIXtime();
+    msg.header.payload_size = n;
+    memcpy(msg.payload, src, n);
 
     while (0 == mFreeSize) {
         if (numReaders() == 0) return n;
         mFullWQ.wait(gCurrentProcess);
     }
 
-    const bool ok = tryWrite(*(new_message_t*)dest);
+    const bool ok = tryWrite(msg);
     if (ok) {
         mEmptyWQ.wakeall();
         return n;

@@ -197,7 +197,8 @@ struct new_message_t {
         uint64_t timestamp;
         size_t payload_size;
     } header;
-    uint8_t payload[gTotalSize - sizeof(header)];
+    static constexpr size_t gBodySize = gTotalSize - sizeof(header_t);
+    uint8_t payload[gBodySize];
 };
 
 static_assert(sizeof(new_message_t) == new_message_t::gTotalSize);
