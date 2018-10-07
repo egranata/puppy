@@ -35,14 +35,14 @@ namespace boot::msg_queue {
 }
 
 MessageQueueBuffer::MessageQueueBuffer(const char* name, size_t numMessages) : mReadPointer(0), mWritePointer(0), mNumReaders(0), mNumWriters(0), mFullWQ(), mEmptyWQ(), mName(name) {
-    VirtualPageManager::map_options_t rgnOptions = VirtualPageManager::map_options_t()
-        .rw(true)
-        .user(false)
-        .clear(false);
+    auto& vmm(VirtualPageManager::get());
 
-    mBufferRgn = gCurrentProcess->getMemoryManager()->findAndZeroPageRegion(numMessages * sizeof(new_message_t), rgnOptions);
+    // TODO: can this be done outside of kernel memory?
+    vmm.findKernelRegion(numMessages * sizeof(new_message_t), mBufferRgn);
+    vmm.addKernelRegion(mBufferRgn.from, mBufferRgn.to);
     mBuffer = (new_message_t*)mBufferRgn.from;
     mTotalSize = mFreeSize = numMessages;
+    TAG_DEBUG(MQ, "initialized msgqueue %p - numMessages = %u, range = [%p-%p]", this, numMessages, mBuffer, mBufferRgn.to);
 }
 
 const char* MessageQueueBuffer::name() const {
@@ -50,7 +50,9 @@ const char* MessageQueueBuffer::name() const {
 }
 
 MessageQueueBuffer::~MessageQueueBuffer() {
-    gCurrentProcess->getMemoryManager()->removeRegion(mBufferRgn);
+    auto& vmm(VirtualPageManager::get());
+    vmm.delKernelRegion(mBufferRgn);
+
     mBuffer = nullptr;
     mTotalSize = mFreeSize = 0;
     mBufferRgn.from = mBufferRgn.to = 0;
@@ -78,6 +80,7 @@ void MessageQueueBuffer::closeReader() {
 }
 
 bool MessageQueueBuffer::tryWrite(const new_message_t& msg) {
+    TAG_DEBUG(MQ, "writing message from %u of size %u into mq %p", msg.header.sender, msg.header.payload_size, this);
     if (mFreeSize == 0) return false;
 
     mBuffer[mWritePointer] = msg;
@@ -89,13 +92,17 @@ bool MessageQueueBuffer::tryRead(new_message_t* msg) {
     if (mFreeSize == mTotalSize) return false;
 
     *msg = mBuffer[mReadPointer];
+    TAG_DEBUG(MQ, "read message from %u of size %u from mq %p", msg->header.sender, msg->header.payload_size, this);
     if (++mReadPointer == mTotalSize) mReadPointer = 0;
     ++mFreeSize;
     return true;
 }
 
 size_t MessageQueueBuffer::read(size_t n, char* dest) {
-    if (n != sizeof(new_message_t)) return 0;
+    if (n != sizeof(new_message_t)) {
+        TAG_ERROR(MQ, "read of size %u not valid", n);
+        return 0;
+    }
 
     while (mFreeSize == mTotalSize) {
         // no point on waiting on a writer that is gone
@@ -110,7 +117,10 @@ size_t MessageQueueBuffer::read(size_t n, char* dest) {
     } else return 0;
 }
 size_t MessageQueueBuffer::write(size_t n, char* src) {
-    if (n > new_message_t::gBodySize) return 0;
+    if (n > new_message_t::gBodySize) {
+        TAG_ERROR(MQ, "write of size %u not valid", n);
+        return 0;
+    }
 
     new_message_t msg;
     auto&& tmgr(TimeManager::get());
@@ -175,7 +185,10 @@ bool MessageQueueFS::Store::release(const char* key) {
 
 MessageQueueFS::MessageQueueFS() : mQueues() {}
 
-#define FORBIDDEN_MODE(x) if ((mode & (x)) == (x)) return nullptr;
+#define FORBIDDEN_MODE(x) if ((mode & (x)) == (x)) { \
+    TAG_ERROR(MQ, "trying to open %s with forbidden flags %u", name, mode); \
+    return nullptr; \
+}
 Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
     FORBIDDEN_MODE(FILE_OPEN_READ | FILE_OPEN_WRITE);
     FORBIDDEN_MODE(FILE_OPEN_APPEND);

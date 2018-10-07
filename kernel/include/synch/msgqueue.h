@@ -23,6 +23,7 @@
 #include <kernel/synch/waitqueue.h>
 #include <kernel/libc/str.h>
 #include <kernel/mm/memmgr.h>
+#include <kernel/mm/virt.h>
 #include <kernel/libc/keyedstore.h>
 
 class MessageQueueBuffer {
@@ -43,7 +44,7 @@ class MessageQueueBuffer {
 
         const char* name() const;
     private:
-        MemoryManager::region_t mBufferRgn;
+        interval_t mBufferRgn;
 
         new_message_t *mBuffer;
         size_t mReadPointer;

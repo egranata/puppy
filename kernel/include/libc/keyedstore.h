@@ -50,8 +50,8 @@ class KeyedStore {
 
         template<typename ...Args>
         T* getOrMake(const char* key, Args&&... args) {
-            makeOrNull(key, args...); // create if not existing; do nothing otherwise
-            return getOrNull(key); // return if it exists (if it didn't before, it sure does now)
+            T* object = makeOrNull(key, args...); // create if not existing; do nothing otherwise
+            return object ? object : getOrNull(key); // return if it exists (if it didn't before, it sure does now)
         }
 
         template<typename ...Args>
