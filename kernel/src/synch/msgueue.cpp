@@ -238,6 +238,10 @@ void MessageQueueFS::doClose(FilesystemObject* file) {
     TAG_INFO(MQ, "msgqueue file %p (of msgqueue %p) has %u readers and %u writers; it was%serased",
         mqFile, mqBuffer, nr, nw, erased ? " " : " not ");
 
+    if (nr == 0 && nw == 0 && erased == false) {
+        PANIC("msgqueue has no client left but memory was leaked");
+    }
+
     delete mqFile;
 }
 
