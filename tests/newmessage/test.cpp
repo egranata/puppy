@@ -23,6 +23,7 @@
 #include <newlib/sys/collect.h>
 #include <kernel/syscalls/types.h>
 #include <newlib/unistd.h>
+#include <newlib/sys/ioctl.h>
 
 static kpid_t clone(void (*func)()) {
     auto ok = clone_syscall( (uintptr_t)func, nullptr );
@@ -191,12 +192,29 @@ class TwoSendersTest : public Test {
         }
 };
 
+class NonBlockingReadTest : public Test {
+    public:
+        NonBlockingReadTest() : Test("newmessage.NonBlockingRead") {}
+    
+    protected:
+        void run() override {
+            FILE* f = fopen("/queues/newmessage/NonBlockingRead", "r");
+            CHECK_NOT_EQ(f, nullptr);
+            setvbuf(f, nullptr, _IOFBF, 4096);
+            ioctl(fileno(f), IOCTL_BLOCK_ON_EMPTY, false);
+            new_message_t msg;
+            CHECK_EQ(0, fread(&msg, 1, sizeof(msg), f));
+            fclose(f);
+        }
+};
+
 int main() {
     auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
 
     testPlan.add<ReceiveMessageTest>()
             .add<MessageOrderTest>()
-            .add<TwoSendersTest>();
+            .add<TwoSendersTest>()
+            .add<NonBlockingReadTest>();
 
     testPlan.test();
     return 0;

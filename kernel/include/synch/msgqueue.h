@@ -31,11 +31,13 @@ class MessageQueueBuffer {
         MessageQueueBuffer(const char* name, size_t numMessages);
         ~MessageQueueBuffer();
 
-        size_t read(size_t, char*);
-        size_t write(size_t, char*);
+        size_t read(size_t, char*, bool);
+        size_t write(size_t, char*, bool);
 
         size_t numReaders() const;
         size_t numWriters() const;
+
+        size_t size() const;
 
         void openWriter();
         void openReader();
@@ -70,7 +72,7 @@ class MessageQueueFile : public Filesystem::File {
 
         bool stat(stat_t&) override { return false; }
         bool seek(size_t) override { return false; }
-        uintptr_t ioctl(uintptr_t, uintptr_t) override { return 0; }
+        uintptr_t ioctl(uintptr_t, uintptr_t) override;
 
         virtual bool isReader() const = 0;
         bool isWriter() const { return !isReader(); }
@@ -91,6 +93,9 @@ class MessageQueueReadFile : public MessageQueueFile {
         MessageQueueReadFile(MessageQueueBuffer*);
         size_t read(size_t, char*) override;
         bool isReader() const override { return true; }
+        uintptr_t ioctl(uintptr_t, uintptr_t) override;
+    private:
+        bool mBlockIfEmpty;
 };
 
 class MessageQueueWriteFile : public MessageQueueFile {
@@ -98,6 +103,9 @@ class MessageQueueWriteFile : public MessageQueueFile {
         MessageQueueWriteFile(MessageQueueBuffer*);
         size_t write(size_t, char*) override;
         bool isReader() const override { return false; }
+        uintptr_t ioctl(uintptr_t, uintptr_t) override;
+    private:
+        bool mBlockIfFull;
 };
 
 class MessageQueueFS : public Filesystem {

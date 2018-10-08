@@ -102,6 +102,13 @@ enum tty_ioctl_t {
         IOCTL_SET_BG_COLOR = 9, // a2 = 0x00RRGGBB
 };
 
+// IOCTL operations that can run on a msgqueue
+enum msgqueue_ioctl_t {
+    IOCTL_GET_QUEUE_SIZE = 1, // a2 = reserved, return size of queue
+    IOCTL_BLOCK_ON_EMPTY = 2, // a2 = bool; should a read block if the queue is empty
+    IOCTL_BLOCK_ON_FULL = 3, // a2 = bool; should a write block if the queue is full
+};
+
 struct message_t {
     uint64_t time;
     uint32_t sender;
@@ -127,7 +134,7 @@ enum class file_kind_t {
     file,
     blockdevice, /** see blockdevice_ioctl */
     pipe,
-    msgqueue
+    msgqueue, /** see msgqueue_ioctl */
 };
 
 struct file_stat_t {

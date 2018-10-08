@@ -20,6 +20,7 @@
 #include <kernel/time/manager.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/memory.h>
+#include <kernel/syscalls/types.h>
 
 LOG_TAG(MQ, 1);
 
@@ -47,6 +48,10 @@ MessageQueueBuffer::MessageQueueBuffer(const char* name, size_t numMessages) : m
 
 const char* MessageQueueBuffer::name() const {
     return mName.c_str();
+}
+
+size_t MessageQueueBuffer::size() const {
+    return mTotalSize;
 }
 
 MessageQueueBuffer::~MessageQueueBuffer() {
@@ -98,7 +103,7 @@ bool MessageQueueBuffer::tryRead(new_message_t* msg) {
     return true;
 }
 
-size_t MessageQueueBuffer::read(size_t n, char* dest) {
+size_t MessageQueueBuffer::read(size_t n, char* dest, bool allowBlock) {
     if (n != sizeof(new_message_t)) {
         TAG_ERROR(MQ, "read of size %u not valid", n);
         return 0;
@@ -107,7 +112,8 @@ size_t MessageQueueBuffer::read(size_t n, char* dest) {
     while (mFreeSize == mTotalSize) {
         // no point on waiting on a writer that is gone
         if (numWriters() == 0) break;
-        mEmptyWQ.wait(gCurrentProcess);
+        if (allowBlock) mEmptyWQ.wait(gCurrentProcess);
+        else return 0;
     }
 
     const bool ok = tryRead((new_message_t*)dest);
@@ -116,7 +122,7 @@ size_t MessageQueueBuffer::read(size_t n, char* dest) {
         return n;
     } else return 0;
 }
-size_t MessageQueueBuffer::write(size_t n, char* src) {
+size_t MessageQueueBuffer::write(size_t n, char* src, bool allowBlock) {
     if (n > new_message_t::gBodySize) {
         TAG_ERROR(MQ, "write of size %u not valid", n);
         return 0;
@@ -132,7 +138,8 @@ size_t MessageQueueBuffer::write(size_t n, char* src) {
 
     while (0 == mFreeSize) {
         if (numReaders() == 0) return n;
-        mFullWQ.wait(gCurrentProcess);
+        if (allowBlock) mFullWQ.wait(gCurrentProcess);
+        else return 0;
     }
 
     const bool ok = tryWrite(msg);
@@ -154,19 +161,43 @@ MessageQueueBuffer* MessageQueueFile::buffer() const {
     return mBuffer;
 }
 
+uintptr_t MessageQueueFile::ioctl(uintptr_t a, uintptr_t b) {
+    if (a == (uintptr_t)msgqueue_ioctl_t::IOCTL_GET_QUEUE_SIZE) {
+        return mBuffer->size();
+    }
+    return this->File::ioctl(a,b);
+}
+
 MessageQueueReadFile::MessageQueueReadFile(MessageQueueBuffer* buf) : MessageQueueFile(buf) {
     mBuffer->openReader();
+    mBlockIfEmpty = true;
 }
 MessageQueueWriteFile::MessageQueueWriteFile(MessageQueueBuffer* buf) : MessageQueueFile(buf) {
     mBuffer->openWriter();
+    mBlockIfFull = true;
 }
 
 size_t MessageQueueReadFile::read(size_t n, char* dest) {
-    return mBuffer->read(n, dest);
+    return mBuffer->read(n, dest, mBlockIfEmpty);
 }
 
 size_t MessageQueueWriteFile::write(size_t n, char* dest) {
-    return mBuffer->write(n, dest);
+    return mBuffer->write(n, dest, mBlockIfFull);
+}
+
+uintptr_t MessageQueueReadFile::ioctl(uintptr_t a, uintptr_t b) {
+    if (a == (uintptr_t)msgqueue_ioctl_t::IOCTL_BLOCK_ON_EMPTY) {
+        mBlockIfEmpty = (b != 0);
+        return 1;
+    }
+    return this->MessageQueueFile::ioctl(a,b);
+}
+uintptr_t MessageQueueWriteFile::ioctl(uintptr_t a, uintptr_t b) {
+    if (a == (uintptr_t)msgqueue_ioctl_t::IOCTL_BLOCK_ON_FULL) {
+        mBlockIfFull = (b != 0);
+        return 1;
+    }
+    return this->MessageQueueFile::ioctl(a,b);
 }
 
 MessageQueueFS::Store::Store() : KeyedStore() {}
