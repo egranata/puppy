@@ -194,6 +194,37 @@ SMBIOS::SMBIOS() {
                     LOG_INFO("CPU external clock: %u max speed: %u current speed: %u", mCPUInfo.extclock, mCPUInfo.maxspeed, mCPUInfo.curspeed);
                 }
                     break;
+                case 17: { // memory device
+                    if (mMemoryInfo.count == mMemoryInfo.maxCount) {
+                        LOG_INFO("out of storage for memory device SMBIOS info - skipping");
+                        break;
+                    }
+                    smbios_mem_block_t& mem(mMemoryInfo.data[mMemoryInfo.count]);
+                    mem.array_handle = tbl->word(0x4);
+                    mem.error_handle = tbl->word(0x6);
+                    mem.bidwidth = tbl->word(0x8);
+                    mem.datawidth = tbl->word(0xA);
+                    mem.size = tbl->word(0xC);
+                    if (mem.size & 0x8000) {
+                        mem.size *= 1_KB;
+                    } else {
+                        mem.size = (mem.size & 0x7FFF) * 1_MB;
+                    }
+                    mem.formfactor = tbl->byte(0xE);
+                    mem.deviceset = tbl->byte(0xF);
+                    mem.devlocator = tbl->str(tbl->byte(0x10));
+                    mem.banklocator = tbl->str(tbl->byte(0x11));
+                    mem.memtype = tbl->byte(0x12);
+                    mem.typedetail = tbl->word(0x13);
+                    mem.mhzspeed = tbl->word(0x15);
+                    mem.manufacturer = tbl->str(tbl->byte(0x17));
+                    mem.serial = tbl->str(tbl->byte(0x18));
+                    mem.asset = tbl->str(tbl->byte(0x19));
+                    mem.part = tbl->str(tbl->byte(0x1A));
+                    LOG_INFO("found a memory device of size %u bytes, manufactured by %s", mem.size, mem.manufacturer);
+                    mMemoryInfo.count += 1;
+                }
+                    break;
             }
             tbl = (smbios_table_header_t*)strtblend(tbl->str());
         }

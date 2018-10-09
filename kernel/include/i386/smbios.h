@@ -74,6 +74,25 @@ class SMBIOS : NOCOPY {
             uint8_t upgrade;
         };
 
+        struct smbios_mem_block_t {
+            uint16_t array_handle;
+            uint16_t error_handle;
+            uint16_t bidwidth;
+            uint16_t datawidth;
+            uint32_t size;
+            uint8_t formfactor;
+            uint8_t deviceset;
+            char* devlocator;
+            char* banklocator;
+            uint8_t memtype;
+            uint16_t typedetail;
+            uint16_t mhzspeed;
+            char* manufacturer;
+            char* serial;
+            char* asset;
+            char* part;
+        } __attribute__((packed));
+
         struct smbios_table_header_t {
             uint8_t type;
             uint8_t len;
@@ -92,6 +111,11 @@ class SMBIOS : NOCOPY {
         smbios_biosinfo_t mBiosInfo;
         smbios_systeminfo_t mSystemInfo;
         smbios_cpu_info_t mCPUInfo;
+        struct smbios_ram_info_t {
+            static constexpr size_t maxCount = 16;
+            size_t count;
+            smbios_mem_block_t data[maxCount];
+        } mMemoryInfo;
         bool mValid;
 };
 
