@@ -59,6 +59,7 @@ BASIC_CPPFLAGS = [
     '-fno-exceptions',
     '-fno-rtti',
     "-Wno-error=extra", # TODO: fix the underlying issue in EASTL/string.h
+    '-Wno-error=deprecated-declarations',
     '-std=c++14']
 BASIC_ASFLAGS = ["-f elf"]
 BASIC_LDFLAGS = ["-ffreestanding", "-nostdlib"]

@@ -109,7 +109,7 @@ enum msgqueue_ioctl_t {
     IOCTL_BLOCK_ON_FULL = 3, // a2 = bool; should a write block if the queue is full
 };
 
-struct message_t {
+struct [[deprecated("prefer new_message_t")]] message_t {
     uint64_t time;
     uint32_t sender;
     uint32_t arg1;
@@ -196,7 +196,7 @@ struct exec_fileop_t {
     void*     param3; // reserved for future evolutions
 };
 
-// TODO: deprecate old message_t and rename this new one
+// TODO: rename as message_t
 struct new_message_t {
     static constexpr size_t gTotalSize = 4096; // TODO: expose the size of a page globally
     struct header_t {
