@@ -25,6 +25,11 @@ process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitsta
     path = nullptr;
     cwd = strdup("/");
     flags.due_for_reschedule = false;
+
+    memstats.allocated = memstats.available = 0;
+    memstats.pagefaults = 0;
+
+    iostats.read = iostats.written = 0;
 }
 
 process_t::ttyinfo_t::ttyinfo_t() : tty(nullptr), ttyfile(nullptr) {
@@ -73,6 +78,8 @@ void process_t::clone(process_t* other) {
     other->memstats.allocated = memstats.allocated;
     other->memstats.allocated = 0;
     other->memstats.pagefaults = 0;
+
+    other->iostats.read = other->iostats.written = 0;
 
     other->runtimestats.runtime = 0;
 }

@@ -166,6 +166,9 @@ struct process_info_t {
     uintptr_t vmspace;
     uintptr_t pmspace;
     uint64_t runtime;
+
+    uint64_t diskReadBytes;
+    uint64_t diskWrittenBytes;
 };
 
 struct klog_stats_t {

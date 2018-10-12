@@ -25,13 +25,20 @@ class Volume : NOCOPY {
         Volume();
     public:
         virtual ~Volume();
-        virtual bool read(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
-        virtual bool write(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
+
+        bool read(uint32_t sector, uint16_t count, unsigned char* buffer);
+        bool write(uint32_t sector, uint16_t count, unsigned char* buffer);
+
+        virtual bool doRead(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
+        virtual bool doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) = 0;
 
         virtual uint8_t sysid() = 0;
 
         virtual size_t numsectors() const = 0;
         virtual size_t sectorsize() const { return 512; }
+    private:
+        void readAccounting(uint16_t sectors);
+        void writeAccounting(uint16_t sectors);
 };
 
 #endif

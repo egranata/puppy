@@ -28,8 +28,8 @@ class IDEVolume : public Volume {
     public:
         IDEVolume(IDEController*, IDEController::disk_t, diskpart_t);
 
-        bool read(uint32_t sector, uint16_t count, unsigned char* buffer) override;
-        bool write(uint32_t sector, uint16_t count, unsigned char* buffer) override;
+        bool doRead(uint32_t sector, uint16_t count, unsigned char* buffer) override;
+        bool doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) override;
 
         uint8_t sysid() override;
 

@@ -145,6 +145,9 @@ syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count)
         }
 
         pi.runtime = p->runtimestats.runtime;
+
+        pi.diskReadBytes = p->iostats.read;
+        pi.diskWrittenBytes = p->iostats.written;
         return true;
     });
 

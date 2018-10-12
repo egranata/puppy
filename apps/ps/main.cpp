@@ -35,11 +35,11 @@ int main() {
     process_info_t* ptable = new process_info_t[sz];
     proctable_syscall(ptable, sz);
 
-    printf("PID    PPID       STATE          NAME                    VM            PM               RT\n");
+    printf("PID    PPID       STATE          NAME                    VM            PM               RT           IORD          IOWR\n");
     for (auto i = 0u; i < sz; ++i) {
         auto& p = ptable[i];
-        printf("%-7u%-7u    %s     %-20.20s    %-.10u    %-.10u       %-4llu\n",
-               p.pid, p.ppid, state2String(p.state), p.path, p.vmspace, p.pmspace, p.runtime);
+        printf("%-7u%-7u    %s     %-20.20s    %-.10u    %-.10u       %-4llu         %-10llu    %-10llu\n",
+               p.pid, p.ppid, state2String(p.state), p.path, p.vmspace, p.pmspace, p.runtime, p.diskReadBytes, p.diskWrittenBytes);
     }
 
     return 0;

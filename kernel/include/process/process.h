@@ -94,6 +94,11 @@ struct process_t {
         uint32_t pagefaults; /** number of page faults triggered by this process */
     } memstats;
 
+    struct iostats_t {
+        uint64_t read; /** total size of data read from storage by this process */
+        uint64_t written; /** total size of data written from storage by this process */
+    } iostats;
+
     struct runtimestats_t {
         uint64_t runtime; /** time that this process has been running */
     } runtimestats;

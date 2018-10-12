@@ -13,8 +13,33 @@
 // limitations under the License.
 
 #include <kernel/fs/vol/volume.h>
+#include <kernel/process/current.h>
+#include <kernel/log/log.h>
 
 Volume::Volume() = default;
 
 Volume::~Volume() = default;
 
+bool Volume::read(uint32_t sector, uint16_t count, unsigned char* buffer) {
+    bool ok = doRead(sector, count, buffer);
+    if (ok) readAccounting(count);
+    return ok;
+}
+bool Volume::write(uint32_t sector, uint16_t count, unsigned char* buffer) {
+    bool ok = doWrite(sector, count, buffer);
+    if (ok) writeAccounting(count);
+    return ok;
+}
+
+void Volume::readAccounting(uint16_t sectors) {
+    if (gCurrentProcess) {
+        uint64_t totalCount = (uint64_t)sectors * (uint64_t)sectorsize();
+        gCurrentProcess->iostats.read += totalCount;
+    }
+}
+void Volume::writeAccounting(uint16_t sectors) {
+    if (gCurrentProcess) {
+        uint64_t totalCount = (uint64_t)sectors * (uint64_t)sectorsize();
+        gCurrentProcess->iostats.written += totalCount;
+    }
+}

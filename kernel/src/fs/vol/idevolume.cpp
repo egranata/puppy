@@ -25,13 +25,13 @@ uint8_t IDEVolume::sysid() {
     return partition().sysid;
 }
 
-bool IDEVolume::read(uint32_t sector, uint16_t count, unsigned char* buffer) {
+bool IDEVolume::doRead(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
     return mController->read(mDisk, sector, count, buffer);
 }
 
-bool IDEVolume::write(uint32_t sector, uint16_t count, unsigned char* buffer) {
+bool IDEVolume::doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
     return mController->write(mDisk, sector, count, buffer);

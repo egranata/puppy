@@ -43,14 +43,14 @@ class VolumeFile : public MemFS::File {
                     return mVolume->size() / sectorsize();
                 }
 
-                bool read(uint32_t sector, uint16_t count, unsigned char* buffer) override {
+                bool doRead(uint32_t sector, uint16_t count, unsigned char* buffer) override {
                     if (sector + count >= numsectors()) return false;
                     auto src = mVolume->data(sector);
                     memcpy(buffer, src, count * sectorsize());
                     return true;
                 }
 
-                bool write(uint32_t sector, uint16_t count, unsigned char* buffer) override {
+                bool doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) override {
                     if (sector + count >= numsectors()) return false;
                     auto dst = mVolume->data(sector);
                     memcpy(dst, buffer, count * sectorsize());
