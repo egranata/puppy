@@ -91,7 +91,7 @@ class SMBIOS : NOCOPY {
             char* serial;
             char* asset;
             char* part;
-        } __attribute__((packed));
+        };
 
         struct smbios_table_header_t {
             uint8_t type;
