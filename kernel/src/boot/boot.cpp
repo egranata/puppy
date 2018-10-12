@@ -76,6 +76,9 @@ namespace boot {
     namespace ramdisk {
         uint32_t init();
     }
+    namespace prng {
+        uint32_t init();
+    }
     namespace ramdevice {
         uint32_t init();
     }
@@ -267,6 +270,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "Install RAMDisk driver",
         visible : false,
         operation : boot::ramdisk::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Install PRNG driver",
+        visible : false,
+        operation : boot::prng::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
