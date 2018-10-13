@@ -64,13 +64,17 @@ struct process_t {
         ~ttyinfo_t();
     } ttyinfo;
     struct {
-        uint8_t prio0; // initial priority at creation (and, incidentally, maximum priority)
-        uint8_t prio; // current priority
+        // this controls how many time quanta a process gets to run for once it has been scheduled
+        struct {
+            uint8_t max;
+            uint8_t current;
+        } quantum;
+        // this controls how likely a process it to be scheduled at each possible decision point
+        struct {
+            uint64_t max;
+            uint64_t current;
+        } scheduling;
     } priority;
-    struct {
-        uint64_t maxTickets;
-        uint64_t currentTickets;
-    } lottery;
     uint8_t usedticks;
     uint8_t fpstate[512] __attribute__((aligned(16))); // TODO: FPU state takes 108 bytes - could we dynamically shrink this?
     Handletable<VFS::filehandle_t, 32> fds;

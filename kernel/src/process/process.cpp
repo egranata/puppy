@@ -31,7 +31,7 @@ process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitsta
 
     iostats.read = iostats.written = 0;
 
-    lottery.maxTickets = lottery.currentTickets = 0;
+    bzero(&this->priority, sizeof(this->priority));
 }
 
 process_t::ttyinfo_t::ttyinfo_t() : tty(nullptr), ttyfile(nullptr) {
@@ -85,5 +85,5 @@ void process_t::clone(process_t* other) {
 
     other->runtimestats.runtime = 0;
 
-    other->lottery = lottery;
+    other->priority = priority;
 }

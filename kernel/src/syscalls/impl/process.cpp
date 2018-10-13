@@ -80,20 +80,34 @@ syscall_response_t collectany_syscall_handler(uint16_t *pid, process_exit_status
     return any ? OK : ERR(NO_SUCH_PROCESS);
 }
 
-HANDLER2(prioritize,pid,prio) {
+syscall_response_t prioritize_syscall_handler(kpid_t pid, const exec_priority_t* prio_in, exec_priority_t* prio_out) {
     auto&& pmm = ProcessManager::get();
     auto process = pmm.getprocess(pid);
     if (!process) {
         return ERR(NO_SUCH_PROCESS);
     }
-    if (prio == 0) {
-        return OK | (process->priority.prio << 1);
-    } else {
-        auto oldp = process->priority.prio;
-        auto newp = process->priority.prio = min(process->priority.prio0, prio);
-        LOG_INFO("process %u changed its priority from %u to %u (request was %u)", pid, oldp, newp, prio);
-        return OK | (newp << 1);
+
+    if (prio_in->quantum != 0) {
+        if (prio_in->quantum > process->priority.quantum.max) {
+            process->priority.quantum.current = process->priority.quantum.max;
+        } else {
+            process->priority.quantum.current = prio_in->quantum;
+        }
     }
+    if (prio_in->scheduling != 0) {
+        if (prio_in->scheduling > process->priority.scheduling.max) {
+            process->priority.scheduling.current = process->priority.scheduling.max;
+        } else {
+            process->priority.scheduling.current = prio_in->scheduling;
+        }
+    }
+
+    if (prio_out) {
+        prio_out->quantum = process->priority.quantum.current;
+        prio_out->scheduling = process->priority.scheduling.current;
+    }
+
+    return OK;
 }
 
 syscall_response_t clone_syscall_handler(uintptr_t neweip, exec_fileop_t* fops) {

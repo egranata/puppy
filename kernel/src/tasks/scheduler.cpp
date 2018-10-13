@@ -23,7 +23,7 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
-LOG_TAG(LOTTERY, 2);
+LOG_TAG(LOTTERY, 0);
 
 namespace tasks::scheduler {
     namespace lottery {
@@ -37,7 +37,7 @@ namespace tasks::scheduler {
 
             uint64_t totalTickets = 0;
             ready.foreach([&totalTickets, &pmm] (const process_t* process) -> bool {
-                totalTickets += process->lottery.currentTickets;
+                totalTickets += process->priority.scheduling.current;
                 return true;
             });
 
@@ -48,10 +48,10 @@ retry:
             TAG_DEBUG(LOTTERY, "lottery has total %llu tickets - winner is %llu", totalTickets, currentWinner);
             uint64_t countedTickets = 0;
             ready.foreach([&countedTickets, currentWinner, &next_task] (process_t* process) -> bool {
-                countedTickets += process->lottery.currentTickets;
+                countedTickets += process->priority.scheduling.current;
                 if (countedTickets >= currentWinner) {
                     TAG_DEBUG(LOTTERY, "process %u has %llu tickets - this brings count up to %llu which is >= %llu",
-                        process->pid, process->lottery.currentTickets, countedTickets, currentWinner);
+                        process->pid, process->priority.scheduling.current, countedTickets, currentWinner);
                     next_task = process;
                     return false;
                 } else return true;
@@ -65,7 +65,7 @@ retry:
                     TAG_DEBUG(LOTTERY, "process %u wins this lottery", next_task->pid);
                     return next_task;
                 case process_t::State::EXITED:
-                    totalTickets -= next_task->lottery.currentTickets;
+                    totalTickets -= next_task->priority.scheduling.current;
                     ready.erase(next_task);
                     pmm.enqueueForDeath(next_task);
                     /* fallthrough */

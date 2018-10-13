@@ -185,6 +185,11 @@ struct winsize_t { // the return of TIOCGWINSZ
   unsigned short ws_ypixel;	/* vertical size, pixels */
 };
 
+struct exec_priority_t {
+    uint8_t quantum; /* how many clock ticks a process can run once scheduled */
+    uint64_t scheduling; /* how likely a process is to be scheduled */
+};
+
 struct exec_fileop_t {
     enum class operation : uint8_t {
         END_OF_LIST = 0, // all param values ignored; stop parsing

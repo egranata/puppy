@@ -16,45 +16,54 @@
 #include <newlib/stdio.h>
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
+#include <newlib/getopt.h>
 
-namespace {
-    uint8_t nice(uint16_t pid) {
-        auto c = prioritize_syscall(pid, 0);
-        if (c & 1) return 0;
-        return (c >> 1);
-    }
-    uint8_t renice(uint16_t pid, uint8_t prio) {
-        auto c = prioritize_syscall(pid, prio);
-        if (c & 1) return 0;
-        return c >> 1;
-    }
+void usage(int ec = 0) {
+    printf("nice -p <pid> [-q <quantum>] [-s <sched>]\n");
+    printf("edits (or displays) the priority of a process\n");
+    printf("quantum controls the amount of time that a process will run once scheduled;\n");
+    printf("sched controls the likelyhood of a process to be scheduled at each opportunity;\n");
+    exit(ec);
 }
 
-int getnice(const char *spid) {
-    auto pid = (uint16_t)atoi(spid);
-    auto prio = (uint8_t)nice(pid);
+int main(int argc, char* const* argv) {
+    kpid_t pid = 0;
+    uint8_t qt = 0;
+    uint64_t sk = 0;
+    int c;
 
-    printf("Priority of process %u is %u\n", pid, prio);
+    opterr = 0;
+
+    while ((c = getopt (argc, argv, "q:p:s:")) != -1) {
+        switch (c) {
+            case 'q': {
+                qt = atoi(optarg);
+                break;
+            }
+            case 'p': {
+                pid = atoi(optarg);
+                break;
+            }
+            case 's': {
+                sk = atoi(optarg);
+                break;
+            }
+            default: {
+                usage(1);
+                break;
+            }
+        }
+    }
+
+    exec_priority_t prio_in; prio_in.quantum = qt; prio_in.scheduling = sk;
+    exec_priority_t prio_out; prio_out.quantum = 0; prio_out.scheduling = 0;
+
+    int ok = prioritize_syscall(pid, &prio_in, &prio_out);
+    if (ok == 0) {
+        printf("for pid %u, quantum is %u, scheduling is %llu\n", pid, prio_out.quantum, prio_out.scheduling);
+    } else {
+        usage(1);
+    }
+
     return 0;
-}
-
-int setnice(const char* spid, const char* sprio) {
-    auto pid = (uint16_t)atoi(spid);
-    auto prio = (uint8_t)atoi(sprio);
-
-    prio = renice(pid, prio);
-    printf("Priority of process %u set to %u (asked %s)\n", pid, prio, sprio);
-    return 0;
-}
-
-int main(int argc, const char** argv) {
-    switch (argc) {
-        case 2:
-            return getnice(argv[1]);
-        case 3:
-            return setnice(argv[1], argv[2]);
-        default:
-            printf("nice <pid> [<prio>]\n");
-            exit(1);
-    }
 }

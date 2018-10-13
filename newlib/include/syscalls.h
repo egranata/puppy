@@ -73,7 +73,7 @@ syscall_response_t fioctl_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 constexpr uint8_t fioctl_syscall_id = 0x1a;
 syscall_response_t fwrite_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 constexpr uint8_t fwrite_syscall_id = 0x1b;
-syscall_response_t prioritize_syscall(uint32_t arg1,uint32_t arg2);
+syscall_response_t prioritize_syscall(kpid_t arg1,const exec_priority_t* arg2,exec_priority_t* arg3);
 constexpr uint8_t prioritize_syscall_id = 0x1c;
 syscall_response_t mutexget_syscall(uint32_t arg1);
 constexpr uint8_t mutexget_syscall_id = 0x1d;

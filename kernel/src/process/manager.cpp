@@ -145,7 +145,10 @@ namespace {
     si : ProcessManager::spawninfo_t { \
         cr3 : 0, \
         eip : (uintptr_t)&entry, \
-        priority : sched ? 1 : 0, \
+        priority : exec_priority_t{ \
+            quantum : sched ? 1 : 0, \
+            scheduling : sched ? 20 : 0, \
+        }, \
         argument : 0, \
         environment : nullptr, \
         name : nm, \
@@ -223,12 +226,12 @@ ProcessManager::ProcessManager() {
     gDummyProcess.tss.esp0 = 4096 + (uintptr_t)malloc(4096);
     gDummyProcess.pid = gPidBitmap().next();
     gDummyProcess.state = process_t::State::AVAILABLE;
-    gDummyProcess.priority.prio = gDummyProcess.priority.prio0 = 1;
+    gDummyProcess.priority.quantum.current = gDummyProcess.priority.quantum.max = 1;
     gDummyProcess.path = strdup("kernel task");
     gDummyProcess.gdtidx = gGDTBitmap().next();
     gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY);
     gDummyProcess.flags.system = true;
-    gDummyProcess.lottery.currentTickets = gDummyProcess.lottery.maxTickets = 1;
+    gDummyProcess.priority.scheduling.current = gDummyProcess.priority.scheduling.max = 1;
 
     auto dtbl = addr_gdt<uint64_t*>();
 
@@ -258,7 +261,10 @@ process_t* ProcessManager::exec(const char* path, const char* args, const char**
     spawninfo_t si {
         cr3 : vmm.createAddressSpace(),
         eip : (uintptr_t)&fileloader,
-        priority : prio,
+        priority : exec_priority_t {
+            quantum : prio,
+            scheduling : 20,
+        },
         argument : argp,
         environment : env,
         name : path,
@@ -372,8 +378,11 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
 
     if (gCurrentProcess) {
         if (!gCurrentProcess->flags.system) {
-            if (si.priority > gCurrentProcess->priority.prio0) {
-                LOG_ERROR("cannot spawn a process with higher priority(%u) than its parent's(%u)", si.priority, gCurrentProcess->priority.prio0);
+            const bool too_high_quantum = si.priority.quantum > gCurrentProcess->priority.quantum.max;
+            const bool too_high_scheduling = si.priority.scheduling > gCurrentProcess->priority.scheduling.max;
+            const bool too_priority = too_high_quantum || too_high_scheduling;
+            if (too_priority) {
+                LOG_ERROR("cannot spawn a process with higher priority(%u) than its parent's(%u)", si.priority.quantum, gCurrentProcess->priority.quantum.max);
                 return nullptr;
             }
         }
@@ -402,7 +411,8 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     process->ppid = gCurrentProcess->pid;
     process->ttyinfo = gCurrentProcess->ttyinfo;
     process->cwd = strdup(gCurrentProcess->cwd);
-    process->priority.prio = process->priority.prio0 = si.priority;
+    process->priority.quantum.max = process->priority.quantum.current = si.priority.quantum;
+    process->priority.scheduling.max = process->priority.scheduling.current = si.priority.scheduling;
     process->flags.system = si.system;
 
     process->tss.cs = 0x08;
@@ -437,8 +447,6 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         LOG_DEBUG("process %u is not schedulable", process->pid);
         process->state = process_t::State::NEW;
     }
-
-    process->lottery.currentTickets = process->lottery.maxTickets = 20;
 
     forwardTTY(process);
 
@@ -626,7 +634,7 @@ bool ProcessManager::isinterruptible(uintptr_t addr) {
 void ProcessManager::tick(bool can_yield) {
     if (gCurrentProcess) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, TimeManager::get().millisPerTick());
 
-    auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.prio, __ATOMIC_SEQ_CST);
+    auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.quantum.current, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
         if (usedticks >= allowedticks) {
@@ -759,7 +767,10 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip, exec_fileop_t* fops) {
     spawninfo_t si {
         cr3 : vm.cloneAddressSpace(),
         eip : (uintptr_t)clone_start,
-        priority : gCurrentProcess->priority.prio,
+        priority : exec_priority_t {
+            quantum : gCurrentProcess->priority.quantum.max,
+            scheduling : gCurrentProcess->priority.scheduling.max,
+        },
         argument : eip,
         environment : nullptr,
         name : gCurrentProcess->path,
