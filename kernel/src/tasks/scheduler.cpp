@@ -19,43 +19,39 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
-namespace tasks::scheduler {    
+namespace tasks::scheduler {
+    namespace rr {
+        process_t *next() {
+            auto&& ready = ProcessManager::gReadyQueue();
+            auto&& pmm(ProcessManager::get());
+
+            process_t *next_task = nullptr;
+
+            // in theory this could cause an endless loop, but in practice at least the "dummy process" will always be ready to run
+            while(true) {
+                next_task = ready.front();
+                ready.erase(ready.begin());
+
+                switch(next_task->state) {
+                    case process_t::State::AVAILABLE:
+                        ready.push_back(next_task);
+                        return next_task;
+                    case process_t::State::EXITED:
+                        pmm.enqueueForDeath(next_task);
+                        /* fallthrough */
+                    default:
+                        continue;
+                }
+
+            }
+        }
+    }
+
     void task() {
-        auto&& pmm(ProcessManager::get());
-        auto&& ready = ProcessManager::gReadyQueue();
-
         while(true) {
-            auto cur_task = gCurrentProcess;
-            
-            auto next_task = ready.front();
-            LOG_DEBUG("front of ready queue is %p", next_task);
-            ready.erase(ready.begin());
-            LOG_DEBUG("erased front of ready queue");
-
-            switch(next_task->state) {
-                case process_t::State::AVAILABLE:
-                    LOG_DEBUG("next_task = %p %u is available, scheduling", next_task, next_task->pid);
-                    break;
-                case process_t::State::EXITED:
-                    pmm.enqueueForDeath(next_task);
-                    /* fallthrough */
-                default:
-                    LOG_DEBUG("next_task = %p %u is not available, keep going", next_task, next_task->pid);
-                    continue;
-            }
-
-            ready.push_back(next_task);
-
-            LOG_DEBUG("cur_task = %p %u - next_task = %p %u", cur_task, cur_task->pid, next_task, next_task->pid);
-
-            if (next_task == cur_task) {
-                LOG_DEBUG("task %u yielding to itself, so nothing to see here", cur_task->pid);
-            } else {
-                LOG_DEBUG("task %u yielding to task %u", cur_task->pid, next_task->pid);
-                next_task->flags.due_for_reschedule = false;
-                ProcessManager::ctxswitch(next_task);
-                LOG_DEBUG("back from yielding");
-            }
+            auto next_task = rr::next();
+            next_task->flags.due_for_reschedule = false;
+            ProcessManager::ctxswitch(next_task);
         }
     }
 }
