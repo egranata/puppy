@@ -20,6 +20,7 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/memory.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/libc/function.h>
 
 template<typename T>
 class vector : NOCOPY {
@@ -77,7 +78,7 @@ class vector : NOCOPY {
             return &mData[0];
         }
         const_iterator end() const {
-            return &mData[mSize];            
+            return &mData[mSize];
         }
 
         void erase(iterator i) {
@@ -86,6 +87,21 @@ class vector : NOCOPY {
             i->~T();
             memmove(&mData[pos], &mData[pos + 1], rem * sizeof(T));
             --mSize;
+        }
+
+        bool erase(const T& value) {
+            for (auto i = begin(); i != end(); ++i) {
+                if (*i == value) {
+                    erase(i);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void eraseAll(const T& value) {
+            while (erase(value));
         }
 
         void pop_back() {
@@ -98,6 +114,22 @@ class vector : NOCOPY {
 
         T& operator[] (size_t idx) {
             return mData[idx];
+        }
+
+        void foreach(function<bool(const T&)> f) const {
+            auto&& iter = begin();
+            auto&& e = end();
+            for (; iter != e; ++iter) {
+                if (false == f(*iter)) break;
+            }
+        }
+
+        void foreach(function<bool(T&)> f) {
+            auto iter = begin();
+            auto e = end();
+            for (; iter != e; ++iter) {
+                if (false == f(*iter)) break;
+            }
         }
 
     private:

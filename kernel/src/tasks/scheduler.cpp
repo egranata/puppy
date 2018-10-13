@@ -15,11 +15,66 @@
 #include <kernel/tasks/scheduler.h>
 #include <kernel/process/manager.h>
 #include <kernel/process/current.h>
+#include <kernel/libc/function.h>
+#include <kernel/libc/rand.h>
+#include <kernel/i386/primitives.h>
+#include <kernel/panic/panic.h>
 
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
+LOG_TAG(LOTTERY, 2);
+
 namespace tasks::scheduler {
+    namespace lottery {
+        process_t *next() {
+            auto& ready = ProcessManager::gReadyQueue();
+            auto&& pmm(ProcessManager::get());
+
+            Rng rng(readtsc());
+
+            process_t *next_task = nullptr;
+
+            uint64_t totalTickets = 0;
+            ready.foreach([&totalTickets, &pmm] (const process_t* process) -> bool {
+                totalTickets += process->lottery.currentTickets;
+                return true;
+            });
+
+retry:
+            uint64_t currentWinner = (uint64_t)rng.next() | (((uint64_t)rng.next()) << 32);
+            currentWinner %= totalTickets;
+
+            TAG_DEBUG(LOTTERY, "lottery has total %llu tickets - winner is %llu", totalTickets, currentWinner);
+            uint64_t countedTickets = 0;
+            ready.foreach([&countedTickets, currentWinner, &next_task] (process_t* process) -> bool {
+                countedTickets += process->lottery.currentTickets;
+                if (countedTickets >= currentWinner) {
+                    TAG_DEBUG(LOTTERY, "process %u has %llu tickets - this brings count up to %llu which is >= %llu",
+                        process->pid, process->lottery.currentTickets, countedTickets, currentWinner);
+                    next_task = process;
+                    return false;
+                } else return true;
+            });
+
+            if (next_task == nullptr) {
+                PANIC("lottery did not select a winner - scheduler aborted");
+            }
+            switch(next_task->state) {
+                case process_t::State::AVAILABLE:
+                    TAG_DEBUG(LOTTERY, "process %u wins this lottery", next_task->pid);
+                    return next_task;
+                case process_t::State::EXITED:
+                    totalTickets -= next_task->lottery.currentTickets;
+                    ready.erase(next_task);
+                    pmm.enqueueForDeath(next_task);
+                    /* fallthrough */
+                default:
+                    TAG_DEBUG(LOTTERY, "lottery did not select a runnable winner - try again");
+                    goto retry;
+            }
+        }
+    }
     namespace rr {
         process_t *next() {
             auto&& ready = ProcessManager::gReadyQueue();
@@ -49,7 +104,7 @@ namespace tasks::scheduler {
 
     void task() {
         while(true) {
-            auto next_task = rr::next();
+            auto next_task = lottery::next();
             next_task->flags.due_for_reschedule = false;
             ProcessManager::ctxswitch(next_task);
         }

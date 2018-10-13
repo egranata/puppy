@@ -228,6 +228,7 @@ ProcessManager::ProcessManager() {
     gDummyProcess.gdtidx = gGDTBitmap().next();
     gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY);
     gDummyProcess.flags.system = true;
+    gDummyProcess.lottery.currentTickets = gDummyProcess.lottery.maxTickets = 1;
 
     auto dtbl = addr_gdt<uint64_t*>();
 
@@ -431,12 +432,13 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     gProcessTable().set(process);
     if (si.schedulable) {
         LOG_DEBUG("process %u is schedulable", process->pid);
-        gReadyQueue().push_back(process);
-        process->state = process_t::State::AVAILABLE;
+        ready(process);
     } else {
         LOG_DEBUG("process %u is not schedulable", process->pid);
         process->state = process_t::State::NEW;
     }
+
+    process->lottery.currentTickets = process->lottery.maxTickets = 20;
 
     forwardTTY(process);
 
