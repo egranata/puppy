@@ -154,11 +154,19 @@ int main(int, const char**) {
         exit(2);
     }
 
+    exec_priority_t init_final_prio {
+        quantum : 1,
+        scheduling : 1
+    };
+
+    prioritize_syscall(getpid(), &init_final_prio, nullptr);
+
     while(true) {
         if (tryCollectShell(shell_pid)) {
             klog_syscall("shell has terminated - init will reboot");
             reboot_syscall();
         }
+
         // TODO: init could be receiving messages from the rest of the system
         // and execute system-y operations on behalf of the rest of the system
         yield_syscall();
