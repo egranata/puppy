@@ -59,6 +59,7 @@ class function<Ret(Args...)> {
         template<typename Callable>
         static void dodelete(Callable *c) {
             c->~Callable();
+            free(c);
         }
 
     public:
