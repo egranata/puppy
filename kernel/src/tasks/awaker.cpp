@@ -20,14 +20,25 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
-namespace tasks::awaker {    
+KERNEL_TASK_NAMESPACE_OPEN(awaker) {
+    WaitQueue& queue() {
+        static WaitQueue gQueue;
+
+        return gQueue;
+    }
+
     void task() {
         auto& sq(ProcessManager::gSleepQueue());
         auto& pmm(ProcessManager::get());
+        gCurrentProcess->priority.scheduling.current = 5;
         while(true) {
-            if (sq.empty()) {
-                pmm.yield();
-            } else {
+            /* if there's a process waiting to be woken up, yield and continue
+               until that has happened - and only then go back to waiting;
+               if one sets a process to sleep for - say - an hour then this
+               is highly suboptimal, but if no processes are sleeping or all sleeps
+               are short and sporadic, then this is almost good..
+            */
+            while(!sq.empty()) {
                 auto now = TimeManager::get().millisUptime();
                 auto top = sq.top();
                 if (top->state == process_t::State::EXITED) {
@@ -42,6 +53,7 @@ namespace tasks::awaker {
                     pmm.yield();
                 }
             }
+            queue().wait(gCurrentProcess);
         }
     }
 }

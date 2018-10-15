@@ -507,6 +507,7 @@ void ProcessManager::sleep(uint32_t durationMs) {
     LOG_DEBUG("task %u scheduled to sleep till %llu", gCurrentProcess->pid, gCurrentProcess->sleeptill);
     deschedule(gCurrentProcess, process_t::State::SLEEPING);
     gSleepQueue().insert(gCurrentProcess);
+    tasks::awaker::queue().wakeall();
     yield();
 }
 

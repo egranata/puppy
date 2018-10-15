@@ -16,7 +16,12 @@
 #define TASKS_AWAKER
 
 #include <kernel/tasks/task.h>
+#include <kernel/synch/waitqueue.h>
 
 KERNEL_TASK_NAMESPACE(awaker)
+
+KERNEL_TASK_NAMESPACE_OPEN(awaker) {
+    WaitQueue& queue();
+};
 
 #endif
