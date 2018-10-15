@@ -23,7 +23,7 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
-LOG_TAG(LOTTERY, 0);
+LOG_TAG(LOTTERY, 2);
 
 namespace tasks::scheduler {
     namespace lottery {
