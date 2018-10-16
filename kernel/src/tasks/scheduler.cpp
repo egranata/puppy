@@ -34,47 +34,47 @@ namespace tasks::scheduler {
             Rng rng(readtsc());
 
             process_t *next_task = nullptr;
+            uint64_t totalTickets;
 
-            uint64_t totalTickets = 0;
-            ready.foreach([&totalTickets, &pmm] (const process_t* process) -> bool {
-                totalTickets += process->priority.scheduling.current;
-                return true;
-            });
+loop_all:
+            totalTickets = 0;
+            for(size_t i = 0; i < ready.size(); ++i) {
+                process_t *p = ready.at(i);
+                switch(p->state) {
+                    case process_t::State::EXITED:
+                        pmm.enqueueForDeath(p);
+                        ready.erase(p);
+                        goto loop_all;
+                        break;
+                    default:
+                        break;
+                    case process_t::State::AVAILABLE:
+                        totalTickets += p->priority.scheduling.current;
+                        break;
+                }
+            }
 
-retry:
             uint64_t currentWinner = (uint64_t)rng.next() | (((uint64_t)rng.next()) << 32);
             currentWinner %= totalTickets;
 
             TAG_DEBUG(LOTTERY, "lottery has total %llu tickets - winner is %llu", totalTickets, currentWinner);
+
             uint64_t countedTickets = 0;
-            ready.foreach([&countedTickets, currentWinner, &next_task] (process_t* process) -> bool {
-                countedTickets += process->priority.scheduling.current;
-                if (countedTickets >= currentWinner) {
-                    TAG_DEBUG(LOTTERY, "process %u has %llu tickets - this brings count up to %llu which is >= %llu",
-                        process->pid, process->priority.scheduling.current, countedTickets, currentWinner);
-                    next_task = process;
-                    return false;
-                } else return true;
-            });
+            for(size_t i = 0; i < ready.size(); ++i) {
+                process_t* p = ready.at(i);
+                countedTickets += p->priority.scheduling.current;
+                if ((countedTickets >= currentWinner) && (p->state == process_t::State::AVAILABLE)) {
+                    next_task = p;
+                    break;
+                }
+            }
 
             if (next_task == nullptr) {
                 PANIC("lottery did not select a winner - scheduler aborted");
-            }
-            switch(next_task->state) {
-                case process_t::State::AVAILABLE:
-                    TAG_DEBUG(LOTTERY, "process %u wins this lottery", next_task->pid);
-                    return next_task;
-                case process_t::State::EXITED:
-                    totalTickets -= next_task->priority.scheduling.current;
-                    ready.erase(next_task);
-                    pmm.enqueueForDeath(next_task);
-                    /* fallthrough */
-                default:
-                    TAG_DEBUG(LOTTERY, "lottery did not select a runnable winner - try again");
-                    goto retry;
-            }
+            } else return next_task;
         }
     }
+
     namespace rr {
         process_t *next() {
             auto&& ready = ProcessManager::gReadyQueue();
