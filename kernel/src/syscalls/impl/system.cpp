@@ -21,6 +21,7 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/log/log.h>
 #include <kernel/time/manager.h>
+#include <kernel/process/manager.h>
 
 HANDLER0(reboot) {
     reboot();
@@ -32,6 +33,7 @@ syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
         dest->global.uptime = TimeManager::get().millisUptime();
         dest->global.totalmem = PhysicalPageManager::get().gettotalmem();
         dest->global.freemem = PhysicalPageManager::get().getfreemem();
+        dest->global.ctxswitches = ProcessManager::numContextSwitches();
     }
 
     if (fill & INCLUDE_LOCAL_INFO) {

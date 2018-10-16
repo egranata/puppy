@@ -122,6 +122,8 @@ class ProcessManager : NOCOPY {
         size_t numProcesses();
         void foreach(function<bool(const process_t*)>);
 
+        static uint64_t numContextSwitches();
+
     private:
         ProcessManager();
 

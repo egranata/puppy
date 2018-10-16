@@ -466,7 +466,14 @@ process_t* ProcessManager::kspawn(const spawninfo_t& si) {
 
 #define GDT_IDX_TO_TSS_ENTRY(idx) (((idx * 8) << 16) | 0x1E50000000000ULL)
 
+static uint64_t gNumCtxSwitches = 0;
+
+uint64_t ProcessManager::numContextSwitches() {
+    return gNumCtxSwitches;
+}
+
 static inline void doGDTSwitch(uint16_t, size_t gdtidx) {
+    ++gNumCtxSwitches;
     auto dtbl = addr_gdt<uint64_t*>();
     dtbl[5] = GDT_IDX_TO_TSS_ENTRY(gdtidx);
     ::ctxswitch();

@@ -26,6 +26,7 @@ struct sysinfo_t {
         uint64_t uptime; /** uptime of the system */
         uint32_t totalmem; /** total amount of RAM */
         uint32_t freemem; /** amount of free RAM */
+        uint64_t ctxswitches; /** number of context switches since boot */
     } global;
     struct {
         uint64_t runtime; /** time this process has been running */
