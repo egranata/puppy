@@ -25,13 +25,19 @@
 
 LOG_TAG(LOTTERY, 2);
 
+static Rng& getRandomNumberGenerator() {
+    static Rng gRng(readtsc());
+
+    return gRng;
+}
+
 namespace tasks::scheduler {
     namespace lottery {
         process_t *next() {
             auto& ready = ProcessManager::gReadyQueue();
             auto&& pmm(ProcessManager::get());
 
-            Rng rng(readtsc());
+            auto& rng(getRandomNumberGenerator());
 
             process_t *next_task = nullptr;
             uint64_t totalTickets;
@@ -65,6 +71,8 @@ loop_all:
                 countedTickets += p->priority.scheduling.current;
                 if ((countedTickets >= currentWinner) && (p->state == process_t::State::AVAILABLE)) {
                     next_task = p;
+                    TAG_DEBUG(LOTTERY, "with %llu tickets counted the winner process is %u",
+                        countedTickets, p->pid);
                     break;
                 }
             }

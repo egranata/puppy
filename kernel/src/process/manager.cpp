@@ -141,13 +141,18 @@ namespace {
     };
 }
 
+#define NOSCHED 0
+#define LOW 5
+#define NORMAL 20
+#define HIGH 30
+
 #define SYSTEM_TASK(entry, sched, nm, dest) system_task_t { \
     si : ProcessManager::spawninfo_t { \
         cr3 : 0, \
         eip : (uintptr_t)&entry, \
         priority : exec_priority_t{ \
-            quantum : sched ? 1 : 0, \
-            scheduling : sched ? 20 : 0, \
+            quantum : (sched > 0) ? 1 : 0, \
+            scheduling : sched, \
         }, \
         argument : 0, \
         environment : nullptr, \
@@ -161,14 +166,18 @@ namespace {
 }
 
 static system_task_t gSystemTasks[] = {
-    SYSTEM_TASK(tasks::scheduler::task,   false, "scheduler",   &gSchedulerTask),
-    SYSTEM_TASK(tasks::collector::task,   true,  "collector",   &gCollectorTask),
-    SYSTEM_TASK(tasks::awaker::task,      true,  "awaker",      &gAwakerTask),
-    SYSTEM_TASK(tasks::deleter::task,     true,  "deleter",     &gDeleterTask),
-    SYSTEM_TASK(tasks::keybqueue::task,   true,  "keybqueue",   &gKeybQTask),
+    SYSTEM_TASK(tasks::scheduler::task,   NOSCHED,  "scheduler",   &gSchedulerTask),
+    SYSTEM_TASK(tasks::collector::task,   LOW,      "collector",   &gCollectorTask),
+    SYSTEM_TASK(tasks::awaker::task,      NORMAL,   "awaker",      &gAwakerTask),
+    SYSTEM_TASK(tasks::deleter::task,     LOW,      "deleter",     &gDeleterTask),
+    SYSTEM_TASK(tasks::keybqueue::task,   HIGH,     "keybqueue",   &gKeybQTask),
 };
 
 #undef SYSTEM_TASK
+#undef NOSCHED
+#undef LOW
+#undef NORMAL
+#undef HIGH
 
 template<size_t N, typename T = system_task_t>
 static void spawnSystemTasks(T (&tasks)[N]) {
