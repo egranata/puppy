@@ -571,22 +571,27 @@ void ProcessManager::resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uin
     tss.ss = ss;
 }
 
-void ProcessManager::kill(kpid_t pid) {
+bool ProcessManager::kill(kpid_t pid) {
     process_exit_status_t es(process_exit_status_t::reason_t::killed, 0);
     auto task = getprocess(pid);
     LOG_DEBUG("task %u %p killing task %u %p", gCurrentProcess->pid, gCurrentProcess, task->pid, task);
     if (task == gCurrentProcess) {
         exit(es);
     } else if (task != nullptr) {
+        if (task->flags.system && !gCurrentProcess->flags.system) {
+            LOG_ERROR("process %u tried to kill system task %u", gCurrentProcess->pid, task->pid);
+            return false;
+        }
         // push the exit status
         uint32_t *stack = (uint32_t*)task->esp0start;
         *stack = es.toWord();
         --stack;
         resumeat(task, (uintptr_t)&reaper, (uint32_t)stack, 0x08, 0x10);
     }
+    return true;
 }
 
-void ProcessManager::exit(process_exit_status_t es) {    
+void ProcessManager::exit(process_exit_status_t es) {
     exit(gCurrentProcess, es);
     yield();
 }

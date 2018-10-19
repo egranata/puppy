@@ -89,7 +89,7 @@ class ProcessManager : NOCOPY {
         void yield(bool bytimer=false);
         void sleep(uint32_t durationMs);
         void exit(process_exit_status_t);
-        void kill(kpid_t);
+        bool kill(kpid_t);
 
         kpid_t initpid();
         kpid_t schedulerpid();

@@ -64,8 +64,7 @@ syscall_response_t exec_syscall_handler(const char* path, const char* args, char
 
 HANDLER1(kill,pid) {
     auto&& pmm = ProcessManager::get();
-    pmm.kill(pid);
-    return OK;
+    return pmm.kill(pid) ? OK : ERR(NOT_ALLOWED);
 }
 
 syscall_response_t collect_syscall_handler(uint16_t pid, process_exit_status_t* result) {
