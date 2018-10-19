@@ -34,6 +34,7 @@ int main(int argc, char* const* argv) {
     int c;
     prioritize_target tgt = prioritize_target::PRIORITIZE_SET_CURRENT;
     const char* display_tgt = "current";
+    bool is_setting = false;
 
     opterr = 0;
 
@@ -48,6 +49,7 @@ int main(int argc, char* const* argv) {
                 display_tgt = "current";
                 break;
             case 'q': {
+                is_setting = true;
                 qt = atoi(optarg);
                 break;
             }
@@ -56,6 +58,7 @@ int main(int argc, char* const* argv) {
                 break;
             }
             case 's': {
+                is_setting = true;
                 sk = atoi(optarg);
                 break;
             }
@@ -69,7 +72,7 @@ int main(int argc, char* const* argv) {
     exec_priority_t prio_in; prio_in.quantum = qt; prio_in.scheduling = sk;
     exec_priority_t prio_out; prio_out.quantum = 0; prio_out.scheduling = 0;
 
-    int ok = prioritize_syscall(pid, tgt, &prio_in, &prio_out);
+    int ok = prioritize_syscall(pid, tgt, is_setting ? &prio_in : nullptr, &prio_out);
     if (ok == 0) {
         printf("for pid %u, %s priority is (quantum = %u, scheduling = %llu)\n", pid, display_tgt, prio_out.quantum, prio_out.scheduling);
     } else {
