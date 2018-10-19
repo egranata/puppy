@@ -59,7 +59,8 @@ class ProcessManager : NOCOPY {
         struct spawninfo_t {
             uintptr_t cr3; /** the root of the address space */
             uintptr_t eip; /** what address to start running from */
-            exec_priority_t priority;
+            exec_priority_t max_priority;
+            exec_priority_t current_priority;
             uintptr_t argument; /** a pointer to be pushed onto the stack for the entry point to consume */
 
             const char** environment; /** a pointer to a list of strings that are to be passed to the process as its environment */

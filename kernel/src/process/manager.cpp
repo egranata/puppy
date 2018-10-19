@@ -155,7 +155,11 @@ namespace {
     si : ProcessManager::spawninfo_t { \
         cr3 : 0, \
         eip : (uintptr_t)&entry, \
-        priority : exec_priority_t{ \
+        max_priority : exec_priority_t{ \
+            quantum : (sched > 0) ? 1 : 0, \
+            scheduling : sched, \
+        }, \
+        current_priority : exec_priority_t{ \
             quantum : (sched > 0) ? 1 : 0, \
             scheduling : sched, \
         }, \
@@ -245,7 +249,8 @@ ProcessManager::ProcessManager() {
     gDummyProcess.gdtidx = gGDTBitmap().next();
     gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY);
     gDummyProcess.flags.system = true;
-    gDummyProcess.priority.scheduling.current = gDummyProcess.priority.scheduling.max = 1;
+    gDummyProcess.priority.scheduling.current = gDummyProcess.priority.quantum.current = 1;
+    gDummyProcess.priority.scheduling.max = gDummyProcess.priority.quantum.max = 255;
 
     auto dtbl = addr_gdt<uint64_t*>();
 
@@ -275,7 +280,11 @@ process_t* ProcessManager::exec(const char* path, const char* args, const char**
     spawninfo_t si {
         cr3 : vmm.createAddressSpace(),
         eip : (uintptr_t)&fileloader,
-        priority : prio,
+        max_priority : exec_priority_t {
+            quantum : gCurrentProcess->priority.quantum.max,
+            scheduling : gCurrentProcess->priority.scheduling.max,
+        },
+        current_priority : prio,
         argument : argp,
         environment : env,
         name : path,
@@ -389,11 +398,26 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
 
     if (gCurrentProcess) {
         if (!gCurrentProcess->flags.system) {
-            const bool too_high_quantum = si.priority.quantum > gCurrentProcess->priority.quantum.max;
-            const bool too_high_scheduling = si.priority.scheduling > gCurrentProcess->priority.scheduling.max;
+            const bool too_high_quantum = si.max_priority.quantum > gCurrentProcess->priority.quantum.max;
+            const bool too_high_scheduling = si.max_priority.scheduling > gCurrentProcess->priority.scheduling.max;
             const bool too_priority = too_high_quantum || too_high_scheduling;
+
+            const bool out_of_range_quantum = si.current_priority.quantum > si.max_priority.quantum;
+            const bool out_of_range_scheduling = si.current_priority.scheduling > si.max_priority.scheduling;
+            const bool out_of_range = out_of_range_quantum || out_of_range_scheduling;
             if (too_priority) {
-                LOG_ERROR("cannot spawn a process with higher priority(%u) than its parent's(%u)", si.priority.quantum, gCurrentProcess->priority.quantum.max);
+                if (too_high_quantum) {
+                    LOG_ERROR("quantum %u is higher than maximum allowed %u", si.max_priority.quantum, gCurrentProcess->priority.quantum.max);
+                } else {
+                    LOG_ERROR("scheduling priority %llu is higher than maximum allowed %llu", si.max_priority.scheduling, gCurrentProcess->priority.scheduling.max);
+                }
+                return nullptr;
+            } else if (out_of_range) {
+                if (out_of_range_quantum) {
+                    LOG_ERROR("quantum %u is higher than maximum allowed %u", si.current_priority.quantum, si.max_priority.quantum);
+                } else {
+                    LOG_ERROR("scheduling priority %llu is higher than maximum allowed %llu", si.current_priority.scheduling, si.max_priority.scheduling);
+                }
                 return nullptr;
             }
         }
@@ -422,8 +446,12 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     process->ppid = gCurrentProcess->pid;
     process->ttyinfo = gCurrentProcess->ttyinfo;
     process->cwd = strdup(gCurrentProcess->cwd);
-    process->priority.quantum.max = process->priority.quantum.current = si.priority.quantum;
-    process->priority.scheduling.max = process->priority.scheduling.current = si.priority.scheduling;
+
+    process->priority.quantum.max = si.max_priority.quantum;
+    process->priority.scheduling.max = si.max_priority.scheduling;
+    process->priority.quantum.current = si.current_priority.quantum;
+    process->priority.scheduling.current = si.current_priority.scheduling;
+
     process->flags.system = si.system;
 
     process->tss.cs = 0x08;
@@ -786,9 +814,13 @@ process_t* ProcessManager::cloneProcess(uintptr_t eip, exec_fileop_t* fops) {
     spawninfo_t si {
         cr3 : vm.cloneAddressSpace(),
         eip : (uintptr_t)clone_start,
-        priority : exec_priority_t {
+        max_priority : exec_priority_t {
             quantum : gCurrentProcess->priority.quantum.max,
             scheduling : gCurrentProcess->priority.scheduling.max,
+        },
+        current_priority : exec_priority_t {
+            quantum : gCurrentProcess->priority.quantum.current,
+            scheduling : gCurrentProcess->priority.scheduling.current,
         },
         argument : eip,
         environment : nullptr,
