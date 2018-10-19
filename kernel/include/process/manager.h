@@ -45,7 +45,7 @@ class ProcessManager : NOCOPY {
         // this is tied to the size of the GDT table prepared in loader.s
         static constexpr size_t gNumProcesses = 2000;
 
-        static constexpr uint8_t gDefaultBasePriority = 10;
+        static exec_priority_t gDefaultBasePriority;
 
         static ProcessManager& get();
 
@@ -76,7 +76,7 @@ class ProcessManager : NOCOPY {
         process_t *spawn(const spawninfo_t&);
         process_t *kspawn(const spawninfo_t&);
 
-        process_t *exec(const char* path, const char* args, const char** env, uint32_t flags, uint8_t prio = gDefaultBasePriority, uintptr_t argp = 0, exec_fileop_t* fileops = nullptr);
+        process_t *exec(const char* path, const char* args, const char** env, uint32_t flags, exec_priority_t prio = gDefaultBasePriority, uintptr_t argp = 0, exec_fileop_t* fileops = nullptr);
 
         void tick(bool can_yield);
 

@@ -85,6 +85,11 @@ namespace boot::task {
     }
 }
 
+exec_priority_t ProcessManager::gDefaultBasePriority {
+    quantum : 10,
+    scheduling : 20
+};
+
 ProcessManager& ProcessManager::get() {
     static ProcessManager gManager;
 
@@ -264,16 +269,13 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
-process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags, uint8_t prio, uintptr_t argp, exec_fileop_t* fops) {
+process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags, exec_priority_t prio, uintptr_t argp, exec_fileop_t* fops) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
         cr3 : vmm.createAddressSpace(),
         eip : (uintptr_t)&fileloader,
-        priority : exec_priority_t {
-            quantum : prio,
-            scheduling : 20,
-        },
+        priority : prio,
         argument : argp,
         environment : env,
         name : path,
