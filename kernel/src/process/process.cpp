@@ -24,7 +24,7 @@ process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitsta
     args = nullptr;
     path = nullptr;
     cwd = strdup("/");
-    flags.due_for_reschedule = false;
+    flags.flags = 0;
 
     memstats.allocated = memstats.available = 0;
     memstats.pagefaults = 0;

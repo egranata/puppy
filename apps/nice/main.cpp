@@ -19,10 +19,11 @@
 #include <newlib/getopt.h>
 
 void usage(int ec = 0) {
-    printf("nice -p <pid> [-q <quantum>] [-s <sched>]\n");
+    printf("nice -p <pid> [-q <quantum>] [-s <sched>] [-Mc]\n");
     printf("edits (or displays) the priority of a process\n");
     printf("quantum controls the amount of time that a process will run once scheduled;\n");
     printf("sched controls the likelyhood of a process to be scheduled at each opportunity;\n");
+    printf("-M will change / display the max priority; -c will change / display the current priority;\n");
     exit(ec);
 }
 
@@ -31,11 +32,21 @@ int main(int argc, char* const* argv) {
     uint8_t qt = 0;
     uint64_t sk = 0;
     int c;
+    prioritize_target tgt = prioritize_target::PRIORITIZE_SET_CURRENT;
+    const char* display_tgt = "current";
 
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "q:p:s:")) != -1) {
+    while ((c = getopt (argc, argv, "Mcq:p:s:")) != -1) {
         switch (c) {
+            case 'M':
+                tgt = prioritize_target::PRIORITIZE_SET_MAXIMUM;
+                display_tgt = "max";
+                break;
+            case 'c':
+                tgt = prioritize_target::PRIORITIZE_SET_CURRENT;
+                display_tgt = "current";
+                break;
             case 'q': {
                 qt = atoi(optarg);
                 break;
@@ -58,9 +69,9 @@ int main(int argc, char* const* argv) {
     exec_priority_t prio_in; prio_in.quantum = qt; prio_in.scheduling = sk;
     exec_priority_t prio_out; prio_out.quantum = 0; prio_out.scheduling = 0;
 
-    int ok = prioritize_syscall(pid, prioritize_target::PRIORITIZE_SET_CURRENT, &prio_in, &prio_out);
+    int ok = prioritize_syscall(pid, tgt, &prio_in, &prio_out);
     if (ok == 0) {
-        printf("for pid %u, quantum is %u, scheduling is %llu\n", pid, prio_out.quantum, prio_out.scheduling);
+        printf("for pid %u, %s priority is (quantum = %u, scheduling = %llu)\n", pid, display_tgt, prio_out.quantum, prio_out.scheduling);
     } else {
         usage(1);
     }

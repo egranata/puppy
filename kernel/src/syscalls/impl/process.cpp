@@ -131,7 +131,7 @@ syscall_response_t prioritize_syscall_handler(kpid_t pid, prioritize_target setm
     auto process = pmm.getprocess(pid);
     if (!process) return ERR(NO_SUCH_PROCESS);
     if (process->flags.system) {
-        if (!gCurrentProcess->flags.system) return ERR(NOT_ALLOWED);
+        if (!gCurrentProcess->flags.system && prio_in) return ERR(NOT_ALLOWED);
     }
 
     switch (setmax) {

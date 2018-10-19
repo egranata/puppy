@@ -291,6 +291,8 @@ process_t* ProcessManager::exec(const char* path, const char* args, const char**
         cwd : (flags & PROCESS_INHERITS_CWD ? gCurrentProcess->cwd : "/"),
         fileops : fops,
         schedulable : true,
+        system : false,
+        clone : false
     };
 
     if (auto process = spawn(si)) {
