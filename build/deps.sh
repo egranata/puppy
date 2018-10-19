@@ -83,4 +83,5 @@ fi
 sudo ln -s -f $prefix/bin/* /usr/local/bin/
 export PATH=$PATH:$prefix/bin
 
+sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc grub2 python3 nasm qemu dosfstools mtools
