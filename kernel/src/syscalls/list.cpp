@@ -72,7 +72,7 @@ extern syscall_response_t fioctl_syscall_handler(uint32_t arg1,uint32_t arg2,uin
 extern syscall_response_t fioctl_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t fwrite_syscall_handler(uint32_t arg1,uint32_t arg2,uint32_t arg3);
 extern syscall_response_t fwrite_syscall_helper(SyscallManager::Request& req);
-extern syscall_response_t prioritize_syscall_handler(kpid_t arg1,const exec_priority_t* arg2,exec_priority_t* arg3);
+extern syscall_response_t prioritize_syscall_handler(kpid_t arg1,prioritize_target arg2,const exec_priority_t* arg3,exec_priority_t* arg4);
 extern syscall_response_t prioritize_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t mutexget_syscall_handler(uint32_t arg1);
 extern syscall_response_t mutexget_syscall_helper(SyscallManager::Request& req);
@@ -316,9 +316,10 @@ static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t prioritize_syscall_helper(SyscallManager::Request& req) {
-	return prioritize_syscall_handler((kpid_t)req.arg1,(const exec_priority_t*)req.arg2,(exec_priority_t*)req.arg3);
+	return prioritize_syscall_handler((kpid_t)req.arg1,(prioritize_target)req.arg2,(const exec_priority_t*)req.arg3,(exec_priority_t*)req.arg4);
 }
 static_assert(sizeof(kpid_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(prioritize_target) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(const exec_priority_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(exec_priority_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 

@@ -58,7 +58,7 @@ int main(int argc, char* const* argv) {
     exec_priority_t prio_in; prio_in.quantum = qt; prio_in.scheduling = sk;
     exec_priority_t prio_out; prio_out.quantum = 0; prio_out.scheduling = 0;
 
-    int ok = prioritize_syscall(pid, &prio_in, &prio_out);
+    int ok = prioritize_syscall(pid, prioritize_target::PRIORITIZE_SET_CURRENT, &prio_in, &prio_out);
     if (ok == 0) {
         printf("for pid %u, quantum is %u, scheduling is %llu\n", pid, prio_out.quantum, prio_out.scheduling);
     } else {

@@ -178,6 +178,11 @@ struct klog_stats_t {
     size_t   largestentry;
 };
 
+enum class prioritize_target : bool {
+    PRIORITIZE_SET_CURRENT = false,
+    PRIORITIZE_SET_MAXIMUM = true
+};
+
 static constexpr uint32_t TIOCGWINSZ = 0x40087468;
 struct winsize_t { // the return of TIOCGWINSZ
   unsigned short ws_row;	/* rows, in characters */

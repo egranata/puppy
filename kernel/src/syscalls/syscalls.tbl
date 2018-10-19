@@ -26,7 +26,7 @@
     {"name":"semget",           "argc":1},
     {"name":"fioctl",           "argc":3},
     {"name":"fwrite",           "argc":3},
-    {"name":"prioritize",       "argtypes":["kpid_t", "const exec_priority_t*", "exec_priority_t*"]},
+    {"name":"prioritize",       "argtypes":["kpid_t", "prioritize_target", "const exec_priority_t*", "exec_priority_t*"]},
     {"name":"mutexget",         "argc":1},
     {"name":"mutexlock",        "argc":1},
     {"name":"mutexunlock",      "argc":1},

@@ -115,8 +115,8 @@ syscall_response_t fioctl_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 syscall_response_t fwrite_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 	return syscall3(fwrite_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
 }
-syscall_response_t prioritize_syscall(kpid_t arg1,const exec_priority_t* arg2,exec_priority_t* arg3) {
-	return syscall3(prioritize_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
+syscall_response_t prioritize_syscall(kpid_t arg1,prioritize_target arg2,const exec_priority_t* arg3,exec_priority_t* arg4) {
+	return syscall4(prioritize_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3,(uint32_t)arg4);
 }
 syscall_response_t mutexget_syscall(uint32_t arg1) {
 	return syscall1(mutexget_syscall_id,(uint32_t)arg1);

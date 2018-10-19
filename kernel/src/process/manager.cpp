@@ -250,7 +250,7 @@ ProcessManager::ProcessManager() {
     gDummyProcess.ttyinfo = process_t::ttyinfo_t(&gDummyProcessTTY);
     gDummyProcess.flags.system = true;
     gDummyProcess.priority.scheduling.current = gDummyProcess.priority.quantum.current = 1;
-    gDummyProcess.priority.scheduling.max = gDummyProcess.priority.quantum.max = 255;
+    gDummyProcess.priority.scheduling.max = gDummyProcess.priority.quantum.max = 128;
 
     auto dtbl = addr_gdt<uint64_t*>();
 

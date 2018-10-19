@@ -80,24 +80,14 @@ syscall_response_t collectany_syscall_handler(uint16_t *pid, process_exit_status
     return any ? OK : ERR(NO_SUCH_PROCESS);
 }
 
-syscall_response_t prioritize_syscall_handler(kpid_t pid, const exec_priority_t* prio_in, exec_priority_t* prio_out) {
-    auto&& pmm = ProcessManager::get();
-    auto process = pmm.getprocess(pid);
-    if (!process) {
-        return ERR(NO_SUCH_PROCESS);
-    }
-
-    if (prio_in->quantum != 0) {
-        if (prio_in->quantum > process->priority.quantum.max) {
-            process->priority.quantum.current = process->priority.quantum.max;
-        } else {
+static syscall_response_t prioritize_current(process_t* process, const exec_priority_t* prio_in, exec_priority_t* prio_out) {
+    if (prio_in) {
+        if (prio_in->quantum != 0) {
+            if (prio_in->quantum > process->priority.quantum.max) return ERR(NOT_ALLOWED);
             process->priority.quantum.current = prio_in->quantum;
         }
-    }
-    if (prio_in->scheduling != 0) {
-        if (prio_in->scheduling > process->priority.scheduling.max) {
-            process->priority.scheduling.current = process->priority.scheduling.max;
-        } else {
+        if (prio_in->scheduling != 0) {
+            if (prio_in->scheduling > process->priority.scheduling.max) return ERR(NOT_ALLOWED);
             process->priority.scheduling.current = prio_in->scheduling;
         }
     }
@@ -108,6 +98,50 @@ syscall_response_t prioritize_syscall_handler(kpid_t pid, const exec_priority_t*
     }
 
     return OK;
+}
+
+static syscall_response_t prioritize_max(process_t* process, const exec_priority_t* prio_in, exec_priority_t* prio_out) {
+    if (prio_in) {
+        if (prio_in->quantum != 0) {
+            if (prio_in->quantum <= process->priority.quantum.max) {
+                process->priority.quantum.max = prio_in->quantum;
+            } else return ERR(NOT_ALLOWED);
+            if (process->priority.quantum.current > process->priority.quantum.max)
+                process->priority.quantum.current = process->priority.quantum.max;
+        }
+        if (prio_in->scheduling != 0) {
+            if (prio_in->scheduling <= process->priority.scheduling.max) {
+                process->priority.scheduling.max = prio_in->scheduling;
+            } else return ERR(NOT_ALLOWED);
+            if (process->priority.scheduling.current > process->priority.scheduling.max)
+                process->priority.scheduling.current = process->priority.scheduling.max;
+        }
+    }
+
+    if (prio_out) {
+        prio_out->quantum = process->priority.quantum.max;
+        prio_out->scheduling = process->priority.scheduling.max;
+    }
+
+    return OK;
+}
+
+syscall_response_t prioritize_syscall_handler(kpid_t pid, prioritize_target setmax, const exec_priority_t* prio_in, exec_priority_t* prio_out) {
+    auto&& pmm = ProcessManager::get();
+    auto process = pmm.getprocess(pid);
+    if (!process) return ERR(NO_SUCH_PROCESS);
+    if (process->flags.system) {
+        if (!gCurrentProcess->flags.system) return ERR(NOT_ALLOWED);
+    }
+
+    switch (setmax) {
+        case prioritize_target::PRIORITIZE_SET_CURRENT:
+            return prioritize_current(process, prio_in, prio_out);
+        case prioritize_target::PRIORITIZE_SET_MAXIMUM:
+            return prioritize_max(process, prio_in, prio_out);
+    }
+
+    return ERR(UNIMPLEMENTED);
 }
 
 syscall_response_t clone_syscall_handler(uintptr_t neweip, exec_fileop_t* fops) {

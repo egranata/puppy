@@ -159,7 +159,7 @@ int main(int, const char**) {
         scheduling : 1
     };
 
-    prioritize_syscall(getpid(), &init_final_prio, nullptr);
+    prioritize_syscall(getpid(), prioritize_target::PRIORITIZE_SET_CURRENT, &init_final_prio, nullptr);
 
     while(true) {
         if (tryCollectShell(shell_pid)) {
