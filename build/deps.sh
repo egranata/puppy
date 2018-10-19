@@ -24,7 +24,7 @@ cd /tmp/toolchain
 # Download binutils sources if they are not yet downloaded.
 if [ ! -f binutils-2.29.tar.bz2 ]
 then
-    wget -c -O binutils-2.29.tar.bz2 https://gcc.gnu.org/pub/binutils/releases/binutils-2.29.tar.bz2
+    curl https://gcc.gnu.org/pub/binutils/releases/binutils-2.29.tar.bz2 > binutils-2.29.tar.bz2
     tar -xf binutils-2.29.tar.bz2
 fi
 
@@ -83,8 +83,4 @@ fi
 sudo ln -s -f $prefix/bin/* /usr/local/bin/
 export PATH=$PATH:$prefix/bin
 
-sudo apt-get update
-sudo apt-get install python3 genisoimage xorriso nasm
-sudo apt-get install qemu
-sudo apt-get install dosfstools mtools
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc grub2
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc grub2 python3 nasm qemu dosfstools mtools
