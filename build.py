@@ -178,7 +178,6 @@ clearDir("out/apps")
 clearDir("out/libs")
 clearDir("out/tests")
 clearDir("out/mnt")
-clearDir("out/iso/boot/grub")
 
 class _BuildC(object):
     def __init__(self, gcc, flags):
@@ -530,18 +529,6 @@ print("Built %d dylibs %d apps and %d tests in %s seconds" %
      len(TEST_PROJECTS),
      USER_CONTENT_DURATION))
 
-INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
-shell("initrd/gen.py --dest out/iso/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
-MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
-
-print("Size of initrd image: %d bytes" % os.stat("out/iso/boot/initrd.img").st_size)
-
-menulst = read('build/grub.cfg')
-menulst = menulst.replace("${MODULES}", '\n'.join(MENU_MODULE_REFS))
-write("out/iso/boot/grub/grub.cfg", menulst)
-
-copy("out/kernel", "out/iso/boot/puppy")
-
 print("Generating kernel symbol table")
 
 CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
@@ -549,7 +536,22 @@ shell(CMDLINE)
 
 print("Generating os.img")
 
+makeDir("out/mnt/boot")
 makeDir("out/mnt/config")
+
+rcopy("build/grub", "out/mnt/boot")
+
+INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
+shell("initrd/gen.py --dest out/mnt/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
+MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
+
+print("Size of initrd image: %d bytes" % os.stat("out/mnt/boot/initrd.img").st_size)
+
+menulst = read('build/grub.cfg')
+menulst = menulst.replace("${MODULES}", '\n'.join(MENU_MODULE_REFS))
+write("out/mnt/boot/grub/grub.cfg", menulst)
+
+copy("out/kernel", "out/mnt/boot/puppy")
 
 for app in APP_REFS:
     copy(app, "out/mnt/apps/%s" % os.path.basename(app))
@@ -580,13 +582,6 @@ sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "N
 sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").replace('\n', ''))
 sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm -v").replace('\n', ''))
 write("out/mnt/config/sysinfo", sysinfo)
-
-makeDir("out/mnt/boot")
-rcopy("build/grub", "out/mnt/boot")
-
-copy("out/kernel", "out/mnt/boot/puppy")
-copy("out/iso/boot/initrd.img", "out/mnt/boot/initrd.img")
-copy("out/iso/boot/grub/grub.cfg", "out/mnt/boot/grub/grub.cfg")
 
 CMDLINE="mcopy -s -i %s out/mnt/* ::/" % (FAT_DISK)
 shell(CMDLINE)
