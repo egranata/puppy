@@ -61,12 +61,13 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     static constexpr size_t gBufferSize = 1024;    
     static char gBuffer[gBufferSize];
     size_t n = 0;
-    auto uptime = TimeManager::get().millisUptime();
-    if (tag) {
-		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu (%s) ", uptime, filename, line, tag);
-    } else {
-		    n = sprint(&gBuffer[0], gBufferSize, "[%llu] %s:%lu ", uptime, filename, line);
-    }
+    const auto uptime = TimeManager::get().millisUptime();
+    const auto uptime_sec = uptime / 1000;
+    const uint32_t uptime_ms = uptime % 1000;
+    n = sprint(&gBuffer[0], gBufferSize, "[%llu.%u] %s:%lu ",
+        uptime_sec, uptime_ms,
+        filename, line);
+    if (tag) n += sprint(&gBuffer[n], gBufferSize-n, "(%s) ", tag);
 	vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
     const auto& buflen = strlen(gBuffer) + 1;
 
