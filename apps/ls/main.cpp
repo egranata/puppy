@@ -71,13 +71,15 @@ void print(dirent* entry) {
 }
 
 int ls(const char* path) {
+    const char* rpath = realpath(path, nullptr);
     DIR* dir = opendir(path);
     if (dir == nullptr) {
         printf("error: could not open %s\n", path);
         return 1;
     }
 
-    printf("Directory of %s\n\n", path);
+    printf("Directory of %s\n\n", rpath ? rpath : path);
+    free((void*)rpath);
 
     while(true) {
         dirent* de = readdir(dir);
