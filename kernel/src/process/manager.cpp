@@ -52,7 +52,6 @@ namespace boot::task {
     uint32_t init() {
         ProcessManager &proc(ProcessManager::get());
         VirtualPageManager &vm(VirtualPageManager::get());
-        TimeManager& tmgr(TimeManager::get());
     	
         // one page for esp, one for esp0 and one for the process_t entry
         auto process_rgn_size = ProcessManager::gNumProcesses * VirtualPageManager::gPageSize * 3;
