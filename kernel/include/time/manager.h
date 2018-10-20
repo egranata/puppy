@@ -40,10 +40,16 @@ class TimeManager : NOCOPY {
 
         size_t registerTickHandler(tick_func_t, uint32_t every_N);
         void unregisterTickHandler(size_t);
+
+        void bootCompleted();
+
+        uint64_t millisBootTime() const;
     private:
         static constexpr size_t gMaxTickFunctions = 10;
 
         uint64_t mMillisecondsSinceBoot;
+
+        uint64_t mBootDurationMillis;
 
         uint64_t mUNIXTimestamp;
 

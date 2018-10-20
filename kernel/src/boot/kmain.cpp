@@ -20,6 +20,7 @@
 #include <kernel/mm/phys.h>
 #include <kernel/panic/panic.h>
 #include <kernel/process/task0.h>
+#include <kernel/time/manager.h>
 
 static void _runGlobalConstructors() {
 	typedef void(**ctorf)();
@@ -85,6 +86,8 @@ void _kmain() {
 	bootphase_t::printf("Free  RAM size: %u KB (aka %u pages)\n", phys.getfreemem() / 1024, phys.getfreepages());
 
 	bootphase_t::printf("Kernel image: [%p - %p] (%lu bytes)\n", addr_kernel_start<void*>(), addr_kernel_end<void*>(), addr_kernel_end() - addr_kernel_start() + 1);
+
+	TimeManager::get().bootCompleted();
 
 	LOG_INFO("out of boot");
 	task0();

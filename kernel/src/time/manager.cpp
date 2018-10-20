@@ -22,24 +22,30 @@
 #include <kernel/libc/sprint.h>
 
 namespace {
-    class UptimeFile : public MemFS::File {
+    class TimeFile : public MemFS::File {
+        protected:
+            TimeFile(const char* name) : MemFS::File(name) {}
+            virtual uint64_t value() = 0;
         public:
-            UptimeFile() : MemFS::File("uptime") {}
             delete_ptr<MemFS::FileBuffer> content() override {
                 string buf('\0', 24);
-                sprint(&buf[0], 24, "%llu", TimeManager::get().millisUptime());
+                sprint(&buf[0], 24, "%llu", value());
                 return new MemFS::StringBuffer(buf);
             }
     };
-    class NowFile : public MemFS::File {
-        public:
-            NowFile() : MemFS::File("now") {}
-            delete_ptr<MemFS::FileBuffer> content() override {
-                string buf('\0', 24);
-                sprint(&buf[0], 24, "%llu", TimeManager::get().UNIXtime());
-                return new MemFS::StringBuffer(buf);
-            }
-    };
+
+    #define FILE(name, expression) class name ## file : public TimeFile { \
+        public: \
+            name ## file() : TimeFile(#name) {} \
+        protected: \
+            uint64_t value() override { return expression ; } \
+    }
+
+    FILE(uptime, TimeManager::get().millisUptime());
+    FILE(now, TimeManager::get().UNIXtime());
+    FILE(boot_duration, TimeManager::get().millisBootTime());
+
+    #undef FILE
 }
 
 namespace boot::time {
@@ -52,9 +58,9 @@ namespace boot::time {
 namespace boot::time_files {
     uint32_t init() {
         auto timer_dir = DevFS::get().getDeviceDirectory("time");
-        timer_dir->add(new UptimeFile());
-        timer_dir->add(new NowFile());
-
+        timer_dir->add(new uptimefile());
+        timer_dir->add(new nowfile());
+        timer_dir->add(new boot_durationfile());
         return 0;
     }
 }
@@ -100,7 +106,7 @@ uint64_t TimeManager::millisUptime() {
     return __sync_add_and_fetch(&mMillisecondsSinceBoot, 0);
 }
 
-TimeManager::TimeManager() : mMillisecondsSinceBoot(0), mUNIXTimestamp(0) {
+TimeManager::TimeManager() : mMillisecondsSinceBoot(0), mBootDurationMillis(0), mUNIXTimestamp(0) {
     bzero(&mTickHandlers, sizeof(mTickHandlers));
     bzero(&mTimeSource, sizeof(mTimeSource));
 }
@@ -129,4 +135,12 @@ uint64_t TimeManager::UNIXtime() {
 
 void TimeManager::UNIXtimeIncrement(uint64_t seconds) {
     __sync_add_and_fetch(&mUNIXTimestamp, seconds);
+}
+
+void TimeManager::bootCompleted() {
+    mBootDurationMillis = mMillisecondsSinceBoot;
+}
+
+uint64_t TimeManager::millisBootTime() const {
+    return mBootDurationMillis;
 }
