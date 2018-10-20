@@ -34,7 +34,7 @@ static void timer(GPR&, InterruptStack& stack, void*) {
 
 namespace boot::apic {
         // TODO: should this be a configuration parameter?
-        static constexpr uint32_t gMillisPerTick = 5;
+        static constexpr uint32_t gMillisPerTick = 1;
 
         uint32_t init() {
             auto& apic(APIC::get());
