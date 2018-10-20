@@ -195,6 +195,9 @@ syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count)
 
         pi.diskReadBytes = p->iostats.read;
         pi.diskWrittenBytes = p->iostats.written;
+#define FLAG_PUBLIC(name, bitmask) pi.flags. name = p->flags. name;
+#define FLAG_PRIVATE(name, bitmask)
+#include <kernel/process/flags.tbl>
         return true;
     });
 

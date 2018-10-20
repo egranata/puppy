@@ -170,6 +170,12 @@ struct process_info_t {
 
     uint64_t diskReadBytes;
     uint64_t diskWrittenBytes;
+
+#define FLAG_PUBLIC(name, bit) bool name;
+#define FLAG_PRIVATE(name, bit)
+    struct {
+#include <kernel/process/flags.tbl>
+    } flags;
 };
 
 struct klog_stats_t {

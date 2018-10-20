@@ -1,0 +1,23 @@
+#ifndef FLAG_PUBLIC
+#error "define FLAG_PUBLIC before including flags.tbl"
+#endif
+
+#ifndef FLAG_PRIVATE
+#error "define FLAG_PRIVATE before including flags.tbl"
+#endif
+
+/**
+ * Flags for a process_t object;
+ * FLAG_PUBLIC are exported and made visible to userspace;
+ * FLAG_PRIVATE are kept internal to the kernel only
+ */
+FLAG_PUBLIC(system,                 0x1)
+FLAG_PRIVATE(due_for_reschedule,    0x2)
+
+#ifdef FLAG_PUBLIC
+#undef FLAG_PUBLIC
+#endif
+
+#ifdef FLAG_PRIVATE
+#undef FLAG_PRIVATE
+#endif

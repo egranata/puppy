@@ -90,11 +90,12 @@ struct process_t {
 
     slist<process_t*> children;
 
+#define FLAG_PUBLIC(name, mask) bool name : 1;
+#define FLAG_PRIVATE(name, mask) bool name : 1;
     union flags_t {
         uint16_t flags;
         struct {
-            bool system : 1;
-            bool due_for_reschedule : 1;
+#include <kernel/process/flags.tbl>
         };
     } flags;
 

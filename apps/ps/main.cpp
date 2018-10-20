@@ -35,12 +35,28 @@ int main() {
     process_info_t* ptable = new process_info_t[sz];
     proctable_syscall(ptable, sz);
 
-    printf("PID    PPID       STATE          NAME                    VM            PM               RT           IORD          IOWR\n");
+    printf("%-6s", "PID");
+    printf("%-6s", "PPID");
+    printf("%-11s", "State");
+    printf("%-30s", "Path");
+    printf("%-15s", "Runtime (ms)");
+    printf("%-11s", "VirtMem");
+    printf("%-11s", "PhysMem");
+    printf("%-6s",  "Flags");
+
     for (auto i = 0u; i < sz; ++i) {
-        auto& p = ptable[i];
-        printf("%-7u%-7u    %s     %-20.20s    %-.10u    %-.10u       %-4llu         %-10llu    %-10llu\n",
-               p.pid, p.ppid, state2String(p.state), p.path, p.vmspace, p.pmspace, p.runtime, p.diskReadBytes, p.diskWrittenBytes);
+        printf("\n");
+        const auto& process = ptable[i];
+
+        printf("%-6d", process.pid);
+        printf("%-6d", process.ppid);
+        printf("%-11s", state2String(process.state));
+        printf("%-30.29s", process.path);
+        printf("%-15lld", process.runtime);
+        printf("%-11.10lu", process.vmspace);
+        printf("%-11.10lu", process.pmspace);
+        printf("%5s", process.flags.system ? "S" : "-");
     }
 
-    return 0;
+    return (void)printf("\n"), 0;
 }
