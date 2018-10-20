@@ -69,6 +69,20 @@ USERSPACE_CPPFLAGS = [""]
 USERSPACE_ASFLAGS = ["-f elf"]
 USERSPACE_LDFLAGS = [""]
 
+def forEachFile(path, f):
+    for fld,x,lst in os.walk(path):
+        for nm in lst:
+            rp = os.path.join(fld,nm)
+            f(rp)
+
+def calculateSize(path):
+    totalSize = 0
+    def callback(flpt):
+        nonlocal totalSize
+        totalSize = totalSize + os.stat(flpt).st_size
+    forEachFile(path, callback)
+    return totalSize
+
 def findSubdirectories(dir, self=True):
     if self:
         yield dir
@@ -586,8 +600,7 @@ write("out/mnt/config/sysinfo", sysinfo)
 CMDLINE="mcopy -s -i %s out/mnt/* ::/" % (FAT_DISK)
 shell(CMDLINE)
 
-CMDLINE="du -ks out/mnt"
-PART_USAGE = int(shell(CMDLINE).splitlines()[0].split()[0]) * 1024
+PART_USAGE = calculateSize("out/mnt")
 
 CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=512 count=1 of=%s" % (ROOT_DISK)
 shell(CMDLINE)
