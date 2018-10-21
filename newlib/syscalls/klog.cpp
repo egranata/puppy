@@ -22,10 +22,15 @@
 #include <newlib/stdio.h>
 
 void newlib::puppy::impl::klog(const char* fmt, ...) {
-    char buf[1024] = {0};
-    va_list ap;
-    va_start(ap, fmt);
-    vsprintf(buf, fmt, ap);
-    klog_syscall(buf);
-    va_end(ap);
+    static FILE* klog = nullptr;
+
+    if (klog == nullptr) {
+        klog = fopen("/devices/klog/log", "w");
+    }
+    if (klog) {
+        va_list ap;
+        va_start(ap, fmt);
+        vfprintf(klog, fmt, ap);
+        va_end(ap);
+    }
 }
