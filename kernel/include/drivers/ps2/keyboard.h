@@ -23,6 +23,12 @@
 class PS2Keyboard : public PS2Controller::Device {
     public:
         struct key_event_t {
+            enum class keymap_to_use : uint8_t {
+                CAPS_LOCK,
+                SHIFT,
+                LOWERCASE,
+                LONG
+            };
             static constexpr uint8_t LEFT_SHIFT = 1;
             static constexpr uint8_t RIGHT_SHIFT = 2;
             static constexpr uint8_t LEFT_CTRL = 3;
@@ -32,10 +38,13 @@ class PS2Keyboard : public PS2Controller::Device {
             static constexpr uint8_t DELETE = 7;
             static constexpr uint8_t BACKSPACE = 8;
 
+            keymap_to_use keymap;
             bool ctrldown;
             bool altdown;
             uint8_t keycode;
             bool down;
+
+            key_event_t();
         };
 
         struct keyb_irq_data_t {

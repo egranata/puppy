@@ -22,9 +22,13 @@
 
 LOG_TAG(BOOTINFO, 0);
 
+PS2Keyboard::key_event_t::key_event_t() {
+    bzero(this, sizeof(*this));
+}
+
 static struct keyb_buffer_t {
     static constexpr uint8_t gBufferSize = 128;
-    PS2Keyboard::key_event_t mBuffer[gBufferSize] = {false, false, 0,false};
+    PS2Keyboard::key_event_t mBuffer[gBufferSize];
     uint8_t mWriteIdx = 0;
     uint8_t mReadIdx = 0;
 } gKeyboardBuffer;
@@ -138,6 +142,10 @@ static bool parse_scan_code() {
             gCapsLock ? gCapslockScancodeMap : gLowercaseScancodeMap)[b];
         event.ctrldown = gCtrlDown;
         event.altdown = gAltDown;
+        if (gIsLong) event.keymap = PS2Keyboard::key_event_t::keymap_to_use::LONG;
+        else if (gShift) event.keymap = PS2Keyboard::key_event_t::keymap_to_use::SHIFT;
+        else if(gCapsLock) event.keymap = PS2Keyboard::key_event_t::keymap_to_use::CAPS_LOCK;
+        else event.keymap = PS2Keyboard::key_event_t::keymap_to_use::LOWERCASE;
 
         new_evt = true;
 
@@ -192,6 +200,8 @@ PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
     gCapsLock = false;
     gShift = false;
 
+    bzero(&gKeyboardBuffer, sizeof(gKeyboardBuffer));
+
     irq_data.source = this;
     irq_data.pic_irq_id = devid == 1 ? 1 : 12;
     irq_data.cpu_irq_id = PIC::gIRQNumber(irq_data.pic_irq_id);
@@ -214,7 +224,7 @@ PS2Keyboard::key_event_t PS2Keyboard::next() {
         if(keyb_buffer_t::gBufferSize == ++gKeyboardBuffer.mReadIdx) gKeyboardBuffer.mReadIdx = 0;
         return evt;
     }
-    return {false, false, 0, false};
+    return key_event_t();
 }
 
 WaitQueue& PS2Keyboard::queue() {
