@@ -97,19 +97,15 @@ syscall_response_t fdel_syscall(const char* arg1);
 constexpr uint8_t fdel_syscall_id = 0x26;
 syscall_response_t mkdir_syscall(const char* arg1);
 constexpr uint8_t mkdir_syscall_id = 0x27;
-syscall_response_t klog_syscall(const char* arg1);
-constexpr uint8_t klog_syscall_id = 0x28;
-syscall_response_t klogread_syscall(char* arg1,size_t arg2,klog_stats_t* arg3);
-constexpr uint8_t klogread_syscall_id = 0x29;
 syscall_response_t proctable_syscall(process_info_t* arg1,size_t arg2);
-constexpr uint8_t proctable_syscall_id = 0x2a;
+constexpr uint8_t proctable_syscall_id = 0x28;
 syscall_response_t mutextrylock_syscall(uint32_t arg1);
-constexpr uint8_t mutextrylock_syscall_id = 0x2b;
+constexpr uint8_t mutextrylock_syscall_id = 0x29;
 syscall_response_t vmcheckreadable_syscall(uintptr_t arg1,size_t arg2);
-constexpr uint8_t vmcheckreadable_syscall_id = 0x2c;
+constexpr uint8_t vmcheckreadable_syscall_id = 0x2a;
 syscall_response_t vmcheckwritable_syscall(uintptr_t arg1,size_t arg2);
-constexpr uint8_t vmcheckwritable_syscall_id = 0x2d;
+constexpr uint8_t vmcheckwritable_syscall_id = 0x2b;
 syscall_response_t pipe_syscall(size_t* arg1,size_t* arg2);
-constexpr uint8_t pipe_syscall_id = 0x2e;
+constexpr uint8_t pipe_syscall_id = 0x2c;
 
 #endif

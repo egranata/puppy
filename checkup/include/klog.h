@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include <checkup/klog.h>
+#ifndef CHECKUP_KLOG
+#define CHECKUP_KLOG
 
-void __success(const char* test) {
-    fprintf(getLogFile(), "TEST[%s] PASS", test);
-    printf("TEST[%s] PASS\n", test);
-}
+#include <newlib/stdio.h>
+
+FILE* getLogFile();
+
+#endif

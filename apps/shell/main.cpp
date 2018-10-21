@@ -35,9 +35,20 @@
 #include "include/runline.h"
 #include "include/str.h"
 
+static void writeToLog(const char* msg) {
+    static FILE* klog = nullptr;
+    if (klog == nullptr) {
+        klog = fopen("/devices/klog/log", "w");
+    }
+    if (klog) {
+        fprintf(klog, "%s", msg);
+        fflush(klog);
+    }
+}
+
 static void runInitShellTasks() {
     runfile("/system/config/shell.sh");
-    klog_syscall("shell is up and running");
+    writeToLog("shell is up and running");
 }
 
 static int interactiveLoop() {

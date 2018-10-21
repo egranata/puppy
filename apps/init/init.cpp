@@ -137,20 +137,31 @@ bool tryCollectShell(uint16_t pid) {
     return false;
 }
 
+static void writeToLog(const char* msg) {
+    static FILE* klog = nullptr;
+    if (klog == nullptr) {
+        klog = fopen("/devices/klog/log", "w");
+    }
+    if (klog) {
+        fprintf(klog, "%s", msg);
+        fflush(klog);
+    }
+}
+
 static void __attribute__((constructor)) init_ctor() {
-    klog_syscall("init is up and running");
+    writeToLog("init is up and running");
 }
 
 int main(int, const char**) {
     uint16_t shell_pid;
 
     if (!runInitScript()) {
-        klog_syscall("init could not run config - will exit");
+        writeToLog("init could not run config - will exit");
         exit(1);
     }
 
     if (0 == (shell_pid = runShell())) {
-        klog_syscall("init could not run shell - will exit");
+        writeToLog("init could not run shell - will exit");
         exit(2);
     }
 
@@ -163,7 +174,7 @@ int main(int, const char**) {
 
     while(true) {
         if (tryCollectShell(shell_pid)) {
-            klog_syscall("shell has terminated - init will reboot");
+            writeToLog("shell has terminated - init will reboot");
             reboot_syscall();
         }
 

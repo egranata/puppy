@@ -15,18 +15,13 @@
  */
 
 #include <checkup/failure.h>
+#include <checkup/klog.h>
+
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
-#include <newlib/syscalls.h>
-
-#include <EASTL/string.h>
 
 void __failed(const char* test, const char* file, int line, const char* condition) {
-    eastl::string buffer;
-    buffer = buffer.append_sprintf("TEST[%s] FAIL condition failed: %s at %s:%d", test, condition, file, line);
-
-    printf("%s\n", buffer.c_str());
-    klog_syscall(buffer.c_str());
-
+    fprintf(getLogFile(), "[TEST[%s] FAIL condition failed: %s at %s:%d", test, condition, file, line);
+    printf("[TEST[%s] FAIL condition failed: %s at %s:%d\n", test, condition, file, line);
     exit(1);
 }

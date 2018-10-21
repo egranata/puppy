@@ -151,12 +151,6 @@ syscall_response_t fdel_syscall(const char* arg1) {
 syscall_response_t mkdir_syscall(const char* arg1) {
 	return syscall1(mkdir_syscall_id,(uint32_t)arg1);
 }
-syscall_response_t klog_syscall(const char* arg1) {
-	return syscall1(klog_syscall_id,(uint32_t)arg1);
-}
-syscall_response_t klogread_syscall(char* arg1,size_t arg2,klog_stats_t* arg3) {
-	return syscall3(klogread_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
-}
 syscall_response_t proctable_syscall(process_info_t* arg1,size_t arg2) {
 	return syscall2(proctable_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }

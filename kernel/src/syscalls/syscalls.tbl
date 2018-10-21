@@ -38,8 +38,6 @@
     {"name":"clone",            "argtypes":["uintptr_t", "exec_fileop_t*"]},
     {"name":"fdel",             "argtypes":["const char*"]},
     {"name":"mkdir",            "argtypes":["const char*"]},
-    {"name":"klog",             "argtypes":["const char*"]},
-    {"name":"klogread",         "argtypes":["char*", "size_t", "klog_stats_t*"]},
     {"name":"proctable",        "argtypes":["process_info_t*", "size_t"]},
     {"name":"mutextrylock",     "argtypes":["uint32_t"]},
     {"name":"vmcheckreadable",  "argtypes":["uintptr_t", "size_t"]},

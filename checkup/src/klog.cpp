@@ -16,7 +16,12 @@
 
 #include <checkup/klog.h>
 
-void __success(const char* test) {
-    fprintf(getLogFile(), "TEST[%s] PASS", test);
-    printf("TEST[%s] PASS\n", test);
+FILE* getLogFile() {
+    static FILE* klog = nullptr;
+    if (klog == nullptr) {
+        klog = fopen("/devices/klog/log", "w");
+        if (klog) setvbuf(klog, nullptr, _IONBF, 0);
+    }
+
+    return klog;
 }
