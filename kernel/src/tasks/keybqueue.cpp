@@ -59,10 +59,9 @@ namespace tasks::keybqueue {
             bool any = false;
             {
                 Interrupts::ScopedDisabler sd;
-                while (gKeyboard->any()) {
+                PS2Keyboard::key_event_t evt;
+                while (gKeyboard->next(&evt)) {
                     any = true;
-                    PS2Keyboard::key_event_t evt;
-                    evt = gKeyboard->next();
                     gKeyEvents.write(evt);
                     LOG_DEBUG("ingested new keyboard event: %s '%c'", evt.down ? "down" : "up", evt.keycode);
                 }

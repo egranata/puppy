@@ -218,13 +218,14 @@ bool PS2Keyboard::any() {
     return (gKeyboardBuffer.mReadIdx != gKeyboardBuffer.mWriteIdx);
 }
 
-PS2Keyboard::key_event_t PS2Keyboard::next() {
+bool PS2Keyboard::next(key_event_t* dest) {
     if (any()) {
         auto evt = gKeyboardBuffer.mBuffer[gKeyboardBuffer.mReadIdx];
         if(keyb_buffer_t::gBufferSize == ++gKeyboardBuffer.mReadIdx) gKeyboardBuffer.mReadIdx = 0;
-        return evt;
+        *dest = evt;
+        return true;
     }
-    return key_event_t();
+    return false;
 }
 
 WaitQueue& PS2Keyboard::queue() {

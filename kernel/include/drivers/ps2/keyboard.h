@@ -57,7 +57,7 @@ class PS2Keyboard : public PS2Controller::Device {
 
         virtual Device::Type getType() override;
         bool any();
-        key_event_t next();
+        bool next(key_event_t*);
 
         WaitQueue& queue();
 
