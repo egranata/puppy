@@ -65,6 +65,10 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace klog {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
     namespace task {
         uint32_t init();
         bool fail(uint32_t);
@@ -296,6 +300,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::msg_queue::init,
         onSuccess : nullptr,
         onFailure : boot::msg_queue::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Register Kernel Log Driver",
+        visible : false,
+        operation : boot::klog::init,
+        onSuccess : nullptr,
+        onFailure : boot::klog::fail
     });
 
     registerBootPhase(bootphase_t{
