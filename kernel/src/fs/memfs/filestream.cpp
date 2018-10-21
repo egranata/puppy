@@ -23,7 +23,9 @@ LOG_TAG(MEMFS, 1);
 Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     class FileStream : public Filesystem::File {
         public:
-            FileStream(MemFS::File* file, MemFS::FileBuffer* buffer) : mFile(file), mContent(buffer), mIndex(0) {
+            FileStream(MemFS::File* file, MemFS::FileBuffer* buffer, uint32_t mode)
+                : mFile(file), mContent(buffer), mIndex(0), mMode(mode) {
+                // TODO: should a file be allowed to refuse a certain open mode?
                 kind(file->kind());
             }
 
@@ -36,6 +38,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             }
 
             size_t read(size_t n, char* dest) {
+                if (0 == (mMode & FILE_OPEN_READ)) return 0;
                 TAG_DEBUG(MEMFS, "asked to read %u bytes into %p starting index = %u", n, dest, mIndex);
                 size_t r = 0;
                 while(true) {
@@ -50,10 +53,12 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             }
 
             size_t write(size_t n, char* src) {
+                if (0 == (mMode & FILE_OPEN_WRITE)) return 0;
                 return mContent->write(n, src);
             }
 
             uintptr_t ioctl(uintptr_t a, uintptr_t b) {
+                // TODO: a mode to allow/disallow IOCTL?
                 return mFile->ioctl(a,b);
             }
 
@@ -67,8 +72,8 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
             MemFS::File* mFile;
             delete_ptr<MemFS::FileBuffer> mContent;
             size_t mIndex;
+            uint32_t mMode;
     };
-    if (mode != FILE_OPEN_READ) return nullptr;
 
     string _paths(path);
     Entity* entity = root()->get(_paths.buf());
@@ -85,7 +90,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     }
     MemFS::File* theFile = (MemFS::File*)entity;
     MemFS::FileBuffer* theBuffer = theFile->content().reset();
-    if (theFile && theBuffer) return new FileStream(theFile, theBuffer);
+    if (theFile && theBuffer) return new FileStream(theFile, theBuffer, mode);
     return nullptr;
 }
 
