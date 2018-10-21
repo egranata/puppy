@@ -78,13 +78,14 @@ class VolumeFile : public MemFS::File {
         }
 
         #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
-        uintptr_t ioctl(uintptr_t a, uintptr_t)  {
+        uintptr_t ioctl(uintptr_t a, uintptr_t b)  {
             switch (a) {
                 IS(IOCTL_GET_SECTOR_SIZE): return mVolumeImpl.sectorsize();
                 IS(IOCTL_GET_NUM_SECTORS): return mVolumeImpl.numsectors();
                 IS(IOCTL_GET_CONTROLLER): return 0;
                 IS(IOCTL_GET_ROUTING): return 0;
                 IS(IOCTL_GET_VOLUME): return (uintptr_t)&mVolumeImpl;
+                default: return mVolumeImpl.ioctl(a, b);
             }
             return 0;
         }
