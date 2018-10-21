@@ -73,13 +73,14 @@ delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
-uintptr_t IDEVolumeFile::ioctl(uintptr_t a, uintptr_t)  {
+uintptr_t IDEVolumeFile::ioctl(uintptr_t a, uintptr_t b)  {
     switch (a) {
         IS(IOCTL_GET_SECTOR_SIZE): return 512;
         IS(IOCTL_GET_NUM_SECTORS): return mVolume->partition().size;
         IS(IOCTL_GET_CONTROLLER): return (uint32_t)mVolume->controller();
         IS(IOCTL_GET_ROUTING): return ((uint32_t)mVolume->disk().chan << 8) | (uint32_t)mVolume->disk().bus;
         IS(IOCTL_GET_VOLUME): return (uintptr_t)mVolume;
+        default: return mVolume->ioctl(a,b);
     }
     return 0;
 }
