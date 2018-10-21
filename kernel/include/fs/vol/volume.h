@@ -19,6 +19,7 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/fs/vol/lru.h>
 
 class Volume : NOCOPY {
     protected:
@@ -37,6 +38,12 @@ class Volume : NOCOPY {
         virtual size_t numsectors() const = 0;
         virtual size_t sectorsize() const { return 512; }
     private:
+        // TODO: the sector size is not always a compile-time constant value of 512
+        LRUCache<> mCache;
+
+        bool tryReadSector(uint32_t sector, unsigned char* buffer, bool tryReadCache = true, bool updateCache = true);
+        bool tryWriteSector(uint32_t sector, unsigned char* buffer, bool updateCache = true);
+
         void readAccounting(uint16_t sectors);
         void writeAccounting(uint16_t sectors);
 };
