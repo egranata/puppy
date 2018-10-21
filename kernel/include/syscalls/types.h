@@ -81,6 +81,12 @@ struct process_exit_status_t {
     }
 };
 
+struct blockdevice_usage_stats_t {
+    uint64_t sectors_read;
+    uint64_t cache_hits;
+    uint64_t sectors_written;
+};
+
 // IOCTL operations that one can run on a block device file
 enum class blockdevice_ioctl_t {
     IOCTL_GET_SECTOR_SIZE,   // (a=IOCTL_, b=0), returns sector size
@@ -88,6 +94,7 @@ enum class blockdevice_ioctl_t {
     IOCTL_GET_CONTROLLER,    // (a=IOCTL_, b=0), returns an opaque disk controller descriptor
     IOCTL_GET_ROUTING,       // (a=IOCTL_, b=0), returns an opaque routing descriptor
     IOCTL_GET_VOLUME,        // (a=IOCTL_, b=0), returns a Volume* suitable for mounting
+    IOCTL_GET_USAGE_STATS,   // (a=IOCTL_, b=pointer to blockdevice_usage_stats_t*), returns 1 if success and data is filled in; 0 otherwise
 };
 
 // IOCTL operations that one can run on a TTY

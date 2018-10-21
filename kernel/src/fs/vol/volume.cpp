@@ -18,7 +18,7 @@
 #include <kernel/libc/string.h>
 #include <kernel/libc/memory.h>
 
-Volume::Volume() = default;
+Volume::Volume() : mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}
 
 Volume::~Volume() = default;
 
@@ -29,6 +29,7 @@ bool Volume::tryReadSector(uint32_t sector, unsigned char* buffer, bool tryReadC
         decltype(mCache)::Sector payload;
         bool in_cache = mCache.find(sector, &payload);
         if (in_cache) {
+            ++mNumSectorCacheHits;
             TAG_DEBUG(LRUCACHE, "volume %p sector %u found in cache - skipped a disk access", this, sector);
             memcpy(buffer, payload.data, decltype(payload)::gSize);
             return true;
@@ -93,6 +94,7 @@ void Volume::readAccounting(uint16_t sectors) {
         uint64_t totalCount = (uint64_t)sectors * (uint64_t)sectorsize();
         gCurrentProcess->iostats.read += totalCount;
     }
+    mNumSectorsRead += sectors;
 }
 
 void Volume::writeAccounting(uint16_t sectors) {
@@ -100,4 +102,16 @@ void Volume::writeAccounting(uint16_t sectors) {
         uint64_t totalCount = (uint64_t)sectors * (uint64_t)sectorsize();
         gCurrentProcess->iostats.written += totalCount;
     }
+    mNumSectorsWritten += sectors;
+}
+
+uintptr_t Volume::ioctl(uintptr_t a, uintptr_t b) {
+    if (a == (uintptr_t)blockdevice_ioctl_t::IOCTL_GET_USAGE_STATS) {
+        blockdevice_usage_stats_t* stats = (blockdevice_usage_stats_t*)b;
+        stats->sectors_read = mNumSectorsRead;
+        stats->sectors_written = mNumSectorsWritten;
+        stats->cache_hits = mNumSectorCacheHits;
+        return 1;
+    }
+    return 0;
 }

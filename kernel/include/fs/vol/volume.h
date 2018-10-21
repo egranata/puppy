@@ -38,10 +38,15 @@ class Volume : NOCOPY {
         virtual size_t numsectors() const = 0;
         virtual size_t sectorsize() const { return 512; }
 
-        virtual uintptr_t ioctl(uintptr_t, uintptr_t) { return 0; }
+        virtual uintptr_t ioctl(uintptr_t, uintptr_t);
     private:
         // TODO: the sector size is not always a compile-time constant value of 512
         LRUCache<> mCache;
+
+        uint64_t mNumSectorsRead;
+        uint64_t mNumSectorsWritten;
+
+        uint64_t mNumSectorCacheHits;
 
         bool tryReadSector(uint32_t sector, unsigned char* buffer, bool tryReadCache = true, bool updateCache = true);
         bool tryWriteSector(uint32_t sector, unsigned char* buffer, bool updateCache = true);
