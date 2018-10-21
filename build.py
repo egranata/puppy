@@ -582,14 +582,14 @@ with open("out/mnt/tests/runall.sh", "w") as testScript:
     for test in TEST_PLAN:
             print("%s" % test['path'], file=testScript)
 
-copy("build/config/init", "out/mnt/config/init")
-copy("build/config/shell.sh", "out/mnt/config/shell.sh")
-copy("build/config/motd", "out/mnt/config/motd")
-copy("build/config/colors", "out/mnt/config/colors")
+copy("config/init", "out/mnt/config/init")
+copy("config/shell.sh", "out/mnt/config/shell.sh")
+copy("config/motd", "out/mnt/config/motd")
+copy("config/colors", "out/mnt/config/colors")
 copy("LICENSE", "out/mnt/config/LICENSE")
 
 anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
-sysinfo = read('build/config/sysinfo')
+sysinfo = read('config/sysinfo')
 sysinfo = sysinfo.replace("${NOW}", datetime.now().__str__())
 sysinfo = sysinfo.replace("${GIT-HASH}", shell("git rev-parse HEAD").replace('\n', ''))
 sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "No diff applied")
