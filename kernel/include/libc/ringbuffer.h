@@ -54,6 +54,11 @@ public:
             if (false == getchar(i, &s[i])) break;
         }
     }
+
+    size_t size() const {
+        return mCurrentSize;
+    }
+
 private:
     void putchar(T c) {
         if (mPosition == mSize) {
