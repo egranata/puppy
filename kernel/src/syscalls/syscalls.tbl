@@ -1,8 +1,6 @@
 {"syscalls":[
     {"name":"yield",            "argc":0},
     {"name":"sleep",            "argtypes":["uint32_t"]},
-    {"name":"msgsend",          "argc":3},
-    {"name":"msgrecv",          "argtypes":["message_t*", "bool"]},
     {"name":"exit",             "argtypes":["uint8_t"]},
     {"name":"reboot",           "argc":0},
     {"name":"sysinfo",          "argtypes":["sysinfo_t*", "uint32_t"]},

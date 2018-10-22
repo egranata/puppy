@@ -117,13 +117,6 @@ enum msgqueue_ioctl_t {
     IOCTL_BLOCK_ON_FULL = 3, // a2 = bool; should a write block if the queue is full
 };
 
-struct [[deprecated("prefer new_message_t")]] message_t {
-    uint64_t time;
-    uint32_t sender;
-    uint32_t arg1;
-    uint32_t arg2;
-};
-
 enum class process_state_t : uint8_t {
     NEW, /** created and not schedulable */
     AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */

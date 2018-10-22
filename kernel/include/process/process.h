@@ -20,7 +20,6 @@
 #include <kernel/libc/bytesizes.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/i386/tss.h>
-#include <kernel/synch/messages.h>
 #include <kernel/tty/tty.h>
 #include <kernel/tty/file.h>
 #include <kernel/fs/handletable.h>
@@ -51,7 +50,6 @@ struct process_t {
     char** environ;
     State state;
     uint64_t sleeptill;
-    messages_t msg;
     MemoryManager mmap;
     struct ttyinfo_t {
         TTY* tty;
