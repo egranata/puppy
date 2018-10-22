@@ -39,9 +39,9 @@ MessageQueueBuffer::MessageQueueBuffer(const char* name, size_t numMessages) : m
     auto& vmm(VirtualPageManager::get());
 
     // TODO: can this be done outside of kernel memory?
-    vmm.findKernelRegion(numMessages * sizeof(new_message_t), mBufferRgn);
+    vmm.findKernelRegion(numMessages * sizeof(message_t), mBufferRgn);
     vmm.addKernelRegion(mBufferRgn.from, mBufferRgn.to);
-    mBuffer = (new_message_t*)mBufferRgn.from;
+    mBuffer = (message_t*)mBufferRgn.from;
     mTotalSize = mFreeSize = numMessages;
     TAG_DEBUG(MQ, "initialized msgqueue %p - numMessages = %u, range = [%p-%p]", this, numMessages, mBuffer, mBufferRgn.to);
 }
@@ -84,7 +84,7 @@ void MessageQueueBuffer::closeReader() {
     if (mNumReaders > 0) -- mNumReaders;
 }
 
-bool MessageQueueBuffer::tryWrite(const new_message_t& msg) {
+bool MessageQueueBuffer::tryWrite(const message_t& msg) {
     TAG_DEBUG(MQ, "writing message from %u of size %u into mq %p", msg.header.sender, msg.header.payload_size, this);
     if (mFreeSize == 0) return false;
 
@@ -93,7 +93,7 @@ bool MessageQueueBuffer::tryWrite(const new_message_t& msg) {
     --mFreeSize;
     return true;
 }
-bool MessageQueueBuffer::tryRead(new_message_t* msg) {
+bool MessageQueueBuffer::tryRead(message_t* msg) {
     if (mFreeSize == mTotalSize) return false;
 
     *msg = mBuffer[mReadPointer];
@@ -104,7 +104,7 @@ bool MessageQueueBuffer::tryRead(new_message_t* msg) {
 }
 
 size_t MessageQueueBuffer::read(size_t n, char* dest, bool allowBlock) {
-    if (n != sizeof(new_message_t)) {
+    if (n != sizeof(message_t)) {
         TAG_ERROR(MQ, "read of size %u not valid", n);
         return 0;
     }
@@ -116,19 +116,19 @@ size_t MessageQueueBuffer::read(size_t n, char* dest, bool allowBlock) {
         else return 0;
     }
 
-    const bool ok = tryRead((new_message_t*)dest);
+    const bool ok = tryRead((message_t*)dest);
     if (ok) {
         mFullWQ.wakeall();
         return n;
     } else return 0;
 }
 size_t MessageQueueBuffer::write(size_t n, char* src, bool allowBlock) {
-    if (n > new_message_t::gBodySize) {
+    if (n > message_t::gBodySize) {
         TAG_ERROR(MQ, "write of size %u not valid", n);
         return 0;
     }
 
-    new_message_t msg;
+    message_t msg;
     auto&& tmgr(TimeManager::get());
 
     msg.header.sender = gCurrentProcess->pid;

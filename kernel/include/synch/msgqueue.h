@@ -48,7 +48,7 @@ class MessageQueueBuffer {
     private:
         interval_t mBufferRgn;
 
-        new_message_t *mBuffer;
+        message_t *mBuffer;
         size_t mReadPointer;
         size_t mWritePointer;
         size_t mTotalSize;
@@ -57,8 +57,8 @@ class MessageQueueBuffer {
         size_t mNumReaders;
         size_t mNumWriters;
 
-        bool tryWrite(const new_message_t& msg);
-        bool tryRead(new_message_t* msg);
+        bool tryWrite(const message_t& msg);
+        bool tryRead(message_t* msg);
 
         WaitQueue mFullWQ;
         WaitQueue mEmptyWQ;

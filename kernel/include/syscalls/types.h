@@ -216,8 +216,7 @@ struct exec_fileop_t {
     void*     param3; // reserved for future evolutions
 };
 
-// TODO: rename as message_t
-struct new_message_t {
+struct message_t {
     static constexpr size_t gTotalSize = 4096; // TODO: expose the size of a page globally
     struct header_t {
         kpid_t sender;
@@ -228,6 +227,6 @@ struct new_message_t {
     uint8_t payload[gBodySize];
 };
 
-static_assert(sizeof(new_message_t) == new_message_t::gTotalSize);
+static_assert(sizeof(message_t) == message_t::gTotalSize);
 
 #endif

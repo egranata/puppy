@@ -55,7 +55,7 @@ class ReceiveMessageTest : public Test {
             auto sexit = collect(spid);
             CHECK_EQ(sexit.reason, process_exit_status_t::reason_t::cleanExit);
             CHECK_EQ(sexit.status, 0);
-            new_message_t msg;
+            message_t msg;
             CHECK_EQ(sizeof(msg), fread(&msg, 1, sizeof(msg), f));
             CHECK_EQ(msg.header.sender, spid);
             CHECK_EQ(msg.header.payload_size, sizeof(pid_t));
@@ -93,7 +93,7 @@ class MessageOrderTest : public Test {
             CHECK_EQ(sexit.reason, process_exit_status_t::reason_t::cleanExit);
             CHECK_EQ(sexit.status, 0);
 
-            new_message_t msg1;
+            message_t msg1;
             CHECK_EQ(sizeof(msg1), fread(&msg1, 1, sizeof(msg1), f));
             CHECK_EQ(msg1.header.sender, spid);
             CHECK_EQ(msg1.header.payload_size, sizeof(pid_t));
@@ -101,7 +101,7 @@ class MessageOrderTest : public Test {
             CHECK_NOT_EQ(val, nullptr);
             CHECK_EQ(*val, 0xBeefF00d);
 
-            new_message_t msg2;
+            message_t msg2;
             CHECK_EQ(sizeof(msg2), fread(&msg2, 1, sizeof(msg2), f));
             CHECK_EQ(msg2.header.sender, spid);
             CHECK_EQ(msg2.header.payload_size, sizeof(pid_t));
@@ -155,9 +155,9 @@ class TwoSendersTest : public Test {
             CHECK_EQ(sexit2.reason, process_exit_status_t::reason_t::cleanExit);
             CHECK_EQ(sexit2.status, 0);
 
-            new_message_t msg1;
+            message_t msg1;
             CHECK_EQ(sizeof(msg1), fread(&msg1, 1, sizeof(msg1), f));
-            new_message_t msg2;
+            message_t msg2;
             CHECK_EQ(sizeof(msg2), fread(&msg2, 1, sizeof(msg2), f));
 
             CHECK_EQ(sizeof(uint32_t), msg1.header.payload_size);
@@ -202,7 +202,7 @@ class NonBlockingReadTest : public Test {
             CHECK_NOT_EQ(f, nullptr);
             setvbuf(f, nullptr, _IOFBF, 4096);
             ioctl(fileno(f), IOCTL_BLOCK_ON_EMPTY, false);
-            new_message_t msg;
+            message_t msg;
             CHECK_EQ(0, fread(&msg, 1, sizeof(msg), f));
             fclose(f);
         }
