@@ -281,7 +281,7 @@ class Project(object):
 
     def link(self, out):
         pass
-    
+
     def build(self):
         if self.announce: print("Building %s" % self.name)
         BEGIN = time.time()
@@ -293,7 +293,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
+NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libshellsupport.a", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
@@ -396,6 +396,12 @@ Parson = Project(name="Parson",
     linkerdeps=NEWLIB_DEPS)
 Parson.link = Parson.linkAr
 
+ShellSupport = Project(name="shellsupport",
+    srcdir="libshell/src",
+    ipaths=["include", "include/newlib", "include/EASTL"],
+    linkerdeps=NEWLIB_DEPS)
+ShellSupport.link = ShellSupport.linkAr
+
 FatFS.build()
 Muzzle.build()
 Kernel.build()
@@ -404,6 +410,7 @@ NEWLIB_CRT0 = NewlibCrt0.build()
 CxxSupport.build()
 EASTL.build()
 Checkup.build()
+ShellSupport.build()
 Parson.build()
 
 IMG_FILE = "out/os.img"
