@@ -51,4 +51,5 @@ void runline(eastl::string cmdline) {
     size_t argc;
     auto argv = libShellSupport::parseCommandLine(cmdline.c_str(), &argc);
     runInShell(argv[0], argv, is_bg);
+    libShellSupport::freeCommandLine(argv);
 }

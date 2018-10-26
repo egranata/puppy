@@ -129,6 +129,7 @@ int main(int argc, char** argv) {
     spawn(target_program.c_str(), parsedArgv, SPAWN_BACKGROUND | PROCESS_INHERITS_CWD | PROCESS_INHERITS_ENVIRONMENT, fops);
     fclose_syscall(wfd);
     readToEnd(rfd);
+    libShellSupport::freeCommandLine(argv);
 
     return 0;
 }

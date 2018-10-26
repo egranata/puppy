@@ -97,6 +97,7 @@ int runCommand(const eastl::string& line) {
         auto argv = libShellSupport::parseCommandLine(line.c_str(), &argc);
         auto program = argv[0];
         pid = exec_syscall(program, argv, environ, 0, nullptr);
+        libShellSupport::freeCommandLine(argv);
     }
     pid >>= 1;
 

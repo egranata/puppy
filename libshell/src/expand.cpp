@@ -85,6 +85,17 @@ namespace libShellSupport {
         }
         return cresult;
     }
+
+    // this is technically simple enough that one could put it outside of libShellSupport
+    // but it is convenient to have it here along with the allocating API
+    void freeCommandLine(char** argv) {
+        size_t i = 0;
+        while(argv[i]) {
+            free(argv[i]);
+            ++i;
+        }
+        free(argv);
+    }
 }
 
 #undef APPEND_NON_EMPTY

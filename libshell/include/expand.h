@@ -22,6 +22,7 @@
 
 namespace libShellSupport {
     char** parseCommandLine(const char* cmdline, size_t* argc);
+    void freeCommandLine(char** argv);
 }
 
 #endif

@@ -54,6 +54,7 @@ class TheTest : public Test {
             CHECK_TRUE(streq(argv[10], "are"));
             CHECK_TRUE(streq(argv[11], "\"are"));
             CHECK_TRUE(streq(argv[12], "quoted"));
+            libShellSupport::freeCommandLine(argv);
         }
 };
 
