@@ -16,7 +16,7 @@
 #include <kernel/libc/string.h>
 #include <kernel/i386/primitives.h>
 
-process_t::process_t() : tss(), environ(nullptr), mmap(this), ttyinfo(), exitstatus(0), children() {
+process_t::process_t() : tss(), args(nullptr), environ(nullptr), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;
     state = State::AVAILABLE;
     sleeptill = 0;
@@ -59,7 +59,7 @@ void process_t::clone(process_t* other) {
     other->cr0 = cr0;
 
     other->path = strdup(path);
-    other->args = strdup(args);
+    copyArguments((const char**)other->args, false);
     other->cwd = strdup(cwd);
 
     other->environ = nullptr; // the environment does not need to be copied
@@ -86,4 +86,23 @@ void process_t::clone(process_t* other) {
     other->runtimestats.runtime = 0;
 
     other->priority = priority;
+}
+
+void process_t::copyArguments(const char** srcArgs, bool free_old_args) {
+    if (free_old_args && args) {
+        size_t i = 0;
+        for(; args[i]; ++i) {
+            free(args[i]);
+        }
+        free(args);
+    }
+
+    size_t sz = 0;
+    while(srcArgs && srcArgs[sz]) ++sz;
+
+    args = (char**)calloc(sz + 1, sizeof(const char*));
+    for (size_t i = 0; i < sz; ++i) {
+        args[i] = (char*)calloc(strlen(srcArgs[i]) + 1, sizeof(char));
+        strcpy(args[i], srcArgs[i]);
+    }
 }

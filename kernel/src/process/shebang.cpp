@@ -41,8 +41,12 @@ extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
     LOG_DEBUG("process %u main binary %s has shebang that points to %s", gCurrentProcess->pid, gCurrentProcess->path, path);
 
     // TODO: do not outright replace the arguments; augment them
-    if (gCurrentProcess->args) free((void*)gCurrentProcess->args);
-    gCurrentProcess->args = strdup(gCurrentProcess->path);
+    const char* newArgs[3] = {
+        path,
+        strdup(gCurrentProcess->path),
+        nullptr
+    };
+    gCurrentProcess->copyArguments(newArgs, true);
 
     process_loadinfo_t pli = load_binary(path);
     return pli;

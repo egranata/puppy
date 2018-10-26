@@ -274,7 +274,7 @@ ProcessManager::ProcessManager() {
     mProcessPagesLow = mProcessPagesHigh = 0;
 }
 
-process_t* ProcessManager::exec(const char* path, const char* args, const char** env, uint32_t flags, exec_priority_t prio, uintptr_t argp, exec_fileop_t* fops) {
+process_t* ProcessManager::exec(const char* path, const char** args, const char** env, uint32_t flags, exec_priority_t prio, uintptr_t argp, exec_fileop_t* fops) {
     auto&& vmm(VirtualPageManager::get());
 
     spawninfo_t si {
@@ -296,7 +296,7 @@ process_t* ProcessManager::exec(const char* path, const char* args, const char**
     };
 
     if (auto process = spawn(si)) {
-        if (args) process->args = strdup(args);
+        if (args) process->copyArguments(args, false);
         return process;
     }
 

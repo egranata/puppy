@@ -303,31 +303,7 @@ NEWLIB_IMPL_REQUIREMENT int ioctl(int fd, int a, int b) {
     return io >> 1;
 }
 
-static char* concatArray(char** str) {
-    size_t len = 0;
-    size_t i = 0;
-    for(; str[i]; ++i) {
-        len = len + strlen(str[i]) + 3; // opening and closing " and a space right after
-    }
-    len = len + 1; // final \0
-
-    newlib::puppy::impl::scoped_ptr_t<char> dest_ptr(calloc(1, len));
-    char* dest = dest_ptr.get();
-    size_t idx = 0;
-    for(i = 0; str[i]; ++i) {
-        char* src = str[i];
-        dest[idx++] = '"';
-        while(*src) {
-            dest[idx++] = *src++;
-        }
-        dest[idx++] = '"';
-        dest[idx++] = ' ';
-    }
-
-    return dest_ptr.reset();
-}
-
-static int newProcessImpl(const char* path, const char* args, char** env, int flags, exec_fileop_t* fops) {
+static int newProcessImpl(const char* path, char** args, char** env, int flags, exec_fileop_t* fops) {
     if (path == nullptr || path[0] == 0) ERR_EXIT(ENOENT);
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
@@ -338,16 +314,14 @@ static int newProcessImpl(const char* path, const char* args, char** env, int fl
 }
 
 NEWLIB_IMPL_REQUIREMENT int execve(char* path, char** argv, char** env) {
-    newlib::puppy::impl::scoped_ptr_t<char> args = concatArray(argv);
-
-    return newProcessImpl((const char*)path, (const char*)args.get(), env, PROCESS_IS_FOREGROUND | PROCESS_INHERITS_CWD, nullptr);
+    return newProcessImpl((const char*)path, argv, env, PROCESS_IS_FOREGROUND | PROCESS_INHERITS_CWD, nullptr);
 }
 
-NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, const char* args, int flags, exec_fileop_t* fops) {
+NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, char** argv, int flags, exec_fileop_t* fops) {
     const bool clear_env = PROCESS_EMPTY_ENVIRONMENT == (flags & PROCESS_EMPTY_ENVIRONMENT);
     flags &= ~PROCESS_EMPTY_ENVIRONMENT;
 
-    return newProcessImpl(path, args, clear_env ? nullptr : environ, flags, fops);
+    return newProcessImpl(path, argv, clear_env ? nullptr : environ, flags, fops);
 }
 
 NEWLIB_IMPL_REQUIREMENT unsigned int sleep(unsigned int seconds) {

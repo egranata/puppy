@@ -39,7 +39,7 @@ namespace {
 #define APPEND_TO_BUF buffer += c
 
 namespace libShellSupport {
-    const char** parseCommandLine(const char* cmdline, size_t* argc) {
+    char** parseCommandLine(const char* cmdline, size_t* argc) {
         eastl::vector<eastl::string> result;
         eastl::string buffer;
         eastl::stack<parser_state_t> pstate;
@@ -82,8 +82,8 @@ namespace libShellSupport {
             const auto& in_str = result[i];
             cresult[i] = (char*)calloc(in_str.size() + 1, sizeof(char));
             strcpy(cresult[i], in_str.c_str());
-        } 
-        return (const char**)cresult;
+        }
+        return cresult;
     }
 }
 

@@ -31,7 +31,7 @@ extern "C" {
 #define PROCESS_INHERITS_ENVIRONMENT 0
 #define PROCESS_EMPTY_ENVIRONMENT 4
 
-int spawn(const char* path, const char* args, int flags, exec_fileop_t* fops);
+int spawn(const char* path, char** args, int flags, exec_fileop_t* fops);
 
 #ifdef __cplusplus
 }

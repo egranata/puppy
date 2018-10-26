@@ -107,7 +107,13 @@ class TestSpawn : public EnvironTest {
             setenv("PARENT", "CHILD", 1);
             check("PARENT", "CHILD");
 
-            auto cpid = spawn("/system/tests/environ", "check", SPAWN_FOREGROUND, nullptr);
+            char* argv[] = {
+                (char*)"/system/tests/environ",
+                (char*)"check",
+                nullptr
+            };
+
+            auto cpid = spawn("/system/tests/environ", argv, SPAWN_FOREGROUND, nullptr);
             CHECK_NOT_EQ(cpid, 0);
 
             auto status = collect(cpid);

@@ -34,7 +34,7 @@ class TheTest : public Test {
         void run() override {
             const char* test_input = "this is a \"command line string\" made of multiple \"arguments\"some of which are \\\"are quoted";
             size_t argc;
-            const char** argv = libShellSupport::parseCommandLine(test_input, &argc);
+            auto argv = libShellSupport::parseCommandLine(test_input, &argc);
             CHECK_EQ(argc, 13);
             CHECK_NOT_EQ(argv, nullptr);
             CHECK_EQ(argv[argc], nullptr);

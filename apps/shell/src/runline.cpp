@@ -21,7 +21,9 @@
 #include <newlib/sys/wait.h>
 #include <newlib/sys/process.h>
 
-static void runInShell(const char* program, const char* args, bool is_bg) {
+#include <libshell/expand.h>
+
+static void runInShell(const char* program, char** args, bool is_bg) {
     if (is_bg || !tryExecBuiltin(program, args)) {
         auto real_program = getProgramPath(program);
         if (real_program.empty()) {
@@ -45,12 +47,8 @@ void runline(eastl::string cmdline) {
 
     const bool is_bg = (cmdline.back() == '&');
     if (is_bg) cmdline.pop_back();
-    size_t arg_sep = cmdline.find(' ');
-    if (arg_sep == eastl::string::npos) {
-        runInShell(cmdline.c_str(), nullptr, is_bg);
-    } else {
-        auto program = cmdline.substr(0, arg_sep);
-        auto args = cmdline.substr(arg_sep + 1);
-        runInShell(program.c_str(), args.c_str(), is_bg);
-    }
+
+    size_t argc;
+    auto argv = libShellSupport::parseCommandLine(cmdline.c_str(), &argc);
+    runInShell(argv[0], argv, is_bg);
 }

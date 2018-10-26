@@ -21,7 +21,7 @@
 #include <newlib/stdlib.h>
 
 namespace libShellSupport {
-    const char** parseCommandLine(const char* cmdline, size_t* argc);
+    char** parseCommandLine(const char* cmdline, size_t* argc);
 }
 
 #endif

@@ -17,11 +17,11 @@
 
 struct builtin_cmd_t {
     const char* command;
-    void(*executor)(const char*);
+    void(*executor)(char**);
 };
 
 extern builtin_cmd_t builtin_cmds[];
 
-bool tryExecBuiltin(const char* program, const char* args);
+bool tryExecBuiltin(const char* program, char** args);
 
 #endif

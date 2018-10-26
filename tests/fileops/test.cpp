@@ -70,7 +70,13 @@ class TheTest : public Test {
                 },
             };
 
-            int pid = exec_syscall("/system/tests/fileops", "--write-text", nullptr, 0, &fileops[0]);
+            char* argv[] = {
+                (char*)"/system/tests/fileops",
+                (char*)"--write-text",
+                nullptr
+            };
+
+            int pid = exec_syscall("/system/tests/fileops", argv, nullptr, 0, &fileops[0]);
             CHECK_EQ(0, (pid & 1));
             pid >>= 1;
 

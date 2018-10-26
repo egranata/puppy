@@ -20,7 +20,7 @@
 #include <newlib/unistd.h>
 #include <newlib/syscalls.h>
 #include <newlib/sys/process.h>
-
+#include <libshell/expand.h>
 #include <EASTL/string.h>
 
 static int usage() {
@@ -124,7 +124,9 @@ int main(int argc, char** argv) {
         },
     };
 
-    spawn(target_program.c_str(), target_args.c_str(), SPAWN_BACKGROUND | PROCESS_INHERITS_CWD | PROCESS_INHERITS_ENVIRONMENT, fops);
+    size_t parsedArgc;
+    auto parsedArgv = libShellSupport::parseCommandLine(target_args.c_str(), &parsedArgc);
+    spawn(target_program.c_str(), parsedArgv, SPAWN_BACKGROUND | PROCESS_INHERITS_CWD | PROCESS_INHERITS_ENVIRONMENT, fops);
     fclose_syscall(wfd);
     readToEnd(rfd);
 

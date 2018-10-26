@@ -28,7 +28,7 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            const char* argv[] = {".", nullptr};
+            const char* argv[] = {"/system/apps/ls", ".", nullptr};
             const char* envp[] = {"PWD=/system", nullptr};
 
             auto cpid = execve("/system/apps/ls", (char* const*)argv, (char* const*)envp);

@@ -23,6 +23,7 @@ extern "C" char *stpcpy(char *__restrict, const char *__restrict);
 
 LOG_TAG(LOADELF, 1);
 LOG_TAG(COPYENV, 0);
+LOG_TAG(ARGV, 0);
 
 #define UNHAPPY(cause) { \
     TAG_ERROR(LOADELF, "failed to load ELF image: " #cause); \
@@ -165,12 +166,13 @@ static char** copyStringArrayToUserland(char** srcArray, MemoryManager* memmgr) 
     char** dest_environ = (char**)memmgr->findAndMapRegion(total_chunk_size, map_opts).from;
     char* dest_payloads = (char*)(dest_environ + (num_vars + 1));
 
-    TAG_DEBUG(COPYENV, "copying %u environment variables, environ map starts at %p, payload is of size %u and starts at %p",
+    TAG_DEBUG(COPYENV, "copying %u elements, map starts at %p, payload is of size %u and starts at %p",
         num_vars, dest_environ, payload_size, dest_payloads);
 
     for (auto i = 0u; i < num_vars; ++i) {
         dest_environ[i] = dest_payloads;
         dest_payloads = stpcpy(dest_payloads, srcArray[i]) + 1;
+        TAG_DEBUG(COPYENV, "copied %p \"%s\" to %p \"%s\"", srcArray[i], srcArray[i], dest_environ[i], dest_environ[i]);
     }
 
     return dest_environ;
@@ -219,18 +221,11 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
         if (gCurrentProcess->path) {
             strncpy(args_ptr->name, gCurrentProcess->path, sizeof(args_ptr->name));
         }
-        if (gCurrentProcess->args) {
-            strncpy(args_ptr->arguments, gCurrentProcess->args, sizeof(args_ptr->arguments));
-        }
-
-        TAG_DEBUG(LOADELF, "args_ptr: name=%p (%s) arguments=%p (%s) - pushing on stack at %p",
-            args_ptr->name, args_ptr->name,
-            args_ptr->arguments, args_ptr->arguments,
-            stack);
 
         *stack = (uintptr_t)copyStringArrayToUserland(gCurrentProcess->environ, memmgr);
         --stack;
-        *stack = (uintptr_t)&args_ptr->arguments[0];
+        *stack = (uintptr_t)copyStringArrayToUserland(gCurrentProcess->args, memmgr);
+        TAG_DEBUG(ARGV, "kernel process args = %p, user process args = %p", gCurrentProcess->args, *stack);
         --stack;
         *stack = (uintptr_t)&args_ptr->name[0];
     } else {

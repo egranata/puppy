@@ -22,31 +22,31 @@
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
 
-void script_exec(const char* args) {
-    runfile(args);
+void script_exec(char** args) {
+    runfile(args[1]);
 }
 
-void cd_exec(const char* args) {
-    if (chdir(args)) {
-        printf("can't set cwd to '%s'\n", args);
+void cd_exec(char** args) {
+    if (chdir(args[1])) {
+        printf("can't set cwd to '%s'\n", args[1]);
     } else {
         setenv("PWD", getCurrentDirectory().c_str(), 1);
     }
 }
 
-void env_exec(const char* args) {
-    if (args) {
-        char* eq = strchr(args, '=');
+void env_exec(char** args) {
+    if (args[1]) {
+        char* eq = strchr(args[1], '=');
         if (eq == nullptr) {
-                auto val = getenv(args);
-                printf("%s=%s\n", args, val);
+                auto val = getenv(args[1]);
+                printf("%s=%s\n", args[1], val);
         } else {
             // env ENVV= deletes the variable
             if (eq[1] == 0) {
                 *eq = 0;
-                unsetenv(args);
+                unsetenv(args[1]);
             } else {
-                putenv((char*)args);
+                putenv((char*)args[1]);
             }
         }
     } else {

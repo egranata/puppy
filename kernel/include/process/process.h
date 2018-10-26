@@ -45,7 +45,7 @@ struct process_t {
     kpid_t pid;
     kpid_t ppid;
     const char* path;
-    const char* args;
+    char** args;
     const char* cwd;
     char** environ;
     State state;
@@ -119,6 +119,8 @@ struct process_t {
     void clone(process_t*);
 
     MemoryManager* getMemoryManager();
+
+    void copyArguments(const char** srcArgs, bool free_old_args);
 };
 
 static_assert(sizeof(process_t) <= 4096, "process_t does not fit in a page!");

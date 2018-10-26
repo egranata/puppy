@@ -51,10 +51,10 @@ HANDLER0(getppid) {
     return (gCurrentProcess->ppid << 1) | OK;
 }
 
-syscall_response_t exec_syscall_handler(const char* path, const char* args, char** env, uint32_t flags, exec_fileop_t* fileops) {
+syscall_response_t exec_syscall_handler(const char* path, char** args, char** env, uint32_t flags, exec_fileop_t* fileops) {
     auto&& pmm = ProcessManager::get();
 
-    auto newproc = pmm.exec(path, args, (const char**)env, flags, ProcessManager::gDefaultBasePriority, 0, fileops);
+    auto newproc = pmm.exec(path, (const char**)args, (const char**)env, flags, ProcessManager::gDefaultBasePriority, 0, fileops);
 
     if (newproc == nullptr) return ERR(NO_SUCH_PROCESS);
 
@@ -174,11 +174,14 @@ syscall_response_t proctable_syscall_handler(process_info_t *info, size_t count)
         } else {
             bzero(&pi.path[0], sizeof(pi.path));
         }
+
+#if 0
         if (p->args) {
             strncpy(&pi.args[0], p->args, sizeof(pi.args));
         } else {
             bzero(&pi.args[0], sizeof(pi.args));
         }
+#endif
 
         if (pi.pid == 0) {
             // special case the kernel to report its own memory size + heap size;
