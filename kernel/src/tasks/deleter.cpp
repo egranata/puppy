@@ -28,16 +28,16 @@ KERNEL_TASK_NAMESPACE_OPEN(deleter) {
         return gQueue;
     }
 
-    void freeEnvironment(char** env) {
+    void freeStringArray(char** arr) {
         size_t i = 0;
-        while(env != nullptr) {
-            LOG_DEBUG("trying to delete environ[%u] = %p", i, env[i]);
-            if (env[i]) free(env[i]);
+        while(arr != nullptr) {
+            LOG_DEBUG("trying to delete element %u = %p", i, arr[i]);
+            if (arr[i]) free(arr[i]);
             else break;
             ++i;
         }
-        LOG_DEBUG("trying to free environ = %p", env);
-        free(env);
+        LOG_DEBUG("trying to free array = %p", arr);
+        free(arr);
     }
 
     void task() {
@@ -52,10 +52,10 @@ KERNEL_TASK_NAMESPACE_OPEN(deleter) {
                 auto proc = col.pop();
                 LOG_DEBUG("deleting process object for %u", proc->pid);
                 if (proc->path) free((void*)proc->path);
-                if (proc->args) free((void*)proc->args);
                 if (proc->cwd) free((void*)proc->cwd);
 
-                if (proc->environ) freeEnvironment(proc->environ);
+                if (proc->args) freeStringArray(proc->args);
+                if (proc->environ) freeStringArray(proc->environ);
 
                 auto dtbl = addr_gdt<uint64_t*>();
                 dtbl[proc->pid + val_numsysgdtentries<uint32_t>()] = 0;
