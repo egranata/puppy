@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <newlib/stdlib.h>
 
-const char** parseCommandLine(const char* cmdline, size_t* argc);
+namespace libShellSupport {
+    const char** parseCommandLine(const char* cmdline, size_t* argc);
+}
 
 #endif
