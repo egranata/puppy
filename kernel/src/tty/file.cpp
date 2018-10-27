@@ -79,6 +79,7 @@ ch:
     if (c == TTY::TTY_EOF_MARKER) {
         return 0xFF;
     }
+    // TODO: this truncates sequences with high-byte set; it should not
     return (char)c;
 }
 

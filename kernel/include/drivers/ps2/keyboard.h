@@ -33,7 +33,7 @@ class PS2Keyboard : public PS2Controller::Device {
             keymap_to_use keymap;
             bool ctrldown;
             bool altdown;
-            uint8_t keycode;
+            uint16_t keycode;
             bool down;
 
             key_event_t();
