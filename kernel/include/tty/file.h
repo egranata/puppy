@@ -54,7 +54,9 @@ class TTYFile : public Filesystem::File {
             ONLY_EOF = 0xE00F,
         } mMode = mode_t::READ_FROM_IRQ;
 
-        char procureOne();
+        uint16_t procureOne();
+
+        void processOne(uint16_t ch);
 };
 
 #endif

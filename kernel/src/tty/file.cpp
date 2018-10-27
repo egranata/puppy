@@ -69,7 +69,7 @@ bool TTYFile::seek(size_t) {
 }
 
 // TODO: this should be using waitqueues - not yielding
-char TTYFile::procureOne() {
+uint16_t TTYFile::procureOne() {
 ch:
     auto c = mTTY->read();
     if (c == TTY::TTY_NO_INPUT) {
@@ -80,7 +80,50 @@ ch:
         return 0xFF;
     }
     // TODO: this truncates sequences with high-byte set; it should not
-    return (char)c;
+    return c;
+}
+
+void TTYFile::processOne(uint16_t ch) {
+    bool swallow = false;
+    TAG_DEBUG(TTYFILE, "got a character: %x", ch);
+    // ignore HBS characters; they are not for us
+    if (ch & 0xFF00) {
+        TAG_DEBUG(TTYFILE, "HBS characters ignored by TTYFile");
+        return;
+    }
+    char c = (char)(ch & 0x00FF);
+    TAG_DEBUG(TTYFILE, "got a byte: %x", c);
+    switch (c) {
+        case '\b':
+            if (mInput.emptyWrite()) {
+                swallow = true;
+            } else {
+                mInput.undoAppend(nullptr);
+            }
+            TAG_DEBUG(TTYFILE, "processed a backspace");
+            break;
+        case '\n':
+            mInput.appendOne(c);
+            mMode = mode_t::CONSUME_BUFFER;
+            TAG_DEBUG(TTYFILE, "processed newline");
+            break;
+        case input_t::EOF_MARKER:
+            mInput.appendOne(c);
+            mMode = mode_t::CONSUME_BUFFER;
+            TAG_DEBUG(TTYEOF, "processed EOF");
+            break;
+        default:
+            if (false == mInput.appendOne(c)) {
+                // this buffer is full - let it be consumed
+                mMode = mode_t::CONSUME_BUFFER;
+            }
+            TAG_DEBUG(TTYFILE, "processed a character");
+            break;
+    }
+    TAG_DEBUG(TTYFILE, "swallow = %s", swallow ? "yes" : "no");
+    if (!swallow) {
+        write(1, &c);
+    }
 }
 
 size_t TTYFile::read(size_t n, char* b) {
@@ -89,40 +132,8 @@ entry:
     if (n == 0) return n;
 
     while (mMode == mode_t::READ_FROM_IRQ) {
-        bool swallow = false;
-        auto c = procureOne();
-        TAG_DEBUG(TTYFILE, "got a byte: %x", c);
-        switch (c) {
-            case '\b':
-                if (mInput.emptyWrite()) {
-                    swallow = true;
-                } else {
-                    mInput.undoAppend(nullptr);
-                }
-                TAG_DEBUG(TTYFILE, "processed a backspace");
-                break;
-            case '\n':
-                mInput.appendOne(c);
-                mMode = mode_t::CONSUME_BUFFER;
-                TAG_DEBUG(TTYFILE, "processed newline");
-                break;
-            case input_t::EOF_MARKER:
-                mInput.appendOne(c);
-                mMode = mode_t::CONSUME_BUFFER;
-                TAG_DEBUG(TTYEOF, "processed EOF");
-                break;
-            default:
-                if (false == mInput.appendOne(c)) {
-                    // this buffer is full - let it be consumed
-                    mMode = mode_t::CONSUME_BUFFER;
-                }
-                TAG_DEBUG(TTYFILE, "processed a character");
-                break;
-        }
-        TAG_DEBUG(TTYFILE, "swallow = %s", swallow ? "yes" : "no");
-        if (!swallow) {
-            write(1, &c);
-        }
+        uint16_t ch = procureOne();
+        processOne(ch);
     }
 
     if (mMode == mode_t::ONLY_EOF) {
