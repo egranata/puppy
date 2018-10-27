@@ -133,12 +133,12 @@ void TTYFile::processOne_Canonical(uint16_t ch) {
     size_t n = sizeof(cs) / sizeof(cs[0]); \
     for (size_t i = 0; i < n; ++i) { \
         mInput.appendOne(cs[i]); \
-        write(1, &cs[i]); \
     } \
 }
 #define ESCAPE 27
 
 void TTYFile::processOne_Raw(uint16_t ch) {
+    bool ignored = false;
     TAG_DEBUG(RAWTTY, "got a character: %x", ch);
     if (ch & 0xFF00) {
         if (ch == PS2Keyboard::key_event_t::UP)       RAW_COMBO(ESCAPE, '[', 'A')
@@ -156,23 +156,15 @@ void TTYFile::processOne_Raw(uint16_t ch) {
         else if (ch == PS2Keyboard::key_event_t::F9)  RAW_COMBO(ESCAPE, 'O', 'w')
         else if (ch == PS2Keyboard::key_event_t::F10) RAW_COMBO(ESCAPE, 'O', 'x')
         else {
+            ignored = true;
             TAG_DEBUG(RAWTTY, "unknown HBS sequence - ignoring");
         }
     }
     else {
         char c = (char)(ch & 0x00FF);
         mInput.appendOne(c);
-        if (c == input_t::EOF_MARKER) {
-            mMode = mode_t::CONSUME_BUFFER;
-            TAG_DEBUG(RAWTTY, "processed EOF");
-        } else {
-            write(1,&c);
-            if (c == '\n') {
-                mMode = mode_t::CONSUME_BUFFER;
-                TAG_DEBUG(RAWTTY, "processed newline");
-            }
-        }
     }
+    if (!ignored) mMode = mode_t::CONSUME_BUFFER;
 }
 
 size_t TTYFile::read(size_t n, char* b) {
