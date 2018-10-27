@@ -293,7 +293,7 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libshellsupport.a", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
+NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libshellsupport.a", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/liblinenoise.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
@@ -402,6 +402,12 @@ ShellSupport = Project(name="shellsupport",
     linkerdeps=NEWLIB_DEPS)
 ShellSupport.link = ShellSupport.linkAr
 
+Linenoise = Project(name="linenoise",
+    srcdir="third_party/linenoise",
+    ipaths=["include", "include/newlib"],
+    linkerdeps=NEWLIB_DEPS)
+Linenoise.link = Linenoise.linkAr
+
 FatFS.build()
 Muzzle.build()
 Kernel.build()
@@ -410,8 +416,9 @@ NEWLIB_CRT0 = NewlibCrt0.build()
 CxxSupport.build()
 EASTL.build()
 Checkup.build()
-ShellSupport.build()
 Parson.build()
+ShellSupport.build()
+Linenoise.build()
 
 IMG_FILE = "out/os.img"
 ROOT_DISK, FAT_DISK = createDiskImage(IMG_FILE)

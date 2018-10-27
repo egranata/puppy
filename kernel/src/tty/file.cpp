@@ -133,6 +133,7 @@ void TTYFile::processOne_Canonical(uint16_t ch) {
     size_t n = sizeof(cs) / sizeof(cs[0]); \
     for (size_t i = 0; i < n; ++i) { \
         mInput.appendOne(cs[i]); \
+        write(1, &cs[i]); \
     } \
 }
 #define ESCAPE 27
@@ -164,9 +165,12 @@ void TTYFile::processOne_Raw(uint16_t ch) {
         if (c == input_t::EOF_MARKER) {
             mMode = mode_t::CONSUME_BUFFER;
             TAG_DEBUG(RAWTTY, "processed EOF");
-        } else if (c == '\n') {
-            mMode = mode_t::CONSUME_BUFFER;
-            TAG_DEBUG(RAWTTY, "processed newline");
+        } else {
+            write(1,&c);
+            if (c == '\n') {
+                mMode = mode_t::CONSUME_BUFFER;
+                TAG_DEBUG(RAWTTY, "processed newline");
+            }
         }
     }
 }
