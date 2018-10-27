@@ -108,6 +108,9 @@ enum tty_ioctl_t {
         IOCTL_SET_FG_COLOR = 7, // a2 = 0x00RRGGBB
         IOCTL_GET_BG_COLOR = 8, // a2 = pointer to 0x00RRGGBB
         IOCTL_SET_BG_COLOR = 9, // a2 = 0x00RRGGBB
+        IOCTL_DISCIPLINE_RAW = 10, // a2 = ignored
+        IOCTL_DISCIPLINE_CANONICAL = 11, // a2 = ignored
+        IOCTL_DISCIPLINE_GET = 12, // a2 = pointer to int - on return contains 10 for 'RAW', 11 for 'CANONICAL'
 };
 
 // IOCTL operations that can run on a msgqueue

@@ -54,9 +54,16 @@ class TTYFile : public Filesystem::File {
             ONLY_EOF = 0xE00F,
         } mMode = mode_t::READ_FROM_IRQ;
 
+        enum class discipline_t : int {
+            RAW = 10,
+            CANONICAL = 11,
+        } mDiscipline = discipline_t::CANONICAL;
+
         uint16_t procureOne();
 
-        void processOne(uint16_t ch);
+        void processOne_Canonical(uint16_t ch);
+        void processOne_Raw(uint16_t ch);
+
 };
 
 #endif

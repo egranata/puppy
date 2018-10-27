@@ -18,6 +18,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/panic/panic.h>
 
+LOG_TAG(RAWTTY, 0);
 LOG_TAG(TTYFILE, 2);
 LOG_TAG(TTYEOF, 2);
 
@@ -83,7 +84,7 @@ ch:
     return c;
 }
 
-void TTYFile::processOne(uint16_t ch) {
+void TTYFile::processOne_Canonical(uint16_t ch) {
     bool swallow = false;
     TAG_DEBUG(TTYFILE, "got a character: %x", ch);
     // ignore HBS characters; they are not for us
@@ -126,6 +127,10 @@ void TTYFile::processOne(uint16_t ch) {
     }
 }
 
+void TTYFile::processOne_Raw(uint16_t ch) {
+    TAG_DEBUG(RAWTTY, "got a character: %x", ch);
+}
+
 size_t TTYFile::read(size_t n, char* b) {
 entry:
     TAG_DEBUG(TTYFILE, "trying to consume up to %u bytes from the TTY - mode is %x", n, mMode);
@@ -133,7 +138,14 @@ entry:
 
     while (mMode == mode_t::READ_FROM_IRQ) {
         uint16_t ch = procureOne();
-        processOne(ch);
+        switch (mDiscipline) {
+            case discipline_t::CANONICAL:
+                processOne_Canonical(ch);
+                break;
+            case discipline_t::RAW:
+                processOne_Raw(ch);
+                break;
+        }
     }
 
     if (mMode == mode_t::ONLY_EOF) {
@@ -230,6 +242,19 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             mTTY->setBackgroundColor(a2);
             return 1;
         }
+        case IOCTL_DISCIPLINE_RAW : {
+            mDiscipline = discipline_t::RAW;
+            return 1;
+        }
+        case IOCTL_DISCIPLINE_CANONICAL: {
+            mDiscipline = discipline_t::CANONICAL;
+            return 1;
+        }
+        case IOCTL_DISCIPLINE_GET: {
+            int *discipline = (int*)a2;
+            *discipline = (int)mDiscipline;
+            return 1;
+        }
         case TIOCGWINSZ: {
             winsize_t* ws = (winsize_t*)a2;
             uint16_t r=0,c=0;
@@ -245,4 +270,3 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             return 0;
     }
 }
-
