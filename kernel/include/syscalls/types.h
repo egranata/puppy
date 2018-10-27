@@ -99,18 +99,18 @@ enum class blockdevice_ioctl_t : uintptr_t {
 
 // IOCTL operations that one can run on a TTY
 enum tty_ioctl_t {
-        IOCTL_FOREGROUND = 1, // a2 = pid
-        IOCTL_BACKGROUND = 2, // a2 = reserved
-        IOCTL_MOVECURSOR = 3, // a2 = low = row, high = col
-        IOCTL_VISIBLE_AREA = 4, // a2 = pointer to 0xRRRRCCCC
-        IOCTL_CURSOR_POS = 5, // a2 = pointer to 0xRRRRCCCC
-        IOCTL_GET_FG_COLOR = 6, // a2 = pointer to 0x00RRGGBB
-        IOCTL_SET_FG_COLOR = 7, // a2 = 0x00RRGGBB
-        IOCTL_GET_BG_COLOR = 8, // a2 = pointer to 0x00RRGGBB
-        IOCTL_SET_BG_COLOR = 9, // a2 = 0x00RRGGBB
-        IOCTL_DISCIPLINE_RAW = 10, // a2 = ignored
-        IOCTL_DISCIPLINE_CANONICAL = 11, // a2 = ignored
-        IOCTL_DISCIPLINE_GET = 12, // a2 = pointer to int - on return contains 10 for 'RAW', 11 for 'CANONICAL'
+        IOCTL_FOREGROUND            = 0x77100001, // a2 = pid
+        IOCTL_BACKGROUND            = 0x77100002, // a2 = reserved
+        IOCTL_MOVECURSOR            = 0x77100003, // a2 = low = row, high = col
+        IOCTL_VISIBLE_AREA          = 0x77100004, // a2 = pointer to 0xRRRRCCCC
+        IOCTL_CURSOR_POS            = 0x77100005, // a2 = pointer to 0xRRRRCCCC
+        IOCTL_GET_FG_COLOR          = 0x77100006, // a2 = pointer to 0x00RRGGBB
+        IOCTL_SET_FG_COLOR          = 0x77100007, // a2 = 0x00RRGGBB
+        IOCTL_GET_BG_COLOR          = 0x77100008, // a2 = pointer to 0x00RRGGBB
+        IOCTL_SET_BG_COLOR          = 0x77100009, // a2 = 0x00RRGGBB
+        IOCTL_DISCIPLINE_RAW        = 0x7710000A, // a2 = ignored
+        IOCTL_DISCIPLINE_CANONICAL  = 0x7710000B, // a2 = ignored
+        IOCTL_DISCIPLINE_GET        = 0x7710000C, // a2 = pointer to int - on return contains 10 for 'RAW', 11 for 'CANONICAL'
 };
 
 // IOCTL operations that can run on a msgqueue
