@@ -30,14 +30,6 @@ LOG_TAG(ARGV, 0);
     return loadinfo; \
 }
 
-namespace {
-    struct program_args_t {
-        char name[384];
-        char arguments[3712];
-    };
-    static_assert(sizeof(program_args_t) == VirtualPageManager::gPageSize);
-}
-
 extern "C" bool elf_can_load(uintptr_t load0) {
     elf_header_t *header = (elf_header_t*)load0;
     return header->sanitycheck();
@@ -213,29 +205,20 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
     loadinfo.stack = stackbegin - 20;
 
     uint32_t *stack = (uint32_t*)loadinfo.stack;
-    if (gCurrentProcess->args || gCurrentProcess->path) {
-        auto mapopts = VirtualPageManager::map_options_t().rw(true).user(true).clear(true);
-        auto cmdlinergn = memmgr->findAndMapRegion(VirtualPageManager::gPageSize, mapopts);
-        program_args_t* args_ptr = (program_args_t*)cmdlinergn.from;
-        TAG_DEBUG(LOADELF, "cmdline pointer at %p", args_ptr);
-        if (gCurrentProcess->path) {
-            strncpy(args_ptr->name, gCurrentProcess->path, sizeof(args_ptr->name));
-        }
-
+    if (gCurrentProcess->environ) {
         *stack = (uintptr_t)copyStringArrayToUserland(gCurrentProcess->environ, memmgr);
-        --stack;
-        *stack = (uintptr_t)copyStringArrayToUserland(gCurrentProcess->args, memmgr);
-        TAG_DEBUG(ARGV, "kernel process args = %p, user process args = %p", gCurrentProcess->args, *stack);
-        --stack;
-        *stack = (uintptr_t)&args_ptr->name[0];
     } else {
-        *stack = (uintptr_t)copyStringArrayToUserland(gCurrentProcess->environ, memmgr);
-        --stack;
-        *stack = 0;
-        --stack;
         *stack = 0;
     }
     --stack;
+
+    if (gCurrentProcess->args) {
+        *stack = (uintptr_t)copyStringArrayToUserland(gCurrentProcess->args, memmgr);
+    } else {
+        *stack = 0;
+    }
+    --stack;
+
     loadinfo.stack = (uint32_t)stack;
     TAG_DEBUG(LOADELF, "loadinfo.stack = %p", loadinfo.stack);
 

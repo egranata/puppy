@@ -25,7 +25,7 @@ class TheTest : public Test {
         void run() override {
             CHECK_TRUE(argc > 0);
             CHECK_NOT_EQ(argv[0], nullptr);
-            CHECK_EQ(argv[0][0], '/');
+            CHECK_NOT_EQ(nullptr, strstr(argv[0], "argv"));
             CHECK_EQ(argc[argv], nullptr);
         }
     

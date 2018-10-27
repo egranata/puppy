@@ -58,7 +58,7 @@ static size_t findArgc(char** argp) {
     return i;
 }
 
-void _start(__attribute__ ((unused)) char* program, char** argp, char** envp) {
+void _start(char** argp, char** envp) {
     environ = envp;
     __sinit(_global_impure_ptr);
     stdin->_flags |= __SLBF;
