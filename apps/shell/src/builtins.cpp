@@ -23,42 +23,53 @@
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
 
-bool script_exec(char** args) {
-    runfile(args[1]);
+bool script_exec(size_t argc, char** argv) {
+    if (argc != 2) return false;
+
+    runfile(argv[1]);
     return true;
 }
 REGISTER_BUILTIN(script, script_exec);
 
-bool cd_exec(char** args) {
-    if (chdir(args[1])) {
-        printf("can't set cwd to '%s'\n", args[1]);
-    } else {
-        setenv("PWD", getCurrentDirectory().c_str(), 1);
+bool cd_exec(size_t argc, char** argv) {
+    if (argc != 2) return false;
+
+    if (chdir(argv[1])) {
+        printf("can't set cwd to '%s'\n", argv[1]);
+        return false;
     }
+    
+    setenv("PWD", getCurrentDirectory().c_str(), 1);
     return true;
 }
 REGISTER_BUILTIN(cd, cd_exec);
 
-bool env_exec(char** args) {
-    if (args[1]) {
-        char* eq = strchr(args[1], '=');
-        if (eq == nullptr) {
-                auto val = getenv(args[1]);
-                printf("%s=%s\n", args[1], val);
-        } else {
-            // env ENVV= deletes the variable
-            if (eq[1] == 0) {
-                *eq = 0;
-                unsetenv(args[1]);
-            } else {
-                putenv((char*)args[1]);
-            }
-        }
+static void set_env(char* arg) {
+    char* eq = strchr(arg, '=');
+    if (eq == nullptr) {
+            auto val = getenv(arg);
+            printf("%s=%s\n", arg, val);
     } else {
+        // env ENVV= deletes the variable
+        if (eq[1] == 0) {
+            *eq = 0;
+            unsetenv(arg);
+        } else {
+            putenv((char*)arg);
+        }
+    }
+}
+bool env_exec(size_t argc, char** argv) {
+    if (argc == 1) {
         auto i = 0;
         while(environ && environ[i]) {
             printf("%s\n", environ[i++]);
         }
+        return true;
+    }
+
+    for (size_t i = 1; i < argc; ++i) {
+        set_env(argv[i]);
     }
     return true;
 }

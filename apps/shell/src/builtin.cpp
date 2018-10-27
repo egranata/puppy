@@ -33,12 +33,12 @@ bool registerBuiltinCommand(const char* name, builtin_cmd_f f) {
     return ok.second;
 }
 
-bool tryExecBuiltin(const char* program, char** args) {
+bool tryExecBuiltin(const char* program, size_t argc, char** args) {
     // ignore empty lines and comments
     if (program == nullptr || program[0] == 0) return true;
     if (program[0] == '#') return true;
 
     auto iter = getBuiltinMap().find(program), end = getBuiltinMap().end();
     if (iter == end) return false;
-    return iter->second(args);
+    return iter->second(argc, args);
 }

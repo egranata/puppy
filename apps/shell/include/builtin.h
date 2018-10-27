@@ -17,11 +17,11 @@
 
 #include <EASTL/functional.h>
 
-typedef eastl::function<bool(char**)> builtin_cmd_f;
+typedef eastl::function<bool(size_t, char**)> builtin_cmd_f;
 
 bool registerBuiltinCommand(const char*, builtin_cmd_f);
 
-bool tryExecBuiltin(const char* program, char** args);
+bool tryExecBuiltin(const char* program, size_t argc, char** args);
 
 #define REGISTER_BUILTIN(name, executor) \
     static void __attribute__((constructor)) name ## _register() { \

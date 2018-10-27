@@ -23,8 +23,8 @@
 
 #include <libshell/expand.h>
 
-static void runInShell(const char* program, char** args, bool is_bg) {
-    if (is_bg || !tryExecBuiltin(program, args)) {
+static void runInShell(const char* program, size_t argc, char** args, bool is_bg) {
+    if (is_bg || !tryExecBuiltin(program, argc, args)) {
         auto real_program = getProgramPath(program);
         if (real_program.empty()) {
             printf("%s: not found in PATH\n", program);
@@ -50,6 +50,6 @@ void runline(eastl::string cmdline) {
 
     size_t argc;
     auto argv = libShellSupport::parseCommandLine(cmdline.c_str(), &argc);
-    runInShell(argv[0], argv, is_bg);
+    runInShell(argv[0], argc, argv, is_bg);
     libShellSupport::freeCommandLine(argv);
 }
