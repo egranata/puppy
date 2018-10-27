@@ -15,12 +15,11 @@
 #ifndef SHELL_BUILTIN
 #define SHELL_BUILTIN
 
-struct builtin_cmd_t {
-    const char* command;
-    void(*executor)(char**);
-};
+#include <EASTL/functional.h>
 
-extern builtin_cmd_t builtin_cmds[];
+typedef eastl::function<bool(char**)> builtin_cmd_f;
+
+bool registerBuiltinCommand(const char*, builtin_cmd_f);
 
 bool tryExecBuiltin(const char* program, char** args);
 

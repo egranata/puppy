@@ -16,34 +16,23 @@
 #include <stdint.h>
 #include <newlib/stdlib.h>
 #include <newlib/string.h>
+#include <EASTL/string.h>
+#include <EASTL/unordered_map.h>
 
-void cd_exec(char** args);
-void env_exec(char** args);
-void script_exec(char** args);
-
-builtin_cmd_t builtin_cmds[] = {
-    {"cd", cd_exec},
-    {"env", env_exec},
-    {"script", script_exec},
-    {nullptr, nullptr}
-};
+namespace {
+    using builtin_map = eastl::unordered_map<eastl::string, builtin_cmd_f>;
+    builtin_map& getBuiltinMap() {
+        static builtin_map gMap;
+        return gMap;
+    }
+}
 
 bool tryExecBuiltin(const char* program, char** args) {
     // ignore empty lines and comments
     if (program == nullptr || program[0] == 0) return true;
     if (program[0] == '#') return true;
 
-    size_t i = 0u;
-
-    while (builtin_cmds[i].command) {
-        if (0 == strcmp(builtin_cmds[i].command, program)) {
-            if (builtin_cmds[i].executor) {
-                builtin_cmds[i].executor(args);
-            }
-            return true;
-        }
-        ++i;
-    }
-
-    return false;
+    auto iter = getBuiltinMap().find(program), end = getBuiltinMap().end();
+    if (iter == end) return false;
+    return iter->second(args);
 }
