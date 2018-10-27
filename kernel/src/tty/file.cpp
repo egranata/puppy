@@ -17,6 +17,7 @@
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/panic/panic.h>
+#include <kernel/drivers/ps2/keyboard.h>
 
 LOG_TAG(RAWTTY, 0);
 LOG_TAG(TTYFILE, 2);
@@ -127,8 +128,47 @@ void TTYFile::processOne_Canonical(uint16_t ch) {
     }
 }
 
+#define RAW_COMBO(...) { \
+    char cs[] = {__VA_ARGS__}; \
+    size_t n = sizeof(cs) / sizeof(cs[0]); \
+    for (size_t i = 0; i < n; ++i) { \
+        mInput.appendOne(cs[i]); \
+    } \
+}
+#define ESCAPE 27
+
 void TTYFile::processOne_Raw(uint16_t ch) {
     TAG_DEBUG(RAWTTY, "got a character: %x", ch);
+    if (ch & 0xFF00) {
+        if (ch == PS2Keyboard::key_event_t::UP)       RAW_COMBO(ESCAPE, '[', 'A')
+        else if (ch == PS2Keyboard::key_event_t::DWN) RAW_COMBO(ESCAPE, '[', 'B')
+        else if (ch == PS2Keyboard::key_event_t::RHT) RAW_COMBO(ESCAPE, '[', 'C')
+        else if (ch == PS2Keyboard::key_event_t::LFT) RAW_COMBO(ESCAPE, '[', 'D')
+        else if (ch == PS2Keyboard::key_event_t::F1)  RAW_COMBO(ESCAPE, 'O', 'P')
+        else if (ch == PS2Keyboard::key_event_t::F2)  RAW_COMBO(ESCAPE, 'O', 'Q')
+        else if (ch == PS2Keyboard::key_event_t::F3)  RAW_COMBO(ESCAPE, 'O', 'R')
+        else if (ch == PS2Keyboard::key_event_t::F4)  RAW_COMBO(ESCAPE, 'O', 'S')
+        else if (ch == PS2Keyboard::key_event_t::F5)  RAW_COMBO(ESCAPE, 'O', 't')
+        else if (ch == PS2Keyboard::key_event_t::F6)  RAW_COMBO(ESCAPE, 'O', 'u')
+        else if (ch == PS2Keyboard::key_event_t::F7)  RAW_COMBO(ESCAPE, 'O', 'v')
+        else if (ch == PS2Keyboard::key_event_t::F8)  RAW_COMBO(ESCAPE, 'O', '1')
+        else if (ch == PS2Keyboard::key_event_t::F9)  RAW_COMBO(ESCAPE, 'O', 'w')
+        else if (ch == PS2Keyboard::key_event_t::F10) RAW_COMBO(ESCAPE, 'O', 'x')
+        else {
+            TAG_DEBUG(RAWTTY, "unknown HBS sequence - ignoring");
+        }
+    }
+    else {
+        char c = (char)(ch & 0x00FF);
+        mInput.appendOne(c);
+        if (c == input_t::EOF_MARKER) {
+            mMode = mode_t::CONSUME_BUFFER;
+            TAG_DEBUG(RAWTTY, "processed EOF");
+        } else if (c == '\n') {
+            mMode = mode_t::CONSUME_BUFFER;
+            TAG_DEBUG(RAWTTY, "processed newline");
+        }
+    }
 }
 
 size_t TTYFile::read(size_t n, char* b) {
