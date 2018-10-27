@@ -195,10 +195,8 @@ static void keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
 }
 
 PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
-    gIsBreakCode = false;
-    gIsLong = false;
-    gCapsLock = false;
-    gShift = false;
+    gIsBreakCode = gIsLong = gCapsLock = gShift = false;
+    gCtrlDown = gAltDown = gDeleteDown = false;
 
     bzero(&gKeyboardBuffer, sizeof(gKeyboardBuffer));
 
