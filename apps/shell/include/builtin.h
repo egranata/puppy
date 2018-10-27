@@ -23,4 +23,9 @@ bool registerBuiltinCommand(const char*, builtin_cmd_f);
 
 bool tryExecBuiltin(const char* program, char** args);
 
+#define REGISTER_BUILTIN(name, executor) \
+    static void __attribute__((constructor)) name ## _register() { \
+        registerBuiltinCommand(#name, executor); \
+    }
+
 #endif

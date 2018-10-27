@@ -14,6 +14,7 @@
 
 #include "../include/cwd.h"
 #include "../include/runfile.h"
+#include "../include/builtin.h"
 
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
@@ -22,19 +23,23 @@
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
 
-void script_exec(char** args) {
+bool script_exec(char** args) {
     runfile(args[1]);
+    return true;
 }
+REGISTER_BUILTIN(script, script_exec);
 
-void cd_exec(char** args) {
+bool cd_exec(char** args) {
     if (chdir(args[1])) {
         printf("can't set cwd to '%s'\n", args[1]);
     } else {
         setenv("PWD", getCurrentDirectory().c_str(), 1);
     }
+    return true;
 }
+REGISTER_BUILTIN(cd, cd_exec);
 
-void env_exec(char** args) {
+bool env_exec(char** args) {
     if (args[1]) {
         char* eq = strchr(args[1], '=');
         if (eq == nullptr) {
@@ -55,5 +60,6 @@ void env_exec(char** args) {
             printf("%s\n", environ[i++]);
         }
     }
+    return true;
 }
-
+REGISTER_BUILTIN(env, env_exec);

@@ -27,6 +27,12 @@ namespace {
     }
 }
 
+bool registerBuiltinCommand(const char* name, builtin_cmd_f f) {
+    auto& map = getBuiltinMap();
+    auto ok = map.emplace(name, f);
+    return ok.second;
+}
+
 bool tryExecBuiltin(const char* program, char** args) {
     // ignore empty lines and comments
     if (program == nullptr || program[0] == 0) return true;
