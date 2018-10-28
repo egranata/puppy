@@ -27,6 +27,8 @@
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 
+#include <linenoise/linenoise.h>
+
 #include "include/builtin.h"
 #include "include/cwd.h"
 #include "include/exit.h"
@@ -34,6 +36,7 @@
 #include "include/runfile.h"
 #include "include/runline.h"
 #include "include/str.h"
+#include "include/history.h"
 
 static void writeToLog(const char* msg) {
     static FILE* klog = nullptr;
@@ -52,16 +55,24 @@ static void runInitShellTasks() {
 }
 
 static int interactiveLoop() {
-    bool eof = false;
     eastl::string prompt;
+    History& history(History::defaultHistory());
+    int count = 0;
 
     while(true) {
         tryCollect();
-
         getPrompt(prompt);
-        auto cmdline = getline(prompt.c_str(), eof);
-        if (eof) return 0;
-        runline(cmdline);
+        auto cmdline_cstr = linenoise(prompt.c_str());
+        if (cmdline_cstr == nullptr) return 0;
+        eastl::string cmdline = cmdline_cstr;
+        linenoiseFree(cmdline_cstr);
+        if (runline(cmdline)) {
+            history.add(cmdline);
+            if (++count == 10) {
+                history.save();
+                count = 0;
+            }
+        }
     }
 }
 

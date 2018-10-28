@@ -23,12 +23,12 @@
 
 #include <libshell/expand.h>
 
-static void runInShell(const char* program, size_t argc, char** args, bool is_bg) {
+static bool runInShell(const char* program, size_t argc, char** args, bool is_bg) {
     if (is_bg || !tryExecBuiltin(program, argc, args)) {
         auto real_program = getProgramPath(program);
         if (real_program.empty()) {
             printf("%s: not found in PATH\n", program);
-            return;
+            return false;
         }
         auto chld = spawn(real_program.c_str(), args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND), nullptr);
         if (is_bg) {
@@ -39,17 +39,19 @@ static void runInShell(const char* program, size_t argc, char** args, bool is_bg
             handleExitStatus(chld, exitcode, false);
         }
     }
+    return true;
 }
 
-void runline(eastl::string cmdline) {
+bool runline(eastl::string cmdline) {
     trim(cmdline);
-    if(cmdline.empty()) return;
+    if(cmdline.empty()) return true;
 
     const bool is_bg = (cmdline.back() == '&');
     if (is_bg) cmdline.pop_back();
 
     size_t argc;
     auto argv = libShellSupport::parseCommandLine(cmdline.c_str(), &argc);
-    runInShell(argv[0], argc, argv, is_bg);
+    bool ok = runInShell(argv[0], argc, argv, is_bg);
     libShellSupport::freeCommandLine(argv);
+    return ok;
 }

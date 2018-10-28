@@ -12,11 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SHELL_RUNLINE
-#define SHELL_RUNLINE
+#include "../include/history.h"
+#include <linenoise/linenoise.h>
 
-#include <EASTL/string.h>
+History::History(const char* path) : mFilePath(path) {
+    linenoiseHistoryLoad(mFilePath.c_str());
+}
 
-bool runline(eastl::string cmdline);
+History::~History() {
+    save();
+}
 
-#endif
+void History::add(const eastl::string& s) {
+    linenoiseHistoryAdd(s.c_str());
+}
+
+void History::save() {
+    linenoiseHistorySave(mFilePath.c_str());
+}
+
+History& History::defaultHistory() {
+    static History gHistory;
+    return gHistory;
+}

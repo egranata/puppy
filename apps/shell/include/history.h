@@ -12,11 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SHELL_RUNLINE
-#define SHELL_RUNLINE
+#ifndef SHELL_HISTORY
+#define SHELL_HISTORY
 
 #include <EASTL/string.h>
 
-bool runline(eastl::string cmdline);
+class History {
+    public:
+        History(const char* path = "/system/config/shell.history");
+        void save();
+        ~History();
+
+        void add(const eastl::string& s);
+
+        static History& defaultHistory();
+    private:
+        eastl::string mFilePath;
+};
 
 #endif
