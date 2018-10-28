@@ -20,6 +20,8 @@
 
 #include <xnu_font/font.c>
 
+LOG_TAG(POSITION, 2);
+
 #ifndef FONT_WIDTH
 	#ifdef ISO_CHAR_WIDTH
 		#define FONT_WIDTH ISO_CHAR_WIDTH
@@ -118,10 +120,10 @@ uint16_t Framebuffer::columns() const {
 }
 
 uint16_t Framebuffer::row() const {
-	return mX;
+	return mX / FONT_HEIGHT;
 }
 uint16_t Framebuffer::column() const {
-	return mY;
+	return mY / FONT_WIDTH;
 }
 
 void Framebuffer::setfg(const color_t& c) {
@@ -133,15 +135,17 @@ void Framebuffer::setbg(const color_t& c, bool recolor) {
 	if (recolor) this->recolor(oldBackground, mBackground);
 }
 
-void Framebuffer::setRow(uint16_t r) {
-	auto y = r * FONT_HEIGHT;
-	if (y > mHeight) y = mHeight;
-	mY = y;
+void Framebuffer::setRow(uint16_t r) {	
+	auto x = r * FONT_HEIGHT;
+	if (x > mHeight) x = mHeight;
+	TAG_DEBUG(POSITION, "r = %u, x = %u", r, x);
+	mX = x;
 }
 void Framebuffer::setCol(uint16_t c) {
-	auto x = c * FONT_WIDTH;
-	if (x > mWidth) x = mWidth;
-	mX = x;
+	auto y = c * FONT_WIDTH;
+	if (y > mWidth) y = mWidth;
+	TAG_DEBUG(POSITION, "c = %u, y = %u", c, y);
+	mY = y;
 }
 
 void Framebuffer::cls() {

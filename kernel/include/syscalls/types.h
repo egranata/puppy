@@ -101,7 +101,7 @@ enum class blockdevice_ioctl_t : uintptr_t {
 enum tty_ioctl_t {
         IOCTL_FOREGROUND            = 0x77100001, // a2 = pid
         IOCTL_BACKGROUND            = 0x77100002, // a2 = reserved
-        IOCTL_MOVECURSOR            = 0x77100003, // a2 = low = row, high = col
+        IOCTL_MOVECURSOR            = 0x77100003, // a2 = 0xRRRRCCCC
         IOCTL_VISIBLE_AREA          = 0x77100004, // a2 = pointer to 0xRRRRCCCC
         IOCTL_CURSOR_POS            = 0x77100005, // a2 = pointer to 0xRRRRCCCC
         IOCTL_GET_FG_COLOR          = 0x77100006, // a2 = pointer to 0x00RRGGBB
@@ -192,7 +192,9 @@ enum class prioritize_target : bool {
     PRIORITIZE_SET_MAXIMUM = true
 };
 
+#ifndef TIOCGWINSZ
 static constexpr uint32_t TIOCGWINSZ = 0x40087468;
+#endif
 struct winsize_t { // the return of TIOCGWINSZ
   unsigned short ws_row;	/* rows, in characters */
   unsigned short ws_col;	/* columns, in characters */

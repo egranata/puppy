@@ -245,19 +245,19 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             mTTY->popfg();
             return 1;
         case IOCTL_MOVECURSOR: {
-            uint16_t row = a2 & 0xFFFF;
-            uint16_t col = a2 >> 16;
+            uint16_t col = a2 & 0xFFFF;
+            uint16_t row = a2 >> 16;
             mTTY->setPosition(row, col);
             return 1;
         }
         case IOCTL_VISIBLE_AREA: {
             uint16_t *pi = (uint16_t*)a2;
-            mTTY->getSize(pi, pi+1);
+            mTTY->getSize(pi+1, pi);
             return 1;
         }
         case IOCTL_CURSOR_POS: {
             uint16_t *pi = (uint16_t*)a2;
-            mTTY->getPosition(pi, pi+1);
+            mTTY->getPosition(pi+1, pi);
             return 1;
         }
         case IOCTL_GET_FG_COLOR: {
