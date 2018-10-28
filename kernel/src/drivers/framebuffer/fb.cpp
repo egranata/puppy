@@ -305,6 +305,7 @@ Framebuffer& Framebuffer::putc(char c, const color_t& color) {
 			linefeed();
 			break;
 		default:
+			clearAtCursor();
 			putchar(mX, mY, c, color);
 			advance();
 			break;
