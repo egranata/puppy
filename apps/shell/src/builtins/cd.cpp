@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cwd.h"
-#include "../include/runfile.h"
-#include "../include/builtin.h"
+#include "../../include/cwd.h"
+#include "../../include/runfile.h"
+#include "../../include/builtin.h"
 
 #include <newlib/stdlib.h>
 #include <newlib/stdio.h>
@@ -22,14 +22,6 @@
 #include <newlib/strings.h>
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
-
-bool script_exec(size_t argc, char** argv) {
-    if (argc != 2) return false;
-
-    runfile(argv[1]);
-    return true;
-}
-REGISTER_BUILTIN(script, script_exec);
 
 bool cd_exec(size_t argc, char** argv) {
     if (argc != 2) return false;
@@ -44,33 +36,3 @@ bool cd_exec(size_t argc, char** argv) {
 }
 REGISTER_BUILTIN(cd, cd_exec);
 
-static void set_env(char* arg) {
-    char* eq = strchr(arg, '=');
-    if (eq == nullptr) {
-            auto val = getenv(arg);
-            printf("%s=%s\n", arg, val);
-    } else {
-        // env ENVV= deletes the variable
-        if (eq[1] == 0) {
-            *eq = 0;
-            unsetenv(arg);
-        } else {
-            putenv((char*)arg);
-        }
-    }
-}
-bool env_exec(size_t argc, char** argv) {
-    if (argc == 1) {
-        auto i = 0;
-        while(environ && environ[i]) {
-            printf("%s\n", environ[i++]);
-        }
-        return true;
-    }
-
-    for (size_t i = 1; i < argc; ++i) {
-        set_env(argv[i]);
-    }
-    return true;
-}
-REGISTER_BUILTIN(env, env_exec);
