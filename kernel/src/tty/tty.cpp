@@ -18,7 +18,7 @@
 #include <kernel/log/log.h>
 #include <kernel/tasks/keybqueue.h>
 
-TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()), mEOF(false) {}
+TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()) {}
 
 void TTY::write(size_t sz, const char* buffer) {
     mWriteSemaphore.wait();
@@ -70,43 +70,7 @@ kpid_t TTY::popfg() {
     return mForeground.push(pmm.initpid()), mForeground.peek();
 }
 
-void TTY::resetEOF() {
-    mEOF = false;
-}
-
-#define CTRL evt.ctrldown
-#define ALT evt.altdown
-#define KEY(x) (evt.keycode == x)
-
-bool TTY::interceptChords(const key_event_t& evt) {
-    if (evt.down) return false;
-    if (CTRL && ALT && (KEY('K') || KEY('k'))) {
-        mFramebuffer.cls();
-        return true;
-    }
-
-    if (CTRL && (KEY('C') || KEY('c'))) {
-        if (!mForeground.empty()) {
-            auto pid = mForeground.peek();
-            ProcessManager::get().kill(pid);
-            return true;
-        }
-    }
-
-    if (CTRL && (KEY('D') || KEY('d'))) {
-        if (!mForeground.empty()) {
-            mEOF = true;
-            return true;
-        }
-    }
-    return false;
-}
-
-#undef CTRL
-#undef ALT
-#undef KEY
-
-int TTY::read() {
+key_event_t TTY::readKeyEvent() {
     bool allow = false;
     
     do {
@@ -122,36 +86,9 @@ int TTY::read() {
         }
     } while(false == allow);
 
-    // refuse to return anything except EOF when in EOF mode
-    if (mEOF) {
-        return TTY_EOF_MARKER;
-    }
-
-tryget:
-    key_event_t evt = tasks::keybqueue::readKey();
-    if (evt.keycode == 0) return TTY_NO_INPUT; // out of input
-    if (interceptChords(evt)) {
-        if (mEOF) {
-            // CTRL+D can be used as a chord to generate EOF, so
-            // evaluate EOF again here
-            return TTY_EOF_MARKER;
-        } else {
-            // chord didn't cause EOF - keep trying
-            goto tryget;
-        }
-    }
-    if (evt.down == false) {
-        switch (evt.keycode) {
-            case '\b':
-            case '\n':
-                return evt.keycode;
-            default:
-                if (evt.keycode >= ' ')
-                    return evt.keycode;
-        }
-    }
-
-    return TTY_NO_INPUT;
+    auto evt = tasks::keybqueue::readKey();
+    if (evt.down || evt.keycode == 0) return key_event_t();
+    return evt;
 }
 
 void TTY::setPosition(uint16_t row, uint16_t col) {
@@ -188,4 +125,15 @@ void TTY::setBackgroundColor(uint32_t color) {
 
 void TTY::clearLine(bool from_cursor, bool to_cursor) {
     mFramebuffer.clearLine(from_cursor, to_cursor);
+}
+
+void TTY::clearScreen() {
+    mFramebuffer.cls();
+}
+
+void TTY::killForegroundProcess() {
+    if (!mForeground.empty()) {
+        auto pid = mForeground.peek();
+        ProcessManager::get().kill(pid);
+    }
 }

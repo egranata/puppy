@@ -67,11 +67,13 @@ class TTYFile : public Filesystem::File {
         } mEscapeStatus = escape_sequence_status_t::OFF;
         int mEscapeSequenceInput = 0;
 
-        uint16_t procureOne();
+        key_event_t procureOne();
 
-        void processOne_Canonical(uint16_t ch);
-        void processOne_Raw(uint16_t ch);
+        void processOne_Canonical(key_event_t ch);
+        void processOne_Raw(key_event_t ch);
 
+        // true means the chord is handled, false means bubble it upwards
+        bool interceptChords_Canonical(const key_event_t&, bool* eofHappened);
 };
 
 #endif

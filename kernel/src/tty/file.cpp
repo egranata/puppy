@@ -71,22 +71,53 @@ bool TTYFile::seek(size_t) {
 }
 
 // TODO: this should be using waitqueues - not yielding
-uint16_t TTYFile::procureOne() {
+key_event_t TTYFile::procureOne() {
 ch:
-    auto c = mTTY->read();
-    if (c == TTY::TTY_NO_INPUT) {
+    auto key_evt = mTTY->readKeyEvent();
+    if (key_evt.keycode == 0) {
         ProcessManager::get().yield();
         goto ch;
+    } else {
+        return key_evt;
     }
-    if (c == TTY::TTY_EOF_MARKER) {
-        return 0xFF;
-    }
-    // TODO: this truncates sequences with high-byte set; it should not
-    return c;
 }
 
-void TTYFile::processOne_Canonical(uint16_t ch) {
+#define CTRL evt.ctrldown
+#define ALT evt.altdown
+#define KEY(x) (evt.keycode == x)
+
+bool TTYFile::interceptChords_Canonical(const key_event_t& evt, bool* eofHappened) {
+    if (evt.down) return false;
+    if (CTRL && ALT && (KEY('K') || KEY('k'))) {
+        mTTY->clearScreen();
+        return true;
+    }
+
+    if (CTRL && (KEY('C') || KEY('c'))) {
+        mTTY->killForegroundProcess();
+        return true;
+    }
+
+    if (CTRL && (KEY('D') || KEY('d'))) {
+        *eofHappened = true;
+        return true;
+    }
+    return false;
+}
+
+void TTYFile::processOne_Canonical(key_event_t evt) {
+    bool eof = false;
     bool swallow = false;
+
+    if (interceptChords_Canonical(evt, &eof)) {
+        if (eof) {
+            mInput.appendOne(input_t::EOF_MARKER);
+            mMode = mode_t::CONSUME_BUFFER;
+        }
+        return;
+    }
+
+    uint16_t ch = evt.keycode;
     TAG_DEBUG(TTYFILE, "got a character: %x", ch);
     // ignore HBS characters; they are not for us
     if (ch & 0xFF00) {
@@ -137,8 +168,9 @@ void TTYFile::processOne_Canonical(uint16_t ch) {
 }
 #define ESCAPE 27
 
-void TTYFile::processOne_Raw(uint16_t ch) {
+void TTYFile::processOne_Raw(key_event_t evt) {
     bool ignored = false;
+    uint16_t ch = evt.keycode;
     TAG_DEBUG(RAWTTY, "got a character: %x", ch);
     if (ch & 0xFF00) {
         if      (ch == key_event_t::UP)       RAW_COMBO(ESCAPE, '[', 'A')
@@ -176,7 +208,7 @@ entry:
     if (n == 0) return n;
 
     while (mMode == mode_t::READ_FROM_IRQ) {
-        uint16_t ch = procureOne();
+        auto ch = procureOne();
         switch (mDiscipline) {
             case discipline_t::CANONICAL:
                 processOne_Canonical(ch);

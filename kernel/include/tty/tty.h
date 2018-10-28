@@ -35,11 +35,10 @@ class TTY {
 
         TTY();
         void write(size_t sz, const char* buffer);
-        int read();
+        key_event_t readKeyEvent();
 
         void pushfg(kpid_t);
         kpid_t popfg();
-        void resetEOF();
 
         void setPosition(uint16_t row, uint16_t col);
         void getPosition(uint16_t *row, uint16_t* col);
@@ -53,19 +52,18 @@ class TTY {
         void setBackgroundColor(uint32_t color);
 
         void clearLine(bool from_cursor, bool to_cursor);
+        void clearScreen();
+
+        void killForegroundProcess();
 
     private:
         static constexpr size_t gQueueSize = 1024;
-
-        // true means the chord is handled, false means bubble it upwards
-        bool interceptChords(const key_event_t&);
 
         Semaphore mWriteSemaphore;
         FixSizeStack<uint16_t, 32> mForeground;
         queue<char, gQueueSize> mOutQueue;
         queue<char, gQueueSize> mInQueue;
         Framebuffer& mFramebuffer;
-        bool mEOF;
         WaitQueue mForegroundWQ;
 };
 
