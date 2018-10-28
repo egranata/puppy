@@ -33,10 +33,8 @@ static int usage() {
 
 static void parseCommandLine(int argc, char** argv, eastl::string& prog, eastl::string& args) {
     prog = argv[1];
-    if (argc > 2) {
-        for(int i = 2; i < argc; ++i) {
-            args.append_sprintf("\"%s\" ", argv[i]);
-        }
+    for(int i = 1; i < argc; ++i) {
+        args.append_sprintf("\"%s\" ", argv[i]);
     }
 }
 
@@ -129,7 +127,6 @@ int main(int argc, char** argv) {
     spawn(target_program.c_str(), parsedArgv, SPAWN_BACKGROUND | PROCESS_INHERITS_CWD | PROCESS_INHERITS_ENVIRONMENT, fops);
     fclose_syscall(wfd);
     readToEnd(rfd);
-    libShellSupport::freeCommandLine(argv);
-
+    libShellSupport::freeCommandLine(parsedArgv);
     return 0;
 }
