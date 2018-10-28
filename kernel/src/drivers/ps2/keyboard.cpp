@@ -142,10 +142,10 @@ static bool parse_scan_code() {
             gCapsLock ? gCapslockScancodeMap : gLowercaseScancodeMap)[b];
         event.ctrldown = gCtrlDown;
         event.altdown = gAltDown;
-        if (gIsLong) event.keymap = key_event_t::keymap_to_use::LONG;
-        else if (gShift) event.keymap = key_event_t::keymap_to_use::SHIFT;
-        else if(gCapsLock) event.keymap = key_event_t::keymap_to_use::CAPS_LOCK;
-        else event.keymap = key_event_t::keymap_to_use::LOWERCASE;
+        if (gIsLong) event.keymap = key_event_t::keymap_to_use::KEYMAP_LONG;
+        else if (gShift) event.keymap = key_event_t::keymap_to_use::KEYMAP_SHIFT;
+        else if(gCapsLock) event.keymap = key_event_t::keymap_to_use::KEYMAP_CAPS_LOCK;
+        else event.keymap = key_event_t::keymap_to_use::KEYMAP_LOWERCASE;
 
         new_evt = true;
 
