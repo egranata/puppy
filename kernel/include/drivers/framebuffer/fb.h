@@ -88,6 +88,7 @@ class Framebuffer : NOCOPY {
         void advance();
         void rewind(bool erase);
         void nl();
+        void linefeed();
 
         uint32_t mPadding[512];
         uint16_t mWidth;

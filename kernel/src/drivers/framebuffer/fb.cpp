@@ -228,6 +228,10 @@ void Framebuffer::advance() {
 	if ((mY + FONT_WIDTH) >= mWidth) nl();
 }
 
+void Framebuffer::linefeed() {
+	mY = 0;
+}
+
 void Framebuffer::nl() {
 	mX += FONT_HEIGHT;
 	mY = 0;
@@ -274,6 +278,9 @@ Framebuffer& Framebuffer::putc(char c, const color_t& color) {
 			break;
 		case '\b':
 			rewind(true);
+			break;
+		case '\r':
+			linefeed();
 			break;
 		default:
 			putchar(mX, mY, c, color);
