@@ -23,16 +23,62 @@
 #include <newlib/syscalls.h>
 #include <newlib/unistd.h>
 
-bool cd_exec(size_t argc, char** argv) {
-    if (argc != 2) return false;
+#include <EASTL/vector.h>
+#include <EASTL/stack.h>
+#include <EASTL/string.h>
 
-    if (chdir(argv[1])) {
-        printf("can't set cwd to '%s'\n", argv[1]);
+namespace {
+    typedef eastl::stack<eastl::string> dir_stack_t;
+    dir_stack_t& dirStack() {
+        static dir_stack_t gStack;
+        return gStack;
+    }
+}
+
+static bool do_chdir(const char* dir) {
+    if (chdir(dir)) {
+        printf("can't set cwd to '%s'\n", dir);
         return false;
     }
     
     setenv("PWD", getCurrentDirectory().c_str(), 1);
     return true;
 }
+
+static bool do_pushd(const char* dir) {
+    auto cur_dir = getCurrentDirectory();
+    if (do_chdir(dir)) {
+        dirStack().push(cur_dir);
+        return true;
+    }
+    return false;
+}
+
+static bool do_popd() {
+    if (dirStack().empty()) return false;
+    auto dir = dirStack().top();
+    dirStack().pop();
+    return do_chdir(dir.c_str());
+}
+
+bool cd_exec(size_t argc, char** argv) {
+    if (argc != 2) return false;
+
+    if (0 == strcmp("-", argv[1])) {
+        return do_popd();
+    } else {
+        return do_pushd(argv[1]);
+    }
+}
 REGISTER_BUILTIN(cd, cd_exec);
 
+bool dirs_exec(size_t, char**) {
+    const auto& stk_baking = dirStack().get_container();
+    for(const auto& item : stk_baking) {
+        printf("%s ", item.c_str());
+    }
+    printf("\n");
+
+    return true;
+}
+REGISTER_BUILTIN(dirs, dirs_exec);
