@@ -24,6 +24,8 @@
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 
+#include <kernel/syscalls/types.h>
+
 struct color_t {
     uint8_t red;
     uint8_t green;
@@ -92,8 +94,6 @@ static bool loadFromDisk(const char* path, ColorMap& dest) {
 }
 
 static bool setForeground(const char* color, ColorMap& colors) {
-    static constexpr uint32_t IOCTL_SET_FG_COLOR = 7;
-
     auto iter = colors.find(color), end = colors.end();
     if (iter == end) return false;
 
@@ -101,8 +101,6 @@ static bool setForeground(const char* color, ColorMap& colors) {
 }
 
 static bool setBackground(const char* color, ColorMap& colors) {
-    static constexpr uint32_t IOCTL_SET_BG_COLOR = 9;
-
     auto iter = colors.find(color), end = colors.end();
     if (iter == end) return false;
 
