@@ -263,6 +263,7 @@ size_t TTYFile::write(size_t s, char* buffer) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
                     if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move forward by %d", mEscapeSequenceInput);
                     uint16_t row = 0, col = 0;
                     mTTY->getPosition(&row, &col);
                     col += mEscapeSequenceInput;
@@ -274,6 +275,7 @@ size_t TTYFile::write(size_t s, char* buffer) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
                     if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move backwards by %d", mEscapeSequenceInput);
                     uint16_t row = 0, col = 0;
                     mTTY->getPosition(&row, &col);
                     if (col >= mEscapeSequenceInput) col -= mEscapeSequenceInput;
@@ -284,6 +286,7 @@ size_t TTYFile::write(size_t s, char* buffer) {
             case 'K': {
                 writeThis = false;
                 mEscapeStatus = escape_sequence_status_t::OFF;
+                TAG_DEBUG(RAWTTY, "screen clear command %d", mEscapeSequenceInput);
                 if (mEscapeSequenceInput == 0) mTTY->clearLine(false, true);
                 if (mEscapeSequenceInput == 1) mTTY->clearLine(true, false);
                 if (mEscapeSequenceInput == 2) mTTY->clearLine(true, true);
