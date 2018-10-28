@@ -59,6 +59,14 @@ class TTYFile : public Filesystem::File {
             CANONICAL = 11,
         } mDiscipline = discipline_t::CANONICAL;
 
+        // TODO: support more than just basic one input CSI
+        enum class escape_sequence_status_t {
+            OFF,
+            ESC,
+            CSI
+        } mEscapeStatus = escape_sequence_status_t::OFF;
+        int mEscapeSequenceInput = 0;
+
         uint16_t procureOne();
 
         void processOne_Canonical(uint16_t ch);

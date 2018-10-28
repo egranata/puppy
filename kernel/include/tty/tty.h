@@ -51,6 +51,8 @@ class TTY {
         void setForegroundColor(uint32_t color);
         void setBackgroundColor(uint32_t color);
 
+        void clearLine(bool from_cursor, bool to_cursor);
+
     private:
         static constexpr size_t gQueueSize = 1024;
 

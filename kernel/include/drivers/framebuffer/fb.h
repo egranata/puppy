@@ -75,6 +75,8 @@ class Framebuffer : NOCOPY {
         uintptr_t map(uintptr_t base);
 
         void cls();
+        void clearAtCursor();
+        void clearLine(bool to_cursor, bool from_cursor);
 
     private:
         Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);

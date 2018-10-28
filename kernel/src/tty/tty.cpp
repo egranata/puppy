@@ -185,3 +185,7 @@ void TTY::setBackgroundColor(uint32_t color) {
     const bool recolor = true;
     mFramebuffer.setbg(Framebuffer::color_t(color), recolor);
 }
+
+void TTY::clearLine(bool from_cursor, bool to_cursor) {
+    mFramebuffer.clearLine(from_cursor, to_cursor);
+}

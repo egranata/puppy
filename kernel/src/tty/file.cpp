@@ -226,8 +226,75 @@ entry:
 }
 
 size_t TTYFile::write(size_t s, char* buffer) {
-    mTTY->write(s, buffer);
-    return s;
+    const size_t s0 = s;
+
+    for(; s; ++buffer, --s) {
+        char c = *buffer;
+        bool writeThis = true;
+        switch (c) {
+            case ESCAPE: {
+                writeThis = false;
+                mEscapeStatus = escape_sequence_status_t::ESC;
+                mEscapeSequenceInput = 0;
+            } break;
+            case '[': {
+                if (mEscapeStatus == escape_sequence_status_t::ESC) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::CSI;
+                }
+            } break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeSequenceInput = 10 * mEscapeSequenceInput + (c - '0');
+                }
+            } break;
+            case 'C': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::OFF;
+                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
+                    uint16_t row = 0, col = 0;
+                    mTTY->getPosition(&row, &col);
+                    col += mEscapeSequenceInput;
+                    mTTY->setPosition(row, col);
+                }
+            } break;
+            case 'D': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::OFF;
+                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
+                    uint16_t row = 0, col = 0;
+                    mTTY->getPosition(&row, &col);
+                    if (col >= mEscapeSequenceInput) col -= mEscapeSequenceInput;
+                    else col = 0;
+                    mTTY->setPosition(row, col);
+                }
+            } break;
+            case 'K': {
+                writeThis = false;
+                mEscapeStatus = escape_sequence_status_t::OFF;
+                if (mEscapeSequenceInput == 0) mTTY->clearLine(false, true);
+                if (mEscapeSequenceInput == 1) mTTY->clearLine(true, false);
+                if (mEscapeSequenceInput == 2) mTTY->clearLine(true, true);
+            } break;
+        }
+        if (writeThis) {
+            mTTY->write(1, &c);
+        }
+    }
+
+    return s0;
 }
 
 bool TTYFile::stat(stat_t&) {

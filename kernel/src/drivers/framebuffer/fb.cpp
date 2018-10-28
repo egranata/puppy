@@ -201,7 +201,7 @@ void Framebuffer::putchar(uint16_t start_x, uint16_t start_y, uint8_t chr, const
 	putdata(fontdata, start_x, start_y, color);
 }
 
-void Framebuffer::rewind(bool erase) {
+void Framebuffer::clearAtCursor() {
 	// we know FONT_HEIGHT to be 16 - but in the interest of pretending to be generalizing, just write *a lot* of extra bytes anyway
 	// (this is cheap because we always pass by pointer + it's just 40 bytes anyway & we're on a PC); as long as the size of the array
 	// is at least as large as FONT_HEIGHT we will be fine here; and the assert below will tell us if we ever need to add more
@@ -213,6 +213,28 @@ void Framebuffer::rewind(bool erase) {
 	};
 	static_assert(sizeof(gFiller) >= FONT_HEIGHT);
 
+	putdata(gFiller, mX, mY, mBackground);
+}
+
+void Framebuffer::clearLine(bool to_cursor, bool from_cursor) {
+	auto col0 = column();
+	if (to_cursor) {
+		for(uint16_t col = 0; col <= col0; ++col) {
+			setCol(col);
+			clearAtCursor();
+		}
+		setCol(col0);
+	}
+	if (from_cursor) {
+		for(uint16_t col = col0; col < columns(); ++col) {
+			setCol(col);
+			clearAtCursor();
+		}
+		setCol(col0);
+	}
+}
+
+void Framebuffer::rewind(bool erase) {
 	if (mY > 0) {
 		mY -= FONT_WIDTH;
 	} else if (mX > 0) {
@@ -220,7 +242,7 @@ void Framebuffer::rewind(bool erase) {
 		mX -= FONT_HEIGHT;
 	}
 
-	if (erase) putdata(gFiller, mX, mY, mBackground);
+	if (erase) clearAtCursor();
 }
 
 void Framebuffer::advance() {
