@@ -12,16 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TASKS_KEYBQUEUE
-#define TASKS_KEYBQUEUE
-
-#include <kernel/tasks/task.h>
 #include <kernel/tty/keyevent.h>
+#include <kernel/libc/string.h>
 
-KERNEL_TASK_NAMESPACE(keybqueue)
-
-namespace tasks::keybqueue {
-    key_event_t readKey();
+key_event_t::key_event_t() {
+    bzero(this, sizeof(*this));
 }
-
-#endif

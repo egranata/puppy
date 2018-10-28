@@ -22,18 +22,14 @@
 
 LOG_TAG(BOOTINFO, 0);
 
-PS2Keyboard::key_event_t::key_event_t() {
-    bzero(this, sizeof(*this));
-}
-
 static struct keyb_buffer_t {
     static constexpr uint8_t gBufferSize = 128;
-    PS2Keyboard::key_event_t mBuffer[gBufferSize];
+    key_event_t mBuffer[gBufferSize];
     uint8_t mWriteIdx = 0;
     uint8_t mReadIdx = 0;
 } gKeyboardBuffer;
 
-#define KC(x) PS2Keyboard::key_event_t:: x
+#define KC(x) key_event_t:: x
 
 static uint16_t gCapslockScancodeMap[256] = {
  // 0x00  0x01  0x02  0x03  0x04  0x05  0x06  0x07  0x08  0x09  0x0a  0x0b  0x0c  0x0d  0x0e  0x0f   
@@ -146,10 +142,10 @@ static bool parse_scan_code() {
             gCapsLock ? gCapslockScancodeMap : gLowercaseScancodeMap)[b];
         event.ctrldown = gCtrlDown;
         event.altdown = gAltDown;
-        if (gIsLong) event.keymap = PS2Keyboard::key_event_t::keymap_to_use::LONG;
-        else if (gShift) event.keymap = PS2Keyboard::key_event_t::keymap_to_use::SHIFT;
-        else if(gCapsLock) event.keymap = PS2Keyboard::key_event_t::keymap_to_use::CAPS_LOCK;
-        else event.keymap = PS2Keyboard::key_event_t::keymap_to_use::LOWERCASE;
+        if (gIsLong) event.keymap = key_event_t::keymap_to_use::LONG;
+        else if (gShift) event.keymap = key_event_t::keymap_to_use::SHIFT;
+        else if(gCapsLock) event.keymap = key_event_t::keymap_to_use::CAPS_LOCK;
+        else event.keymap = key_event_t::keymap_to_use::LOWERCASE;
 
         new_evt = true;
 

@@ -26,6 +26,7 @@
 #include <kernel/drivers/framebuffer/fb.h>
 #include <kernel/drivers/ps2/keyboard.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/tty/keyevent.h>
 
 class TTY {
     public:
@@ -57,7 +58,7 @@ class TTY {
         static constexpr size_t gQueueSize = 1024;
 
         // true means the chord is handled, false means bubble it upwards
-        bool interceptChords(const PS2Keyboard::key_event_t&);
+        bool interceptChords(const key_event_t&);
 
         Semaphore mWriteSemaphore;
         FixSizeStack<uint16_t, 32> mForeground;

@@ -141,21 +141,21 @@ void TTYFile::processOne_Raw(uint16_t ch) {
     bool ignored = false;
     TAG_DEBUG(RAWTTY, "got a character: %x", ch);
     if (ch & 0xFF00) {
-        if (ch == PS2Keyboard::key_event_t::UP)       RAW_COMBO(ESCAPE, '[', 'A')
-        else if (ch == PS2Keyboard::key_event_t::DWN) RAW_COMBO(ESCAPE, '[', 'B')
-        else if (ch == PS2Keyboard::key_event_t::RHT) RAW_COMBO(ESCAPE, '[', 'C')
-        else if (ch == PS2Keyboard::key_event_t::LFT) RAW_COMBO(ESCAPE, '[', 'D')
-        else if (ch == PS2Keyboard::key_event_t::F1)  RAW_COMBO(ESCAPE, 'O', 'P')
-        else if (ch == PS2Keyboard::key_event_t::F2)  RAW_COMBO(ESCAPE, 'O', 'Q')
-        else if (ch == PS2Keyboard::key_event_t::F3)  RAW_COMBO(ESCAPE, 'O', 'R')
-        else if (ch == PS2Keyboard::key_event_t::F4)  RAW_COMBO(ESCAPE, 'O', 'S')
-        else if (ch == PS2Keyboard::key_event_t::F5)  RAW_COMBO(ESCAPE, 'O', 't')
-        else if (ch == PS2Keyboard::key_event_t::F6)  RAW_COMBO(ESCAPE, 'O', 'u')
-        else if (ch == PS2Keyboard::key_event_t::F7)  RAW_COMBO(ESCAPE, 'O', 'v')
-        else if (ch == PS2Keyboard::key_event_t::F8)  RAW_COMBO(ESCAPE, 'O', '1')
-        else if (ch == PS2Keyboard::key_event_t::F9)  RAW_COMBO(ESCAPE, 'O', 'w')
-        else if (ch == PS2Keyboard::key_event_t::F10) RAW_COMBO(ESCAPE, 'O', 'x')
-        else if (ch == PS2Keyboard::key_event_t::DEL) RAW_COMBO(ESCAPE, '[', '3', '~')
+        if      (ch == key_event_t::UP)       RAW_COMBO(ESCAPE, '[', 'A')
+        else if (ch == key_event_t::DWN) RAW_COMBO(ESCAPE, '[', 'B')
+        else if (ch == key_event_t::RHT) RAW_COMBO(ESCAPE, '[', 'C')
+        else if (ch == key_event_t::LFT) RAW_COMBO(ESCAPE, '[', 'D')
+        else if (ch == key_event_t::F1)  RAW_COMBO(ESCAPE, 'O', 'P')
+        else if (ch == key_event_t::F2)  RAW_COMBO(ESCAPE, 'O', 'Q')
+        else if (ch == key_event_t::F3)  RAW_COMBO(ESCAPE, 'O', 'R')
+        else if (ch == key_event_t::F4)  RAW_COMBO(ESCAPE, 'O', 'S')
+        else if (ch == key_event_t::F5)  RAW_COMBO(ESCAPE, 'O', 't')
+        else if (ch == key_event_t::F6)  RAW_COMBO(ESCAPE, 'O', 'u')
+        else if (ch == key_event_t::F7)  RAW_COMBO(ESCAPE, 'O', 'v')
+        else if (ch == key_event_t::F8)  RAW_COMBO(ESCAPE, 'O', '1')
+        else if (ch == key_event_t::F9)  RAW_COMBO(ESCAPE, 'O', 'w')
+        else if (ch == key_event_t::F10) RAW_COMBO(ESCAPE, 'O', 'x')
+        else if (ch == key_event_t::DEL) RAW_COMBO(ESCAPE, '[', '3', '~')
         else {
             ignored = true;
             TAG_DEBUG(RAWTTY, "unknown HBS sequence - ignoring");
@@ -167,6 +167,8 @@ void TTYFile::processOne_Raw(uint16_t ch) {
     }
     if (!ignored) mMode = mode_t::CONSUME_BUFFER;
 }
+
+#undef RAW_COMBO
 
 size_t TTYFile::read(size_t n, char* b) {
 entry:
@@ -377,3 +379,5 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             return 0;
     }
 }
+
+#undef ESCAPE

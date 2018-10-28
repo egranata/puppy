@@ -26,7 +26,7 @@
 #include <kernel/log/log.h>
 
 namespace tasks::keybqueue {
-    static queue<PS2Keyboard::key_event_t, 2048> gKeyEvents;
+    static queue<key_event_t, 2048> gKeyEvents;
     static WaitQueue* gKeyIRQQueue;
     static PS2Keyboard *gKeyboard;
     static WaitQueue gEventQueue;
@@ -42,7 +42,7 @@ namespace tasks::keybqueue {
         }
     }
 
-    PS2Keyboard::key_event_t readKey() {
+    key_event_t readKey() {
         while (gKeyEvents.empty()) {
             gEventQueue.wait(gCurrentProcess);
         }
@@ -59,7 +59,7 @@ namespace tasks::keybqueue {
             bool any = false;
             {
                 Interrupts::ScopedDisabler sd;
-                PS2Keyboard::key_event_t evt;
+                key_event_t evt;
                 while (gKeyboard->next(&evt)) {
                     any = true;
                     gKeyEvents.write(evt);

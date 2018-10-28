@@ -78,7 +78,7 @@ void TTY::resetEOF() {
 #define ALT evt.altdown
 #define KEY(x) (evt.keycode == x)
 
-bool TTY::interceptChords(const PS2Keyboard::key_event_t& evt) {
+bool TTY::interceptChords(const key_event_t& evt) {
     if (evt.down) return false;
     if (CTRL && ALT && (KEY('K') || KEY('k'))) {
         mFramebuffer.cls();
@@ -128,7 +128,7 @@ int TTY::read() {
     }
 
 tryget:
-    PS2Keyboard::key_event_t evt = tasks::keybqueue::readKey();
+    key_event_t evt = tasks::keybqueue::readKey();
     if (evt.keycode == 0) return TTY_NO_INPUT; // out of input
     if (interceptChords(evt)) {
         if (mEOF) {
