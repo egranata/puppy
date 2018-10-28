@@ -41,6 +41,8 @@ class PS2Keyboard : public PS2Controller::Device {
             static constexpr uint16_t F11        = 0x0275;
             static constexpr uint16_t F12        = 0x0276;
 
+            static constexpr uint16_t DEL        = 0x0365;
+
             enum class keymap_to_use : uint8_t {
                 CAPS_LOCK,
                 SHIFT,

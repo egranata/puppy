@@ -155,6 +155,7 @@ void TTYFile::processOne_Raw(uint16_t ch) {
         else if (ch == PS2Keyboard::key_event_t::F8)  RAW_COMBO(ESCAPE, 'O', '1')
         else if (ch == PS2Keyboard::key_event_t::F9)  RAW_COMBO(ESCAPE, 'O', 'w')
         else if (ch == PS2Keyboard::key_event_t::F10) RAW_COMBO(ESCAPE, 'O', 'x')
+        else if (ch == PS2Keyboard::key_event_t::DEL) RAW_COMBO(ESCAPE, '[', '3', '~')
         else {
             ignored = true;
             TAG_DEBUG(RAWTTY, "unknown HBS sequence - ignoring");
