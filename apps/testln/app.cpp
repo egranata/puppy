@@ -21,6 +21,7 @@ int main(int, char**) {
     char* line = nullptr;
     while((line = linenoise("hello> ")) != nullptr) {
         printf("You wrote: %s\n", line);
+        linenoiseHistoryAdd(line);
         linenoiseFree(line); /* Or just free(line) if you use libc malloc. */
     }
 
