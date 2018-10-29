@@ -321,7 +321,8 @@ class UserspaceTool(Project):
         self.link = self.linkGcc
 
 def createDiskImage(file, megsOfSize=64):
-    headerFile = "%s" % file
+    rootFile = file
+    headerFile = "%s.boot" % file
     fatFile = "%s.fat" % file
 
     megsOfFATVolume = megsOfSize - 1
@@ -336,7 +337,7 @@ def createDiskImage(file, megsOfSize=64):
     CMDLINE="mkfs.fat -F32 %s" % (fatFile)
     shell(CMDLINE)
 
-    return (headerFile, fatFile)
+    return (rootFile, headerFile, fatFile)
 
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
@@ -421,8 +422,8 @@ ShellSupport.build()
 Linenoise.build()
 
 IMG_FILE = "out/os.img"
-ROOT_DISK, FAT_DISK = createDiskImage(IMG_FILE)
-print("OS disk image parts: %s and %s" % (ROOT_DISK, FAT_DISK))
+ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE)
+print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
 
 makeDir("out/mnt/apps")
 makeDir("out/mnt/libs")
@@ -562,7 +563,7 @@ print("Generating kernel symbol table")
 CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
 shell(CMDLINE)
 
-print("Generating os.img")
+print("Generating final OS image")
 
 makeDir("out/mnt/boot")
 makeDir("out/mnt/config")
@@ -616,13 +617,16 @@ shell(CMDLINE)
 
 PART_USAGE = calculateSize("out/mnt")
 
-CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=512 count=1 of=%s" % (ROOT_DISK)
+CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=512 count=1 of=%s" % (BOOT_DISK)
 shell(CMDLINE)
 
 CMDLINE="grub-mkimage -c build/earlygrub.cfg -O i386-pc -o out/boot.ldr -p /boot/grub part_msdos biosdisk fat multiboot configfile"
 shell(CMDLINE)
 
-CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (ROOT_DISK)
+CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (BOOT_DISK)
+shell(CMDLINE)
+
+CMDLINE="cat %s > %s" % (BOOT_DISK, ROOT_DISK)
 shell(CMDLINE)
 
 CMDLINE="cat %s >> %s" % (FAT_DISK, ROOT_DISK)
