@@ -162,6 +162,35 @@ class FATFileSystemDirectory : public Filesystem::Directory {
         FILINFO mFileInfo;
 };
 
+class FATFileSystemDirectory_AsFile : public Filesystem::File {
+    public:
+        FATFileSystemDirectory_AsFile(FILINFO fi) : mFileInfo(fi) {}
+
+        bool seek(size_t) override {
+            return false;
+        }
+
+        size_t read(size_t, char*) override {
+            return 0;
+        }
+
+        size_t write(size_t, char*) override {
+            return 0;
+        }
+
+        bool stat(stat_t& stat) override {
+            stat.kind = file_kind_t::directory;
+            stat.size = 0;
+            stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);
+            return true;
+        }
+
+        ~FATFileSystemDirectory_AsFile() override = default;
+
+    private:
+        FILINFO mFileInfo;
+};
+
 Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
     LOG_DEBUG("FatFs on drive %d is trying to open file %s", mFatFS.pdrv, path);
     auto len = 4 + strlen(path);
@@ -185,18 +214,26 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
 
         LOG_DEBUG("VFS mode: %x, FatFS mode: %x", mode, realmode);
 
-        switch(f_stat(fullpath, &fileInfo)) {
+        FRESULT st_out = FR_OK;
+        switch(st_out = f_stat(fullpath, &fileInfo)) {
             case FR_OK: break;
             default:
+                LOG_ERROR("f_stat of %s failed: %d", fullpath, st_out);
                 bzero(&fileInfo, sizeof(fileInfo));
                 break;
         }
 
-        switch (f_open(fil, fullpath, realmode)) {
+        if (st_out == FR_OK && (fileInfo.fattrib & AM_DIR)) {
+            LOG_INFO("trying to open directory %s as file - returning appropriate proxy object", fullpath);
+            return new FATFileSystemDirectory_AsFile(fileInfo);
+        }
+
+        switch (auto op_out = f_open(fil, fullpath, realmode)) {
             case FR_OK:
                 LOG_DEBUG("returning file handle %p for %s", fil, fullpath);
                 return new FATFileSystemFile(fil_delptr.reset(), fileInfo);
             default:
+                LOG_ERROR("f_open of %s failed: %d", fullpath, op_out);
                 return nullptr;
         }
     }
