@@ -168,12 +168,59 @@ void TTYFile::processOne_Canonical(key_event_t evt) {
 }
 #define ESCAPE 27
 
+bool TTYFile::interceptChords_Raw(const key_event_t& evt, bool*) {
+    if (evt.down) return false;
+    if (CTRL) {
+        switch (evt.keycode) {
+            case 'A':
+            case 'a':
+                mInput.appendOne(1);
+                return true;
+            case 'C':
+            case 'c':
+                mInput.appendOne(3);
+                return true;
+            case 'D':
+            case 'd':
+                mInput.appendOne(4);
+                return true;
+            case 'E':
+            case 'e':
+                mInput.appendOne(5);
+                return true;
+            case 'K':
+            case 'k':
+                mInput.appendOne(11);
+                return true;
+            case 'U':
+            case 'u':
+                mInput.appendOne(21);
+                return true;
+            case 'W':
+            case 'w':
+                mInput.appendOne(23);
+                return true;
+        }
+    }
+    return false;
+}
+
 void TTYFile::processOne_Raw(key_event_t evt) {
     bool ignored = false;
+    bool eof = false;
+
+    if (interceptChords_Raw(evt, &eof)) {
+        if (eof) {
+            mInput.appendOne(input_t::EOF_MARKER);
+        }
+        mMode = mode_t::CONSUME_BUFFER;
+        return;
+    }
+
     uint16_t ch = evt.keycode;
     TAG_DEBUG(RAWTTY, "got a character: %x", ch);
     if (ch & 0xFF00) {
-        if      (ch == key_event_t::UP)       RAW_COMBO(ESCAPE, '[', 'A')
+        if      (ch == key_event_t::UP)  RAW_COMBO(ESCAPE, '[', 'A')
         else if (ch == key_event_t::DWN) RAW_COMBO(ESCAPE, '[', 'B')
         else if (ch == key_event_t::RHT) RAW_COMBO(ESCAPE, '[', 'C')
         else if (ch == key_event_t::LFT) RAW_COMBO(ESCAPE, '[', 'D')

@@ -74,6 +74,8 @@ class TTYFile : public Filesystem::File {
 
         // true means the chord is handled, false means bubble it upwards
         bool interceptChords_Canonical(const key_event_t&, bool* eofHappened);
+        bool interceptChords_Raw(const key_event_t&, bool* eofHappened);
+
 };
 
 #endif
