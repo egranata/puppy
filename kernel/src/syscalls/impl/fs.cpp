@@ -21,32 +21,29 @@
 
 LOG_TAG(FILEIO, 2);
 
+#define FILE_LIKE(x, y) case file_kind_t:: x: return (Filesystem::File*)object;
+#define DIR_LIKE(x, y) case file_kind_t:: x: return nullptr;
 static Filesystem::File* asFile(Filesystem::FilesystemObject* object) {
     switch (object->kind()) {
-        case file_kind_t::directory: return nullptr;
-        case file_kind_t::blockdevice:
-        case file_kind_t::file:
-        case file_kind_t::pipe:
-        case file_kind_t::msgqueue:
-        case file_kind_t::tty:
-            return (Filesystem::File*)object;
+#include <kernel/fs/file_kinds.tbl>
     }
 
     return nullptr;
 }
+#undef FILE_LIKE
+#undef DIR_LIKE
 
+#define DIR_LIKE(x, y) case file_kind_t:: x: return (Filesystem::Directory*)object;
+#define FILE_LIKE(x, y) case file_kind_t:: x: return nullptr;
 static Filesystem::Directory* asDirectory(Filesystem::FilesystemObject* object) {
     switch (object->kind()) {
-        case file_kind_t::directory: return (Filesystem::Directory*)object;
-        case file_kind_t::blockdevice:
-        case file_kind_t::pipe:
-        case file_kind_t::msgqueue:
-        case file_kind_t::tty:
-        case file_kind_t::file: return nullptr;
+#include <kernel/fs/file_kinds.tbl>
     }
 
     return nullptr;
 }
+#undef FILE_LIKE
+#undef DIR_LIKE
 
 syscall_response_t fopen_syscall_handler(const char* path, uint32_t mode) {
     auto&& vfs(VFS::get());

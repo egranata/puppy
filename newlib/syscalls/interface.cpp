@@ -150,6 +150,7 @@ NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
     return (caddr_t)ptr;
 }
 
+#define MATCH(x, y) case file_kind_t:: x: st->st_mode = y; break
 NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
     file_stat_t fs;
     bzero(st, sizeof(struct stat));
@@ -158,24 +159,12 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
 
     if (ok) {
         switch (fs.kind) {
-            case file_kind_t::file:
-                st->st_mode = S_IFREG;
-                break;
-            case file_kind_t::directory:
-                st->st_mode = S_IFDIR;
-                break;
-            case file_kind_t::blockdevice:
-                st->st_mode = S_IFBLK;
-                break;
-            case file_kind_t::pipe:
-                st->st_mode = S_IFIFO;
-                break;
-            case file_kind_t::msgqueue:
-                st->st_mode = S_IFQUEUE;
-                break;
-            case file_kind_t::tty:
-                st->st_mode = S_IFTTY;
-                break;
+            MATCH(file, S_IFREG);
+            MATCH(directory, S_IFDIR);
+            MATCH(blockdevice, S_IFBLK);
+            MATCH(pipe, S_IFIFO);
+            MATCH(msgqueue, S_IFQUEUE);
+            MATCH(tty, S_IFTTY);
         }
         st->st_size = fs.size;
         st->st_atime = fs.time;

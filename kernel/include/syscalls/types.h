@@ -134,12 +134,11 @@ static constexpr size_t gMaxPathSize = 255;
 typedef char path_name_t[gMaxPathSize + 1];
 
 enum class file_kind_t {
-    directory,
-    file,
-    blockdevice, /** see blockdevice_ioctl */
-    pipe,
-    msgqueue, /** see msgqueue_ioctl */
-    tty,      /** see tty_ioctl */
+#define DIR_LIKE(x,y) x = y,
+#define FILE_LIKE(x,y) x = y,
+#include <kernel/fs/file_kinds.tbl>
+#undef DIR_LIKE
+#undef FILE_LIKE
 };
 
 struct file_stat_t {

@@ -79,15 +79,14 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
     Entity* entity = root()->get(_paths.buf());
     if (entity == nullptr) return nullptr;
     switch (entity->kind()) {
-        case Filesystem::FilesystemObject::kind_t::file:
-        case Filesystem::FilesystemObject::kind_t::blockdevice:
-        case Filesystem::FilesystemObject::kind_t::pipe:
-        case Filesystem::FilesystemObject::kind_t::msgqueue:
-        case Filesystem::FilesystemObject::kind_t::tty:
-            break;
-        case Filesystem::FilesystemObject::kind_t::directory:
-            TAG_DEBUG(MEMFS, "cannot open a directory object as file");
-            return nullptr;
+#define FILE_LIKE(x, y) case file_kind_t:: x: break;
+#define DIR_LIKE(x,y) case file_kind_t:: x: {\
+            TAG_DEBUG(MEMFS, "cannot open a directory object as file"); \
+            return nullptr; \
+        } break;
+#include <kernel/fs/file_kinds.tbl>
+#undef FILE_LIKE
+#undef DIR_LIKE
     }
     MemFS::File* theFile = (MemFS::File*)entity;
     MemFS::FileBuffer* theBuffer = theFile->content().reset();

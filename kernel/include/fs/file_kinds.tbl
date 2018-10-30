@@ -1,0 +1,6 @@
+DIR_LIKE(directory, 0)
+FILE_LIKE(file, 1)
+FILE_LIKE(blockdevice, 2)
+FILE_LIKE(pipe, 3)
+FILE_LIKE(msgqueue, 4)
+FILE_LIKE(tty, 5)
