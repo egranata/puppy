@@ -211,9 +211,10 @@ NEWLIB_IMPL_REQUIREMENT int unlink(char *path) {
 }
 
 NEWLIB_IMPL_REQUIREMENT int wait(int *stat_loc) {
+    const bool wait = false;
     uint16_t pid;
     process_exit_status_t status(0);
-    if (0 != collectany_syscall(&pid, &status)) {
+    if (0 != collectany_syscall(wait, &pid, &status)) {
         return -1;
     }
     switch (status.reason) {

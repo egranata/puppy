@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <newlib/unistd.h>
 #include <libshell/expand.h>
+#include <newlib/sys/collect.h>
 
 static const char* gConfigScript = "/system/config/init";
 
@@ -136,7 +137,7 @@ uint16_t runShell() {
 bool tryCollectShell(uint16_t pid) {
     uint16_t collected = 0;
     process_exit_status_t status(0);
-    if (0 == collectany_syscall(&collected, &status)) {
+    if (collectany(false, &collected, &status)) {
         if (pid == collected) {
             return true;
         }

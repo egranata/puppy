@@ -21,6 +21,6 @@
 
 NEWLIB_IMPL_REQUIREMENT process_exit_status_t collect(uint16_t pid);
 
-NEWLIB_IMPL_REQUIREMENT bool collectany(uint16_t*, process_exit_status_t*);
+NEWLIB_IMPL_REQUIREMENT bool collectany(bool wait, uint16_t*, process_exit_status_t*);
 
 #endif

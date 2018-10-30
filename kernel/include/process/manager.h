@@ -97,7 +97,7 @@ class ProcessManager : NOCOPY {
         process_t* getprocess(kpid_t pid);
 
         process_exit_status_t collect(kpid_t pid);
-        bool collectany(kpid_t*, process_exit_status_t*);
+        bool collectany(bool wait, kpid_t*, process_exit_status_t*);
 
         void ready(process_t*);
         void deschedule(process_t*, process_t::State);

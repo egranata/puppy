@@ -73,9 +73,9 @@ syscall_response_t collect_syscall_handler(uint16_t pid, process_exit_status_t* 
     return OK;
 }
 
-syscall_response_t collectany_syscall_handler(uint16_t *pid, process_exit_status_t* result) {
+syscall_response_t collectany_syscall_handler(bool wait, uint16_t *pid, process_exit_status_t* result) {
     auto&& pmm = ProcessManager::get();
-    bool any = pmm.collectany(pid, result);
+    bool any = pmm.collectany(wait, pid, result);
     return any ? OK : ERR(NO_SUCH_PROCESS);
 }
 

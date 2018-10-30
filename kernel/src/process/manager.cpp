@@ -744,17 +744,24 @@ void ProcessManager::enqueueForDeath(process_t* task) {
     gExitedProcesses().set(task);
 }
 
-bool ProcessManager::collectany(kpid_t* pid, process_exit_status_t* status) {
-    auto c0 = gCurrentProcess->children.begin();
-    auto ce = gCurrentProcess->children.end();
+bool ProcessManager::collectany(bool wait, kpid_t* pid, process_exit_status_t* status) {
+    do {
+        auto c0 = gCurrentProcess->children.begin();
+        auto ce = gCurrentProcess->children.end();
 
-    for (; c0 != ce; ++c0) {
-        auto child = *c0;
-        if (child->state == process_t::State::EXITED) {
-            *status = collect(*pid = child->pid);
-            return true;
+        for (; c0 != ce; ++c0) {
+            auto child = *c0;
+            if (child->state == process_t::State::EXITED) {
+                *status = collect(*pid = child->pid);
+                LOG_DEBUG("process %u collectany'd by parent %u", *pid, gCurrentProcess->pid);
+                return true;
+            }
         }
-    }
+        if (wait) {
+            deschedule(gCurrentProcess, process_t::State::COLLECTING);
+            yield();
+        }
+    } while(wait);
 
     // no child has EXITED yet
     return false;

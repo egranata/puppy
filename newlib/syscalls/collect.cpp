@@ -23,6 +23,6 @@ NEWLIB_IMPL_REQUIREMENT process_exit_status_t collect(uint16_t pid) {
     return result;
 }
 
-NEWLIB_IMPL_REQUIREMENT bool collectany(uint16_t* pid, process_exit_status_t* status) {
-    return 0 == collectany_syscall(pid, status);
+NEWLIB_IMPL_REQUIREMENT bool collectany(bool wait, uint16_t* pid, process_exit_status_t* status) {
+    return 0 == collectany_syscall(wait, pid, status);
 }
