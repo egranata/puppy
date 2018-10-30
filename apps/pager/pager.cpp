@@ -21,6 +21,7 @@
 #include <newlib/syscalls.h>
 #include <newlib/sys/process.h>
 #include <libshell/expand.h>
+#include <libshell/path.h>
 #include <EASTL/string.h>
 
 static int usage() {
@@ -94,6 +95,15 @@ int main(int argc, char** argv) {
     eastl::string target_args;
 
     parseCommandLine(argc, argv, target_program, target_args);
+
+    const char* real_target_program = libShellSupport::findInPotentialPaths(target_program.c_str(), getenv("PATH"));
+    if (real_target_program) {
+        target_program = real_target_program;
+        free((void*)real_target_program);
+    } else {
+        printf("error: could not resolve %s\n", target_program.c_str());
+        exit(1);
+    }
 
     size_t rfd, wfd;
     if (!getPipe(&rfd, &wfd)) {
