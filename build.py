@@ -626,10 +626,7 @@ shell(CMDLINE)
 CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (BOOT_DISK)
 shell(CMDLINE)
 
-CMDLINE="cat %s > %s" % (BOOT_DISK, ROOT_DISK)
-shell(CMDLINE)
-
-CMDLINE="cat %s >> %s" % (FAT_DISK, ROOT_DISK)
+CMDLINE="build/concatimg.sh %s %s %s" % (ROOT_DISK, BOOT_DISK, FAT_DISK)
 shell(CMDLINE)
 
 print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat(ROOT_DISK).st_size, PART_USAGE))
