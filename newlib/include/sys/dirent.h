@@ -18,6 +18,7 @@ extern "C" {
 #define DT_BLK              6
 #define DT_REG              8
 #define DT_QUEUE           16
+#define DT_TTY             32
 
 struct dirent {
     int d_ino; // inode: required for compatibility but unused

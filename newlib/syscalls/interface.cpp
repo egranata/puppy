@@ -82,14 +82,13 @@ NEWLIB_IMPL_REQUIREMENT int getppid() {
 }
 
 NEWLIB_IMPL_REQUIREMENT int isatty(int file) {
-    switch (file) {
-        case 0:
-        case 1:
-        case 2:
-            return 1;
-        default:
-            return 0;
+    struct stat statbuf;
+    if (0 == fstat(file, &statbuf)) {
+        if (statbuf.st_mode == S_IFTTY) return 1;
     }
+
+    errno = ENOTTY;
+    return 0;
 }
 
 NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
@@ -173,6 +172,9 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
                 break;
             case file_kind_t::msgqueue:
                 st->st_mode = S_IFQUEUE;
+                break;
+            case file_kind_t::tty:
+                st->st_mode = S_IFTTY;
                 break;
         }
         st->st_size = fs.size;

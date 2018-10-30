@@ -382,8 +382,11 @@ size_t TTYFile::write(size_t s, char* buffer) {
     return s0;
 }
 
-bool TTYFile::stat(stat_t&) {
-    return false;
+bool TTYFile::stat(stat_t& stat) {
+    stat.kind = file_kind_t::tty;
+    stat.size = 0;
+    stat.time = 0;
+    return true;
 }
 
 uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {

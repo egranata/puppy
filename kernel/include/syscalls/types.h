@@ -139,6 +139,7 @@ enum class file_kind_t {
     blockdevice, /** see blockdevice_ioctl */
     pipe,
     msgqueue, /** see msgqueue_ioctl */
+    tty,      /** see tty_ioctl */
 };
 
 struct file_stat_t {

@@ -77,6 +77,7 @@ struct	stat
 #define		_IFSOCK	  0140000	/* socket */
 #define		_IFIFO	  0010000	/* fifo */
 #define		_IFQUEUE	0160000	/* queue */
+#define		_IFTTY    0200000	/* tty */
 
 #define 	S_BLKSIZE  1024 /* size of a block */
 
@@ -99,6 +100,7 @@ struct	stat
 #define	S_IFSOCK	_IFSOCK
 #define	S_IFIFO		_IFIFO
 #define S_IFQUEUE _IFQUEUE
+#define S_IFTTY   _IFTTY
 
 #define	S_IRWXU 	(S_IRUSR | S_IWUSR | S_IXUSR)
 #define		S_IRUSR	0000400	/* read permission, owner */
