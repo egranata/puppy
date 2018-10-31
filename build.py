@@ -33,8 +33,7 @@ print("Building OS image from %s" % MYPATH)
 
 BUILD_START = time.time()
 
-BASIC_CFLAGS = [
-    '-c',
+C_OPTIONS = [
     '-fdiagnostics-color=always',
     '-ffreestanding',
     '-fno-builtin',
@@ -45,8 +44,6 @@ BASIC_CFLAGS = [
     '-m32',
     '-march=i686',
     '-masm=intel',
-    '-nodefaultlibs',
-    '-nostartfiles',
     '-nostdlib',
     '-O2',
     '-Wall',
@@ -55,6 +52,10 @@ BASIC_CFLAGS = [
     '-Wno-error=format',
     '-Wno-main',
     '-Wno-missing-field-initializers']
+BASIC_CFLAGS = [
+    '-c',
+    '-nodefaultlibs',
+    '-nostartfiles'] + C_OPTIONS
 BASIC_CPPFLAGS = [
     '-fno-exceptions',
     '-fno-rtti',
@@ -293,7 +294,15 @@ class Project(object):
         if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
         return DEST
 
-NEWLIB_DEPS = ["out/mnt/libs/crt0.o", "out/mnt/libs/libshellsupport.a", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/liblinenoise.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
+NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
+NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/liblinenoise.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
+NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
+
+SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib"]
+
+NEWLIB_LD_SCRIPT = "out/mnt/libs/newlib.ld"
+
+GCC_SPECS_PATH = "out/mnt/libs/gcc.specs"
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
@@ -319,6 +328,32 @@ class UserspaceTool(Project):
                          gcc=gcc,
                          announce=announce)
         self.link = self.linkGcc
+
+def writeSpecsFile(outfile):
+    with open(outfile, "w") as f:
+        print("*cpp_unique_options:", file=f)
+        specs_include_paths = [os.path.abspath(x) for x in SPECS_INCLUDE_PATHS]
+        specs_include_paths = ["-I%s" % x for x in specs_include_paths]
+        specs_include_paths = ' '.join(specs_include_paths)
+        print("+   -D__puppy__ %s" % specs_include_paths, file=f)
+        print("", file=f)
+        print("*cc1plus:", file=f)
+        cc1plus_options = ' '.join(C_OPTIONS) + ' ' + ' '.join(BASIC_CPPFLAGS)
+        print("    %s" % cc1plus_options, file=f)
+        print("", file=f)
+        print("*cc1_options:", file=f)
+        print("    %s" % specs_include_paths, file=f)
+        print("", file=f)
+        print("*startfile:", file=f)
+        print("    %s" % os.path.abspath(NEWLIB_CRT0), file=f)
+        print("", file=f)
+        print("*lib:", file=f)
+        libs = [os.path.abspath(x) for x in NEWLIB_ARS]
+        libs = ' '.join(libs)
+        print("    %s" % libs, file=f)
+        print("", file=f)
+        print("*link:", file=f)
+        print("    -T %s -e_start" % os.path.abspath(NEWLIB_LD_SCRIPT), file=f)
 
 def createDiskImage(file, megsOfSize=64):
     rootFile = file
@@ -440,6 +475,7 @@ LIB_COPY_BEGIN = time.time()
 xcopy("out/lib*.a", "out/mnt/libs")
 xcopy("newlib/lib/lib*.a", "out/mnt/libs")
 copy(NEWLIB_CRT0, "out/mnt/libs/crt0.o")
+NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 copy("build/app.ld", "out/mnt/libs")
 copy("build/newlib.ld", "out/mnt/libs")
 LIB_COPY_END = time.time()
@@ -447,6 +483,13 @@ LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
 if LIB_COPY_DURATION > 0: print("System libraries copied in %s seconds" % LIB_COPY_DURATION)
 
 print("newlib dependency list: %s" % ', '.join(NEWLIB_DEPS))
+
+print("Generating GCC specs")
+SPECS_BEGIN = time.time()
+writeSpecsFile(GCC_SPECS_PATH)
+SPECS_END = time.time()
+SPECS_DURATION = int(SPECS_END - SPECS_BEGIN)
+if SPECS_DURATION > 0: print("GCC specs written in %s seconds" % SPECS_DURATION)
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default

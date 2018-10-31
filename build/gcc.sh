@@ -1,3 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
-i686-elf-gcc -specs=$(dirname $0)/newlib.specs $@
+CURDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+i686-elf-gcc -specs="$CURDIR/../out/mnt/libs/gcc.specs" $@
