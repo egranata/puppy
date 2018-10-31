@@ -4,5 +4,11 @@
 *cc1_options:
     -Iout/mnt/include -Iout/mnt/include/newlib
 
-*link_command:
-    %{!c:%(linker) -T out/mnt/libs/newlib.ld -e_start out/mnt/libs/crt0.o %X %i %{o*} out/mnt/libs/libshellsupport.a out/mnt/libs/libeastl.a out/mnt/libs/libcxxsupport.a out/mnt/libs/libparson.a out/mnt/libs/liblinenoise.a out/mnt/libs/libm.a out/mnt/libs/libc.a out/mnt/libs/libnewlibinterface.a out/mnt/libs/libc.a %(link_libgcc) -lgcc}
+*startfile:
+    out/mnt/libs/crt0.o
+
+*lib:
+    out/mnt/libs/libshellsupport.a out/mnt/libs/libeastl.a out/mnt/libs/libcxxsupport.a out/mnt/libs/libparson.a out/mnt/libs/liblinenoise.a out/mnt/libs/libm.a out/mnt/libs/libc.a out/mnt/libs/libnewlibinterface.a out/mnt/libs/libc.a
+
+*link:
++    -T out/mnt/libs/newlib.ld -e_start
