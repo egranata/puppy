@@ -300,7 +300,7 @@ NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
 
 SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib"]
 
-NEWLIB_LD_SCRIPT = "out/mnt/libs/newlib.ld"
+USERSPACE_LD_SCRIPT = "out/mnt/libs/app.ld"
 
 GCC_SPECS_PATH = "out/mnt/libs/gcc.specs"
 
@@ -353,7 +353,7 @@ def writeSpecsFile(outfile):
         print("    %s" % libs, file=f)
         print("", file=f)
         print("*link:", file=f)
-        print("    -T %s -e_start" % os.path.abspath(NEWLIB_LD_SCRIPT), file=f)
+        print("    -T %s -e_start" % os.path.abspath(USERSPACE_LD_SCRIPT), file=f)
 
 def createDiskImage(file, megsOfSize=64):
     rootFile = file
@@ -477,7 +477,6 @@ xcopy("newlib/lib/lib*.a", "out/mnt/libs")
 copy(NEWLIB_CRT0, "out/mnt/libs/crt0.o")
 NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 copy("build/app.ld", "out/mnt/libs")
-copy("build/newlib.ld", "out/mnt/libs")
 LIB_COPY_END = time.time()
 LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
 if LIB_COPY_DURATION > 0: print("System libraries copied in %s seconds" % LIB_COPY_DURATION)

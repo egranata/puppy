@@ -1,4 +1,4 @@
-ENTRY(__app_entry)
+ENTRY(___start)
 OUTPUT_FORMAT(elf32-i386)
 
 SECTIONS {
@@ -23,5 +23,17 @@ SECTIONS {
         *(.bss)
     }
 	
+	__ctors_start = .;
+	.ctors : AT(ADDR(.ctors)) {
+		*(.ctors)
+	}
+	__ctors_end = .;
+
+	__dtors_start = .;
+	.dtors : AT(ADDR(.dtors)) {
+		*(.dtors)
+	}
+	__dtors_end = .;
+
 	__module_end = .;
 }
