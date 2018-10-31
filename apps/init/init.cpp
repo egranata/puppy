@@ -19,12 +19,14 @@
 #include <EASTL/vector.h>
 #include <EASTL/string.h>
 #include <EASTL/unique_ptr.h>
+#include <EASTL/unordered_map.h>
 #include <sys/stat.h>
 #include <newlib/unistd.h>
 #include <libshell/expand.h>
 #include <newlib/sys/collect.h>
 
-static const char* gConfigScript = "/system/config/init";
+static const char* gConfigScript = "/system/config/init.cfg";
+static const char* gServicesList = "/system/config/init.svc";
 
 namespace {
     struct fd_delete {
@@ -37,28 +39,35 @@ namespace {
 
 using safe_fd = eastl::unique_ptr<FILE, fd_delete>;
 
-bool readInitScript(eastl::string* dest) {
+enum class InitScriptResult {
+    OK,
+    FILE_NOT_FOUND,
+    FILE_EMPTY,
+    READ_ERROR
+};
+
+InitScriptResult readInitScript(const char* path, eastl::string* dest) {
     *dest = "";
 
     struct stat fs;
 
-    safe_fd fd(fopen(gConfigScript, "r"));
+    safe_fd fd(fopen(path, "r"));
     if (fd == nullptr) {
-        printf("[init] warning: %s not found\n", gConfigScript);
-        return true;
+        printf("[init] warning: %s not found\n", path);
+        return InitScriptResult::FILE_NOT_FOUND;
     }
 
     stat(gConfigScript, &fs);
-    if (fs.st_size == 0) return true;
+    if (fs.st_size == 0) return InitScriptResult::FILE_EMPTY;
 
     eastl::unique_ptr<uint8_t> content((uint8_t*)calloc(fs.st_size, 1));
     if (!content)
-        return false;
+        return InitScriptResult::READ_ERROR;
 
     fread(content.get(), 1, fs.st_size, fd.get());
 
     *dest = eastl::string((const char*)content.get());
-    return true;
+    return InitScriptResult::OK;
 }
 
 eastl::vector<eastl::string> tokenize(eastl::string s) {
@@ -107,10 +116,40 @@ int runCommand(const eastl::string& line) {
     return result;
 }
 
-bool runInitScript() {
+kpid_t spawnService(eastl::string& line) {
+    kpid_t pid;
+
+    int flags = PROCESS_IS_FOREGROUND;
+    if (line.back() == '&') {
+        flags = 0;
+        line.pop_back();
+    }
+
+    auto space = line.find(' ');
+    if (space == eastl::string::npos) {
+        pid = exec_syscall(line.c_str(), nullptr, environ, flags, nullptr);
+    } else {
+        size_t argc;
+        auto argv = libShellSupport::parseCommandLine(line.c_str(), &argc);
+        auto program = argv[0];
+        pid = exec_syscall(program, argv, environ, flags, nullptr);
+        libShellSupport::freeCommandLine(argv);
+    }
+    if (pid == 0) return pid;
+    if (pid & 1) return 0;
+    return pid >>= 1;
+}
+
+bool runInitScript(bool allow_missing_or_empty = true, bool allow_spawn_error = false) {
     eastl::string content;
-    if (!readInitScript(&content)) {
-        return false;
+    switch (readInitScript(gConfigScript, &content)) {
+        case InitScriptResult::FILE_NOT_FOUND:
+        case InitScriptResult::FILE_EMPTY:
+            return allow_missing_or_empty;
+        case InitScriptResult::OK:
+            break;
+        case InitScriptResult::READ_ERROR:
+            return false;
     }
 
     auto commands = tokenize(content);
@@ -119,31 +158,62 @@ bool runInitScript() {
         int result = runCommand(command);
         if (result == 0) continue;
         printf("[init] command exited as %d\n", result);
-        return false;
+        if (!allow_spawn_error) return false;
     }
+
     return true;
 }
 
-uint16_t runShell() {
-    char* argv[] = {
-        (char*)"/system/apps/shell",
-        (char*)"--init",
-        nullptr
-    };
-    auto pid = exec_syscall("/system/apps/shell", argv, environ, PROCESS_IS_FOREGROUND, nullptr);
-    return pid >> 1;
+typedef eastl::unordered_map<kpid_t, eastl::string> ServicesMap;
+ServicesMap& getServicesMap() {
+    static ServicesMap gMap;
+    return gMap;
 }
 
-bool tryCollectShell(uint16_t pid) {
-    uint16_t collected = 0;
-    process_exit_status_t status(0);
-    if (collectany(false, &collected, &status)) {
-        if (pid == collected) {
-            return true;
-        }
+bool spawnInitService(eastl::string& command) {
+    auto pid = spawnService(command);
+    if (pid == 0) {
+        printf("[init] process did not start\n");
+        return false;
+    } else {
+        getServicesMap().emplace(pid, command);
+        return true;
+    }
+}
+
+bool loadInitServices(bool allow_missing_or_empty = true, bool allow_spawn_fail = false) {
+    eastl::string content;
+    switch (readInitScript(gServicesList, &content)) {
+        case InitScriptResult::FILE_NOT_FOUND:
+        case InitScriptResult::FILE_EMPTY:
+            return allow_missing_or_empty;
+        case InitScriptResult::OK:
+            break;
+        case InitScriptResult::READ_ERROR:
+            return false;
     }
 
-    return false;
+    auto commands = tokenize(content);
+    for(auto& command : commands) {
+        printf("[init] %s\n", command.c_str());
+        bool ok = spawnInitService(command);
+        if (!ok && !allow_spawn_fail) return false;
+    }
+
+    return true;
+}
+
+void watchForServicesDie() {
+    kpid_t pid = 0;
+    process_exit_status_t status(0);
+    if (collectany(true, &pid, &status)) {
+        auto iter = getServicesMap().find(pid), end = getServicesMap().end();
+        if (iter != end) {
+            printf("[init] service %u (%s) exited - respawning\n", pid, iter->second.c_str());
+            spawnInitService(iter->second);
+            getServicesMap().erase(iter);
+        }
+    }
 }
 
 static void writeToLog(const char* msg) {
@@ -162,33 +232,15 @@ static void __attribute__((constructor)) init_ctor() {
 }
 
 int main(int, const char**) {
-    uint16_t shell_pid;
-
     if (!runInitScript()) {
         writeToLog("init could not run config - will exit");
         exit(1);
     }
-
-    if (0 == (shell_pid = runShell())) {
-        writeToLog("init could not run shell - will exit");
-        exit(2);
+    if (!loadInitServices()) {
+        writeToLog("init could not load system services - will exit");
+        exit(1);
     }
-
-    exec_priority_t init_final_prio {
-        quantum : 1,
-        scheduling : 1
-    };
-
-    prioritize_syscall(getpid(), prioritize_target::PRIORITIZE_SET_CURRENT, &init_final_prio, nullptr);
-
-    while(true) {
-        if (tryCollectShell(shell_pid)) {
-            writeToLog("shell has terminated - init will reboot");
-            reboot_syscall();
-        }
-
-        // TODO: init could be receiving messages from the rest of the system
-        // and execute system-y operations on behalf of the rest of the system
-        yield_syscall();
+    while (true) {
+        watchForServicesDie();
     }
 }

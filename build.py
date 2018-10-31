@@ -597,7 +597,8 @@ with open("out/mnt/tests/runall.sh", "w") as testScript:
     for test in TEST_PLAN:
             print("%s" % test['path'], file=testScript)
 
-copy("config/init", "out/mnt/config/init")
+copy("config/init.cfg", "out/mnt/config/init.cfg")
+copy("config/init.svc", "out/mnt/config/init.svc")
 copy("config/shell.sh", "out/mnt/config/shell.sh")
 copy("config/motd", "out/mnt/config/motd")
 copy("config/colors", "out/mnt/config/colors")
