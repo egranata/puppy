@@ -15,7 +15,8 @@
 #ifndef NEWLIB_VM
 #define NEWLIB_VM
 
-#include <newlib/syscalls.h>
+#include <newlib/impl/cenv.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {

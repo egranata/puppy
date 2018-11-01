@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <newlib/sys/vm.h>
+#include <newlib/syscalls.h>
 #include <kernel/syscalls/types.h>
 #include <newlib/impl/cenv.h>
 

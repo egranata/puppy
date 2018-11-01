@@ -16,4 +16,8 @@
 #define NEWLIB_IMPL_REQUIREMENT extern "C"
 #endif
 
+#ifdef __cplusplus
 NEWLIB_IMPL_REQUIREMENT int errno;
+#else
+extern int errno;
+#endif
