@@ -16,10 +16,10 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/sys/unistd.h>
-#include <newlib/unistd.h>
-#include <newlib/string.h>
-#include <newlib/stdio.h>
+#include <sys/unistd.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
 
 class TheTest : public Test {
     public:

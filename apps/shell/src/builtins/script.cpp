@@ -16,12 +16,12 @@
 #include "../../include/runfile.h"
 #include "../../include/builtin.h"
 
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/string.h>
-#include <newlib/strings.h>
-#include <newlib/syscalls.h>
-#include <newlib/unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
+#include <syscalls.h>
+#include <unistd.h>
 
 bool script_exec(size_t argc, char** argv) {
     if (argc != 2) return false;

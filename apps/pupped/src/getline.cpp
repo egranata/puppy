@@ -15,7 +15,7 @@
  */
 
 #include "../include/getline.h"
-#include <newlib/stdio.h>
+#include <stdio.h>
 
 eastl::string getline(const char* prompt) {
     if (prompt == nullptr) prompt = "> ";

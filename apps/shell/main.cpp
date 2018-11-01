@@ -13,16 +13,16 @@
 // limitations under the License.
 
 #include <stdint.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/string.h>
-#include <newlib/strings.h>
-#include <newlib/syscalls.h>
-#include <newlib/unistd.h>
-#include <newlib/sys/process.h>
-#include <newlib/sys/wait.h>
-#include <newlib/sys/unistd.h>
-#include <newlib/sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <syscalls.h>
+#include <unistd.h>
+#include <sys/process.h>
+#include <sys/wait.h>
+#include <sys/unistd.h>
+#include <sys/stat.h>
 
 #include <EASTL/string.h>
 #include <EASTL/vector.h>

@@ -16,12 +16,12 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/string.h>
-#include <newlib/strings.h>
-#include <newlib/unistd.h>
-#include <newlib/syscalls.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
+#include <unistd.h>
+#include <syscalls.h>
 
 #define TEST_FILE "/system/test.txt"
 

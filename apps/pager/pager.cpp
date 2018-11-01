@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/dirent.h>
-#include <newlib/stdint.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/time.h>
-#include <newlib/unistd.h>
-#include <newlib/syscalls.h>
-#include <newlib/sys/process.h>
+#include <dirent.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <syscalls.h>
+#include <sys/process.h>
 #include <libshell/expand.h>
 #include <libshell/path.h>
 #include <EASTL/string.h>

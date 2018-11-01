@@ -16,9 +16,9 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 class TheTest : public Test {
     public:

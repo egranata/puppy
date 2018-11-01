@@ -16,11 +16,11 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/sys/collect.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/unistd.h>
-#include <newlib/syscalls.h>
+#include <sys/collect.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <syscalls.h>
 
 static struct {
     volatile uint32_t value;

@@ -18,9 +18,9 @@
 #include <checkup/testplan.h>
 #include <checkup/assert.h>
 
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <libshell/expand.h>
 #include <libshell/path.h>

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/syscalls.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/stdio.h>
-#include <newlib/unistd.h>
+#include <syscalls.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdio.h>
+#include <unistd.h>
 
 int main(int argc, const char** argv) {
     auto pid = getpid();

@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include "../include/str.h"
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 void trim(eastl::string& s) {
     s.erase(0, s.find_first_not_of(' '));

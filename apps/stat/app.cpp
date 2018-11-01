@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdint.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/sys/stat.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 
 int main(int argc, const char** argv) {
     for (int i = 1; i < argc; ++i) {

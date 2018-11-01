@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/time.h>
+#include <stdio.h>
+#include <time.h>
 
 int main() {
   time_t t;

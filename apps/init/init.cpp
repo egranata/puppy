@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/syscalls.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/sys/wait.h>
+#include <syscalls.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
 #include <EASTL/vector.h>
 #include <EASTL/string.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/unordered_map.h>
 #include <sys/stat.h>
-#include <newlib/unistd.h>
+#include <unistd.h>
 #include <libshell/expand.h>
-#include <newlib/sys/collect.h>
+#include <sys/collect.h>
 
 static const char* gConfigScript = "/system/config/init.cfg";
 static const char* gServicesList = "/system/config/init.svc";

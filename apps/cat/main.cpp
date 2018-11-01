@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 void printchar(char c) {
     if (c < '\n') {

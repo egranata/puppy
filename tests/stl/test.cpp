@@ -17,7 +17,7 @@
 #include <checkup/test.h>
 #include <checkup/assert.h>
 #include <EASTL/vector.h>
-#include <newlib/stdio.h>
+#include <stdio.h>
 #include <EASTL/map.h>
 #include <EASTL/string.h>
 

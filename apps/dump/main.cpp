@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/string.h>
-#include <newlib/ctype.h>
-#include <newlib/strings.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <strings.h>
 
 void printbuf(char* buf, int count) {
     for (auto i = 0; i < count; ++i) {

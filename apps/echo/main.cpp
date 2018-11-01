@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/string.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 static void usage() {
     printf("echo can be used in one of the following modes:\n");

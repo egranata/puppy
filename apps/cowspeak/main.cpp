@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/string.h>
-#include <newlib/sys/stat.h>
-#include <newlib/unistd.h>
-#include <newlib/stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 static const char* THE_COW =
 R"X(

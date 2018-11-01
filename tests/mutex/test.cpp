@@ -17,11 +17,11 @@
 #include <stdint.h>
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/sys/collect.h>
-#include <newlib/syscalls.h>
-#include <newlib/unistd.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
+#include <sys/collect.h>
+#include <syscalls.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static uint16_t clone(void (*func)()) {
     auto ok = clone_syscall( (uintptr_t)func, nullptr );

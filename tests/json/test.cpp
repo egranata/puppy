@@ -16,8 +16,8 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <parson/parson.h>
 
 class TheTest : public Test {

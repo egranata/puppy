@@ -14,8 +14,8 @@
 
 #include "../include/builtin.h"
 #include <stdint.h>
-#include <newlib/stdlib.h>
-#include <newlib/string.h>
+#include <stdlib.h>
+#include <string.h>
 #include <EASTL/string.h>
 #include <EASTL/unordered_map.h>
 

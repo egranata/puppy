@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 static void usage(bool exit) {
     printf("cp <src> <dst>\n");

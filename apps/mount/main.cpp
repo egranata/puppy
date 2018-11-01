@@ -13,9 +13,9 @@
 // limitations under the License.
 
 #include <stdint.h>
-#include <newlib/syscalls.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
+#include <syscalls.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static void usage(const char* name) {
     printf("%s: <device> <path>\n", name);

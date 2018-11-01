@@ -13,9 +13,9 @@
 // limitations under the License.
 
 #include "../include/exit.h"
-#include <newlib/unistd.h>
-#include <newlib/stdio.h>
-#include <newlib/sys/wait.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/wait.h>
 
 void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {

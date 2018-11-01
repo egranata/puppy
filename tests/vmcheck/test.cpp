@@ -16,9 +16,9 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/sys/vm.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#include <sys/vm.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 int main();
 

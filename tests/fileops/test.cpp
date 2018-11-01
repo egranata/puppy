@@ -16,13 +16,13 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/string.h>
-#include <newlib/strings.h>
-#include <newlib/unistd.h>
-#include <newlib/syscalls.h>
-#include <newlib/sys/collect.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
+#include <unistd.h>
+#include <syscalls.h>
+#include <sys/collect.h>
 
 #define TEST_FILE "/system/test.txt"
 #define TEST_MESSAGE "I am going to leave a message here\n"

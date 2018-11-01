@@ -18,8 +18,8 @@
 #include "../include/path.h"
 #include "../include/str.h"
 
-#include <newlib/sys/wait.h>
-#include <newlib/sys/process.h>
+#include <sys/wait.h>
+#include <sys/process.h>
 
 #include <libshell/expand.h>
 

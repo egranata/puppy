@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/syscalls.h>
-#include <newlib/unistd.h>
-#include <newlib/getopt.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <syscalls.h>
+#include <unistd.h>
+#include <getopt.h>
 
 void usage(int ec = 0) {
     printf("nice -p <pid> [-q <quantum>] [-s <sched>] [-Mc]\n");

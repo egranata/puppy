@@ -15,7 +15,7 @@
 #include "../include/runfile.h"
 #include "../include/runline.h"
 
-#include <newlib/stdio.h>
+#include <stdio.h>
 
 #include <EASTL/string.h>
 

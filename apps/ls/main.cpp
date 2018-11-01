@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/dirent.h>
-#include <newlib/stdint.h>
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/time.h>
+#include <dirent.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 uint32_t gNumFiles = 0;
 uint32_t gNumDirectories = 0;

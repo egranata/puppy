@@ -15,7 +15,7 @@
  */
 
 #include "../include/commands.h"
-#include <newlib/stdio.h>
+#include <stdio.h>
 
 Commands::Commands() {
     addCommand("?", [this] (Document&) -> bool {

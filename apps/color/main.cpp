@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/stdlib.h>
-#include <newlib/unistd.h>
-#include <newlib/string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <parson/parson.h>
-#include <newlib/sys/stat.h>
-#include <newlib/sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
 
 #include <EASTL/map.h>
 #include <EASTL/string.h>

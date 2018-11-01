@@ -17,13 +17,13 @@
 #include <checkup/test.h>
 #include <checkup/testplan.h>
 #include <checkup/assert.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/syscalls.h>
-#include <newlib/sys/collect.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <syscalls.h>
+#include <sys/collect.h>
 #include <kernel/syscalls/types.h>
-#include <newlib/unistd.h>
-#include <newlib/sys/ioctl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
 
 static kpid_t clone(void (*func)()) {
     auto ok = clone_syscall( (uintptr_t)func, nullptr );

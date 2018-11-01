@@ -17,8 +17,8 @@
 #include "../include/getline.h"
 #include "../include/document.h"
 #include "../include/commands.h"
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 namespace {
     bool append(Document& doc) {

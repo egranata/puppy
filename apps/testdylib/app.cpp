@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/stdio.h>
-#include <newlib/syscalls.h>
-#include <newlib/stdlib.h>
-#include <newlib/dlfcn.h>
+#include <stdio.h>
+#include <syscalls.h>
+#include <stdlib.h>
+#include <dlfcn.h>
 
 void load(char* file) {
     __unused void* dylib = dlopen(file, 0);

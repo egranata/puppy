@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "../include/cwd.h"
-#include <newlib/unistd.h>
+#include <unistd.h>
 
 eastl::string getCurrentDirectory() {
     eastl::string cwds;

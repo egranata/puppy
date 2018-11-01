@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <newlib/syscalls.h>
-#include <newlib/stdlib.h>
-#include <newlib/stdio.h>
-#include <newlib/sys/ioctl.h>
+#include <syscalls.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
 
 int main(int argc, char** argv) {
     if (argc == 1) {
