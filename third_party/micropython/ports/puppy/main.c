@@ -24,6 +24,7 @@
 #include "lib/utils/pyexec.h"
 #include "genhdr/mpversion.h"
 
+#include "execute.h"
 #include "repl.h"
 
 static char *heap;
@@ -40,10 +41,6 @@ mp_import_stat_t mp_import_stat(const char *path) {
     return MP_IMPORT_STAT_NO_EXIST;
 }
 
-mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
-    mp_raise_OSError(MP_ENOENT);
-}
-
 mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs) {
     return mp_const_none;
 }
@@ -52,6 +49,8 @@ MP_DEFINE_CONST_FUN_OBJ_KW(mp_builtin_open_obj, 1, mp_builtin_open);
 static mp_obj_t pystack[1024];
 
 int main(int argc, char** argv) {
+    int ec = 0;
+
     heap = malloc(HEAP_SIZE);
     if (heap == NULL) {
         printf("cannot alloc heap\n");
@@ -63,7 +62,11 @@ int main(int argc, char** argv) {
 
     mp_init();
 
-    int ec = puppy_repl();
+    if (argc == 1) {
+        ec = puppy_repl();
+    } else {
+        ec = exec_input_file(argv[1]);
+    }
 
     mp_deinit();
     return ec;

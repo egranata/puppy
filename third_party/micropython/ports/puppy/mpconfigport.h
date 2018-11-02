@@ -67,6 +67,7 @@
 #define MICROPY_CPYTHON_COMPAT      (0)
 #define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_NONE)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_NONE)
+#define MICROPY_READER_POSIX        (1)
 
 // type definitions for the specific machine
 
