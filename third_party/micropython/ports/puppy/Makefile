@@ -24,6 +24,7 @@ SRC_C = \
 	main.c \
 	mphalstdio.c \
 	mphalport.c \
+	execute.c \
 
 SRC_CXX = \
 	repl.cpp \

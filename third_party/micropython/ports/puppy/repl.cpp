@@ -25,46 +25,13 @@ extern "C" {
 int pyexec_system_exit;
 }
 
+#include "execute.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <EASTL/string.h>
 #include <linenoise/linenoise.h>
 
-static int parse_compile_execute(const vstr_t *src, mp_parse_input_kind_t input_kind) {
-    int ret = 0;
-
-    // by default a SystemExit exception returns 0
-    pyexec_system_exit = 0;
-
-    nlr_buf_t nlr;
-    if (nlr_push(&nlr) == 0) {
-        mp_obj_t module_fun;
-        mp_lexer_t *lex;
-        lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src->buf, src->len, 0);
-        qstr source_name = lex->source_name;
-        mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
-        module_fun = mp_compile(&parse_tree, source_name, MP_EMIT_OPT_NONE, 4);
-        // execute code
-        mp_call_function_0(module_fun);
-        nlr_pop();
-        ret = 1;
-    } else {
-        // check for SystemExit
-        if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(((mp_obj_base_t*)nlr.ret_val)->type), MP_OBJ_FROM_PTR(&mp_type_SystemExit))) {
-            mp_obj_t exit_val = mp_obj_exception_get_value(MP_OBJ_FROM_PTR(nlr.ret_val));
-            mp_int_t val = 0;
-            if (exit_val != mp_const_none && !mp_obj_get_int_maybe(exit_val, &val)) {
-                val = 1;
-            }
-            return ((val & 255) << 16) | PYEXEC_FORCED_EXIT;
-        } else {
-            mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(nlr.ret_val));
-            ret = 0;
-        }
-    }
-
-    return ret;
-}
 
 extern "C" int puppy_repl() {
     printf("MicroPython " MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE "; " MICROPY_PY_SYS_PLATFORM " version\n");
@@ -94,11 +61,10 @@ extern "C" int puppy_repl() {
         }
         input.append_sprintf("\n");
         linenoiseFree(line);
-        mp_parse_input_kind_t parse_input_kind = MP_PARSE_SINGLE_INPUT;
         vstr_t src;
         vstr_init(&src, input.size() + 1);
         vstr_add_str(&src, input.c_str());
-        auto ret = parse_compile_execute(&src, parse_input_kind);
+        auto ret = exec_input_string(&src);
         vstr_clear(&src);
         if (ret & PYEXEC_FORCED_EXIT) {
             ecode = ret >> 16;
