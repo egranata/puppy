@@ -62,7 +62,7 @@
 #define MICROPY_PY_CMATH            (0)
 #define MICROPY_PY_IO               (0)
 #define MICROPY_PY_STRUCT           (0)
-#define MICROPY_PY_SYS              (0)
+#define MICROPY_PY_SYS              (1)
 #define MICROPY_MODULE_FROZEN_MPY   (0)
 #define MICROPY_CPYTHON_COMPAT      (0)
 #define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_NONE)
@@ -98,3 +98,5 @@ typedef long mp_off_t;
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8];
+
+#define MICROPY_PY_SYS_EXIT         (1)

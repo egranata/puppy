@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
 
     mp_init();
 
-    puppy_repl();
+    int ec = puppy_repl();
 
     mp_deinit();
-    return 0;
+    return ec;
 }

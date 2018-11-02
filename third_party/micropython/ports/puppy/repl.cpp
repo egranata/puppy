@@ -51,8 +51,12 @@ static int parse_compile_execute(const vstr_t *src, mp_parse_input_kind_t input_
     } else {
         // check for SystemExit
         if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(((mp_obj_base_t*)nlr.ret_val)->type), MP_OBJ_FROM_PTR(&mp_type_SystemExit))) {
-            // at the moment, the value of SystemExit is unused
-            ret = pyexec_system_exit;
+            mp_obj_t exit_val = mp_obj_exception_get_value(MP_OBJ_FROM_PTR(nlr.ret_val));
+            mp_int_t val = 0;
+            if (exit_val != mp_const_none && !mp_obj_get_int_maybe(exit_val, &val)) {
+                val = 1;
+            }
+            return ((val & 255) << 16) | PYEXEC_FORCED_EXIT;
         } else {
             mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(nlr.ret_val));
             ret = 0;
@@ -62,11 +66,12 @@ static int parse_compile_execute(const vstr_t *src, mp_parse_input_kind_t input_
     return ret;
 }
 
-extern "C" void puppy_repl() {
+extern "C" int puppy_repl() {
     printf("MicroPython " MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE "; " MICROPY_PY_SYS_PLATFORM " version\n");
 
     eastl::string input;
     bool eof = false;
+    int ecode = 0;
 
     while(!eof) {
         input.clear();
@@ -81,6 +86,7 @@ extern "C" void puppy_repl() {
             linenoiseFree(line);
             line = linenoise("... ");
             if (line == nullptr) {
+                ecode = 0;
                 eof = true;
                 break;
             }
@@ -95,7 +101,10 @@ extern "C" void puppy_repl() {
         auto ret = parse_compile_execute(&src, parse_input_kind);
         vstr_clear(&src);
         if (ret & PYEXEC_FORCED_EXIT) {
+            ecode = ret >> 16;
             eof = true;
         }
     }
+
+    return ecode;
 }
