@@ -43,8 +43,15 @@ static int parse_compile_execute(void *source, input_source_t input_kind) {
         module_fun = mp_compile(&parse_tree, source_name, MP_EMIT_OPT_NONE, 4);
         // execute code
         mp_call_function_0(module_fun);
+
+        if (MP_STATE_VM(mp_pending_exception) != MP_OBJ_NULL) {
+            mp_obj_t obj = MP_STATE_VM(mp_pending_exception);
+            MP_STATE_VM(mp_pending_exception) = MP_OBJ_NULL;
+            nlr_raise(obj);
+        }
+
         nlr_pop();
-        ret = 1;
+        ret = 0;
     } else {
         // check for SystemExit
         if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(((mp_obj_base_t*)nlr.ret_val)->type), MP_OBJ_FROM_PTR(&mp_type_SystemExit))) {

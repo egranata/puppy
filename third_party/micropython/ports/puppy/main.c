@@ -68,6 +68,8 @@ int main(int argc, char** argv) {
         ec = exec_input_file(argv[1]);
     }
 
+    if (ec & PYEXEC_FORCED_EXIT) ec >>= 16;
+
     mp_deinit();
     return ec;
 }
