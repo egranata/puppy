@@ -96,10 +96,10 @@ def error(msg):
     print("error: %s" % msg)
     raise SystemError # force the subprocesses to exit as brutally as possible
 
-def shell(command, shell=True, stdin=None, printout=False, onerrignore=False):
+def shell(command, shell=True, stdin=None, printout=False, onerrignore=False, curdir=None):
     if printout or VERBOSE: print("$ %s" % command)
     try:
-        stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell)
+        stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell, cwd=curdir)
         o = stdout.decode('utf-8')
         if printout or VERBOSE: print(o)
         return o
@@ -549,6 +549,13 @@ for app in APP_DIRS:
     if config["mainfs"]: APP_REFS.append(app_o)
     if config["initrd"]: INITRD_REFS.append(app_o)
     print("(%d bytes) " % os.stat(app_o).st_size)
+
+print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
+print("micropython", end='', flush=True)
+MICROPYTHON_DIR = os.path.abspath(os.path.join(MYPATH, "third_party", "micropython", "ports", "puppy"))
+shell("make V=1", curdir=MICROPYTHON_DIR)
+copy("out/micropython", "out/mnt/apps/micropython")
+print("(%d bytes) " % os.stat("out/micropython").st_size)
 
 print('')
 
