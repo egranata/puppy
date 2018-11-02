@@ -24,15 +24,17 @@
 #include "lib/utils/pyexec.h"
 #include "genhdr/mpversion.h"
 
+#include "repl.h"
+
+static char *heap;
+const size_t HEAP_SIZE = 64 * 1024 * 1024;
+
 void nlr_jump_fail(void *val) {
     printf("FATAL: uncaught NLR %p\n", val);
     exit(1);
 }
 
-void gc_collect(void) {
-    gc_collect_start();
-    gc_collect_end();
-}
+void gc_collect(void) { }
 
 mp_import_stat_t mp_import_stat(const char *path) {
     return MP_IMPORT_STAT_NO_EXIST;
@@ -47,8 +49,22 @@ mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs) 
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(mp_builtin_open_obj, 1, mp_builtin_open);
 
-int main(int argc, char** argv) {
-    printf("MicroPython " MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE "; " MICROPY_PY_SYS_PLATFORM " version\n");
+static mp_obj_t pystack[1024];
 
+int main(int argc, char** argv) {
+    heap = malloc(HEAP_SIZE);
+    if (heap == NULL) {
+        printf("cannot alloc heap\n");
+        exit(1);
+    }
+
+    gc_init(heap, heap + HEAP_SIZE);
+    mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
+
+    mp_init();
+
+    puppy_repl();
+
+    mp_deinit();
     return 0;
 }
