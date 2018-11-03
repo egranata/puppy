@@ -47,10 +47,46 @@ class RunSimpleScriptTest : public Test {
         }
 };
 
+class FileIOTest : public Test {
+    public:
+        FileIOTest() : Test("micropython.FileIOTest") {}
+    
+    protected:
+        const char* testRead(const char* file, const char* expected) {
+            FILE* fd = fopen(file, "r");
+            CHECK_NOT_EQ(fd, nullptr);
+            uint8_t *buffer = (uint8_t *)malloc(3999);
+            bzero(buffer, 3999);
+            CHECK_NOT_EQ(fread(buffer, 1, 3999, fd), 0);
+
+            CHECK_EQ(strcmp((const char*)buffer, expected), 0);
+
+            return (const char*)buffer;
+        }
+
+        void run() override {
+            FILE* f = fopen("/tmp/script.py", "w");
+            CHECK_NOT_EQ(f, nullptr);
+            fprintf(f, "f = open('/tmp/test.txt', 'w')\nprint('hello world',file=f)\nf.close()\n");
+            fclose(f);
+
+            const char* argv[] = {MICROPYTHON_APP, "/tmp/script.py", nullptr};
+
+            auto cpid = execve(MICROPYTHON_APP, (char* const*)argv, nullptr);
+            CHECK_NOT_EQ(cpid, 0);
+
+            auto s = collect(cpid);
+            CHECK_EQ(s.reason, process_exit_status_t::reason_t::cleanExit);
+
+            testRead("/tmp/test.txt", "hello world\n");
+        }
+};
+
 int main() {
     auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
 
-    testPlan.add<RunSimpleScriptTest>();
+    testPlan.add<RunSimpleScriptTest>()
+            .add<FileIOTest>();
 
     testPlan.test();
     return 0;
