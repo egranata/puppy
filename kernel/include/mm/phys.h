@@ -21,6 +21,7 @@
 #include <kernel/libc/atomic.h>
 #include <kernel/libc/bytesizes.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/libc/error.h>
 
 class PhysicalPageManager : NOCOPY {
 public:
@@ -34,7 +35,7 @@ public:
 	void reserve(uintptr_t base);
 	void reserve(uintptr_t begin, uintptr_t end);
 
-	uintptr_t alloc();
+	ResultOrError<uintptr_t> alloc();
 	uintptr_t alloc(uintptr_t base);
 	void dealloc(uintptr_t base);
 

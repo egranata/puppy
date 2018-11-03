@@ -291,7 +291,8 @@ uintptr_t VirtualPageManager::clonePage(uintptr_t virt, const map_options_t& opt
 	auto pg = page(virt);
 
 	auto&& physall(PhysicalPageManager::get());
-	auto phys = physall.alloc();
+	auto phys_result = physall.alloc();
+	uintptr_t phys = phys_result.resultOrPanic();
 	{
 		scratch_page_t sp = getScratchPage(phys);
 		memcopy((uint8_t*)pg, sp.get<uint8_t>(), gPageSize);
@@ -382,7 +383,8 @@ uintptr_t VirtualPageManager::mapAnyPhysicalPage(uintptr_t virt, const map_optio
 		LOG_DEBUG("virtual address %p already mapped", virt);
 	} else {
 		auto&& physall(PhysicalPageManager::get());
-		auto phys = physall.alloc();
+		auto phys_result = physall.alloc();
+		auto phys = phys_result.resultOrPanic();
 		auto opts = map_options_t(options).frompmm(true);
 		map(phys, virt, opts);
 	}
@@ -599,13 +601,14 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 	static constexpr uint32_t newPageDirBits = gPresentBit | gWritableBit | gUserBit | gNewPhysicalPageBit;
 
 	// allocate page directory & page tables & clear out page tables
-	uintptr_t pPageDir = phys.alloc();
+	auto pPageDir_result = phys.alloc();
+	uintptr_t pPageDir = pPageDir_result.resultOrPanic();
 	auto pageDirScratch = getScratchPage(pPageDir, new_table_options);
 	uint32_t *pageDir = pageDirScratch.get<uint32_t>();
 	LOG_DEBUG("new page tables will be at physical %p virtual = %p", pPageDir, pageDir);
 	uint32_t *kPageDir = (uint32_t*)0xffbff000;
 	for (auto i = 0u; i < 768u; ++i) {
-		auto pPageTbl = phys.alloc();
+		auto pPageTbl = phys.alloc().resultOrPanic();
 		LOG_DEBUG("new page table %u will be at physical %p", i, pPageTbl);
 		pageDir[i] = pPageTbl | newPageDirBits;
 		auto pageTblScratch = getScratchPage(pPageTbl, new_table_options);
@@ -619,7 +622,7 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 
 	// but allocate for pages 1022 and 1023 (i.e. page tables)
 	for (auto i = 1022u; i < 1024u; ++i) {
-		auto pPageTbl = phys.alloc();
+		auto pPageTbl = phys.alloc().resultOrPanic();;
 		LOG_DEBUG("new page table %u will be at physical %p", i, pPageTbl);
 		pageDir[i] = pPageTbl | newPageDirBits;
 		auto pageTblScratch = getScratchPage(pPageTbl, new_table_options);		
@@ -690,7 +693,9 @@ VirtualPageManager::KernelHeap::KernelHeap(uintptr_t low, uintptr_t high) : Heap
 
 uintptr_t VirtualPageManager::KernelHeap::oneblock() {
 	auto opts = VirtualPageManager::map_options_t().rw(true).user(false).clear(true);
-	mVm.map(mPhys.alloc(), current(), opts);
+	auto physalloc = mPhys.alloc();
+	auto block = physalloc.resultOrPanic();
+	mVm.map(block, current(), opts);
 	return current();
 }
 
@@ -846,7 +851,7 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 	bzero(&mKernelHeapMemory[0], sizeof(mKernelHeapMemory));
 
 	LOG_INFO("setting up sane page directories");
-	uintptr_t pPde = phys.alloc();
+	uintptr_t pPde = phys.alloc().resultOrPanic();
 	uint32_t *pde = scratchMap<uint32_t>(pPde, 0);
 	LOG_DEBUG("pde physical address %p, virrtual address %p", pPde, pde);
 	
@@ -861,7 +866,7 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 
 	uint8_t *pq = nullptr;
 	for (auto i = 0u; i < 1024; ++i) {
-		auto pa = phys.alloc();
+		auto pa = phys.alloc().resultOrPanic();
 		pde[i] = pa | pagedirAttrib;
 		pq = scratchMap<uint8_t>(pa, 4);
 		bzero(pq, PhysicalPageManager::gPageSize);
