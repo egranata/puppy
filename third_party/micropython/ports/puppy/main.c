@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "py/compile.h"
 #include "py/runtime.h"
@@ -38,11 +40,33 @@ void nlr_jump_fail(void *val) {
 
 void gc_collect(void) { }
 
-mp_import_stat_t mp_import_stat(const char *path) {
+uint mp_import_stat(const char *path) {
+    struct stat st;
+    if (stat(path, &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            return MP_IMPORT_STAT_DIR;
+        } else if (S_ISREG(st.st_mode)) {
+            return MP_IMPORT_STAT_FILE;
+        }
+    }
     return MP_IMPORT_STAT_NO_EXIST;
 }
 
 static mp_obj_t pystack[1024];
+
+STATIC void set_sys_argv(int argc, char *argv[], int start_arg) {
+    mp_obj_list_init(MP_OBJ_TO_PTR(mp_sys_argv), 0);
+    for (int i = start_arg; i < argc; i++) {
+        mp_obj_list_append(mp_sys_argv, MP_OBJ_NEW_QSTR(qstr_from_str(argv[i])));
+    }
+}
+
+STATIC void set_sys_path() {
+    // TODO: read PYTHONPATH
+    mp_obj_list_init(MP_OBJ_TO_PTR(mp_sys_path), 0);
+    mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(qstr_from_str(getcwd(NULL, 0))));
+    mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(qstr_from_str("/system/libs/python")));
+}
 
 int main(int argc, char** argv) {
     int ec = 0;
@@ -57,6 +81,8 @@ int main(int argc, char** argv) {
     mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
 
     mp_init();
+    set_sys_argv(argc, argv, 1);
+    set_sys_path();
 
     if (argc == 1) {
         ec = puppy_repl();

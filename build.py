@@ -464,6 +464,7 @@ makeDir("out/mnt/apps")
 makeDir("out/mnt/libs")
 makeDir("out/mnt/tests")
 makeDir("out/mnt/include")
+makeDir("out/mnt/libs/python")
 
 HDR_COPY_BEGIN = time.time()
 rcopy("include", "out/mnt")
@@ -474,6 +475,7 @@ if HDR_COPY_DURATION > 0: print("Header files copied in %s seconds" % HDR_COPY_D
 LIB_COPY_BEGIN = time.time()
 xcopy("out/lib*.a", "out/mnt/libs")
 xcopy("newlib/lib/lib*.a", "out/mnt/libs")
+xcopy("python/*.py", "out/mnt/libs/python")
 copy(NEWLIB_CRT0, "out/mnt/libs/crt0.o")
 NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 copy("build/app.ld", "out/mnt/libs")
