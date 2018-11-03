@@ -26,6 +26,8 @@ SRC_C = \
 	mphalport.c \
 	execute.c \
 	file.c \
+	modtime.c \
+	moduos.c \
 
 SRC_CXX = \
 	repl.cpp \

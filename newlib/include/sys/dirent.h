@@ -20,19 +20,19 @@ extern "C" {
 #define DT_QUEUE           16
 #define DT_TTY             32
 
-struct dirent {
+typedef struct dirent {
     int d_ino; // inode: required for compatibility but unused
     uint16_t d_reclen; // size of this record
     uint8_t d_type; // entry type
     uint32_t d_size; // size of the filesystem object
     time_t d_time; // time information associated to this entry
     char d_name[255 + 1];
-};
+} dirent;
 
-struct DIR {
+typedef struct DIR {
     uint32_t fhnd;
     dirent current;
-};
+} DIR;
 
 DIR* opendir(const char*);
 int closedir(DIR*);
