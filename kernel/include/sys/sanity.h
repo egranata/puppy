@@ -21,3 +21,7 @@
 #if !defined(__i386__)
 #error "__i386__ not defined - building with a 64-bit compiler?"
 #endif
+
+#if !defined(__puppy__)
+#error "__puppy__ not defined - not building with a cross compiler?"
+#endif

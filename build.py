@@ -34,6 +34,7 @@ print("Building OS image from %s" % MYPATH)
 BUILD_START = time.time()
 
 C_OPTIONS = [
+    '-D__puppy__',
     '-fdiagnostics-color=always',
     '-ffreestanding',
     '-fno-builtin',
