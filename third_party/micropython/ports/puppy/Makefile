@@ -25,9 +25,12 @@ SRC_C = \
 	mphalstdio.c \
 	mphalport.c \
 	execute.c \
+	file.c \
 
 SRC_CXX = \
 	repl.cpp \
+
+SRC_QSTR += $(SRC_C)
 
 OBJ = $(PY_O)
 OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
