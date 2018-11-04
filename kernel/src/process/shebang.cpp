@@ -29,6 +29,12 @@ extern "C" bool shebang_can_load(uintptr_t load0) {
            txt[2] == '/';
 }
 
+static size_t numStringsInArray(char** array) {
+    size_t i = 0;
+    for(;array && array[i]; ++i);
+    return i;
+}
+
 extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
     const char* txt = (const char*)load0;
     const char* path_begin = &txt[2]; // skip #!
@@ -40,13 +46,21 @@ extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
 
     LOG_DEBUG("process %u main binary %s has shebang that points to %s", gCurrentProcess->pid, gCurrentProcess->path, path);
 
-    // TODO: do not outright replace the arguments; augment them
-    const char* newArgs[3] = {
-        path,
-        strdup(gCurrentProcess->path),
-        nullptr
-    };
-    gCurrentProcess->copyArguments(newArgs, true);
+    size_t originalArgsSize = numStringsInArray(gCurrentProcess->args);
+    // the path to the ELF file + argv + the final nullptr
+    char **newArgs = (char**)calloc( (originalArgsSize + 2), sizeof(char*) );
+
+    LOG_DEBUG("shebang expansion; original argc = %u, new argc = %u", originalArgsSize, originalArgsSize + 1);
+
+    newArgs[0] = path;
+    LOG_DEBUG("newArgs[0] = %s", newArgs[0]);
+    for (size_t i = 0; i < originalArgsSize; ++i) {
+        newArgs[i+1] = gCurrentProcess->args[i];
+        LOG_DEBUG("newArgs[%d] = %s", i+1, newArgs[i+1]);
+    }
+
+    // do not free the old arguments; we are reusing the pointers to them
+    gCurrentProcess->copyArguments((const char**)newArgs, false);
 
     process_loadinfo_t pli = load_binary(path);
     return pli;
