@@ -185,7 +185,9 @@ unsigned long long strtoull_l (const char *__restrict, char **__restrict, int,
 			       locale_t __loc);
 #endif
 
+#ifndef __puppy__
 int	system (const char *__string);
+#endif
 
 #if __SVID_VISIBLE || __XSI_VISIBLE >= 4
 long    a64l (const char *__input);
