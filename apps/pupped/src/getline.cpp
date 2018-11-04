@@ -20,8 +20,11 @@
 #define HISTORY_FILE "/system/config/pupped.history"
 
 eastl::string getline(bool history, const char* prompt) {
-    static bool didLoadHistory = false;
-    if (!didLoadHistory) linenoiseHistoryLoad(HISTORY_FILE);
+    static bool didSetupLinenoise = false;
+    if (!didSetupLinenoise) {
+        linenoiseHistoryLoad(HISTORY_FILE);
+        didSetupLinenoise = true;
+    }
     if (prompt == nullptr) prompt = "> ";
     char* data = linenoise(prompt);
     auto out = eastl::string(data);
