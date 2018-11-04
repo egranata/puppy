@@ -22,11 +22,12 @@
 
 namespace {
     bool append(Document& doc) {
+        printf("Type the text you want to append to this document one line at a time.\n"
+               ". on a line by itself terminates the input.\n");
         while(true) {
-            auto line = getline("line: ");
+            auto line = getline(true, "");
             if (line == ".") return true;
             doc.insert(line);
-            printf("%u: %s\n", doc.currentLine(), line.c_str());
         }
     }
 
@@ -66,7 +67,7 @@ namespace {
     bool load(Document& doc) {
         doc.clear();
 
-        auto where = getline("source file: ");
+        auto where = getline(true, "source file: ");
         FILE* f = fopen(where.c_str(), "r");
         if (f == nullptr) return false;
 
@@ -89,7 +90,7 @@ namespace {
 
     bool save(Document& doc) {
         auto text = doc.toString();
-        auto where = getline("dest file: ");
+        auto where = getline(true, "dest file: ");
         FILE* f = fopen(where.c_str(), "w");
         if (f == nullptr) return false;
         fwrite(text.c_str(), 1, text.size(), f);
@@ -122,7 +123,7 @@ int main() {
     loadCommands(theCommands);
 
     while(true) {
-        auto cmd = getline();
+        auto cmd = getline(true);
         if (theCommands.handleCommand(cmd, theDoc)) continue;
         printf("error: '%s' unknown or unhandled\n", cmd.c_str());
     }

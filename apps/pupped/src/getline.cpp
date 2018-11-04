@@ -15,16 +15,21 @@
  */
 
 #include "../include/getline.h"
-#include <stdio.h>
+#include <linenoise/linenoise.h>
 
-eastl::string getline(const char* prompt) {
+#define HISTORY_FILE "/system/config/pupped.history"
+
+eastl::string getline(bool history, const char* prompt) {
+    static bool didLoadHistory = false;
+    if (!didLoadHistory) linenoiseHistoryLoad(HISTORY_FILE);
     if (prompt == nullptr) prompt = "> ";
-    printf("%s", prompt);
-    char* data = nullptr;
-    size_t len;
-    __getline(&data, &len, stdin);
+    char* data = linenoise(prompt);
     auto out = eastl::string(data);
-    free(data);
+    if (history) {
+        linenoiseHistoryAdd(data);
+        linenoiseHistorySave(HISTORY_FILE);
+    }
+    linenoiseFree(data);
     if (!out.empty() && out[out.size() - 1] == '\n') {
         out.pop_back();
     }

@@ -20,6 +20,6 @@
 #include <stdint.h>
 #include <EASTL/string.h>
 
-eastl::string getline(const char* prompt = nullptr);
+eastl::string getline(bool history, const char* prompt = nullptr);
 
 #endif
