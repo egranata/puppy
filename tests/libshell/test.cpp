@@ -24,6 +24,7 @@
 
 #include <libshell/expand.h>
 #include <libshell/path.h>
+#include <libshell/system.h>
 
 class TestParseCommandLine : public Test {
     public:
@@ -83,11 +84,29 @@ class TestPathSearching : public Test {
         }
 };
 
+class TestSystem : public Test {
+    public:
+        TestSystem() : Test("libshell.TestSystem") {}
+
+    private:
+    protected:
+        void run() override {
+            int ok = libShellSupport::system("/system/apps/ls /tmp");
+            CHECK_EQ(ok, 0);
+            ok = libShellSupport::system("ls /tmp");
+            CHECK_EQ(ok, 0);
+            ok = libShellSupport::system("/this/command/does/not --exist");
+            CHECK_NOT_EQ(ok, 0);
+        }
+        
+};
+
 int main(int, char**) {
     auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
 
     testPlan.add<TestParseCommandLine>()
-            .add<TestPathSearching>();
+            .add<TestPathSearching>()
+            .add<TestSystem>();
 
     testPlan.test();
     return 0;
