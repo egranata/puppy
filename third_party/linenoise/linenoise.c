@@ -231,7 +231,7 @@ static void disableRawMode(int fd) {
 static int getColumns(int ifd) {
     struct winsize ws;
     ioctl(ifd, TIOCGWINSZ, (uint32_t)&ws);
-    return ws.ws_col;
+    return ws.ws_col-1;
 }
 
 /* Clear the screen. Used to handle ctrl+l */

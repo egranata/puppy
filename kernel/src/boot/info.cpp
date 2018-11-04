@@ -36,7 +36,9 @@ namespace boot::info {
 
         auto&& fb(Framebuffer::get());
 
-        bootphase_t::printf("Screen size: %u x %u\n", fb.width(), fb.height());
+        bootphase_t::printf("Screen size: %u x %u (%u rows x %u columns)\n",
+            fb.width(), fb.height(),
+            fb.rows(), fb.columns());
 
         return 0;
     }

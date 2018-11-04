@@ -78,8 +78,9 @@ Framebuffer::Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_
     mBackground = color_t::black();
     mForeground = color_t::green();
 
-    LOG_DEBUG("initialized a framebuffer of %u x %u pixels - pitch = %u, bpp = %u, base = %p",
-        mWidth, mHeight, mPitch, mBytesPerPixel, mPhysicalAddress);
+    LOG_DEBUG("initialized a framebuffer of %u x %u pixels - pitch = %u, bpp = %u, base = %p; rows by cols = %u x %u",
+        mWidth, mHeight, mPitch, mBytesPerPixel, mPhysicalAddress,
+		rows(), columns());
 }
 
 uintptr_t Framebuffer::base() const {
