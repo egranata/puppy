@@ -126,6 +126,13 @@ enum semaphore_ioctl_t {
     IOCTL_SEMAPHORE_SIGNAL = 0x5EA02222,
 };
 
+// IOCTL operations that can run on a mutex
+enum mutex_ioctl_t {
+    IOCTL_MUTEX_LOCK     = 0x561410C7,
+    IOCTL_MUTEX_UNLOCK   = 0x561410C8,
+    IOCTL_MUTEX_TRYLOCK  = 0x561410C9, // returns 1 if the mutex was locked properly
+};
+
 enum class process_state_t : uint8_t {
     NEW, /** created and not schedulable */
     AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */

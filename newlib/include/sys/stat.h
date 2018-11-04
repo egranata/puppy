@@ -79,6 +79,7 @@ struct	stat
 #define		_IFQUEUE	      0160000	/* queue */
 #define		_IFTTY	        0200000	/* tty */
 #define		_IFSEMAPHORE	  0240000	/* semaphore */
+#define		_IFMUTEX	      0270000	/* mutex */
 
 #define 	S_BLKSIZE  1024 /* size of a block */
 
@@ -103,6 +104,7 @@ struct	stat
 #define S_IFQUEUE      _IFQUEUE
 #define S_IFTTY        _IFTTY
 #define S_IFSEMAPHORE  _IFSEMAPHORE
+#define S_IFMUTEX      _IFMUTEX
 
 #define	S_IRWXU 	(S_IRUSR | S_IWUSR | S_IXUSR)
 #define		S_IRUSR	0000400	/* read permission, owner */

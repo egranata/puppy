@@ -20,6 +20,7 @@ extern "C" {
 #define DT_QUEUE            16
 #define DT_TTY              32
 #define DT_SEMAPHORE        64
+#define DT_MUTEX           128
 
 typedef struct dirent {
     int d_ino; // inode: required for compatibility but unused

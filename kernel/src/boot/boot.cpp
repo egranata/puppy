@@ -111,6 +111,10 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace mutexfs {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -312,6 +316,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::semaphorefs::init,
         onSuccess : nullptr,
         onFailure : boot::semaphorefs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare mutex support",
+        visible : false,
+        operation : boot::mutexfs::init,
+        onSuccess : nullptr,
+        onFailure : boot::mutexfs::fail
     });
 
     registerBootPhase(bootphase_t{
