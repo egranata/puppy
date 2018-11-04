@@ -31,6 +31,7 @@ SRC_C = \
 
 SRC_CXX = \
 	repl.cpp \
+	puppy_system_impl.cpp \
 
 SRC_QSTR += $(SRC_C)
 

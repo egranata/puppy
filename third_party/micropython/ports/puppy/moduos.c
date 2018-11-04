@@ -41,6 +41,17 @@
 #include "extmod/vfs.h"
 #include "extmod/misc.h"
 
+// this is implemented in C++
+extern int puppy_system_impl(const char*);
+
+STATIC mp_obj_t mod_os_system(mp_obj_t path_in) {
+    const char *path = mp_obj_str_get_str(path_in);
+
+    int res = puppy_system_impl(path);
+    return MP_OBJ_NEW_SMALL_INT(res);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_os_system_obj, mod_os_system);
+
 STATIC mp_obj_t mod_os_stat(mp_obj_t path_in) {
     struct stat sb;
     const char *path = mp_obj_str_get_str(path_in);
@@ -162,6 +173,7 @@ STATIC const mp_rom_map_elem_t mp_module_os_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_uos) },
     { MP_ROM_QSTR(MP_QSTR_errno), MP_ROM_PTR(&mod_os_errno_obj) },
     { MP_ROM_QSTR(MP_QSTR_stat), MP_ROM_PTR(&mod_os_stat_obj) },
+    { MP_ROM_QSTR(MP_QSTR_system), MP_ROM_PTR(&mod_os_system_obj) },
     { MP_ROM_QSTR(MP_QSTR_unlink), MP_ROM_PTR(&mod_os_unlink_obj) },
     { MP_ROM_QSTR(MP_QSTR_getenv), MP_ROM_PTR(&mod_os_getenv_obj) },
     { MP_ROM_QSTR(MP_QSTR_getcwd), MP_ROM_PTR(&mod_os_getcwd_obj) },

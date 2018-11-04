@@ -12,18 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NEWLIB_COLLECT
-#define NEWLIB_COLLECT
+#include <libshell/system.h>
 
-#include <newlib/impl/cenv.h>
-#include <stdint.h>
-#include <kernel/syscalls/types.h>
-
-NEWLIB_IMPL_REQUIREMENT process_exit_status_t collect(uint16_t pid);
-
-NEWLIB_IMPL_REQUIREMENT bool collectany(bool wait, uint16_t*, process_exit_status_t*);
-
-// translates a process_exit_status_t to an integer suitable to return from wait()
-NEWLIB_IMPL_REQUIREMENT int processexitstatus2wait(process_exit_status_t);
-
-#endif
+extern "C" int puppy_system_impl(const char* cmd) {
+    return libShellSupport::system(cmd);
+}

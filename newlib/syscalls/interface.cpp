@@ -203,6 +203,22 @@ NEWLIB_IMPL_REQUIREMENT int unlink(char *path) {
     ERR_EXIT(ENOENT);
 }
 
+NEWLIB_IMPL_REQUIREMENT int processexitstatus2wait(process_exit_status_t status) {
+    switch (status.reason) {
+        case process_exit_status_t::reason_t::cleanExit:
+            return status.status << 8;
+        case process_exit_status_t::reason_t::exception:
+        case process_exit_status_t::reason_t::kernelError:
+            return 0x80;
+        case process_exit_status_t::reason_t::killed:
+            return 0x0909; // signal 9
+        case process_exit_status_t::reason_t::alive:
+            return -1;
+    }
+
+    return -1;
+}
+
 NEWLIB_IMPL_REQUIREMENT int wait(int *stat_loc) {
     const bool wait = false;
     uint16_t pid;
@@ -210,20 +226,7 @@ NEWLIB_IMPL_REQUIREMENT int wait(int *stat_loc) {
     if (0 != collectany_syscall(wait, &pid, &status)) {
         return -1;
     }
-    switch (status.reason) {
-        case process_exit_status_t::reason_t::cleanExit:
-            *stat_loc = status.status << 8;
-            break;
-        case process_exit_status_t::reason_t::exception:
-        case process_exit_status_t::reason_t::kernelError:
-            *stat_loc = 0x80;
-            break;
-        case process_exit_status_t::reason_t::killed:
-            *stat_loc = 0x0909; // signal 9
-            break;
-        case process_exit_status_t::reason_t::alive:
-            return -1;
-    }
+    if (-1 == (*stat_loc = processexitstatus2wait(status))) return -1;
     return pid;
 }
 
@@ -235,20 +238,7 @@ NEWLIB_IMPL_REQUIREMENT pid_t waitpid(pid_t pid, int *stat_loc, int /*options: i
     if (0 != collect_syscall(pid, &status)) {
         return -1;
     }
-    switch (status.reason) {
-        case process_exit_status_t::reason_t::cleanExit:
-            *stat_loc = status.status << 8;
-            break;
-        case process_exit_status_t::reason_t::exception:
-        case process_exit_status_t::reason_t::kernelError:
-            *stat_loc = 0x80;
-            break;
-        case process_exit_status_t::reason_t::killed:
-            *stat_loc = 0x901; // signal 9
-            break;
-        case process_exit_status_t::reason_t::alive:
-            return -1;
-    }
+    if (-1 == (*stat_loc = processexitstatus2wait(status))) return -1;
     return pid;
 }
 
