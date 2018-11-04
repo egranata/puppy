@@ -165,6 +165,7 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
             MATCH(pipe, S_IFIFO);
             MATCH(msgqueue, S_IFQUEUE);
             MATCH(tty, S_IFTTY);
+            MATCH(semaphore, S_IFSEMAPHORE);
         }
         st->st_size = fs.size;
         st->st_atime = fs.time;

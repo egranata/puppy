@@ -68,16 +68,17 @@ struct	stat
 
 #endif
 
-#define	_IFMT		    0170000	/* type of file */
-#define		_IFDIR	  0040000	/* directory */
-#define		_IFCHR	  0020000	/* character special */
-#define		_IFBLK	  0060000	/* block special */
-#define		_IFREG	  0100000	/* regular */
-#define		_IFLNK	  0120000	/* symbolic link */
-#define		_IFSOCK	  0140000	/* socket */
-#define		_IFIFO	  0010000	/* fifo */
-#define		_IFQUEUE	0160000	/* queue */
-#define		_IFTTY    0200000	/* tty */
+#define		_IFMT	          0170000	/* type of file */
+#define		_IFDIR	        0040000	/* directory */
+#define		_IFCHR	        0020000	/* character special */
+#define		_IFBLK	        0060000	/* block special */
+#define		_IFREG	        0100000	/* regular */
+#define		_IFLNK	        0120000	/* symbolic link */
+#define		_IFSOCK	        0140000	/* socket */
+#define		_IFIFO	        0010000	/* fifo */
+#define		_IFQUEUE	      0160000	/* queue */
+#define		_IFTTY	        0200000	/* tty */
+#define		_IFSEMAPHORE	  0240000	/* semaphore */
 
 #define 	S_BLKSIZE  1024 /* size of a block */
 
@@ -91,16 +92,17 @@ struct	stat
 #define	S_ENFMT 	0002000	/* enforcement-mode locking */
 #endif	/* !_BSD_VISIBLE */
 
-#define	S_IFMT		_IFMT
-#define	S_IFDIR		_IFDIR
-#define	S_IFCHR		_IFCHR
-#define	S_IFBLK		_IFBLK
-#define	S_IFREG		_IFREG
-#define	S_IFLNK		_IFLNK
-#define	S_IFSOCK	_IFSOCK
-#define	S_IFIFO		_IFIFO
-#define S_IFQUEUE _IFQUEUE
-#define S_IFTTY   _IFTTY
+#define	S_IFMT		     _IFMT
+#define	S_IFDIR		     _IFDIR
+#define	S_IFCHR		     _IFCHR
+#define	S_IFBLK		     _IFBLK
+#define	S_IFREG		     _IFREG
+#define	S_IFLNK		     _IFLNK
+#define	S_IFSOCK	     _IFSOCK
+#define	S_IFIFO		     _IFIFO
+#define S_IFQUEUE      _IFQUEUE
+#define S_IFTTY        _IFTTY
+#define S_IFSEMAPHORE  _IFSEMAPHORE
 
 #define	S_IRWXU 	(S_IRUSR | S_IWUSR | S_IXUSR)
 #define		S_IRUSR	0000400	/* read permission, owner */

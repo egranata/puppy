@@ -120,6 +120,12 @@ enum msgqueue_ioctl_t {
     IOCTL_BLOCK_ON_FULL = 3, // a2 = bool; should a write block if the queue is full
 };
 
+// IOCTL operations that can run on a semaphore
+enum semaphore_ioctl_t {
+    IOCTL_SEMAPHORE_WAIT   = 0x5EA01111,
+    IOCTL_SEMAPHORE_SIGNAL = 0x5EA02222,
+};
+
 enum class process_state_t : uint8_t {
     NEW, /** created and not schedulable */
     AVAILABLE, /** ready to be scheduled (or running, we don't distinguish yet) */

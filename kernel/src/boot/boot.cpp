@@ -107,6 +107,10 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace semaphorefs {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -300,6 +304,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::msg_queue::init,
         onSuccess : nullptr,
         onFailure : boot::msg_queue::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare semaphores support",
+        visible : false,
+        operation : boot::semaphorefs::init,
+        onSuccess : nullptr,
+        onFailure : boot::semaphorefs::fail
     });
 
     registerBootPhase(bootphase_t{

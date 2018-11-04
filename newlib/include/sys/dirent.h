@@ -11,14 +11,15 @@ extern "C" {
 #include <newlib/stdint.h>
 #include <newlib/time.h>
 
-#define DT_UNKNOWN          0
-#define DT_PIPE             1
-#define DT_CHR              2
-#define DT_DIR              4
-#define DT_BLK              6
-#define DT_REG              8
-#define DT_QUEUE           16
-#define DT_TTY             32
+#define DT_UNKNOWN           0
+#define DT_PIPE              1
+#define DT_CHR               2
+#define DT_DIR               4
+#define DT_BLK               6
+#define DT_REG               8
+#define DT_QUEUE            16
+#define DT_TTY              32
+#define DT_SEMAPHORE        64
 
 typedef struct dirent {
     int d_ino; // inode: required for compatibility but unused

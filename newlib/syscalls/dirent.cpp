@@ -68,6 +68,7 @@ NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
             MATCH(pipe,        DT_PIPE);
             MATCH(msgqueue,    DT_QUEUE);
             MATCH(tty,         DT_TTY);
+            MATCH(semaphore,   DT_SEMAPHORE);
         }
         return &dir->current;
     } else {
