@@ -340,6 +340,31 @@ size_t TTYFile::write(size_t s, char* buffer) {
                     mEscapeSequenceInput = 10 * mEscapeSequenceInput + (c - '0');
                 }
             } break;
+            case 'A': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::OFF;
+                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move up by %d", mEscapeSequenceInput);
+                    uint16_t row = 0, col = 0;
+                    mTTY->getPosition(&row, &col);
+                    if (row >= mEscapeSequenceInput) row -= mEscapeSequenceInput;
+                    else row = 0;
+                    mTTY->setPosition(row, col);
+                }
+            } break;
+            case 'B': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::OFF;
+                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move down by %d", mEscapeSequenceInput);
+                    uint16_t row = 0, col = 0;
+                    mTTY->getPosition(&row, &col);
+                    row += mEscapeSequenceInput;
+                    mTTY->setPosition(row, col);
+                }
+            } break;
             case 'C': {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
@@ -365,10 +390,28 @@ size_t TTYFile::write(size_t s, char* buffer) {
                     mTTY->setPosition(row, col);
                 }
             } break;
+            case 'H': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::OFF;
+                    TAG_DEBUG(RAWTTY, "cursor move to origin", mEscapeSequenceInput);
+                    mTTY->setPosition(0, 0);
+                }
+            } break;
+            case 'J': {
+                writeThis = false;
+                mEscapeStatus = escape_sequence_status_t::OFF;
+                if (mEscapeSequenceInput == 2) {
+                    TAG_DEBUG(RAWTTY, "screen clear command");
+                    mTTY->clearScreen();
+                } else {
+                    TAG_DEBUG(RAWTTY, "unknown screen clear command %d", mEscapeSequenceInput);
+                }
+            } break;
             case 'K': {
                 writeThis = false;
                 mEscapeStatus = escape_sequence_status_t::OFF;
-                TAG_DEBUG(RAWTTY, "screen clear command %d", mEscapeSequenceInput);
+                TAG_DEBUG(RAWTTY, "line clear command %d", mEscapeSequenceInput);
                 if (mEscapeSequenceInput == 0) mTTY->clearLine(false, true);
                 if (mEscapeSequenceInput == 1) mTTY->clearLine(true, false);
                 if (mEscapeSequenceInput == 2) mTTY->clearLine(true, true);
