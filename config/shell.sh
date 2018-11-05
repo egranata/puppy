@@ -3,3 +3,6 @@
 
 env PATH=/system/apps:/initrd
 cowspeak /system/config/motd
+
+# This should be changed according to the user's timezone
+env TZ=America/Los_Angeles
