@@ -296,7 +296,17 @@ class Project(object):
         return DEST
 
 NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
-NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a", "out/mnt/libs/libeastl.a", "out/mnt/libs/libcxxsupport.a", "out/mnt/libs/liblinenoise.a", "out/mnt/libs/libparson.a", "out/mnt/libs/libm.a", "out/mnt/libs/libc.a", "out/mnt/libs/libnewlibinterface.a", "out/mnt/libs/libc.a"]
+NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
+              "out/mnt/libs/libeastl.a",
+              "out/mnt/libs/libcxxsupport.a",
+              "out/mnt/libs/liblinenoise.a",
+              "out/mnt/libs/libparson.a",
+              "out/mnt/libs/libpcre2-posix.a",
+              "out/mnt/libs/libpcre2-8.a",
+              "out/mnt/libs/libm.a",
+              "out/mnt/libs/libc.a",
+              "out/mnt/libs/libnewlibinterface.a",
+              "out/mnt/libs/libc.a"]
 NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
 
 SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib"]
@@ -474,6 +484,7 @@ HDR_COPY_DURATION = int(HDR_COPY_END - HDR_COPY_BEGIN)
 if HDR_COPY_DURATION > 0: print("Header files copied in %s seconds" % HDR_COPY_DURATION)
 
 LIB_COPY_BEGIN = time.time()
+xcopy("third_party/pcre2-10.32/libs/lib*.a", "out/mnt/libs")
 xcopy("out/lib*.a", "out/mnt/libs")
 xcopy("newlib/lib/lib*.a", "out/mnt/libs")
 xcopy("python/*.py", "out/mnt/libs/python")
