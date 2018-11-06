@@ -656,7 +656,7 @@ copy("config/motd", "out/mnt/config/motd")
 copy("config/colors", "out/mnt/config/colors")
 copy("LICENSE", "out/mnt/config/LICENSE")
 
-rcopy("timezones", "out/mnt/config")
+rcopy("config/timezones", "out/mnt/config")
 
 anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
 sysinfo = read('config/sysinfo')
