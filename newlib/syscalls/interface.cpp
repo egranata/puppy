@@ -301,6 +301,10 @@ NEWLIB_IMPL_REQUIREMENT int execve(char* path, char** argv, char** env) {
     return newProcessImpl((const char*)path, argv, env, PROCESS_IS_FOREGROUND | PROCESS_INHERITS_CWD, nullptr);
 }
 
+NEWLIB_IMPL_REQUIREMENT int execv(char* path, char** argv) {
+    return execve(path, argv, environ);
+}
+
 NEWLIB_IMPL_REQUIREMENT int spawn(const char* path, char** argv, int flags, exec_fileop_t* fops) {
     const bool clear_env = PROCESS_EMPTY_ENVIRONMENT == (flags & PROCESS_EMPTY_ENVIRONMENT);
     flags &= ~PROCESS_EMPTY_ENVIRONMENT;
