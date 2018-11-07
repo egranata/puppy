@@ -385,6 +385,12 @@ def createDiskImage(file, megsOfSize=64):
 
     return (rootFile, headerFile, fatFile)
 
+ACPICA = Project(name="ACPICA",
+    srcdir="third_party/acpica/src",
+    assembler="nasm",
+    cflags=BASIC_CFLAGS + ['-Wno-error=unused-parameter', '-Wno-error=unused-function', '-Wno-error=unused-const-variable'])
+ACPICA.link = ACPICA.linkAr
+
 FatFS = Project(name="FatFS",
     srcdir="third_party/fatfs",
     assembler="nasm")
@@ -455,6 +461,7 @@ Linenoise = Project(name="linenoise",
     linkerdeps=NEWLIB_DEPS)
 Linenoise.link = Linenoise.linkAr
 
+ACPICA.build()
 FatFS.build()
 Muzzle.build()
 Kernel.build()
