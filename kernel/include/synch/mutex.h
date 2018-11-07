@@ -25,7 +25,7 @@
 
 struct process_t;
 
-class Mutex : public refcounted<Mutex> {
+class Mutex {
     public:
         Mutex(const char*);
         void lock();

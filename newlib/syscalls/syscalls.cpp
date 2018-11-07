@@ -55,12 +55,6 @@ syscall_response_t getcurdir_syscall(char* arg1,size_t* arg2) {
 syscall_response_t setcurdir_syscall(const char* arg1) {
 	return syscall1(setcurdir_syscall_id,(uint32_t)arg1);
 }
-syscall_response_t semwait_syscall(uint32_t arg1) {
-	return syscall1(semwait_syscall_id,(uint32_t)arg1);
-}
-syscall_response_t semsignal_syscall(uint32_t arg1) {
-	return syscall1(semsignal_syscall_id,(uint32_t)arg1);
-}
 syscall_response_t getpid_syscall() {
 	return syscall0(getpid_syscall_id);
 }
@@ -100,9 +94,6 @@ syscall_response_t getppid_syscall() {
 syscall_response_t collect_syscall(kpid_t arg1,process_exit_status_t* arg2) {
 	return syscall2(collect_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
-syscall_response_t semget_syscall(uint32_t arg1) {
-	return syscall1(semget_syscall_id,(uint32_t)arg1);
-}
 syscall_response_t fioctl_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 	return syscall3(fioctl_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3);
 }
@@ -111,15 +102,6 @@ syscall_response_t fwrite_syscall(uint32_t arg1,uint32_t arg2,uint32_t arg3) {
 }
 syscall_response_t prioritize_syscall(kpid_t arg1,prioritize_target arg2,const exec_priority_t* arg3,exec_priority_t* arg4) {
 	return syscall4(prioritize_syscall_id,(uint32_t)arg1,(uint32_t)arg2,(uint32_t)arg3,(uint32_t)arg4);
-}
-syscall_response_t mutexget_syscall(uint32_t arg1) {
-	return syscall1(mutexget_syscall_id,(uint32_t)arg1);
-}
-syscall_response_t mutexlock_syscall(uint32_t arg1) {
-	return syscall1(mutexlock_syscall_id,(uint32_t)arg1);
-}
-syscall_response_t mutexunlock_syscall(uint32_t arg1) {
-	return syscall1(mutexunlock_syscall_id,(uint32_t)arg1);
 }
 syscall_response_t mapregion_syscall(uint32_t arg1,uint32_t arg2) {
 	return syscall2(mapregion_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
@@ -147,9 +129,6 @@ syscall_response_t mkdir_syscall(const char* arg1) {
 }
 syscall_response_t proctable_syscall(process_info_t* arg1,size_t arg2) {
 	return syscall2(proctable_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
-}
-syscall_response_t mutextrylock_syscall(uint32_t arg1) {
-	return syscall1(mutextrylock_syscall_id,(uint32_t)arg1);
 }
 syscall_response_t vmcheckreadable_syscall(uintptr_t arg1,size_t arg2) {
 	return syscall2(vmcheckreadable_syscall_id,(uint32_t)arg1,(uint32_t)arg2);

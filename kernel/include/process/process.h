@@ -32,9 +32,6 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/synch/waitqueue.h>
 
-class Semaphore;
-class Mutex;
-
 struct process_t {
     static constexpr size_t gDefaultStackSize = 4_MB;
     using State = process_state_t;
@@ -75,9 +72,7 @@ struct process_t {
     } priority;
     uint8_t usedticks;
     uint8_t fpstate[512] __attribute__((aligned(16))); // TODO: FPU state takes 108 bytes - could we dynamically shrink this?
-    Handletable<VFS::filehandle_t, 32> fds;
-    Handletable<Semaphore*, 32> semas;
-    Handletable<Mutex*, 32> mutexes;
+    Handletable<VFS::filehandle_t, 64> fds;
 
     // initial values for esp0 and esp that were setup by the kernel
     // at initialization time - we need to free them when we're tearing down

@@ -24,7 +24,7 @@
 
 struct process_t;
 
-class Semaphore : public refcounted<Semaphore> {
+class Semaphore {
     public:
         Semaphore(const char* name, uint32_t initial, uint32_t max);
         void wait();

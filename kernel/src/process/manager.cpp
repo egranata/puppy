@@ -28,8 +28,6 @@
 #include <kernel/process/reaper.h>
 #include <kernel/boot/phase.h>
 #include <kernel/libc/vec.h>
-#include <kernel/synch/semaphoremanager.h>
-#include <kernel/synch/mutexmanager.h>
 #include <kernel/tasks/scheduler.h>
 #include <kernel/tasks/awaker.h>
 #include <kernel/tasks/collector.h>
@@ -629,32 +627,6 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
         }
     }
     LOG_DEBUG("done releasing file handles");
-
-    {
-        auto& semgr(SemaphoreManager::get());
-
-        for(auto i = 0u; i < task->semas.size(); ++i) {
-            decltype(task->semas)::entry_t sd;
-            if (task->semas.is(i, &sd) && sd) {
-                LOG_DEBUG("for process %u, releasing semaphore %u (sd = %p)", task->pid, i, sd);
-                semgr.release(sd);
-            }
-        }
-    }
-    LOG_DEBUG("done releasing semaphores");
-
-    {
-        auto& mtxmgr(MutexManager::get());
-
-        for(auto i = 0u; i < task->mutexes.size(); ++i) {
-            decltype(task->mutexes)::entry_t sd;
-            if (task->mutexes.is(i, &sd) && sd) {
-                LOG_DEBUG("for process %u, releasing mutex %u (sd = %p)", task->pid, i, sd);
-                mtxmgr.release(sd);
-            }
-        }
-    }
-    LOG_DEBUG("done releasing mutexes");
 
     task->state = process_t::State::EXITED;
     task->ttyinfo.tty->popfg();
