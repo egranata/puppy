@@ -18,9 +18,13 @@
 #include <ctype.h>
 #include <strings.h>
 
-void printbuf(char* buf, int count) {
-    for (auto i = 0; i < count; ++i) {
-        printf("%02x ", buf[i]);
+void printbuf(char* buf, int count, int desiredsize) {
+    for (auto i = 0; i < desiredsize; ++i) {
+        if (i >= count) {
+            printf("   ");
+        } else {
+            printf("%02x ", buf[i]);
+        }
     }
     printf("    ");
     for (auto i = 0; i < count; ++i) {
@@ -38,7 +42,7 @@ void dump(FILE* f) {
         bzero(&buf[0], sizeof(buf));
         int count = fread(&buf[0], 1, sizeof(buf), f);
         if (0 == count) break;
-        printbuf(&buf[0], count);
+        printbuf(&buf[0], count, 16);
     }
     fclose(f);
 }
