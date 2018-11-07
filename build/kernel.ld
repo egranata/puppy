@@ -7,6 +7,7 @@ SECTIONS {
 	__kernel_start = .;
 
     .grub : AT(ADDR(.grub) - 0xC0000000) {
+		KEEP(*(.grub))
 		*(.grub)
 	}
 
@@ -16,6 +17,7 @@ SECTIONS {
 
 	.ctors : AT(ADDR(.ctors) - 0xC0000000) {
 		__ctors_start = .;
+		KEEP(*(.ctors))
 		*(.ctors)
 		__ctors_end = .;
 	}

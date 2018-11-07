@@ -19,6 +19,7 @@
 #include <kernel/libc/mapping.h>
 #include <kernel/boot/phase.h>
 #include <kernel/log/log.h>
+#include <kernel/drivers/acpi/acpica/acpica.h>
 
 namespace boot::acpi {
     uint32_t init() {
@@ -58,6 +59,7 @@ static RSDP* gRSDP = nullptr;
 RSDP* RSDP::tryget() {
     if (gRSDP != nullptr) return gRSDP;
 
+    const char* rsdpCanary = nullptr;
     {
         Mapping m(gLowAddress, gHighAddress - gLowAddress);
 
@@ -66,6 +68,7 @@ RSDP* RSDP::tryget() {
         for (const char* canary = (const char*)gLowAddress; canary < (const char*)gHighAddress; canary += 16) {
             if (0 == strncmp(gRSDPCanary, canary, gRSDPLen)) {
                 LOG_INFO("ACPI RSDP found at %p", canary);
+                rsdpCanary = canary;
                 gRSDP = new RSDP((uintptr_t)canary);
             }
         }
@@ -74,5 +77,14 @@ RSDP* RSDP::tryget() {
     if (gRSDP == nullptr) {
         LOG_WARNING("no ACPI RSDP found");
     }
+
+    ACPI_PHYSICAL_ADDRESS acpicaRSDP = 0;
+    AcpiFindRootPointer(&acpicaRSDP);
+    if ((RSDP*)acpicaRSDP != (RSDP*)rsdpCanary) {
+        TAG_ERROR(ACPICA, "ACPICA RSDP mismatch - gRSDP = %p, acpicaRSDP = %p", rsdpCanary, acpicaRSDP);
+    } else {
+        TAG_DEBUG(ACPICA, "ACPICA RSDP matches - found at %p", rsdpCanary);
+    }
+
     return gRSDP;
 }

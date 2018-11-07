@@ -19,6 +19,7 @@ global __bootpagetbl
 global __gdt
 global __gdtinfo
 global __numsysgdtentries
+global MultiBootHeader
 
 ; setting up the Multiboot header - see GRUB docs for details
 MODULEALIGN equ  1<<0             ; align loaded modules on page boundaries

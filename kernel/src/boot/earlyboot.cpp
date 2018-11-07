@@ -26,6 +26,7 @@
 #include <kernel/boot/kmain.h>
 
 static constexpr uint32_t gMultibootValid = 0x2BADB002;
+extern void* MultiBootHeader;
 
 // find which 4MB page index corresponds to the multiboot data
 static constexpr size_t fourMBPageForMultiboot(uintptr_t multiboot_data) {
@@ -232,7 +233,7 @@ void _earlyBoot(uintptr_t multiboot_data, uint32_t multiboot_magic) {
 	}
 
 	{
-		LOG_DEBUG("multiboot magic is valid; multiboot_data at physical address %p", multiboot_data);
+		LOG_DEBUG("multiboot magic is valid; multiboot_data at physical address %p - MultiBootHeader is %p", multiboot_data, MultiBootHeader);
 		_kmain();
 	}
 }

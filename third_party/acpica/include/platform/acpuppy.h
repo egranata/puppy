@@ -23,6 +23,7 @@
 #define COMPILER_DEPENDENT_UINT64   unsigned long long
 #define ACPI_USE_NATIVE_DIVIDE
 #define ACPI_USE_NATIVE_MATH64
+#define ACPI_32BIT_PHYSICAL_ADDRESS
 
 #define ACPI_MSG_ERROR          "ACPI Error: "
 #define ACPI_MSG_EXCEPTION      "ACPI Exception: "
