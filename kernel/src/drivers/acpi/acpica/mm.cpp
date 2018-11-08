@@ -30,8 +30,11 @@ extern "C" void* AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length) 
     if (!vmm.findKernelRegion(Length, rgn)) return nullptr;
     vmm.addKernelRegion(rgn.from, rgn.to);
     vmm.maprange(Where, Where+Length-1, rgn.from, VirtualPageManager::map_options_t::kernel());
-    TAG_DEBUG(ACPICA, "AcpiOsMapMemory(%p, %u) -> %p", Where, Length, rgn.from);
-    return (void*)rgn.from;
+    uint8_t *mapbegin = (uint8_t*)rgn.from;
+    auto Wheredelta = VirtualPageManager::offset(Where);
+    void* mapping = mapbegin + Wheredelta;
+    TAG_DEBUG(ACPICA, "AcpiOsMapMemory(%p, %u) -> %p", Where, Length, mapping);
+    return mapping;
 }
 
 extern "C" void AcpiOsUnmapMemory (void* LogicalAddress, ACPI_SIZE Size) {
@@ -96,4 +99,10 @@ extern "C" ACPI_STATUS AcpiOsWriteMemory (ACPI_PHYSICAL_ADDRESS Address, UINT64 
         } break;
     }
     return AE_OK;
+}
+
+extern "C" ACPI_PHYSICAL_ADDRESS AcpiOsGetRootPointer (void) {
+    ACPI_PHYSICAL_ADDRESS rsdp = 0;
+    if (AE_OK != AcpiFindRootPointer(&rsdp)) return 0;
+    else return rsdp;
 }

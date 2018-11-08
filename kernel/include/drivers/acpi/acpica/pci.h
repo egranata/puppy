@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-#include <kernel/drivers/acpi/acpica/print.h>
-#include <stdarg.h>
+#ifndef DRIVERS_ACPI_ACPICA_PCI
+#define DRIVERS_ACPI_ACPICA_PCI
 
-extern "C" void AcpiOsPrintf (const char* fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    AcpiOsVprintf(fmt, ap);
-    va_end(ap);
-}
+#include <kernel/drivers/acpi/acpica/acpica.h>
 
-extern "C" void AcpiOsVprintf (const char* fmt, va_list) {
-    // TODO: actually support printf() formating
-    // VA_TAG_INFO(ACPICA, fmt, ap);
-    TAG_DEBUG(ACPICA, fmt);
-}
+extern "C" ACPI_STATUS
+AcpiOsReadPciConfiguration (
+    ACPI_PCI_ID             *PciId,
+    UINT32                  Reg,
+    UINT64                  *Value,
+    UINT32                  Width);
+
+extern "C" ACPI_STATUS
+AcpiOsWritePciConfiguration (
+    ACPI_PCI_ID             *PciId,
+    UINT32                  Reg,
+    UINT64                  Value,
+    UINT32                  Width);
+
+#endif

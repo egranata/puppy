@@ -49,4 +49,8 @@ AcpiOsWriteMemory (
     UINT64                  Value,
     UINT32                  Width);
 
+extern "C" ACPI_PHYSICAL_ADDRESS
+AcpiOsGetRootPointer (
+    void);
+
 #endif

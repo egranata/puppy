@@ -78,6 +78,8 @@ RSDP* RSDP::tryget() {
         LOG_WARNING("no ACPI RSDP found");
     }
 
+    AcpiGbl_DoNotUseXsdt = true;
+
     ACPI_PHYSICAL_ADDRESS acpicaRSDP = 0;
     AcpiFindRootPointer(&acpicaRSDP);
     if ((RSDP*)acpicaRSDP != (RSDP*)rsdpCanary) {
@@ -91,6 +93,20 @@ RSDP* RSDP::tryget() {
             bootphase_t::printf("ACPICA init error %d", acpi_init);
         } else {
             TAG_DEBUG(ACPICA, "AcpiInitializeSubsystem() said AE_OK");
+        }
+        acpi_init = AcpiInitializeTables(nullptr, 32, false);
+        if (acpi_init != AE_OK) {
+            TAG_ERROR(ACPICA, "ACPICA init error: %d", acpi_init);
+            bootphase_t::printf("ACPICA init error %d", acpi_init);
+        } else {
+            TAG_DEBUG(ACPICA, "AcpiInitializeTables() said AE_OK");
+        }
+        acpi_init = AcpiLoadTables();
+        if (acpi_init != AE_OK) {
+            TAG_ERROR(ACPICA, "ACPICA init error: %d", acpi_init);
+            bootphase_t::printf("ACPICA init error %d", acpi_init);
+        } else {
+            TAG_DEBUG(ACPICA, "AcpiLoadTables() said AE_OK");
         }
     }
 
