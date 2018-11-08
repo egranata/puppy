@@ -14,39 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef DRIVERS_ACPI_ACPICA_MM
-#define DRIVERS_ACPI_ACPICA_MM
+#ifndef DRIVERS_ACPI_ACPICA_IRQ
+#define DRIVERS_ACPI_ACPICA_IRQ
 
 #include <kernel/drivers/acpi/acpica/acpica.h>
 
-extern "C" void*
-AcpiOsMapMemory (
-    ACPI_PHYSICAL_ADDRESS   Where,
-    ACPI_SIZE               Length);
-
-extern "C" void
-AcpiOsUnmapMemory (
-    void                    *LogicalAddress,
-    ACPI_SIZE               Size);
-
-extern "C" void *
-AcpiOsAllocate (
-    ACPI_SIZE               Size);
-
-extern "C" void
-AcpiOsFree (
-    void *                  Memory);
+extern "C" ACPI_STATUS
+AcpiOsInstallInterruptHandler (
+    UINT32                  InterruptNumber,
+    ACPI_OSD_HANDLER        ServiceRoutine,
+    void                    *Context);
 
 extern "C" ACPI_STATUS
-AcpiOsReadMemory (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT64                  *Value,
-    UINT32                  Width);
-
-extern "C" ACPI_STATUS
-AcpiOsWriteMemory (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT64                  Value,
-    UINT32                  Width);
+AcpiOsRemoveInterruptHandler (
+    UINT32                  InterruptNumber,
+    ACPI_OSD_HANDLER        ServiceRoutine);
 
 #endif

@@ -388,7 +388,7 @@ def createDiskImage(file, megsOfSize=64):
 ACPICA = Project(name="ACPICA",
     srcdir="third_party/acpica/src",
     assembler="nasm",
-    cflags=BASIC_CFLAGS + ['-Wno-error=unused-parameter', '-ffunction-sections', '-fdata-sections'])
+    cflags=BASIC_CFLAGS + ['-Wno-error=unused-parameter', '-ffunction-sections'])
 ACPICA.link = ACPICA.linkAr
 
 FatFS = Project(name="FatFS",

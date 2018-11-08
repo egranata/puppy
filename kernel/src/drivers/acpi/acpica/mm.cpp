@@ -45,4 +45,55 @@ extern "C" void AcpiOsUnmapMemory (void* LogicalAddress, ACPI_SIZE Size) {
     TAG_DEBUG(ACPICA, "AcpiOsUnmapMemory(%p, %u)", LogicalAddress, Size);
 }
 
+extern "C" void *AcpiOsAllocate (ACPI_SIZE Size) {
+    return malloc(Size);
+}
 
+extern "C" void AcpiOsFree (void * Memory) {
+    free(Memory);
+}
+
+extern "C" ACPI_STATUS AcpiOsReadMemory (ACPI_PHYSICAL_ADDRESS Address, UINT64 *Value, UINT32 Width) {
+    *Value = 0;
+    switch (Width) {
+        case 8: {
+            uint8_t *ptr = (uint8_t*)Address;
+            *Value = *ptr;
+        } break;
+        case 16: {
+            uint16_t *ptr = (uint16_t*)Address;
+            *Value = *ptr;
+        } break;
+        case 32: {
+            uint32_t *ptr = (uint32_t*)Address;
+            *Value = *ptr;
+        } break;
+        case 64: {
+            uint64_t *ptr = (uint64_t*)Address;
+            *Value = *ptr;
+        } break;
+    }
+    return AE_OK;
+}
+
+extern "C" ACPI_STATUS AcpiOsWriteMemory (ACPI_PHYSICAL_ADDRESS Address, UINT64 Value, UINT32 Width) {
+    switch (Width) {
+        case 8: {
+            uint8_t *ptr = (uint8_t*)Address;
+            *ptr = (uint8_t)Value;
+        } break;
+        case 16: {
+            uint16_t *ptr = (uint16_t*)Address;
+            *ptr = (uint16_t)Value;
+        } break;
+        case 32: {
+            uint32_t *ptr = (uint32_t*)Address;
+            *ptr = (uint32_t)Value;
+        } break;
+        case 64: {
+            uint64_t *ptr = (uint64_t*)Address;
+            *ptr = (uint64_t)Value;
+        } break;
+    }
+    return AE_OK;
+}

@@ -82,8 +82,16 @@ RSDP* RSDP::tryget() {
     AcpiFindRootPointer(&acpicaRSDP);
     if ((RSDP*)acpicaRSDP != (RSDP*)rsdpCanary) {
         TAG_ERROR(ACPICA, "ACPICA RSDP mismatch - gRSDP = %p, acpicaRSDP = %p", rsdpCanary, acpicaRSDP);
+        bootphase_t::printf("ACPICA RSDP mismatch - gRSDP = %p, acpicaRSDP = %p", rsdpCanary, acpicaRSDP);
     } else {
         TAG_DEBUG(ACPICA, "ACPICA RSDP matches - found at %p", rsdpCanary);
+        auto acpi_init = AcpiInitializeSubsystem();
+        if (acpi_init != AE_OK) {
+            TAG_ERROR(ACPICA, "ACPICA init error: %d", acpi_init);
+            bootphase_t::printf("ACPICA init error %d", acpi_init);
+        } else {
+            TAG_DEBUG(ACPICA, "AcpiInitializeSubsystem() said AE_OK");
+        }
     }
 
     return gRSDP;

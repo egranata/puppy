@@ -14,39 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef DRIVERS_ACPI_ACPICA_MM
-#define DRIVERS_ACPI_ACPICA_MM
+#ifndef DRIVERS_ACPI_ACPICA_PORT
+#define DRIVERS_ACPI_ACPICA_PORT
 
 #include <kernel/drivers/acpi/acpica/acpica.h>
 
-extern "C" void*
-AcpiOsMapMemory (
-    ACPI_PHYSICAL_ADDRESS   Where,
-    ACPI_SIZE               Length);
-
-extern "C" void
-AcpiOsUnmapMemory (
-    void                    *LogicalAddress,
-    ACPI_SIZE               Size);
-
-extern "C" void *
-AcpiOsAllocate (
-    ACPI_SIZE               Size);
-
-extern "C" void
-AcpiOsFree (
-    void *                  Memory);
-
 extern "C" ACPI_STATUS
-AcpiOsReadMemory (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT64                  *Value,
+AcpiOsReadPort (
+    ACPI_IO_ADDRESS         Address,
+    UINT32                  *Value,
     UINT32                  Width);
 
 extern "C" ACPI_STATUS
-AcpiOsWriteMemory (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT64                  Value,
+AcpiOsWritePort (
+    ACPI_IO_ADDRESS         Address,
+    UINT32                  Value,
     UINT32                  Width);
 
 #endif
