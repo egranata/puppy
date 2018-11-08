@@ -1,5 +1,4 @@
 megs: 768
-display_library: sdl2
 ata0-master: type=disk, path=out/os.img, mode=flat, translation=lba
 boot: disk
 log: out/bochslog.txt
