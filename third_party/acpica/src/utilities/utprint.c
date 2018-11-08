@@ -524,7 +524,7 @@ AcpiUtFormatNumber (
 
 /*******************************************************************************
  *
- * FUNCTION:    vsnprintf
+ * FUNCTION:    Acpivsnprintf
  *
  * PARAMETERS:  String              - String with boundary
  *              Size                - Boundary of the string
@@ -538,7 +538,7 @@ AcpiUtFormatNumber (
  ******************************************************************************/
 
 int
-vsnprintf (
+Acpivsnprintf (
     char                    *String,
     ACPI_SIZE               Size,
     const char              *Format,
@@ -846,7 +846,7 @@ snprintf (
 
 
     va_start (Args, Format);
-    Length = vsnprintf (String, Size, Format, Args);
+    Length = Acpivsnprintf (String, Size, Format, Args);
     va_end (Args);
 
     return (Length);
@@ -877,7 +877,7 @@ sprintf (
 
 
     va_start (Args, Format);
-    Length = vsnprintf (String, ACPI_UINT32_MAX, Format, Args);
+    Length = Acpivsnprintf (String, ACPI_UINT32_MAX, Format, Args);
     va_end (Args);
 
     return (Length);
@@ -908,7 +908,7 @@ vprintf (
 
 
     Flags = AcpiOsAcquireLock (AcpiGbl_PrintLock);
-    Length = vsnprintf (AcpiGbl_PrintBuffer,
+    Length = Acpivsnprintf (AcpiGbl_PrintBuffer,
                 sizeof (AcpiGbl_PrintBuffer), Format, Args);
 
     (void) fwrite (AcpiGbl_PrintBuffer, Length, 1, ACPI_FILE_OUT);
@@ -972,7 +972,7 @@ vfprintf (
 
 
     Flags = AcpiOsAcquireLock (AcpiGbl_PrintLock);
-    Length = vsnprintf (AcpiGbl_PrintBuffer,
+    Length = Acpivsnprintf (AcpiGbl_PrintBuffer,
         sizeof (AcpiGbl_PrintBuffer), Format, Args);
 
     (void) fwrite (AcpiGbl_PrintBuffer, Length, 1, File);

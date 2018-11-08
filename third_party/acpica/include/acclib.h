@@ -319,7 +319,7 @@ AcpiUtPrintNumber (
     UINT64                  Number);
 
 int
-vsnprintf (
+Acpivsnprintf (
     char                    *String,
     ACPI_SIZE               Size,
     const char              *Format,

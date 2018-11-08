@@ -17,6 +17,13 @@
 #include <kernel/drivers/acpi/acpica/print.h>
 #include <stdarg.h>
 
+extern "C" int
+Acpivsnprintf (
+    char                    *String,
+    ACPI_SIZE               Size,
+    const char              *Format,
+    va_list                 Args);
+
 extern "C" void AcpiOsPrintf (const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -24,8 +31,8 @@ extern "C" void AcpiOsPrintf (const char* fmt, ...) {
     va_end(ap);
 }
 
-extern "C" void AcpiOsVprintf (const char* fmt, va_list) {
-    // TODO: actually support printf() formating
-    // VA_TAG_INFO(ACPICA, fmt, ap);
-    TAG_DEBUG(ACPICA, fmt);
+extern "C" void AcpiOsVprintf (const char* fmt, va_list ap) {
+    static char gACPICABuffer[2048] = {0};
+    Acpivsnprintf(&gACPICABuffer[0], 2047, fmt, ap);
+    TAG_DEBUG(ACPICA, &gACPICABuffer[0]);
 }
