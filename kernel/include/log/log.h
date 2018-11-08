@@ -50,6 +50,11 @@ __attribute__((unused)) static constexpr uint8_t g ## NAME ## LogLevel = LEVEL
 #define TAG_WARNING(TAG,...) log_warning<g ## TAG ## LogLevel>(#TAG, __FILE__, __LINE__, __VA_ARGS__)
 #define TAG_ERROR(TAG,...) log_error<g ## TAG ## LogLevel>(#TAG, __FILE__, __LINE__, __VA_ARGS__)
 
+#define VA_TAG_DEBUG(TAG, fmt, vargs) va_log_debug<g ## TAG ## LogLevel>(#TAG, __FILE__, __LINE__, fmt, vargs)
+#define VA_TAG_INFO(TAG, fmt, vargs) va_log_info<g ## TAG ## LogLevel>(#TAG, __FILE__, __LINE__, fmt, vargs)
+#define VA_TAG_WARNING(TAG, fmt, vargs) va_log_warning<g ## TAG ## LogLevel>(#TAG, __FILE__, __LINE__, fmt, vargs)
+#define VA_TAG_ERROR(TAG, fmt, vargs) va_log_error<g ## TAG ## LogLevel>(#TAG, __FILE__, __LINE__, fmt, vargs)
+
 #ifndef LOG_LEVEL
 #ifdef NDEBUG
 static constexpr uint8_t gLogLevel = 2;
@@ -65,6 +70,11 @@ static constexpr uint8_t gLogLevel = LOG_LEVEL;
 #define LOG_WARNING(...) log_warning(nullptr, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_ERROR(...) log_error(nullptr, __FILE__, __LINE__, __VA_ARGS__)
 
+#define VA_LOG_DEBUG(fmt, vargs) va_log_debug(nullptr, __FILE__, __LINE__, fmt, vargs)
+#define VA_LOG_INFO(fmt, vargs) va_log_info(nullptr, __FILE__, __LINE__, fmt, vargs)
+#define VA_LOG_WARNING(fmt, vargs) va_log_warning(nullptr, __FILE__, __LINE__, fmt, vargs)
+#define VA_LOG_ERROR(fmt, vargs) va_log_error(nullptr, __FILE__, __LINE__, fmt, vargs)
+
 #define LOG_ENTRY(level, value) \
 template<uint8_t LL = gLogLevel> \
 static typename enable_if<(LL <= value), void>::type \
@@ -76,7 +86,15 @@ log_ ## level (const char* tag, const char* file, int line, const char* fmt, ...
 } \
 template<uint8_t LL = gLogLevel> \
 static typename enable_if<(LL > value), void>::type \
-log_ ## level (const char*, const char*, int, const char*, ...) {}
+log_ ## level (const char*, const char*, int, const char*, ...) {} \
+template<uint8_t LL = gLogLevel> \
+static typename enable_if<(LL <= value), void>::type \
+va_log_ ## level (const char* tag, const char* file, int line, const char* fmt, va_list ap) { \
+    __really_log(tag, file, line, fmt, ap); \
+} \
+template<uint8_t LL = gLogLevel> \
+static typename enable_if<(LL > value), void>::type \
+va_log_ ## level (const char*, const char*, int, const char*, va_list ap) {}
 
 LOG_ENTRY(debug, 0)
 LOG_ENTRY(info, 1)

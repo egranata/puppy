@@ -15,7 +15,15 @@
  */
 
 #include <kernel/drivers/acpi/acpica/print.h>
+#include <stdarg.h>
 
-extern "C" void AcpiOsPrintf (const char*, ...) {}
+extern "C" void AcpiOsPrintf (const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    AcpiOsVprintf(fmt, ap);
+    va_end(ap);
+}
 
-extern "C" void AcpiOsVprintf (const char*, va_list) {}
+extern "C" void AcpiOsVprintf (const char* fmt, va_list ap) {
+    VA_TAG_INFO(ACPICA, fmt, ap);
+}
