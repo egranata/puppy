@@ -15,8 +15,13 @@
  */
 
 #include <kernel/drivers/acpi/acpica/irq.h>
+#include <kernel/drivers/pic/pic.h>
+#include <kernel/i386/idt.h>
 
 extern "C" ACPI_STATUS AcpiOsInstallInterruptHandler (UINT32 InterruptNumber, ACPI_OSD_HANDLER ServiceRoutine, void *Context) {
+    auto irq = PIC::gIRQNumber(InterruptNumber);
+    Interrupts::get().sethandler(irq, "ACPI", (Interrupts::handler_t::irq_handler_f)ServiceRoutine, Context);
+    PIC::get().accept(InterruptNumber);
     TAG_DEBUG(ACPICA, "AcpiOsInstallInterruptHandler(%u, %p, %p)", InterruptNumber, ServiceRoutine, Context);
     return AE_OK;
 }

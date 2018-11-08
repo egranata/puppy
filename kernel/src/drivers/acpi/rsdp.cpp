@@ -108,6 +108,13 @@ RSDP* RSDP::tryget() {
         } else {
             TAG_DEBUG(ACPICA, "AcpiLoadTables() said AE_OK");
         }
+        acpi_init = AcpiEnableSubsystem(0);
+        if (acpi_init != AE_OK) {
+            TAG_ERROR(ACPICA, "ACPICA init error: %d", acpi_init);
+            bootphase_t::printf("ACPICA init error %d", acpi_init);
+        } else {
+            TAG_DEBUG(ACPICA, "AcpiEnableSubsystem() said AE_OK");
+        }
     }
 
     return gRSDP;
