@@ -53,6 +53,10 @@ namespace boot {
     namespace acpi {
         uint32_t init();
     }
+    namespace acpica {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
     namespace apic {
         uint32_t init();
         bool fail(uint32_t);
@@ -212,6 +216,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::acpi::init,
         onSuccess : nullptr,
         onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "ACPICA initialization",
+        visible : false,
+        operation : boot::acpica::init,
+        onSuccess : nullptr,
+        onFailure : boot::acpica::fail
     });
 
     registerBootPhase(bootphase_t{

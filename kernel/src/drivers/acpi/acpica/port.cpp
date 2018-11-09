@@ -18,6 +18,7 @@
 #include <kernel/i386/primitives.h>
 
 extern "C" ACPI_STATUS AcpiOsReadPort (ACPI_IO_ADDRESS Address, UINT32 *Value, UINT32 Width) {
+    TAG_DEBUG(ACPICA, "AcpiOsReadPort(%u, %p, %u)", Address, Value, Width);
     switch (Width) {
         case 8: {
             *Value = inb(Address);
@@ -33,6 +34,7 @@ extern "C" ACPI_STATUS AcpiOsReadPort (ACPI_IO_ADDRESS Address, UINT32 *Value, U
 }
 
 extern "C" ACPI_STATUS AcpiOsWritePort (ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width) {
+    TAG_DEBUG(ACPICA, "AcpiOsWritePort(%u, %u, %u)", Address, Value, Width);
     switch (Width) {
         case 8: {
             outb(Address, Value);

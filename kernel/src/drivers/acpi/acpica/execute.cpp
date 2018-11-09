@@ -19,6 +19,7 @@
 typedef void(*acpi_func_f)(void*);
 
 extern "C" ACPI_STATUS AcpiOsExecute (ACPI_EXECUTE_TYPE, ACPI_OSD_EXEC_CALLBACK Function, void *Context) {
+    TAG_DEBUG(ACPICA, "AcpiOsExecute(%p, %p)", Function, Context);
     acpi_func_f func = (acpi_func_f)Function;
     func(Context);
     return AE_OK;

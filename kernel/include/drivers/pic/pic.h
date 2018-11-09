@@ -18,6 +18,7 @@
 #define PIC_PIC
 
 #include <kernel/sys/stdint.h>
+#include <kernel/drivers/acpi/acpica/acpica.h>
 
 class PIC {
     public:
@@ -26,6 +27,8 @@ class PIC {
         static uint8_t gIRQNumber(uint8_t irq);
 
         static PIC& get();
+
+        ACPI_STATUS setupACPI();
 
         static void eoi(uint8_t irq);
 

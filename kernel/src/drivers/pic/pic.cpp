@@ -61,6 +61,27 @@ void PIC::eoi(uint8_t irq) {
     outb(commandPort(0), gEndOfInterrupt);
 }
 
+ACPI_STATUS PIC::setupACPI() {
+    ACPI_OBJECT_LIST argl;
+    ACPI_OBJECT arg;
+
+    arg.Type = ACPI_TYPE_INTEGER;
+    arg.Integer.Value = 0; // 0 is PIC; 1 is APIC
+
+    argl.Count = 1;
+    argl.Pointer = &arg;
+
+    ACPI_STATUS ok = AcpiEvaluateObject(ACPI_ROOT_OBJECT, (char*)"_PIC", &argl, nullptr);
+    if (ok == AE_OK) return ok;
+    if (ok == AE_NOT_FOUND) {
+        TAG_WARNING(ACPICA, "_PIC not found in ACPI; ignoring");
+        return AE_OK;
+    } else {
+        TAG_ERROR(ACPICA, "_PIC execution failed: %u", ok);
+        return ok;
+    }
+}
+
 PIC::PIC() {
     auto a0 = inb(dataPort(0));
     auto a1 = inb(dataPort(1));
