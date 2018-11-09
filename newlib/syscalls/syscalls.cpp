@@ -43,6 +43,9 @@ syscall_response_t sleep_syscall(uint32_t arg1) {
 syscall_response_t exit_syscall(uint8_t arg1) {
 	return syscall1(exit_syscall_id,(uint32_t)arg1);
 }
+syscall_response_t halt_syscall() {
+	return syscall0(halt_syscall_id);
+}
 syscall_response_t reboot_syscall() {
 	return syscall0(reboot_syscall_id);
 }

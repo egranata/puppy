@@ -22,9 +22,16 @@
 #include <kernel/log/log.h>
 #include <kernel/time/manager.h>
 #include <kernel/process/manager.h>
+#include <kernel/drivers/acpi/acpica/acpica.h>
 
 HANDLER0(reboot) {
     reboot();
+    return OK; // we should never return from here
+}
+
+HANDLER0(halt) {
+    AcpiEnterSleepStatePrep(ACPI_STATE_S5);
+    AcpiEnterSleepState(ACPI_STATE_S5);
     return OK; // we should never return from here
 }
 

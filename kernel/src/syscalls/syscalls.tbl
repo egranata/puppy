@@ -2,6 +2,7 @@
     {"name":"yield",            "argc":0},
     {"name":"sleep",            "argtypes":["uint32_t"]},
     {"name":"exit",             "argtypes":["uint8_t"]},
+    {"name":"halt",             "argc":0},
     {"name":"reboot",           "argc":0},
     {"name":"sysinfo",          "argtypes":["sysinfo_t*", "uint32_t"]},
     {"name":"getcurdir",        "argtypes":["char*", "size_t*"]},
