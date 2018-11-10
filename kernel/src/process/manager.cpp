@@ -260,7 +260,7 @@ ProcessManager::ProcessManager() {
     dtbl[gDummyProcess.gdtidx] |= 0xE90000000000ULL;
     dtbl[gDummyProcess.gdtidx] |= (((uint64_t)&gDummyProcess) & 0xFF000000ULL) << 32;
 
-    LOG_DEBUG("gdt idx is %u entry is %llx", gDummyProcess.gdtidx, dtbl[gDummyProcess.gdtidx]);
+    LOG_DEBUG("gdt idx is %u entry is 0x%llx", gDummyProcess.gdtidx, dtbl[gDummyProcess.gdtidx]);
 
     dtbl[5] = 0x300000 | 0x1E50000000000;
     writetaskreg(gDummyProcess.gdtidx*8 | 3);
@@ -472,7 +472,7 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
 
     auto gdtval = fillGDT(process);
 
-    LOG_DEBUG("process %u spawning process %u; eip = 0x%p, cr3 = 0x%p, esp0 = 0x%p, esp = 0x%p, gdt index %u value %llx",
+    LOG_DEBUG("process %u spawning process %u; eip = 0x%p, cr3 = 0x%p, esp0 = 0x%p, esp = 0x%p, gdt index %u value 0x%llx",
         process->ppid, process->pid,
         process->tss.eip, process->tss.cr3,
         process->tss.esp0, process->tss.esp,

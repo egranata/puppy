@@ -100,7 +100,7 @@ APIC::APIC() : mAPICRegisters(nullptr), mTicksPerMs(0) {
     auto apicbase = (uint32_t)ia32apicbase & 0xFFFFF000;
     const bool bootCPU = ia32apicbase & (1 << 8);
     const bool apicON = ia32apicbase & (1 << 11);
-    LOG_DEBUG("IA32_APIC_BASE = %llx - base address is 0x%p, boot CPU is %u, apicON is %u", ia32apicbase, apicbase, bootCPU, apicON);
+    LOG_DEBUG("IA32_APIC_BASE = 0x%llx - base address is 0x%p, boot CPU is %u, apicON is %u", ia32apicbase, apicbase, bootCPU, apicON);
     if (apicON == false) {
         ia32apicbase |= (1 << 11);
         writemsr(gIA32_APIC_BASE, ia32apicbase);

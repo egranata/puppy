@@ -44,7 +44,7 @@ void reboot() {
     auto&& resetreg = fadt->fadt->resetreg;
     auto resetval = fadt->fadt->resetvalue;
 
-    LOG_DEBUG("ACPI reset register: space = %u, address = %llx, value = %u", resetreg.space, resetreg.address, resetval);
+    LOG_DEBUG("ACPI reset register: space = %u, address = 0x%llx, value = %u", resetreg.space, resetreg.address, resetval);
 
     switch (resetreg.space) {
         case acpi_address_t::addr_space_t::memory: {

@@ -76,7 +76,7 @@ public:
 	size_t putlx(uint64_t n) {
 		char buffer[25];
 		auto bufptr = num2str(n, &buffer[0], 24, 16, false);
-		return puts("0x") + puts(bufptr);
+		return puts(bufptr);
 	}
 
 	size_t putn(signed int n) {
