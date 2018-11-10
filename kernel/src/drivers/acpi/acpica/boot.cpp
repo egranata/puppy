@@ -32,6 +32,34 @@ static UINT32 acpi_power_button_event_handler(void* context) {
     return ACPI_INTERRUPT_HANDLED;
 }
 
+static ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void*, void**) {
+    ACPI_OBJECT_TYPE type;
+
+    ACPI_STATUS ok = AcpiGetType(handle, &type);
+    if (ok != AE_OK) {
+        TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: %p level: %u", handle, level);
+        return AE_OK;
+    }
+    ACPI_BUFFER nameBuffer = {0};
+    nameBuffer.Length = 128;
+    nameBuffer.Pointer = calloc(sizeof(char), nameBuffer.Length);
+    ok = AcpiGetName(handle, ACPI_FULL_PATHNAME, &nameBuffer);
+    ACPI_BUFFER diBuffer = {0};
+    diBuffer.Length = sizeof(ACPI_DEVICE_INFO);
+    diBuffer.Pointer = calloc(1, sizeof(ACPI_DEVICE_INFO));
+    ACPI_DEVICE_INFO *di = (ACPI_DEVICE_INFO*)diBuffer.Pointer;
+    ok = AcpiGetObjectInfo(handle, &di);
+    if (ok == AE_OK && (di->Valid & ACPI_VALID_HID)) {
+        TAG_INFO(ACPICA, "device detect: path=%s hid=%s", nameBuffer.Pointer, di->HardwareId.String);
+    } else {
+        TAG_INFO(ACPICA, "device detect: path=%s hid=<invalid>", nameBuffer.Pointer);
+    }
+    // TODO: do something useful with the devices
+    free(nameBuffer.Pointer);
+    free(diBuffer.Pointer);
+    return AE_OK;
+}
+
 namespace boot::acpica {
     constexpr uint32_t gFatalFailure = 1;
     constexpr uint32_t gNonFatalFailure = 2;
@@ -45,12 +73,25 @@ namespace boot::acpica {
 
         auto acpi_init = AcpiInitializeSubsystem();
         if (IS_ERR) return gNonFatalFailure;
+
         acpi_init = AcpiInitializeTables(nullptr, 32, false);
         if (IS_ERR) return gNonFatalFailure;
+
+        acpi_init = AcpiInstallAddressSpaceHandler(ACPI_ROOT_OBJECT, ACPI_ADR_SPACE_SYSTEM_MEMORY, ACPI_DEFAULT_HANDLER, nullptr, nullptr);
+        if (IS_ERR) return gNonFatalFailure;
+
+        acpi_init = AcpiInstallAddressSpaceHandler(ACPI_ROOT_OBJECT, ACPI_ADR_SPACE_SYSTEM_IO, ACPI_DEFAULT_HANDLER, nullptr, nullptr);
+        if (IS_ERR) return gNonFatalFailure;
+
+        acpi_init = AcpiInstallAddressSpaceHandler(ACPI_ROOT_OBJECT, ACPI_ADR_SPACE_PCI_CONFIG, ACPI_DEFAULT_HANDLER, nullptr, nullptr);
+        if (IS_ERR) return gNonFatalFailure;
+
         acpi_init = AcpiLoadTables();
         if (IS_ERR) return gNonFatalFailure;
+
         acpi_init = AcpiInstallNotifyHandler(ACPI_ROOT_OBJECT, ACPI_SYSTEM_NOTIFY, acpi_notify_handler, nullptr);
         if (IS_ERR) return gNonFatalFailure;
+
         acpi_init = AcpiEnableSubsystem(0);
         if (IS_ERR) return gNonFatalFailure;
 
@@ -69,6 +110,9 @@ namespace boot::acpica {
         if (IS_ERR) return gFatalFailure;
 
         acpi_init = AcpiEnableEvent(ACPI_EVENT_POWER_BUTTON, 0);
+        if (IS_ERR) return gFatalFailure;
+
+        acpi_init = AcpiGetDevices(nullptr, acpi_device_scanner, nullptr, nullptr);
         if (IS_ERR) return gFatalFailure;
 
         return bootphase_t::gSuccess;
