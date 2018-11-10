@@ -557,10 +557,18 @@ print('')
 USERSPACE_PRINT_PREFIX="Building userspace tools: "
 print(USERSPACE_PRINT_PREFIX)
 
+print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
+print("pager", end='', flush=True)
+PAGER_DIR = os.path.abspath(os.path.join(MYPATH, "apps", "pager"))
+shell("make -j PUPPY_ROOT=%s V=1" % (MYPATH), curdir=PAGER_DIR)
+copy("out/apps/pager", "out/mnt/apps/pager")
+print("(%d bytes) " % os.stat("out/apps/pager").st_size)
+
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
     app_p = UserspaceTool(name = os.path.basename(app),
                           srcdir = app)
+    if (app_p.name == 'pager'): continue
     APP_PROJECTS.append(app_p.name)
     print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
     print(app_p.name, end='', flush=True)
