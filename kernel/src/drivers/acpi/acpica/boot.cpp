@@ -15,6 +15,7 @@
 #include <kernel/boot/phase.h>
 #include <kernel/drivers/acpi/acpica/acpica.h>
 #include <kernel/drivers/pic/pic.h>
+#include <kernel/drivers/acpi/acpica/osi.h>
 
 #define IS_ERR (acpi_init != AE_OK)
 
@@ -37,6 +38,10 @@ namespace boot::acpica {
 
     uint32_t init() {
         AcpiGbl_DoNotUseXsdt = true;
+
+        AcpiInstallInterfaceHandler(OsiHandler);
+        AddOsiInterface("Windows 2009");
+        EnableOsi();
 
         auto acpi_init = AcpiInitializeSubsystem();
         if (IS_ERR) return gNonFatalFailure;

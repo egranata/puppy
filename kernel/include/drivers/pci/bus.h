@@ -45,6 +45,10 @@ class PCIBus {
             uint32_t address() const;
         };
 
+        // the configuration space is 256 byte, split in 32-bit words
+        // word is expressed in term of 32-bit word indices, not bytes
+        static uint32_t readword(const endpoint_t&, uint8_t word);
+
         // the common portion of a PCI config space
         struct ident_t {
             uint16_t vendor;
@@ -87,10 +91,6 @@ class PCIBus {
         PCIBus();
 
         slist<PCIDevice*> mDevices;
-
-        // the configuration space is 256 byte, split in 32-bit words
-        // word is expressed in term of 32-bit word indices, not bytes
-        static uint32_t readword(const endpoint_t&, uint8_t word);
 
         static ident_t identify(const endpoint_t&);
 
