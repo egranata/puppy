@@ -583,8 +583,8 @@ print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
 print("micropython", end='', flush=True)
 MICROPYTHON_DIR = os.path.abspath(os.path.join(MYPATH, "third_party", "micropython", "ports", "puppy"))
 shell("make -j V=1", curdir=MICROPYTHON_DIR)
-copy("out/micropython", "out/mnt/apps/micropython")
-print("(%d bytes) " % os.stat("out/micropython").st_size)
+copy("out/apps/micropython", "out/mnt/apps/micropython")
+print("(%d bytes) " % os.stat("out/apps/micropython").st_size)
 
 print('')
 

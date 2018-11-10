@@ -2,7 +2,7 @@ BUILD = ../../../../out
 
 include ../../py/mkenv.mk
 
-PROG = $(BUILD)/micropython
+PROG = $(BUILD)/apps/micropython
 QSTR_DEFS = qstrdefsport.h
 
 UNAME_S = puppy
