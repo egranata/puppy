@@ -29,7 +29,7 @@ static void _runGlobalConstructors() {
 
 	while(begin != end) {
 		if (nullptr == begin || nullptr == *begin) break;
-		LOG_DEBUG("running global constructor at %p - (pointee %p)", begin, *begin);
+		LOG_DEBUG("running global constructor at 0x%p - (pointee 0x%p)", begin, *begin);
 		(*begin)();
 		++begin;
 	}
@@ -80,12 +80,12 @@ void _kmain() {
 
 	auto &phys(PhysicalPageManager::get());
 
-	LOG_INFO("kernel start at %p, kernel end at %p", addr_kernel_start(), addr_kernel_end());
+	LOG_INFO("kernel start at 0x%p, kernel end at 0x%p", addr_kernel_start(), addr_kernel_end());
 
 	bootphase_t::printf("Total RAM size: %u KB (aka %u pages)\n", phys.gettotalmem() / 1024, phys.gettotalpages());
 	bootphase_t::printf("Free  RAM size: %u KB (aka %u pages)\n", phys.getfreemem() / 1024, phys.getfreepages());
 
-	bootphase_t::printf("Kernel image: [%p - %p] (%lu bytes)\n", addr_kernel_start<void*>(), addr_kernel_end<void*>(), addr_kernel_end() - addr_kernel_start() + 1);
+	bootphase_t::printf("Kernel image: [0x%p - 0x%p] (%lu bytes)\n", addr_kernel_start<void*>(), addr_kernel_end<void*>(), addr_kernel_end() - addr_kernel_start() + 1);
 
 	TimeManager::get().bootCompleted();
 

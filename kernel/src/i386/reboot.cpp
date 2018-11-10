@@ -49,14 +49,14 @@ void reboot() {
     switch (resetreg.space) {
         case acpi_address_t::addr_space_t::memory: {
             uint8_t *resetptr = (uint8_t*)resetreg.address;
-            LOG_DEBUG("forcing ACPI reboot by writing %x to %p", resetval, resetptr);
+            LOG_DEBUG("forcing ACPI reboot by writing %x to 0x%p", resetval, resetptr);
 
             auto pg(VirtualPageManager::page((uintptr_t)resetptr));
             auto off(VirtualPageManager::offset((uintptr_t)resetptr));
             auto& vm(VirtualPageManager::get());
             vm.map(pg, 0x0, VirtualPageManager::map_options_t::kernel());
 
-            LOG_DEBUG("mapped %p to page 0 - write will be to %p", resetptr, off);
+            LOG_DEBUG("mapped 0x%p to page 0 - write will be to 0x%p", resetptr, off);
 
             resetptr = (uint8_t*)off;
             *resetptr = resetval;

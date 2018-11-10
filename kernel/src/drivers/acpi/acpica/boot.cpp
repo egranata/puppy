@@ -20,15 +20,15 @@
 #define IS_ERR (acpi_init != AE_OK)
 
 static void acpi_notify_handler(ACPI_HANDLE handle, UINT32 value, void* context) {
-    TAG_INFO(ACPICA, "acpi_notify_handler(%p, %u, %p)", handle, value, context);
+    TAG_INFO(ACPICA, "acpi_notify_handler(0x%p, %u, 0x%p)", handle, value, context);
 }
 
 static void acpi_event_handler(UINT32 type, ACPI_HANDLE device, UINT32 number, void* context) {
-    TAG_INFO(ACPICA, "acpi_event_handler(%u, %p, %u, %p)", type, device, number, context);
+    TAG_INFO(ACPICA, "acpi_event_handler(%u, 0x%p, %u, 0x%p)", type, device, number, context);
 }
 
 static UINT32 acpi_power_button_event_handler(void* context) {
-    TAG_INFO(ACPICA, "acpi_power_button_event_handler(%p)", context);
+    TAG_INFO(ACPICA, "acpi_power_button_event_handler(0x%p)", context);
     return ACPI_INTERRUPT_HANDLED;
 }
 
@@ -37,7 +37,7 @@ static ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void*, 
 
     ACPI_STATUS ok = AcpiGetType(handle, &type);
     if (ok != AE_OK) {
-        TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: %p level: %u", handle, level);
+        TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: 0x%p level: %u", handle, level);
         return AE_OK;
     }
     ACPI_BUFFER nameBuffer = {0};

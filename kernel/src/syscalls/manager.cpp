@@ -86,7 +86,7 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
     };
     if (auto& handler = gHandlers[req.code]) {
         ++handler.numCalls;
-        LOG_DEBUG("syscall from pid %u; eax = %x, handler = %p", gCurrentProcess->pid, gpr.eax, handler.impl);
+        LOG_DEBUG("syscall from pid %u; eax = %x, handler = 0x%p", gCurrentProcess->pid, gpr.eax, handler.impl);
 
         if (handler.system && !gCurrentProcess->flags.system) {
             LOG_ERROR("process %u attempted to exec system call %u which is reserved to the system", gCurrentProcess->pid, req.code);

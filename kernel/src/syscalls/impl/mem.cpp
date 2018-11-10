@@ -34,7 +34,7 @@ syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {
 
     auto rgn = memmgr->findAndZeroPageRegion(size, opts);
     if (rgn.from != 0) {
-        LOG_DEBUG("mapped region %p - %p", rgn.from, rgn.to);
+        LOG_DEBUG("mapped region 0x%p - 0x%p", rgn.from, rgn.to);
         return OK | rgn.from;
     } else {
         LOG_DEBUG("failed to find region of size %u", size);
@@ -116,18 +116,18 @@ static bool isPageWritable(uintptr_t pg) {
 static bool checkPageRange(uintptr_t address, size_t sz, bool(*checkf)(uintptr_t)) {
     if (isSamePage(address, sz)) {
         bool ok = checkf(VirtualPageManager::page(address));
-        LOG_DEBUG("checking page %p said %s", address, ok ? "yes" : "no");
+        LOG_DEBUG("checking page 0x%p said %s", address, ok ? "yes" : "no");
         return ok;
     }
 
     auto pg_start = VirtualPageManager::page(address);
     auto pg_stop = VirtualPageManager::page(address + sz - 1);
 
-    LOG_DEBUG("checking %p to %p", pg_start, pg_stop+VirtualPageManager::gPageSize-1);
+    LOG_DEBUG("checking 0x%p to 0x%p", pg_start, pg_stop+VirtualPageManager::gPageSize-1);
 
     for(; pg_start <= pg_stop; pg_start += VirtualPageManager::gPageSize) {
         if (!checkf(pg_start)) return false;
-        LOG_DEBUG("checking page %p said yes", pg_start);
+        LOG_DEBUG("checking page 0x%p said yes", pg_start);
     }
 
     LOG_DEBUG("all checks passed!");

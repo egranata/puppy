@@ -63,7 +63,7 @@ namespace boot::task {
         proc.mProcessPagesLow = rgn.from;
         proc.mProcessPagesHigh = rgn.to;
 
-        LOG_DEBUG("process pages will live at [%p - %p]", rgn.from, rgn.to);
+        LOG_DEBUG("process pages will live at [0x%p - 0x%p]", rgn.from, rgn.to);
 
         // enable real fault handlers
     	proc.installexceptionhandlers();
@@ -195,7 +195,7 @@ static void spawnSystemTasks(T (&tasks)[N]) {
         auto process = pmm.kspawn(task.si);
         if (process) {
             *task.newProcess = process;
-            LOG_INFO("spawned system process %s as %p %u", task.si.name, process, (uint32_t)process->pid);
+            LOG_INFO("spawned system process %s as 0x%p %u", task.si.name, process, (uint32_t)process->pid);
         } else {
             LOG_ERROR("failed to spawn system process %s", task.si.name);
             PANIC("system process setup failed");
@@ -212,7 +212,7 @@ void task0() {
         gInitTask = pmm.exec("/initrd/init", nullptr, nullptr, PROCESS_IS_FOREGROUND);
         gInitTask->flags.system = true;
         gInitTask->ttyinfo.tty->pushfg(gInitTask->pid);
-        LOG_DEBUG("init process ready as %p %u", gInitTask, (uint32_t)gInitTask->pid);
+        LOG_DEBUG("init process ready as 0x%p %u", gInitTask, (uint32_t)gInitTask->pid);
     }
 
     while(true) {
@@ -252,8 +252,8 @@ ProcessManager::ProcessManager() {
 
     auto dtbl = addr_gdt<uint64_t*>();
 
-    LOG_DEBUG("dtbl = %p, sizeof(TSS) = %u, gDummyTaskSegment = %p", dtbl, sizeof(process_t), &gDummyProcess);
-    LOG_DEBUG("msb is %p", ((uint64_t)&gDummyProcess) & 0xFF000000);
+    LOG_DEBUG("dtbl = 0x%p, sizeof(TSS) = %u, gDummyTaskSegment = 0x%p", dtbl, sizeof(process_t), &gDummyProcess);
+    LOG_DEBUG("msb is 0x%p", ((uint64_t)&gDummyProcess) & 0xFF000000);
 
     dtbl[gDummyProcess.gdtidx] = sizeof(process_t) & 0xFFFF;
     dtbl[gDummyProcess.gdtidx] |= (((uint64_t)&gDummyProcess) & 0xFFFFFFULL) << 16;
@@ -429,7 +429,7 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         PANIC("unable to find memory for a new process");
     }
     auto process = pages.makeProcess();
-    LOG_DEBUG("setup new process_t page at %p", process);
+    LOG_DEBUG("setup new process_t page at 0x%p", process);
 
     if (si.clone) {
         LOG_DEBUG("new process is cloned");
@@ -468,11 +468,11 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     esp = stackpush<1023>(esp, si.argument);
     process->tss.esp = (uintptr_t)esp;
 
-    LOG_DEBUG("esp = %p", process->tss.esp);
+    LOG_DEBUG("esp = 0x%p", process->tss.esp);
 
     auto gdtval = fillGDT(process);
 
-    LOG_DEBUG("process %u spawning process %u; eip = %p, cr3 = %p, esp0 = %p, esp = %p, gdt index %u value %llx",
+    LOG_DEBUG("process %u spawning process %u; eip = 0x%p, cr3 = 0x%p, esp0 = 0x%p, esp = 0x%p, gdt index %u value %llx",
         process->ppid, process->pid,
         process->tss.eip, process->tss.cr3,
         process->tss.esp0, process->tss.esp,
@@ -572,7 +572,7 @@ void ProcessManager::resumeat(process_t* task, uintptr_t eip, uintptr_t esp, uin
 bool ProcessManager::kill(kpid_t pid) {
     process_exit_status_t es(process_exit_status_t::reason_t::killed, 0);
     auto task = getprocess(pid);
-    LOG_DEBUG("task %u %p killing task %u %p", gCurrentProcess->pid, gCurrentProcess, task->pid, task);
+    LOG_DEBUG("task %u 0x%p killing task %u 0x%p", gCurrentProcess->pid, gCurrentProcess, task->pid, task);
     if (task == gCurrentProcess) {
         exit(es);
     } else if (task != nullptr) {
@@ -621,7 +621,7 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
         decltype(task->fds)::entry_t fd;
         if (task->fds.is(i, &fd)) {
             if (fd.first && fd.second) {
-                LOG_DEBUG("for process %u, closing file handle %u (fs = %p, fh = %p)", task->pid, i, fd.first, fd.second);
+                LOG_DEBUG("for process %u, closing file handle %u (fs = 0x%p, fh = 0x%p)", task->pid, i, fd.first, fd.second);
                 fd.first->close(fd.second);
             }
         }
@@ -743,7 +743,7 @@ process_exit_status_t ProcessManager::collect(kpid_t pid) {
 begin:
     auto task = getprocess(pid);
 
-    LOG_DEBUG("process %u (%p) trying to collect process %u (%p)", gCurrentProcess->pid, gCurrentProcess, pid, task);
+    LOG_DEBUG("process %u (0x%p) trying to collect process %u (0x%p)", gCurrentProcess->pid, gCurrentProcess, pid, task);
 
     if (task == nullptr) {
         // TODO: make this a fatal process error
@@ -771,7 +771,7 @@ begin:
     auto c0 = parent->children.begin();
     auto ce = parent->children.end();
     for (; c0 != ce; ++c0) {
-        LOG_DEBUG("scanning children of parent %u, found %p %u", gCurrentProcess->pid, *c0, (*c0)->pid);
+        LOG_DEBUG("scanning children of parent %u, found 0x%p %u", gCurrentProcess->pid, *c0, (*c0)->pid);
         if ((*c0) == task) {
             parent->children.remove(c0);
             found = true;
@@ -839,7 +839,7 @@ void ProcessManager::forwardTTY(process_t* process) {
     bool ok1 = process->fds.set({nullptr, &process->ttyinfo.ttyfile}, ttyfd1);
     bool ok2 = process->fds.set({nullptr, &process->ttyinfo.ttyfile}, ttyfd2);
     if ((ok0 && 0 == ttyfd0) && (ok1 && 1 == ttyfd1) && (ok2 && 2 == ttyfd2)) {
-        LOG_DEBUG("TTY setup complete - tty is %p ttyfile is %p", process->ttyinfo.tty, &process->ttyinfo.ttyfile);
+        LOG_DEBUG("TTY setup complete - tty is 0x%p ttyfile is 0x%p", process->ttyinfo.tty, &process->ttyinfo.ttyfile);
     } else {
         PANIC("unable to forward TTY to new process");
     }

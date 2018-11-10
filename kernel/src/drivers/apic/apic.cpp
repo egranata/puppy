@@ -75,16 +75,16 @@ void APIC::tickEvery(uint32_t ms) {
 void APIC::configure(uint32_t ticks) {
     auto reg = &mAPICRegisters[gTimerDivideRegister];
     *reg = 0b111; // divide by 1
-    LOG_DEBUG("timer divide register is %p - value is %p", reg, *reg);
+    LOG_DEBUG("timer divide register is 0x%p - value is 0x%p", reg, *reg);
 
     reg = &mAPICRegisters[gTimerRegister];
     *reg = 0x20000 | gAPICTimerIRQ; // deliver IRQ periodically
-    LOG_DEBUG("timer register is %p - value is %p", reg, *reg);
+    LOG_DEBUG("timer register is 0x%p - value is 0x%p", reg, *reg);
 
     reg = &mAPICRegisters[gTimerInitialCount];
-    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+    LOG_DEBUG("initial count register is 0x%p - value is 0x%p", reg, *reg);
     *reg = ticks;
-    LOG_DEBUG("initial count register is %p - value is %p", reg, *reg);
+    LOG_DEBUG("initial count register is 0x%p - value is 0x%p", reg, *reg);
 
     // assume APIC is counting down and sending interrupts from here...
 }
@@ -100,7 +100,7 @@ APIC::APIC() : mAPICRegisters(nullptr), mTicksPerMs(0) {
     auto apicbase = (uint32_t)ia32apicbase & 0xFFFFF000;
     const bool bootCPU = ia32apicbase & (1 << 8);
     const bool apicON = ia32apicbase & (1 << 11);
-    LOG_DEBUG("IA32_APIC_BASE = %llx - base address is %p, boot CPU is %u, apicON is %u", ia32apicbase, apicbase, bootCPU, apicON);
+    LOG_DEBUG("IA32_APIC_BASE = %llx - base address is 0x%p, boot CPU is %u, apicON is %u", ia32apicbase, apicbase, bootCPU, apicON);
     if (apicON == false) {
         ia32apicbase |= (1 << 11);
         writemsr(gIA32_APIC_BASE, ia32apicbase);
@@ -109,9 +109,9 @@ APIC::APIC() : mAPICRegisters(nullptr), mTicksPerMs(0) {
 
     auto& vmm(VirtualPageManager::get());
     mAPICRegisters = (uint32_t*)vmm.getScratchPage(apicbase, VirtualPageManager::map_options_t::kernel().cached(false)).reset();
-    LOG_DEBUG("APIC registers physically at %p, logically mapped at %p", apicbase, mAPICRegisters);
+    LOG_DEBUG("APIC registers physically at 0x%p, logically mapped at 0x%p", apicbase, mAPICRegisters);
 
     auto reg = &mAPICRegisters[gSpuriousInterruptRegister];
     *reg = 0x1FF;
-    LOG_DEBUG("spurious interrupt register is %p - value is %p", reg, *reg);
+    LOG_DEBUG("spurious interrupt register is 0x%p - value is 0x%p", reg, *reg);
 }

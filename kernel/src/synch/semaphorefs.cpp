@@ -100,7 +100,7 @@ void SemaphoreFS::doClose(FilesystemObject* file) {
     Semaphore* sema = sFile->semaphore();
     const bool erased = mSemaphores.release(sema->key());
 
-    LOG_INFO("semaphore file %p is being deleted; semaphore %p was%serased",
+    LOG_INFO("semaphore file 0x%p is being deleted; semaphore 0x%p was%serased",
         sFile, sema, erased ? " " : " not ");
 
     delete sFile;

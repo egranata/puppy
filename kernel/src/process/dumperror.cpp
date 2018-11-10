@@ -58,8 +58,8 @@ void dumpErrorState(GPR& gpr, InterruptStack& stack) {
 
 	#undef GPREG
 
-    LOG_ERROR("flags = %p, x87 status = %x", stack.eflags, readfpsw());
-    LOG_ERROR("segments: cs: %p, ds: %p, es: %p, fs: %p, gs: %p, ss: %p", stack.cs, readds(), reades(), readfs(), readgs(), readss());
+    LOG_ERROR("flags = 0x%p, x87 status = %x", stack.eflags, readfpsw());
+    LOG_ERROR("segments: cs: 0x%p, ds: 0x%p, es: 0x%p, fs: 0x%p, gs: 0x%p, ss: 0x%p", stack.cs, readds(), reades(), readfs(), readgs(), readss());
 
     sprint(&buffer[0], 1024, "eflags = %x, x87 status = %x\n", stack.eflags, readfpsw());
     fb.write(&buffer[0]);

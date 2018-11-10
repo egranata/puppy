@@ -30,11 +30,11 @@ bool Volume::tryReadSector(uint32_t sector, unsigned char* buffer, bool tryReadC
         bool in_cache = mCache.find(sector, &payload);
         if (in_cache) {
             ++mNumSectorCacheHits;
-            TAG_DEBUG(LRUCACHE, "volume %p sector %u found in cache - skipped a disk access", this, sector);
+            TAG_DEBUG(LRUCACHE, "volume 0x%p sector %u found in cache - skipped a disk access", this, sector);
             memcpy(buffer, payload.data, decltype(payload)::gSize);
             return true;
         } else {
-            TAG_DEBUG(LRUCACHE, "volume %p sector %u not found in cache - will go to disk", this, sector);
+            TAG_DEBUG(LRUCACHE, "volume 0x%p sector %u not found in cache - will go to disk", this, sector);
         }
     }
 
@@ -44,7 +44,7 @@ bool Volume::tryReadSector(uint32_t sector, unsigned char* buffer, bool tryReadC
         decltype(mCache)::Sector payload;
         memcpy(payload.data, buffer, decltype(payload)::gSize);
         mCache.insert(sector, payload);
-        TAG_DEBUG(LRUCACHE, "volume %p sector %u inserted in cache", this, sector);
+        TAG_DEBUG(LRUCACHE, "volume 0x%p sector %u inserted in cache", this, sector);
     }
 
     return true;

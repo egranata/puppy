@@ -43,12 +43,12 @@ extern "C" ACPI_STATUS AcpiOsInstallInterruptHandler (UINT32 InterruptNumber, AC
     Interrupts::get().sethandler(acpi_irq->cpu_irq_n, "ACPI", acpi_irq_f, acpi_irq);
     PIC::get().accept(acpi_irq->pic_irq_n);
 
-    TAG_DEBUG(ACPICA, "AcpiOsInstallInterruptHandler(%u, %p, %p)", InterruptNumber, ServiceRoutine, Context);
+    TAG_DEBUG(ACPICA, "AcpiOsInstallInterruptHandler(%u, 0x%p, 0x%p)", InterruptNumber, ServiceRoutine, Context);
     return AE_OK;
 }
 
 extern "C" ACPI_STATUS AcpiOsRemoveInterruptHandler (UINT32 InterruptNumber, ACPI_OSD_HANDLER ServiceRoutine) {
     // TODO: remove the IRQ and free the associated context data
-    TAG_DEBUG(ACPICA, "AcpiOsRemoveInterruptHandler(%u, %p)", InterruptNumber, ServiceRoutine);
+    TAG_DEBUG(ACPICA, "AcpiOsRemoveInterruptHandler(%u, 0x%p)", InterruptNumber, ServiceRoutine);
     return AE_OK;
 }

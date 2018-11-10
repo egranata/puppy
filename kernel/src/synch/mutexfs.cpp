@@ -102,7 +102,7 @@ void MutexFS::doClose(FilesystemObject* file) {
     Mutex* mtx = mFile->mutex();
     const bool erased = mMutexes.release(mtx->key());
 
-    LOG_INFO("mutex file %p is being deleted; mutex %p was%serased",
+    LOG_INFO("mutex file 0x%p is being deleted; mutex 0x%p was%serased",
         mFile, mtx, erased ? " " : " not ");
 
     delete mFile;

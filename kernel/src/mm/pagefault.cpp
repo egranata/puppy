@@ -88,7 +88,7 @@ static bool zeropage_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     MemoryManager::region_t region;
     if (memmgr->isWithinRegion(vaddr, &region)) {
         auto vpage = VirtualPageManager::page(vaddr);
-        LOG_DEBUG("faulting address found within a memory region - mapping page %p", vpage);
+        LOG_DEBUG("faulting address found within a memory region - mapping page 0x%p", vpage);
         vmm.mapAnyPhysicalPage(vpage, region.permission);
         return true;
     } else {
@@ -100,7 +100,7 @@ static bool cow_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     VirtualPageManager::map_options_t opts;
     if (vmm.mapped(vaddr, &opts)) {
         auto phys = vmm.clonePage(vaddr, opts);
-        LOG_DEBUG("faulting address %p was COW - remapped to %p", vaddr, phys);
+        LOG_DEBUG("faulting address 0x%p was COW - remapped to 0x%p", vaddr, phys);
         if (0 == (phys & 1)) return true;
     }
 
@@ -121,6 +121,6 @@ void pageflt_handler(GPR& gpr, InterruptStack& stack, void*) {
         if (cow_recover(vmm, vaddr)) return;
     }
 
-    LOG_DEBUG("page fault, vaddr = %p, physical counterpart %p", vaddr, vmm.mapping(vaddr));
+    LOG_DEBUG("page fault, vaddr = 0x%p, physical counterpart 0x%p", vaddr, vmm.mapping(vaddr));
     APP_PANIC(pageflt_description(stack.error), gpr, stack);
 }

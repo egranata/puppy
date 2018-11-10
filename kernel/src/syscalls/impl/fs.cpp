@@ -74,7 +74,7 @@ HANDLER1(fclose,fid) {
         if (file.first && file.second) {
             file.first->close(file.second);
         } else {
-            LOG_DEBUG("file.first = %p, file.second = %p, will not close", file.first, file.second);
+            LOG_DEBUG("file.first = 0x%p, file.second = 0x%p, will not close", file.first, file.second);
             return ERR(NO_SUCH_FILE);
         }
     }

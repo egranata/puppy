@@ -103,12 +103,12 @@ PCIBus::PCIBus() : mDevices() {
             for (ep.func = 0u; ep.func < 8; ++ep.func) {
                 auto ident = identify(ep);
                 if (ident.vendor == 0xFFFF) continue;
-                LOG_DEBUG("found a PCI device: (bus %u, slot %u func %u hdr %u), vendor: %p, device: %p, class: %u, subclass: %u, progif: %u",
+                LOG_DEBUG("found a PCI device: (bus %u, slot %u func %u hdr %u), vendor: 0x%p, device: 0x%p, class: %u, subclass: %u, progif: %u",
                     ep.bus, ep.slot, ep.func, ident.header,
                     ident.vendor, ident.device, ident.clazz, ident.subclazz, ident.progif);
                 if (0 == ident.header) {
                     auto hdr = fill(ep, ident);
-                    LOG_DEBUG("bar0: %p, bar1: %p, bar2: %p, bar3: %p, bar4: %p, bar5: %p IRQ line: %u, IRQ PIN: %u",
+                    LOG_DEBUG("bar0: 0x%p, bar1: 0x%p, bar2: 0x%p, bar3: 0x%p, bar4: 0x%p, bar5: 0x%p IRQ line: %u, IRQ PIN: %u",
                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5, hdr.irql, hdr.irqp);
                     ON_KIND(hdr, 1, 1, 0xFF, addIDEController);
                     ON_KIND(hdr, 3, 0, 0, printVGAController);

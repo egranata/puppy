@@ -20,12 +20,12 @@
 
 extern "C"
 void clone_start(uintptr_t eip) {
-    LOG_INFO("process %u is starting at %p", gCurrentProcess->pid, eip);
+    LOG_INFO("process %u is starting at 0x%p", gCurrentProcess->pid, eip);
     auto&& memmgr(gCurrentProcess->getMemoryManager());
 
     auto stackpermission = VirtualPageManager::map_options_t::userspace().clear(true);
     auto stackregion = memmgr->findAndZeroPageRegion(process_t::gDefaultStackSize, stackpermission);
-    LOG_INFO("stack is begin = %p, end = %p", stackregion.to, stackregion.from);
+    LOG_INFO("stack is begin = 0x%p, end = 0x%p", stackregion.to, stackregion.from);
 
     // gcc tends to expect ESP+4 to be available; and an 8 byte aligned stack
     // is a good thing for other reasons - so just leave 8 bytes and be done with it

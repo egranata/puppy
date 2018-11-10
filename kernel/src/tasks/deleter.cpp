@@ -31,12 +31,12 @@ KERNEL_TASK_NAMESPACE_OPEN(deleter) {
     void freeStringArray(char** arr) {
         size_t i = 0;
         while(arr != nullptr) {
-            LOG_DEBUG("trying to delete element %u = %p", i, arr[i]);
+            LOG_DEBUG("trying to delete element %u = 0x%p", i, arr[i]);
             if (arr[i]) free(arr[i]);
             else break;
             ++i;
         }
-        LOG_DEBUG("trying to free array = %p", arr);
+        LOG_DEBUG("trying to free array = 0x%p", arr);
         free(arr);
     }
 

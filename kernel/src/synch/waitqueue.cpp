@@ -24,7 +24,7 @@
 void WaitQueue::wait(process_t* task) {
     auto&& pm(ProcessManager::get());
 
-    LOG_DEBUG("task %u entering wait queue %p", task->pid, this);
+    LOG_DEBUG("task %u entering wait queue 0x%p", task->pid, this);
 
     mProcesses.push(task);
     pm.deschedule(task, process_t::State::WAITING);
@@ -35,7 +35,7 @@ bool WaitQueue::wake(process_t* task) {
     auto&& pm(ProcessManager::get());
 
     if (task) {
-        LOG_DEBUG("wait queue %p trying to wake task %u (state == %u)", this, task->pid, (uint8_t)task->state);
+        LOG_DEBUG("wait queue 0x%p trying to wake task %u (state == %u)", this, task->pid, (uint8_t)task->state);
         if (task->state == process_t::State::WAITING) {
             LOG_DEBUG("task wake happening");
             pm.ready(task);
@@ -50,7 +50,7 @@ process_t* WaitQueue::wakeone() {
     while (!mProcesses.empty()) {
         auto next = mProcesses.pop();
         if (wake(next)) {
-            LOG_DEBUG("wait queue %p woke up the one next %u", this, next->pid);
+            LOG_DEBUG("wait queue 0x%p woke up the one next %u", this, next->pid);
             return next;
         }
     }
@@ -62,7 +62,7 @@ void WaitQueue::wakeall() {
     while (!mProcesses.empty()) {
         auto next = mProcesses.pop();
         wake(next);
-        LOG_DEBUG("wait queue %p woke up %u", this, next->pid);
+        LOG_DEBUG("wait queue 0x%p woke up %u", this, next->pid);
     }
 }
 

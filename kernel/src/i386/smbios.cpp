@@ -145,10 +145,10 @@ SMBIOS::SMBIOS() {
         thirtytwo *test = (thirtytwo*)addr;
         if (test->dword == gMagicMarker) {
             mValid = true;
-            LOG_DEBUG("found SMBIOS marker at %p", test);
+            LOG_DEBUG("found SMBIOS marker at 0x%p", test);
             memcopy((uint8_t*)addr, (uint8_t*)&mEntryTable, sizeof(mEntryTable));
             LOG_DEBUG("SMBIOS version: %u.%u", mEntryTable.major, mEntryTable.minor);
-            LOG_DEBUG("table info - address %p, len %u, count %u", mEntryTable.tblptr, mEntryTable.tbllen, mEntryTable.numtbls);
+            LOG_DEBUG("table info - address 0x%p, len %u, count %u", mEntryTable.tblptr, mEntryTable.tbllen, mEntryTable.numtbls);
         }
     }
 

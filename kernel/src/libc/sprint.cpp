@@ -94,7 +94,7 @@ public:
 	size_t putx(unsigned int n) {
 		char buffer[13];
 		auto bufptr = num2str(n, &buffer[0], 13, 16);
-		return puts("0x") + puts(bufptr);
+		return puts(bufptr);
 	}
 	
 	size_t putp(uintptr_t p) {

@@ -68,13 +68,13 @@ uintptr_t Heap::sbrk(size_t amount) {
             return 0;
         }
 
-        LOG_DEBUG("oneblock() OK, returned %p", more);
+        LOG_DEBUG("oneblock() OK, returned 0x%p", more);
 
         amount -= blksz;
         mCurrent += blksz;
     }
 
     // return the old value of the pointer - this is the base of new usable memory
-    LOG_DEBUG("returning %p as the current heap pointer", cur);
+    LOG_DEBUG("returning 0x%p as the current heap pointer", cur);
     return cur;
 }

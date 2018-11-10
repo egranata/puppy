@@ -78,7 +78,7 @@ Framebuffer::Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_
     mBackground = color_t::black();
     mForeground = color_t::green();
 
-    LOG_DEBUG("initialized a framebuffer of %u x %u pixels - pitch = %u, bpp = %u, base = %p; rows by cols = %u x %u",
+    LOG_DEBUG("initialized a framebuffer of %u x %u pixels - pitch = %u, bpp = %u, base = 0x%p; rows by cols = %u x %u",
         mWidth, mHeight, mPitch, mBytesPerPixel, mPhysicalAddress,
 		rows(), columns());
 }
@@ -272,10 +272,10 @@ void Framebuffer::nl() {
 
 uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	if (mAddress != 0) {
-		LOG_ERROR("framebuffer already mapped at %p - not mapping at %p", mAddress, vmbase);
+		LOG_ERROR("framebuffer already mapped at 0x%p - not mapping at 0x%p", mAddress, vmbase);
 		return 0;
 	}
-	LOG_DEBUG("mapping framebuffer starting at virtual base %p", vmbase);
+	LOG_DEBUG("mapping framebuffer starting at virtual base 0x%p", vmbase);
 	auto&& vm(VirtualPageManager::get());
 	auto b = 0u;
 	auto e = size();
@@ -286,7 +286,7 @@ uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	}
 	auto end = vmbase + b;
 	mAddress = vmbase;
-	LOG_DEBUG("mapping of framebuffer complete at %p", end);
+	LOG_DEBUG("mapping of framebuffer complete at 0x%p", end);
 	return end;
 }
 

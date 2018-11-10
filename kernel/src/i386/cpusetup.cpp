@@ -54,15 +54,15 @@ namespace boot::i386 {
             writecr4(cr4);
             fpsave = fpsave_sse;
             fprestore = fprestore_sse;
-            LOG_DEBUG("original CR0 = %p, final CR0 = %p", original_cr0, cr0);
+            LOG_DEBUG("original CR0 = 0x%p, final CR0 = 0x%p", original_cr0, cr0);
         }
 
-        LOG_DEBUG("fpsave = %p, fprestore = %p [SSE variant is %p,%p; FPU variant is %p,%p]",
+        LOG_DEBUG("fpsave = 0x%p, fprestore = 0x%p [SSE variant is 0x%p,0x%p; FPU variant is 0x%p,0x%p]",
             fpsave, fprestore,
             fpsave_sse, fprestore_sse,
             fpsave_fpu, fprestore_fpu);
 
-        LOG_DEBUG("original CR4 = %p, final CR4 = %p", original_cr4, cr4);
+        LOG_DEBUG("original CR4 = 0x%p, final CR4 = 0x%p", original_cr4, cr4);
 
         CPUDevice::get();
 

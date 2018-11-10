@@ -37,12 +37,12 @@ static constexpr size_t multibootOffset(uintptr_t multiboot_data) {
 }
 
 static void early_opcodehandler(GPR& gpr, InterruptStack& stack, void*) {
-	LOG_ERROR("invalid instruction [eip = %p]", stack.eip);
+	LOG_ERROR("invalid instruction [eip = 0x%p]", stack.eip);
 	PANICFORWARD("invalid instruction. see log for details.", gpr, stack);
 }
 
 static void early_pagefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
-	LOG_ERROR("page fault due to adress %p [eip = %p]", gpr.cr2, stack.eip);
+	LOG_ERROR("page fault due to adress 0x%p [eip = 0x%p]", gpr.cr2, stack.eip);
 	PANICFORWARD("page fault. see log for details.", gpr, stack);
 }
 
@@ -52,12 +52,12 @@ static void early_gpfhandler(GPR& gpr, InterruptStack& stack, void*) {
 }
 
 static void early_divby0handler(GPR& gpr, InterruptStack& stack, void*) {
-	LOG_ERROR("division by zero occurred [eip = %p]", stack.eip);
+	LOG_ERROR("division by zero occurred [eip = 0x%p]", stack.eip);
 	PANICFORWARD("division by zero. see log for details.", gpr, stack);
 }
 
 static void early_doublefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
-	LOG_ERROR("double fault [eip = %p]", stack.eip);
+	LOG_ERROR("double fault [eip = 0x%p]", stack.eip);
 	PANICFORWARD("double fault. see log for details.", gpr, stack);
 }
 
@@ -75,7 +75,7 @@ static void setupPhysicalMemory(multiboot_info* multiboot) {
 	PhysicalPageManager &phys(PhysicalPageManager::get());
 	multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)multiboot->mmap_addr;
 	while((uintptr_t)mmap < (multiboot->mmap_addr + multiboot->mmap_length)) {
-		LOG_INFO("memory block type = %u addr = %p len = %u", mmap->type, (void*)mmap->addr, (uint32_t)mmap->len);
+		LOG_INFO("memory block type = %u addr = 0x%p len = %u", mmap->type, (void*)mmap->addr, (uint32_t)mmap->len);
 		if (mmap->type == 1) {
 			// ignore the low MB
 			const auto threshold = 1048576;
@@ -90,7 +90,7 @@ static void setupPhysicalMemory(multiboot_info* multiboot) {
 			if (start >= threshold) {
 				auto astart = (uint8_t*)mmap->addr;
 				auto aend = start + (uint32_t)len;
-				LOG_DEBUG("found a valid block of RAM - range [%p - %p]", astart, aend);
+				LOG_DEBUG("found a valid block of RAM - range [0x%p - 0x%p]", astart, aend);
 				phys.addpages(start, len);
 			}
 		}
@@ -112,7 +112,7 @@ static void reserveMemory(multiboot_info* multiboot) {
 		bootmodules->count = (uint8_t)multiboot->mods_count;
 	}
 
-	LOG_DEBUG("%d modules are loaded starting at %p", bootmodules->count, multiboot->mods_addr);
+	LOG_DEBUG("%d modules are loaded starting at 0x%p", bootmodules->count, multiboot->mods_addr);
 	for (auto mod_id = 0u; mod_id < bootmodules->count; ++mod_id) {
 		multiboot_mod_list &module = ((multiboot_mod_list*)multiboot->mods_addr)[mod_id];
 		auto&& bootmodule = bootmodules->info[mod_id];
@@ -124,7 +124,7 @@ static void reserveMemory(multiboot_info* multiboot) {
 			bootmodule.args[i] = *cmdline;
 			if (*cmdline++ == 0) break;			
 		}
-		LOG_DEBUG("module %u ranges from %p to %p, command string is %p %s", mod_id, module.mod_start, module.mod_end, module.cmdline, &bootmodule.args[0]);		
+		LOG_DEBUG("module %u ranges from 0x%p to 0x%p, command string is 0x%p %s", mod_id, module.mod_start, module.mod_end, module.cmdline, &bootmodule.args[0]);		
 		phys.reserve(module.mod_start, module.mod_end);
 	}
 }
@@ -136,7 +136,7 @@ static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot
 	}
 
 	auto mbpage = fourMBPageForMultiboot(multiboot_data);
-	LOG_DEBUG("mapping multiboot at %p", mbpage);
+	LOG_DEBUG("mapping multiboot at 0x%p", mbpage);
 	addr_bootpagedirectory<uintptr_t*>()[mbpage] = 0x83 | (multiboot_data & 0xFFC00000);
 	invtlb(mbpage);
 	auto multiboot_hdr = (multiboot_info*)(mbpage+multibootOffset(multiboot_data));
@@ -176,7 +176,7 @@ static Framebuffer* setupFramebuffer(const framebuf_info_t& framebufferinfo) {
 		LOG_ERROR("failed to obtain a memory region to map the framebuffer!");
 		PANIC("unable to map framebuffer in memory");
 	} else {
-		LOG_DEBUG("framebuffer region is [%p - %p]", fb_region.from, fb_region.to);
+		LOG_DEBUG("framebuffer region is [0x%p - 0x%p]", fb_region.from, fb_region.to);
 		fb->map(fb_region.from);
 		vm.addKernelRegion(fb_region.from, fb_region.to);
 	}
@@ -200,7 +200,7 @@ static void loadModules() {
 		vm.addKernelRegion(module_rgn.from, module_rgn.to);
 		vm.maprange(module.start, module.end, module_rgn.from, VirtualPageManager::map_options_t::kernel());
 		module.vmstart = module_rgn.from;
-		LOG_DEBUG("module %u has ranges: phys=[%p - %p], virt=[%p - %p]",
+		LOG_DEBUG("module %u has ranges: phys=[0x%p - 0x%p], virt=[0x%p - 0x%p]",
 			mod_id, module.start, module.end, module_rgn.from, module_rgn.to);
 	}
 }
@@ -233,7 +233,7 @@ void _earlyBoot(uintptr_t multiboot_data, uint32_t multiboot_magic) {
 	}
 
 	{
-		LOG_DEBUG("multiboot magic is valid; multiboot_data at physical address %p - MultiBootHeader is %p", multiboot_data, MultiBootHeader);
+		LOG_DEBUG("multiboot magic is valid; multiboot_data at physical address 0x%p - MultiBootHeader is 0x%p", multiboot_data, MultiBootHeader);
 		_kmain();
 	}
 }

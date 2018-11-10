@@ -29,7 +29,7 @@ RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
     auto nt = numtables();
     auto bnt = nt * sizeof(acpi_table_t);
     auto tblptr = address + sizeof(mHeader);
-    LOG_DEBUG("RSDT at %p - revision %u, length %u (header size %u), aka %u tables, starting at %p", address, mHeader.rev, mHeader.len, sizeof(mHeader), nt, tblptr);
+    LOG_DEBUG("RSDT at 0x%p - revision %u, length %u (header size %u), aka %u tables, starting at 0x%p", address, mHeader.rev, mHeader.len, sizeof(mHeader), nt, tblptr);
     uintptr_t *tbladdr = allocate<uintptr_t>(bnt);
     mTable = allocate<acpi_table_t>(nt);
 
@@ -42,7 +42,7 @@ RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
         {
             Mapping m(tbladdr[i], sizeof(acpi_table_header_t));
             memcopy((uint8_t*)tbladdr[i], (uint8_t*)&mTable[i], sizeof(acpi_table_header_t));
-            LOG_DEBUG("ACPI table %u (name=%c%c%c%c) available at %p", i,
+            LOG_DEBUG("ACPI table %u (name=%c%c%c%c) available at 0x%p", i,
                 mTable[i].header.sig[0],
                 mTable[i].header.sig[1],
                 mTable[i].header.sig[2],
@@ -56,19 +56,19 @@ RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
                 mTable[i].body = nullptr;
             } else {
                 mTable[i].body = allocate(bdsz);
-                LOG_DEBUG("table body size %u bytes - copying to %p", bdsz, mTable[i].body);                
+                LOG_DEBUG("table body size %u bytes - copying to 0x%p", bdsz, mTable[i].body);                
                 memcopy((uint8_t*)(tbladdr[i] + sizeof(acpi_table_header_t)), mTable[i].body, bdsz);
             }
         }
 
         if (0 == strncmp(gFADTSignature, mTable[i].header.sig, 4)) {
             mFADT = (acpi_fadt_table_t*)&mTable[i];
-            LOG_DEBUG("found FADT rev %u at %p - DSDT at %p, timer block at %x", mFADT->hdr.rev, mFADT, mFADT->fadt->dsdtptr, mFADT->fadt->pmtmrblk);
+            LOG_DEBUG("found FADT rev %u at 0x%p - DSDT at 0x%p, timer block at %x", mFADT->hdr.rev, mFADT, mFADT->fadt->dsdtptr, mFADT->fadt->pmtmrblk);
         }
 
         if (0 == strncmp(gMADTSignature, mTable[i].header.sig, 4)) {
             mMADT = (acpi_madt_table_t*)&mTable[i];
-            LOG_DEBUG("found MADT rev %u at %p", mMADT->hdr.rev, mMADT);
+            LOG_DEBUG("found MADT rev %u at 0x%p", mMADT->hdr.rev, mMADT);
         }
 
         LOG_DEBUG("ACPI table %u is of size %u and type %c%c%c%c", i, mTable[i].header.len,

@@ -43,7 +43,7 @@ MessageQueueBuffer::MessageQueueBuffer(const char* name, size_t numMessages) : m
     vmm.addKernelRegion(mBufferRgn.from, mBufferRgn.to);
     mBuffer = (message_t*)mBufferRgn.from;
     mTotalSize = mFreeSize = numMessages;
-    TAG_DEBUG(MQ, "initialized msgqueue %p - numMessages = %u, range = [%p-%p]", this, numMessages, mBuffer, mBufferRgn.to);
+    TAG_DEBUG(MQ, "initialized msgqueue 0x%p - numMessages = %u, range = [0x%p-0x%p]", this, numMessages, mBuffer, mBufferRgn.to);
 }
 
 const char* MessageQueueBuffer::name() const {
@@ -85,7 +85,7 @@ void MessageQueueBuffer::closeReader() {
 }
 
 bool MessageQueueBuffer::tryWrite(const message_t& msg) {
-    TAG_DEBUG(MQ, "writing message from %u of size %u into mq %p", msg.header.sender, msg.header.payload_size, this);
+    TAG_DEBUG(MQ, "writing message from %u of size %u into mq 0x%p", msg.header.sender, msg.header.payload_size, this);
     if (mFreeSize == 0) return false;
 
     mBuffer[mWritePointer] = msg;
@@ -97,7 +97,7 @@ bool MessageQueueBuffer::tryRead(message_t* msg) {
     if (mFreeSize == mTotalSize) return false;
 
     *msg = mBuffer[mReadPointer];
-    TAG_DEBUG(MQ, "read message from %u of size %u from mq %p", msg->header.sender, msg->header.payload_size, this);
+    TAG_DEBUG(MQ, "read message from %u of size %u from mq 0x%p", msg->header.sender, msg->header.payload_size, this);
     if (++mReadPointer == mTotalSize) mReadPointer = 0;
     ++mFreeSize;
     return true;
@@ -231,7 +231,7 @@ Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
         if (buffer == nullptr) return nullptr;
         auto writefile = new MessageQueueWriteFile(buffer);
 
-        TAG_INFO(MQ, "for msgqueue %p (path %s) returning new writefile %p",
+        TAG_INFO(MQ, "for msgqueue 0x%p (path %s) returning new writefile 0x%p",
             buffer, name, writefile);
 
         return writefile;
@@ -246,7 +246,7 @@ MessageQueueReadFile* MessageQueueFS::msgqueue(const char* path) {
     if (buffer->numReaders() > 0) return nullptr;
     auto readfile = new MessageQueueReadFile(buffer);
 
-    TAG_INFO(MQ, "created new msgqueue %p for path %s - returning readfile %p",
+    TAG_INFO(MQ, "created new msgqueue 0x%p for path %s - returning readfile 0x%p",
         buffer, path, readfile);
 
     return readfile;
@@ -266,7 +266,7 @@ void MessageQueueFS::doClose(FilesystemObject* file) {
     const size_t nw = mqBuffer->numWriters();
     const bool erased = mQueues.release(mqBuffer->name());
 
-    TAG_INFO(MQ, "msgqueue file %p (of msgqueue %p) has %u readers and %u writers; it was%serased",
+    TAG_INFO(MQ, "msgqueue file 0x%p (of msgqueue 0x%p) has %u readers and %u writers; it was%serased",
         mqFile, mqBuffer, nr, nw, erased ? " " : " not ");
 
     if (nr == 0 && nw == 0 && erased == false) {

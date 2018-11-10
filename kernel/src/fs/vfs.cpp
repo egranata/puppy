@@ -36,7 +36,7 @@ namespace boot::vfs {
             auto&& module = bootmodules->info[mod_id];
             auto initrd = Initrd::tryget(module.vmstart);
             if (initrd) {
-                LOG_INFO("module %u at %p is a valid initrd filesystem %p - mounting at %s", mod_id, module.vmstart, initrd, module.args);
+                LOG_INFO("module %u at 0x%p is a valid initrd filesystem 0x%p - mounting at %s", mod_id, module.vmstart, initrd, module.args);
                 if (vfs.mount(module.args, initrd)) anyfs = true;
             }
         }
@@ -61,7 +61,7 @@ VFS::VFS() : mMounts() {
 
 bool VFS::mount(const char* path, Filesystem* fs) {
     if (path[0] == '/') ++path;
-    LOG_DEBUG("mounting /%s as %p", path, fs);
+    LOG_DEBUG("mounting /%s as 0x%p", path, fs);
     mMounts.add(mount_t{
         strdup(path),
         TimeManager::get().UNIXtime(),
@@ -87,7 +87,7 @@ bool VFS::unmount(const char* path) {
     for(; b != e; ++b) {
         auto&& m = *b;
         if (0 == strcmp(m.path, path)) {
-            LOG_DEBUG("filesystem found - %p", m.fs);
+            LOG_DEBUG("filesystem found - 0x%p", m.fs);
             mMounts.remove(b);
             free((void*)m.path);
             return true;
@@ -106,9 +106,9 @@ fs_ident_t::mount_result_t VFS::mount(Volume* vol, const char* where) {
         if (fsinfo.sysid == 0 && fsinfo.type == nullptr && fsinfo.fmount == nullptr) break;
         if (fsinfo.sysid == sysid) {
             if (fsinfo.fmount == nullptr) {
-                LOG_DEBUG("found a match for volume %p but no mounting helper", vol);
+                LOG_DEBUG("found a match for volume 0x%p but no mounting helper", vol);
             } else {
-                LOG_DEBUG("volume %p matched mounter %p for type %u", vol, fsinfo.fmount, sysid);
+                LOG_DEBUG("volume 0x%p matched mounter 0x%p for type %u", vol, fsinfo.fmount, sysid);
                 auto mountinfo = fsinfo.fmount(vol, where);
                 return mountinfo;
             }
@@ -126,7 +126,7 @@ pair<Filesystem*, const char*> VFS::getfs(const char* root) {
         auto&& m = *b;
         auto next = strprefix(m.path, root);
         if (next != nullptr) {
-            LOG_DEBUG("found matching root fs %s (at %p) - next = %s", m.path, m.fs, next);
+            LOG_DEBUG("found matching root fs %s (at 0x%p) - next = %s", m.path, m.fs, next);
             return {m.fs, next};
         }
     }
@@ -241,7 +241,7 @@ VFS::filehandle_t VFS::opendir(const char* path) {
         auto&& m = *b;
         auto next = strprefix(m.path, path);
         if (next != nullptr) {
-            LOG_DEBUG("found matching root fs %s (at %p) - forwarding open request of %s", m.path, m.fs, next);
+            LOG_DEBUG("found matching root fs %s (at 0x%p) - forwarding open request of %s", m.path, m.fs, next);
             return {m.fs, m.fs->opendir(next)};
         }
     }

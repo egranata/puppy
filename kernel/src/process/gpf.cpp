@@ -41,7 +41,7 @@ extern "C" void pushGPFRecovery(uintptr_t eip) {
     if (gpf_recovery_data.idx == gpf_recovery_count) {
         PANIC("cannot push new GPF recovery frame");
     }
-    TAG_DEBUG(GPFHANDLER, "at index %u pushing recovery %p", gpf_recovery_data.idx, eip);
+    TAG_DEBUG(GPFHANDLER, "at index %u pushing recovery 0x%p", gpf_recovery_data.idx, eip);
     gpf_recovery_data.count = 0;
     gpf_recovery_data.eip[gpf_recovery_data.idx++] = eip;
 }
@@ -55,7 +55,7 @@ extern "C" void popGPFRecovery(uintptr_t eip) {
     }
     gpf_recovery_data.eip[gpf_recovery_data.idx] = 0;
     gpf_recovery_data.count = 0;
-    TAG_DEBUG(GPFHANDLER, "at index %u popped recovery %p", gpf_recovery_data.idx, eip);
+    TAG_DEBUG(GPFHANDLER, "at index %u popped recovery 0x%p", gpf_recovery_data.idx, eip);
 }
 
 extern "C" void GPF_handler(GPR& gpr, InterruptStack& stack, void*) {
@@ -76,7 +76,7 @@ extern "C" void GPF_handler(GPR& gpr, InterruptStack& stack, void*) {
         if (can_recover) {
             gpf_recovery_data.count = 1;
             // TODO: dump panic data as-if we were about to panic, then recover
-            TAG_DEBUG(GPFHANDLER, "letting handler at %p attempt GPF recovery; origin at %p", eip, stack.eip);
+            TAG_DEBUG(GPFHANDLER, "letting handler at 0x%p attempt GPF recovery; origin at 0x%p", eip, stack.eip);
             stack.eip = eip;
         } else {
             PANICFORWARD( GPF_DESCRIPTION, gpr, stack );

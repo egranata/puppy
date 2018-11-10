@@ -58,7 +58,7 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
     for (auto i = 0u; i < header->phnum; ++i) {
         auto&& pref = header->program(i);
         
-        TAG_DEBUG(LOADELF, "program header idx = %u, offset = %p, vaddr = %p, paddr = %p, filesz = %u, memsz = %u, flags = %u, align = %u",
+        TAG_DEBUG(LOADELF, "program header idx = %u, offset = 0x%p, vaddr = 0x%p, paddr = 0x%p, filesz = %u, memsz = %u, flags = %u, align = %u",
             i, pref.offset, pref.vaddr, pref.paddr, pref.filesz, pref.memsz, pref.flags, pref.align);
         
         if (!pref.loadable()) {
@@ -87,7 +87,7 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
         auto vaddr0 = (uintptr_t)vaddr; // low address for this section
         auto vaddr1 = (uintptr_t)vaddr; // high address for this section
         while(len != 0) {
-            TAG_DEBUG(LOADELF, "start by mapping a page at %p", vaddr);
+            TAG_DEBUG(LOADELF, "start by mapping a page at 0x%p", vaddr);
 
             vmm.mapAnyPhysicalPage((uintptr_t)vaddr, mapopts.rw(true));
             vaddr1 += VirtualPageManager::gPageSize;
@@ -123,7 +123,7 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
             if ((uintptr_t)vaddr > maxprogaddr) {
                 maxprogaddr = (uintptr_t)vaddr;
             }
-            TAG_DEBUG(LOADELF, "len = %u flen = %u vaddr = %p src = %p", len, flen, vaddr, src);
+            TAG_DEBUG(LOADELF, "len = %u flen = %u vaddr = 0x%p src = 0x%p", len, flen, vaddr, src);
         }
         
         memmgr->addMappedRegion(vaddr0, vaddr1-1);
@@ -158,13 +158,13 @@ static char** copyStringArrayToUserland(char** srcArray, MemoryManager* memmgr) 
     char** dest_environ = (char**)memmgr->findAndMapRegion(total_chunk_size, map_opts).from;
     char* dest_payloads = (char*)(dest_environ + (num_vars + 1));
 
-    TAG_DEBUG(COPYENV, "copying %u elements, map starts at %p, payload is of size %u and starts at %p",
+    TAG_DEBUG(COPYENV, "copying %u elements, map starts at 0x%p, payload is of size %u and starts at 0x%p",
         num_vars, dest_environ, payload_size, dest_payloads);
 
     for (auto i = 0u; i < num_vars; ++i) {
         dest_environ[i] = dest_payloads;
         dest_payloads = stpcpy(dest_payloads, srcArray[i]) + 1;
-        TAG_DEBUG(COPYENV, "copied %p \"%s\" to %p \"%s\"", srcArray[i], srcArray[i], dest_environ[i], dest_environ[i]);
+        TAG_DEBUG(COPYENV, "copied 0x%p \"%s\" to 0x%p \"%s\"", srcArray[i], srcArray[i], dest_environ[i], dest_environ[i]);
     }
 
     return dest_environ;
@@ -188,12 +188,12 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
     }
 
     auto maxprogaddr = VirtualPageManager::page(elf_load_info.max_load_addr);
-    TAG_DEBUG(LOADELF, "memory setup - max program address is %p", maxprogaddr);
+    TAG_DEBUG(LOADELF, "memory setup - max program address is 0x%p", maxprogaddr);
     memmgr->addUnmappedRegion(maxprogaddr, maxprogaddr + VirtualPageManager::gPageSize - 1);
 
     auto stackpermission = VirtualPageManager::map_options_t::userspace().clear(true);
     auto stackregion = memmgr->findAndZeroPageRegion(stacksize, stackpermission);
-    TAG_DEBUG(LOADELF, "stack is begin = %p, end = %p", stackregion.to, stackregion.from);
+    TAG_DEBUG(LOADELF, "stack is begin = 0x%p, end = 0x%p", stackregion.to, stackregion.from);
     const auto stackbegin = stackregion.to;
 
     maxprogaddr = VirtualPageManager::page(stackbegin + 1);
@@ -220,7 +220,7 @@ process_loadinfo_t load_main_binary(elf_header_t* header, size_t stacksize) {
     --stack;
 
     loadinfo.stack = (uint32_t)stack;
-    TAG_DEBUG(LOADELF, "loadinfo.stack = %p", loadinfo.stack);
+    TAG_DEBUG(LOADELF, "loadinfo.stack = 0x%p", loadinfo.stack);
 
     loadinfo.eip = header->entry;
 

@@ -327,7 +327,7 @@ bool IDEController::poll(channelid_t chan, bool check) {
 }
 
 IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
-    LOG_DEBUG("trying to construct an IDE controller device - info is %p", &info);
+    LOG_DEBUG("trying to construct an IDE controller device - info is 0x%p", &info);
     // adjust BAR
     #define ISIO(n) ((1 == (mInfo.bar ## n & 0x1)) || ((mInfo.bar ## n) == 0))
 

@@ -83,7 +83,7 @@ bool MemoryManager::protectRegionAtAddress(uintptr_t address, const VirtualPageM
             // copy of the page upon a COW fault; the copy will be properly marked
             // when it is made
             if (mapped && new_opts.rw() && page_opts.cow()) {
-                TAG_WARNING(PROTECT, "page %p is a COW page - cannot mark writable; skipping edit", pp);
+                TAG_WARNING(PROTECT, "page 0x%p is a COW page - cannot mark writable; skipping edit", pp);
                 continue;
             } else {
                 // TODO: any other bit that must be edited?
@@ -120,7 +120,7 @@ MemoryManager::region_t MemoryManager::findAndMapRegion(size_t size, const Virtu
     region_t region;
     if (findRegionImpl(size, region)) {
         region.permission = opts;
-        LOG_DEBUG("mapping all pages from %p to %p", region.from, region.to);
+        LOG_DEBUG("mapping all pages from 0x%p to 0x%p", region.from, region.to);
         auto&& vmm(VirtualPageManager::get());
         for(auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.mapAnyPhysicalPage(base, opts);
@@ -135,7 +135,7 @@ MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size, const 
     region_t region;
     if (findRegionImpl(size, region)) {
         region.permission = opts;
-        LOG_DEBUG("zeropage mapping all pages from %p to %p", region.from, region.to);        
+        LOG_DEBUG("zeropage mapping all pages from 0x%p to 0x%p", region.from, region.to);        
         auto&& vmm(VirtualPageManager::get());
         vmm.mapZeroPage(region.from, region.to, opts);
         return addRegion(region);
@@ -156,14 +156,14 @@ void MemoryManager::removeRegion(region_t region) {
     auto&& vmm(VirtualPageManager::get());
 
     if (mRegions.del(region)) {
-        LOG_DEBUG("region [%p - %p] deleted, unmapping all pages", region.from, region.to);
+        LOG_DEBUG("region [0x%p - 0x%p] deleted, unmapping all pages", region.from, region.to);
         mAllRegionsSize -= region.size();
         gCurrentProcess->memstats.available -= region.size();
         for (auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.unmap(base);
         }
     } else {
-        LOG_DEBUG("attempted to remove region [%p - %p] but was not found", region.from, region.to);
+        LOG_DEBUG("attempted to remove region [0x%p - 0x%p] but was not found", region.from, region.to);
     }
 }
 

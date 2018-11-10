@@ -30,7 +30,7 @@ syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
 
     Filesystem* devfs = VFS::get().findfs("devices");
     if (devfs == nullptr || devfs != fh.first || fh.second == nullptr) {
-        LOG_ERROR("no devfs found %p, or invalid filesystem found %p or no file object found %p", devfs, fh.first, fh.second);
+        LOG_ERROR("no devfs found 0x%p, or invalid filesystem found 0x%p or no file object found 0x%p", devfs, fh.first, fh.second);
         return ERR(NO_SUCH_DEVICE);
     }
     if (fh.second->kind() != Filesystem::FilesystemObject::kind_t::blockdevice) {
@@ -42,7 +42,7 @@ syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
 
     Volume* volume = (Volume*)file->ioctl((uintptr_t)blockdevice_ioctl_t::IOCTL_GET_VOLUME, 0);
     if (volume == nullptr) {
-        LOG_ERROR("no volume found %p", volume);
+        LOG_ERROR("no volume found 0x%p", volume);
         return ERR(NO_SUCH_DEVICE);
     }
 

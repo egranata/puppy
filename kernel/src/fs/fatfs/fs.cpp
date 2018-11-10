@@ -62,13 +62,13 @@ FATFileSystem::FATFileSystem(Volume* vol) {
     auto nextid = gNextId();
     sprint(&buf[0], 2, "%d:", nextid);
 
-    LOG_DEBUG("mounting volume %p as id %s", vol, &buf[0]);
+    LOG_DEBUG("mounting volume 0x%p as id %s", vol, &buf[0]);
 
     mFatFS.pdrv = nextid;
     mFatFS.vol = vol;
     f_mount(&mFatFS, &buf[0], 1);
 
-    LOG_DEBUG("mount completed as drive %u, mFatFS = %p", mFatFS.pdrv, &mFatFS);
+    LOG_DEBUG("mount completed as drive %u, mFatFS = 0x%p", mFatFS.pdrv, &mFatFS);
 }
 
 class FATFileSystemFile : public Filesystem::File {
@@ -96,7 +96,7 @@ class FATFileSystemFile : public Filesystem::File {
             switch (result = f_write(mFile, src, size, &bw)) {
                 case FR_OK: return bw;
                 default:
-                LOG_ERROR("FatFS error (%u) writing to file %p (mode=%x)", result, mFile, mFile->flag);
+                LOG_ERROR("FatFS error (%u) writing to file 0x%p (mode=%x)", result, mFile, mFile->flag);
                 return bw;
             }
         }
@@ -109,7 +109,7 @@ class FATFileSystemFile : public Filesystem::File {
         }
 
         ~FATFileSystemFile() override {
-            LOG_DEBUG("closing file ptr %p", mFile);
+            LOG_DEBUG("closing file ptr 0x%p", mFile);
 
             if (mFile) {
                 f_close(mFile);
@@ -230,7 +230,7 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
 
         switch (auto op_out = f_open(fil, fullpath, realmode)) {
             case FR_OK:
-                LOG_DEBUG("returning file handle %p for %s", fil, fullpath);
+                LOG_DEBUG("returning file handle 0x%p for %s", fil, fullpath);
                 return new FATFileSystemFile(fil_delptr.reset(), fileInfo);
             default:
                 LOG_ERROR("f_open of %s failed: %d", fullpath, op_out);
@@ -272,7 +272,7 @@ bool FATFileSystem::del(const char* path) {
 }
 
 void FATFileSystem::doClose(Filesystem::FilesystemObject* f) {
-    LOG_DEBUG("closing filesystem object %p", f);
+    LOG_DEBUG("closing filesystem object 0x%p", f);
     delete f;
 }
 
@@ -294,7 +294,7 @@ Filesystem::Directory* FATFileSystem::opendir(const char* path) {
 
     switch(f_opendir(dir.get(), fullpath.get())) {
         case FR_OK:
-            LOG_DEBUG("returning handle %p for directory %s", dir.get(), fullpath.get());
+            LOG_DEBUG("returning handle 0x%p for directory %s", dir.get(), fullpath.get());
             return new FATFileSystemDirectory(dir.reset(), fileInfo);
         default:
             return nullptr;

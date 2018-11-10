@@ -39,12 +39,12 @@ extern "C" ACPI_STATUS AcpiOsReadPciConfiguration (ACPI_PCI_ID *PciId, UINT32 Re
                 *Value = (word >> 24) & 0xFF;
             } break;
         }
-        TAG_DEBUG(ACPICA, "AcpiOsReadPciConfiguration({%u,%u,%u,%u}, %x, %p, %u) -> %llu",
+        TAG_DEBUG(ACPICA, "AcpiOsReadPciConfiguration({%u,%u,%u,%u}, %x, 0x%p, %u) -> %llu",
             PciId->Segment, PciId->Bus, PciId->Device, PciId->Function,
             Reg, Value, Width, *Value);
         return AE_OK;
     } else {
-        TAG_DEBUG(ACPICA, "AcpiOsReadPciConfiguration({%u,%u,%u,%u}, %x, %p, %u) -> AE_NOT_IMPL",
+        TAG_DEBUG(ACPICA, "AcpiOsReadPciConfiguration({%u,%u,%u,%u}, %x, 0x%p, %u) -> AE_NOT_IMPL",
             PciId->Segment, PciId->Bus, PciId->Device, PciId->Function,
             Reg, Value, Width);
         return AE_NOT_IMPLEMENTED;

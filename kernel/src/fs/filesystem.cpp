@@ -62,7 +62,7 @@ bool Filesystem::mkdir(const char*) {
 
 void Filesystem::close(FilesystemObject* object) {
     if (0 == object->decref()) {
-        LOG_DEBUG("%p refcount is 0; go ahead and nuke it from orbit", object);
+        LOG_DEBUG("0x%p refcount is 0; go ahead and nuke it from orbit", object);
         doClose(object);
     }
 }

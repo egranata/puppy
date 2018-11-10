@@ -33,7 +33,7 @@ extern "C" void* AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length) 
     uint8_t *mapbegin = (uint8_t*)rgn.from;
     auto Wheredelta = VirtualPageManager::offset(Where);
     void* mapping = mapbegin + Wheredelta;
-    TAG_DEBUG(ACPICA, "AcpiOsMapMemory(%p, %u) -> %p", Where, Length, mapping);
+    TAG_DEBUG(ACPICA, "AcpiOsMapMemory(0x%p, %u) -> 0x%p", Where, Length, mapping);
     return mapping;
 }
 
@@ -45,7 +45,7 @@ extern "C" void AcpiOsUnmapMemory (void* LogicalAddress, ACPI_SIZE Size) {
     rgn.to = (uintptr_t)LogicalAddress + Size - 1;
 	vmm.unmaprange(rgn.from, rgn.to);
     vmm.delKernelRegion(rgn);
-    TAG_DEBUG(ACPICA, "AcpiOsUnmapMemory(%p, %u)", LogicalAddress, Size);
+    TAG_DEBUG(ACPICA, "AcpiOsUnmapMemory(0x%p, %u)", LogicalAddress, Size);
 }
 
 extern "C" void *AcpiOsAllocate (ACPI_SIZE Size) {

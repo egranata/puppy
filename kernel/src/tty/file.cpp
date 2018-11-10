@@ -437,7 +437,7 @@ bool TTYFile::stat(stat_t& stat) {
 }
 
 uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
-    LOG_DEBUG("ttyfile %p ioctl(%u,%u)", this, a1, a2);
+    LOG_DEBUG("ttyfile 0x%p ioctl(%u,%u)", this, a1, a2);
     switch (a1) {
         case IOCTL_FOREGROUND:
             // TODO: should processes be allowed to push themselves to the foreground freely?

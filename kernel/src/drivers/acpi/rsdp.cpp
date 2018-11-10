@@ -42,7 +42,7 @@ RSDP::RSDP(uintptr_t address) :
             mDescriptor.rsdtptr) ) {
     LOG_DEBUG("RSDP found - OEM ID: %c%c%c%c%c%c",
         mDescriptor.oem[0], mDescriptor.oem[1], mDescriptor.oem[2], mDescriptor.oem[3], mDescriptor.oem[4], mDescriptor.oem[5]);
-    LOG_DEBUG("ACPI revision: %u - RSDT physical address: %p", mDescriptor.rev, mDescriptor.rsdtptr);
+    LOG_DEBUG("ACPI revision: %u - RSDT physical address: 0x%p", mDescriptor.rev, mDescriptor.rsdtptr);
 }
 
 RSDT& RSDP::rsdt() {
@@ -63,10 +63,10 @@ RSDP* RSDP::tryget() {
         Mapping m(gLowAddress, gHighAddress - gLowAddress);
 
         // now do the search
-        LOG_DEBUG("looking for %s (%u bytes) from %p to %p", gRSDPCanary, gRSDPLen, gLowAddress, gHighAddress);
+        LOG_DEBUG("looking for %s (%u bytes) from 0x%p to 0x%p", gRSDPCanary, gRSDPLen, gLowAddress, gHighAddress);
         for (const char* canary = (const char*)gLowAddress; canary < (const char*)gHighAddress; canary += 16) {
             if (0 == strncmp(gRSDPCanary, canary, gRSDPLen)) {
-                LOG_INFO("ACPI RSDP found at %p", canary);
+                LOG_INFO("ACPI RSDP found at 0x%p", canary);
                 rsdpCanary = canary;
                 gRSDP = new RSDP((uintptr_t)canary);
             }
@@ -80,10 +80,10 @@ RSDP* RSDP::tryget() {
     ACPI_PHYSICAL_ADDRESS acpicaRSDP = 0;
     AcpiFindRootPointer(&acpicaRSDP);
     if ((RSDP*)acpicaRSDP != (RSDP*)rsdpCanary) {
-        TAG_ERROR(ACPICA, "ACPICA RSDP mismatch - gRSDP = %p, acpicaRSDP = %p", rsdpCanary, acpicaRSDP);
-        bootphase_t::printf("ACPICA RSDP mismatch - gRSDP = %p, acpicaRSDP = %p", rsdpCanary, acpicaRSDP);
+        TAG_ERROR(ACPICA, "ACPICA RSDP mismatch - gRSDP = 0x%p, acpicaRSDP = 0x%p", rsdpCanary, acpicaRSDP);
+        bootphase_t::printf("ACPICA RSDP mismatch - gRSDP = 0x%p, acpicaRSDP = 0x%p", rsdpCanary, acpicaRSDP);
     } else {
-        TAG_DEBUG(ACPICA, "ACPICA RSDP matches - found at %p", rsdpCanary);
+        TAG_DEBUG(ACPICA, "ACPICA RSDP matches - found at 0x%p", rsdpCanary);
     }
 
     return gRSDP;

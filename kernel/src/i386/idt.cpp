@@ -103,7 +103,7 @@ Interrupts::ScopedDisabler::operator bool() {
 }
 
 void Interrupts::sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f f, void* payload) {
-    TAG_INFO(IRQSETUP, "function at %p set as handler for irq %d", f, irq);
+    TAG_INFO(IRQSETUP, "function at 0x%p set as handler for irq %d", f, irq);
     auto& handler = mHandlers[irq];
     handler.payload = payload;
     bzero(handler.name, sizeof(handler.name));

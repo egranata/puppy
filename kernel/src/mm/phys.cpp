@@ -66,7 +66,7 @@ void PhysicalPageManager::addpage(uintptr_t base) {
 	mPages[i].usable = true;
 	++mTotalPages;
 	++mFreePages;
-	LOG_DEBUG("added a new physical page, base = %p, index = %u (lowest page = %u, highest page = %u)", base, i, mLowestPage, mHighestPage);
+	LOG_DEBUG("added a new physical page, base = 0x%p, index = %u (lowest page = %u, highest page = %u)", base, i, mLowestPage, mHighestPage);
 }
 
 void PhysicalPageManager::addpages(uintptr_t base, size_t len) {
@@ -85,7 +85,7 @@ void PhysicalPageManager::addpages(uintptr_t base, size_t len) {
 
 void PhysicalPageManager::reserve(uintptr_t base) {
 	auto idx = index(base);
-	LOG_DEBUG("reserving memory page %p at index %u", base, idx);
+	LOG_DEBUG("reserving memory page 0x%p at index %u", base, idx);
 
 	if (mPages[idx].usable == false) {
 		PANIC("trying to reserve a non-usable page");		
@@ -102,7 +102,7 @@ void PhysicalPageManager::reserve(uintptr_t begin, uintptr_t end) {
 		// reserve the entire page
 		begin -= offset;
 	}
-	LOG_DEBUG("asked to reserve memory in range %p to %p", begin, end);
+	LOG_DEBUG("asked to reserve memory in range 0x%p to 0x%p", begin, end);
 	for(;begin < end;begin += gPageSize) {
 		reserve(begin);
 	}
@@ -119,8 +119,8 @@ ResultOrError<uintptr_t> PhysicalPageManager::alloc() {
 			// allows us to leave rc in the code, even if LOG_NODEBUG is defined
 			if (rc > 0) --mFreePages;
 			auto base = gPageSize * idx;
-			TAG_DEBUG(PMLEAK, "ALLOC %p", base);
-			LOG_DEBUG("physical allocator returned page at %p (idx = %u) - rc = %u", base, idx, rc);
+			TAG_DEBUG(PMLEAK, "ALLOC 0x%p", base);
+			LOG_DEBUG("physical allocator returned page at 0x%p (idx = %u) - rc = %u", base, idx, rc);
 			return ResultOrError<uintptr_t>::result(base);
 		}
 	}
@@ -135,7 +135,7 @@ uintptr_t PhysicalPageManager::alloc(uintptr_t base) {
 	}
 	auto rc = mPages[idx].incref();
 	if (1 == rc) --mFreePages;
-	LOG_DEBUG("allocated page at %p (idx = %u) - rc = %u", base, idx, rc);
+	LOG_DEBUG("allocated page at 0x%p (idx = %u) - rc = %u", base, idx, rc);
 
 	return base;
 }
@@ -143,15 +143,15 @@ uintptr_t PhysicalPageManager::alloc(uintptr_t base) {
 void PhysicalPageManager::dealloc(uintptr_t base) {
 	auto idx = index(base);
 	if (mPages[idx].free() || !mPages[idx].usable) {
-		LOG_ERROR("trying to free physical page %p (idx = %u free = %u usable = %u)", base, idx, mPages[idx].free(), mPages[idx].usable);
+		LOG_ERROR("trying to free physical page 0x%p (idx = %u free = %u usable = %u)", base, idx, mPages[idx].free(), mPages[idx].usable);
 		PANIC("trying to deallocate a free/unusable page");
 	}
 	auto rc = mPages[idx].decref();
 	if (0 == rc) {
 		++mFreePages;
-		TAG_DEBUG(PMLEAK, "DEALLOC %p", base);
+		TAG_DEBUG(PMLEAK, "DEALLOC 0x%p", base);
 	}
-	LOG_DEBUG("deallocated page at %p (idx = %u) - rc = %u", base, idx, rc);
+	LOG_DEBUG("deallocated page at 0x%p (idx = %u) - rc = %u", base, idx, rc);
 }
 
 bool PhysicalPageManager::allocContiguousPages(size_t num, uintptr_t *base) {

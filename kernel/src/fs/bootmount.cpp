@@ -44,7 +44,7 @@ namespace boot::mount {
                 DiskScanner scanner((IDEController*)pcidev);
                 for (uint8_t ch = 0u; ch < 2; ++ch) {
                     for (uint8_t bs = 0u; bs < 2; ++bs) {
-                        LOG_DEBUG("running disk scanning on controller %p ch=%u bs=%u", scanner.controller(), ch, bs);
+                        LOG_DEBUG("running disk scanning on controller 0x%p ch=%u bs=%u", scanner.controller(), ch, bs);
                         auto num = scanner.parseDisk(ch, bs);
                         if (num == 0) {
                             LOG_DEBUG("no volumes found");

@@ -41,7 +41,7 @@ bool CPUID::getleaf(uint32_t leaf, uint32_t* eax, uint32_t *ebx, uint32_t* ecx, 
     uint32_t _eax = 0, _ebx = 0, _ecx = 0, _edx = 0;
     _eax = cpuinfo(leaf, &_ebx, &_ecx, &_edx);
 
-    LOG_DEBUG("acquired CPUID leaf %u - eax = %p, ebx = %p, ecx = %p, edx = %p", leaf, _eax, _ebx, _ecx, _edx);
+    LOG_DEBUG("acquired CPUID leaf %u - eax = 0x%p, ebx = 0x%p, ecx = 0x%p, edx = 0x%p", leaf, _eax, _ebx, _ecx, _edx);
 
     if (eax) *eax = _eax;
     if (ebx) *ebx = _ebx;

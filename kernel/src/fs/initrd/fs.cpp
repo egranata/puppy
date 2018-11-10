@@ -29,7 +29,7 @@ Initrd::Initrd(uintptr_t address) {
     mHeader = (header_t*)address;
     mFiles = (files_t*)(address + sizeof(header_t));
     mData = mBase + sizeof(header_t) + sizeof(files_t);
-    LOG_DEBUG("this filesystem contains %u files - data starts at %p", mFiles->count, mData);
+    LOG_DEBUG("this filesystem contains %u files - data starts at 0x%p", mFiles->count, mData);
     for (auto i = 0u; i < mFiles->count; ++i) {
         LOG_DEBUG("file %u is named %s and contains %u bytes of data",
             i, mFiles->files[i].name, mFiles->files[i].size);
@@ -65,7 +65,7 @@ Filesystem::File* Initrd::open(const char* path, uint32_t mode) {
         auto f = file(i);
         if (f == nullptr) continue;
         if (0 == strcmp((const char*)f->name, path)) {
-            LOG_DEBUG("match found - size %u, start pointer %p", f->size, mBase + f->start);
+            LOG_DEBUG("match found - size %u, start pointer 0x%p", f->size, mBase + f->start);
             return new InitrdFile(mBase + f->start, f->size, f->timestamp);
         }
     }

@@ -81,7 +81,7 @@ process_loadinfo_t load_binary(const char* path) {
     auto bufferopts = VirtualPageManager::map_options_t().clear(true).rw(true).user(false);
     auto file_rgn = memmgr->findAndZeroPageRegion(fstat.size, bufferopts);
 
-    LOG_DEBUG("file size: %u - mapped region %p-%p for read", fstat.size, file_rgn.from, file_rgn.to);
+    LOG_DEBUG("file size: %u - mapped region 0x%p-0x%p for read", fstat.size, file_rgn.from, file_rgn.to);
 
     if (file->read(fstat.size, (char*)file_rgn.from) == false) UNHAPPY("unable to read file data", 4);
 
@@ -123,7 +123,7 @@ void fileloader(uintptr_t) {
     fpinit();
     // now we have FPU state and we know we have to save on exit
 
-    LOG_DEBUG("about to jump to program entry at %p - stack at %p", loadinfo.eip, loadinfo.stack);
+    LOG_DEBUG("about to jump to program entry at 0x%p - stack at 0x%p", loadinfo.eip, loadinfo.stack);
     toring3(loadinfo.eip, loadinfo.stack);
 
     // we should never ever ever get back here...

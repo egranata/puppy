@@ -86,7 +86,7 @@ uintptr_t VirtualPageManager::DirectoryEntry::table() {
 
 void VirtualPageManager::DirectoryEntry::table(uintptr_t value) {
 	if (value & gFlagsBitmask) {
-		LOG_ERROR("value=%p is not page aligned", value);
+		LOG_ERROR("value=0x%p is not page aligned", value);
 		PANIC("trying to set page directory entry to non-page aligned");
 	}
     mValue &= gFlagsBitmask;
@@ -127,7 +127,7 @@ uintptr_t VirtualPageManager::TableEntry::page() {
 
 void VirtualPageManager::TableEntry::page(uintptr_t value) {
 	if (value & gFlagsBitmask) {
-		LOG_ERROR("value=%p is not page aligned", value);
+		LOG_ERROR("value=0x%p is not page aligned", value);
 		PANIC("trying to set page table entry to non-page aligned");
 	}
     mValue &= gFlagsBitmask;
@@ -138,7 +138,7 @@ void VirtualPageManager::TableEntry::page(uintptr_t value) {
 
 VirtualPageManager::TableEntry* VirtualPageManager::gPageTable(size_t table) {
 	auto tbl = (TableEntry*)(gPageTableAddress + PhysicalPageManager::gPageSize * table);
-	// LOG_DEBUG("WOMAN gPageTableAddress = %p, table = %u, tbl = %p", gPageTableAddress, table, tbl);
+	// LOG_DEBUG("WOMAN gPageTableAddress = 0x%p, table = %u, tbl = 0x%p", gPageTableAddress, table, tbl);
 	return tbl;
 }
 
@@ -240,7 +240,7 @@ uintptr_t VirtualPageManager::ksbrk(size_t amount) {
 uintptr_t VirtualPageManager::mapZeroPage(uintptr_t virt, const map_options_t& opts) {
 	PagingIndices indices(virt);
 
-	LOG_DEBUG("asked to map %p as the zero page", virt);
+	LOG_DEBUG("asked to map 0x%p as the zero page", virt);
 
 	TableEntry &tbl(indices.table());
 	tbl.present(false);
@@ -313,14 +313,14 @@ uintptr_t VirtualPageManager::clonePage(uintptr_t virt, const map_options_t& opt
 uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_options_t& options) {
 	PagingIndices indices(virt);
 	
-	LOG_DEBUG("asked to map phys %p to virt %p; that will be page dir entry %u, and page table entry %u", phys, virt, indices.dir, indices.tbl);
+	LOG_DEBUG("asked to map phys 0x%p to virt 0x%p; that will be page dir entry %u, and page table entry %u", phys, virt, indices.dir, indices.tbl);
 
 	if (options.user() & !options.clear()) {
-		LOG_WARNING("page mapping virt=%p phys=%p shall be visible to userspace, but is not being zeroed out", virt, phys);
+		LOG_WARNING("page mapping virt=0x%p phys=0x%p shall be visible to userspace, but is not being zeroed out", virt, phys);
 	}
 
 	if (options.cow() && options.rw()) {
-		LOG_WARNING("page mapping virt=%p phys=%p is COW but writable - will never be copied!", virt, phys);
+		LOG_WARNING("page mapping virt=0x%p phys=0x%p is COW but writable - will never be copied!", virt, phys);
 	}
 
 	const bool isuserspace = !iskernel(virt);
@@ -380,7 +380,7 @@ uintptr_t VirtualPageManager::maprange(uintptr_t physlow, uintptr_t physhigh, ui
 
 uintptr_t VirtualPageManager::mapAnyPhysicalPage(uintptr_t virt, const map_options_t& options) {
 	if (mapped(virt)) {
-		LOG_DEBUG("virtual address %p already mapped", virt);
+		LOG_DEBUG("virtual address 0x%p already mapped", virt);
 	} else {
 		auto&& physall(PhysicalPageManager::get());
 		auto phys_result = physall.alloc();
@@ -395,7 +395,7 @@ uintptr_t VirtualPageManager::mapAnyPhysicalPage(uintptr_t virt, const map_optio
 void VirtualPageManager::unmap(uintptr_t virt) {
 	PagingIndices indices(virt);
 	
-	LOG_DEBUG("asked to unmap virt %p; that will be page dir entry %u, and page table entry %u", virt, indices.dir, indices.tbl);
+	LOG_DEBUG("asked to unmap virt 0x%p; that will be page dir entry %u, and page table entry %u", virt, indices.dir, indices.tbl);
 
 	TableEntry &tbl(indices.table());
 
@@ -404,7 +404,7 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 	const bool isfrompmm = tbl.frompmm();
 
 	if (isfrompmm && !wasthere) {
-		LOG_ERROR("virtual page %p is marked not present but frompmm", virt);
+		LOG_ERROR("virtual page 0x%p is marked not present but frompmm", virt);
 		PANIC("non-present page cannot be backed by physical memory");
 	}
 
@@ -529,7 +529,7 @@ uintptr_t VirtualPageManager::mapPageWithinRange(uintptr_t low, uintptr_t high, 
 }
 
 uintptr_t VirtualPageManager::findPageWithinRange(uintptr_t low, uintptr_t high) {
-	LOG_DEBUG("attempting to find a page in virtual range %p - %p", low, high);
+	LOG_DEBUG("attempting to find a page in virtual range 0x%p - 0x%p", low, high);
 	auto ilow = PagingIndices(low);
 	auto ihigh = PagingIndices(high);
 	while (ilow < ihigh) {
@@ -576,7 +576,7 @@ uintptr_t VirtualPageManager::cloneAddressSpace() {
 				tbl.cow(true);
 				tbl.rw(false);
 			}
-			LOG_INFO("cloning indices %p (%u, %u) into dir = %u, tbl = %u - writing %x", indices.address(), indices.dir, indices.tbl, i, j, (uint32_t)tbl);
+			LOG_INFO("cloning indices 0x%p (%u, %u) into dir = %u, tbl = %u - writing %x", indices.address(), indices.dir, indices.tbl, i, j, (uint32_t)tbl);
 			pageTbl[j] = (uint32_t)tbl;
 			if (tbl.frompmm()) {
 				// add a reference to the page so we don't let go of it
@@ -605,25 +605,25 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 	uintptr_t pPageDir = pPageDir_result.resultOrPanic();
 	auto pageDirScratch = getScratchPage(pPageDir, new_table_options);
 	uint32_t *pageDir = pageDirScratch.get<uint32_t>();
-	LOG_DEBUG("new page tables will be at physical %p virtual = %p", pPageDir, pageDir);
+	LOG_DEBUG("new page tables will be at physical 0x%p virtual = 0x%p", pPageDir, pageDir);
 	uint32_t *kPageDir = (uint32_t*)0xffbff000;
 	for (auto i = 0u; i < 768u; ++i) {
 		auto pPageTbl = phys.alloc().resultOrPanic();
-		LOG_DEBUG("new page table %u will be at physical %p", i, pPageTbl);
+		LOG_DEBUG("new page table %u will be at physical 0x%p", i, pPageTbl);
 		pageDir[i] = pPageTbl | newPageDirBits;
 		auto pageTblScratch = getScratchPage(pPageTbl, new_table_options);
 	}
 
 	// kernel memory just points to our original allocation
 	for (auto i = 768u; i < 1022u; ++i) {
-		LOG_DEBUG("new page table %u will be at physical %p", i, kPageDir[i]);
+		LOG_DEBUG("new page table %u will be at physical 0x%p", i, kPageDir[i]);
 		pageDir[i] = kPageDir[i];
 	}
 
 	// but allocate for pages 1022 and 1023 (i.e. page tables)
 	for (auto i = 1022u; i < 1024u; ++i) {
 		auto pPageTbl = phys.alloc().resultOrPanic();;
-		LOG_DEBUG("new page table %u will be at physical %p", i, pPageTbl);
+		LOG_DEBUG("new page table %u will be at physical 0x%p", i, pPageTbl);
 		pageDir[i] = pPageTbl | newPageDirBits;
 		auto pageTblScratch = getScratchPage(pPageTbl, new_table_options);		
 	}
@@ -670,18 +670,18 @@ void VirtualPageManager::cleanAddressSpace() {
 	for (auto i = 0u; i < 1024; ++i) {
 		if ((i >= 768) && (i <= 1021)) continue;
 		auto tbl = gPageTable(i);
-		LOG_DEBUG("page table %u is at %p", i, tbl);
+		LOG_DEBUG("page table %u is at 0x%p", i, tbl);
 		for (auto j = 0u; j < 1024u; ++j) {
 			if (tbl[j].present() && tbl[j].frompmm()) {
 				auto ptr = tbl[j].page();
-				LOG_DEBUG("freeing page %u at %p", j, ptr);
+				LOG_DEBUG("freeing page %u at 0x%p", j, ptr);
 				phys.dealloc(ptr);
 				TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=%x phys=%x", gCurrentProcess->pid, 0x0, ptr);
 			}
 		}
 
 		auto m = mapping((uintptr_t)tbl);
-		LOG_DEBUG("and now freeing entire table at %p", m);
+		LOG_DEBUG("and now freeing entire table at 0x%p", m);
 		phys.dealloc(m);
 	}
 
@@ -708,7 +708,7 @@ void VirtualPageManager::setheap(uintptr_t heap, size_t size) {
 	}
 
 	mKernelHeap = new (mKernelHeapMemory) KernelHeap(heap, heap + size - 1);
-	LOG_INFO("kernel heap will begin at %p and span to %p", mKernelHeap->low(), mKernelHeap->high());
+	LOG_INFO("kernel heap will begin at 0x%p and span to 0x%p", mKernelHeap->low(), mKernelHeap->high());
 
 	// now that we have a heap - it's a good time to setup kernel regions!
 	// make one mega region for the kernel image + the kernel heap (we could split them
@@ -721,7 +721,7 @@ void VirtualPageManager::setheap(uintptr_t heap, size_t size) {
 	if (false == findKernelRegion(gScratchPagesSize, spr)) {
 		PANIC("failed to find memory for scratch pages!");
 	} else {
-		LOG_INFO("scratch page area will span [%p - %p]", spr.from, spr.to);
+		LOG_INFO("scratch page area will span [0x%p - 0x%p]", spr.from, spr.to);
 		addKernelRegion(mScratchPageInfo.low = spr.from, mScratchPageInfo.high = spr.to);
 		// mapZeroPage(spr.from, spr.to);
 	}
@@ -747,7 +747,7 @@ VirtualPageManager::scratch_page_t VirtualPageManager::getScratchPage(const map_
 
 VirtualPageManager::scratch_page_t VirtualPageManager::getScratchPage(uintptr_t phys, const map_options_t& op) {
 	auto vaddr = findPageWithinRange(mScratchPageInfo.low, mScratchPageInfo.high);
-	LOG_DEBUG("scratch page at address %p will map physical page %p", vaddr, phys);
+	LOG_DEBUG("scratch page at address 0x%p will map physical page 0x%p", vaddr, phys);
 	map(phys, vaddr, op);
 	return scratch_page_t(vaddr, false);
 }
@@ -779,7 +779,7 @@ VirtualPageManager::scratch_page_t::~scratch_page_t() {
 }
 
 void VirtualPageManager::addKernelRegion(uintptr_t low, uintptr_t high) {
-	LOG_INFO("adding a kernel region [%p - %p]", low, high);
+	LOG_INFO("adding a kernel region [0x%p - 0x%p]", low, high);
 	low -= gBootVirtualOffset;
 	high -= gBootVirtualOffset;
 	mKernelRegions.add({low, high});
@@ -853,7 +853,7 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 	LOG_INFO("setting up sane page directories");
 	uintptr_t pPde = phys.alloc().resultOrPanic();
 	uint32_t *pde = scratchMap<uint32_t>(pPde, 0);
-	LOG_DEBUG("pde physical address %p, virrtual address %p", pPde, pde);
+	LOG_DEBUG("pde physical address 0x%p, virrtual address 0x%p", pPde, pde);
 	
 	PagingIndices kernelidx(addr_kernel_start());
 	LOG_DEBUG("kernel mapping starts at dir %u page %u", kernelidx.dir, kernelidx.tbl);
@@ -877,14 +877,14 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 	uint32_t *pt = nullptr;
 	while(cur < end) {
 		pt = scratchMap<uint32_t>(pde[kernelidx.dir] & ~pagedirAttrib, 1);
-		LOG_DEBUG("mapping phys %p to dir %u page %u aka virt %p", cur, kernelidx.dir, kernelidx.tbl, kernelidx.address());
+		LOG_DEBUG("mapping phys 0x%p to dir %u page %u aka virt 0x%p", cur, kernelidx.dir, kernelidx.tbl, kernelidx.address());
 		pt[kernelidx.tbl] = cur | kerneltblAttrib;
 		cur += gPageSize;
 		++kernelidx;
 	}
 	// now map the PDE at 0xffbff000
 	PagingIndices pagingidx(gPageDirectoryAddress);
-	LOG_DEBUG("mapping phys %p to dir %u page %u aka virt %p", pPde, pagingidx.dir, pagingidx.tbl, pagingidx.address());
+	LOG_DEBUG("mapping phys 0x%p to dir %u page %u aka virt 0x%p", pPde, pagingidx.dir, pagingidx.tbl, pagingidx.address());
 	pt = scratchMap<uint32_t>(pde[pagingidx.dir] & ~pagedirAttrib, 2);
 	pt[pagingidx.tbl] = pPde | pagedirAttrib;
 	// and map each of the (present) page table entries at 0xFFC00000 onwards
@@ -893,7 +893,7 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 	for(auto i = 0u; i < 1024; logical += gPageSize, ++i, ++pagingidx) {
 		pt = scratchMap<uint32_t>(pde[pagingidx.dir] & ~pagedirAttrib, 3);
 		if (pde[i] == 0) { continue; }
-		LOG_DEBUG("mapping phys %p to dir %u page %u aka virt %p", pde[i] & ~pagedirAttrib, pagingidx.dir, pagingidx.tbl, pagingidx.address());
+		LOG_DEBUG("mapping phys 0x%p to dir %u page %u aka virt 0x%p", pde[i] & ~pagedirAttrib, pagingidx.dir, pagingidx.tbl, pagingidx.address());
 		pt[pagingidx.tbl] = pde[i] & ~gUserBit;
 	}
 	LOG_DEBUG("about to reload cr3");

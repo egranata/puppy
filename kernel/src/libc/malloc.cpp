@@ -50,7 +50,7 @@ void free(void* ptr) {
   iter = first;
   block = (union header*)ptr - 1;
 
-  TAG_DEBUG(TTYLEAK, "asked to free: %p, freeing a block at %p of len %u", ptr, block, block->meta.len);
+  TAG_DEBUG(TTYLEAK, "asked to free: 0x%p, freeing a block at 0x%p of len %u", ptr, block, block->meta.len);
 
   /* Traverse to the spot in the list to insert the freed fragment,
    * such that the list is ordered by memory address (for coalescing). */
@@ -121,8 +121,8 @@ void *malloc(size_t size) {
         p->meta.len = true_size;
       }
       first = prev;
-      LOG_DEBUG("returning %p", p+1);
-      TAG_DEBUG(TTYLEAK, "asked to malloc %u bytes, returning %p which is a block at %p of %u bytes", size, p+1, p, p->meta.len);
+      LOG_DEBUG("returning 0x%p", p+1);
+      TAG_DEBUG(TTYLEAK, "asked to malloc %u bytes, returning 0x%p which is a block at 0x%p of %u bytes", size, p+1, p, p->meta.len);
       return (void *)(p+1);
     }
     /* If we reach the beginning of the list, no satisfactory fragment
@@ -136,7 +136,7 @@ void *malloc(size_t size) {
     auto kernel_ask_size = (uintptr_t) (sbrk_size * sizeof(union header));
     LOG_DEBUG("asking the kernel for %u bytes", kernel_ask_size);
       page = sbrk(kernel_ask_size);
-      LOG_DEBUG("kernel said %p", page);
+      LOG_DEBUG("kernel said 0x%p", page);
       if (page == (char *)-1) {
       LOG_DEBUG("returning nullptr");
 		  return nullptr;

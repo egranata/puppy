@@ -118,13 +118,13 @@ uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
             return -1;
         }
         VolumeFile* volfile = new VolumeFile(RamDiskDevice::get().assignDiskId(), b);
-        TAG_DEBUG(RAMDISK, "creating FATFileSystem helper for volume file %p", volfile);
+        TAG_DEBUG(RAMDISK, "creating FATFileSystem helper for volume file 0x%p", volfile);
         FATFileSystem* fsobj = new FATFileSystem(volfile->volume());
         FATFS* fat = fsobj->getFAT();
-        TAG_DEBUG(RAMDISK, "fat = %p, fat->pdrv = %x", fat, (uint32_t)fat->pdrv);
+        TAG_DEBUG(RAMDISK, "fat = 0x%p, fat->pdrv = %x", fat, (uint32_t)fat->pdrv);
         uint8_t drive_id[3] = {'0', ':', 0};
         drive_id[0] += fat->pdrv;
-        TAG_DEBUG(RAMDISK, "making RAM disk - size = %u, volfile = %p, fsobj = %p, fat = %p, drive_id = %s",
+        TAG_DEBUG(RAMDISK, "making RAM disk - size = %u, volfile = 0x%p, fsobj = 0x%p, fat = 0x%p, drive_id = %s",
             b, volfile, fsobj, fat, &drive_id[0]);
         buffer b(2048);
         // TODO: we are losing a FatFS drive number here - they are somewhat precious
