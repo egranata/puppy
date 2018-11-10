@@ -1,13 +1,13 @@
-BUILD = ../../../../out
+BUILD = $(PUPPY_ROOT)/out
 
 include ../../py/mkenv.mk
 
-PROG = $(BUILD)/apps/micropython
+PROG = $(PUPPY_ROOT)/$(OUTWHERE)/micropython
 QSTR_DEFS = qstrdefsport.h
 
 UNAME_S = puppy
 
-PUPPY_GCC = $(TOP)/../../build/gcc.sh
+PUPPY_GCC = $(PUPPY_ROOT)/build/gcc.sh
 
 include $(TOP)/py/py.mk
 

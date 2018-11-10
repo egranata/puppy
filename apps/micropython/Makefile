@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-c_files := $(call find_c_files,$(current_dir))
-cpp_files := $(call find_cpp_files,$(current_dir))
-objects := $(patsubst %.c,%.o,$(cpp_files))
-objects += $(patsubst %.c,%.o,$(c_files))
-
-all : $(objects)
-	@echo "Building $(app_path)..."
-	$(CC) -o $(PUPPY_ROOT)/$(OUTWHERE)/$(app_path) $(objects)
+all:
+	$(MAKE) -C $(PUPPY_ROOT)/third_party/micropython/ports/puppy/
 

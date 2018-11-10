@@ -340,6 +340,15 @@ class UserspaceTool(Project):
                          announce=announce)
         self.link = self.linkGcc
 
+    def hasMakefile(self):
+        return os.path.exists(os.path.join(self.srcdir, "Makefile"))
+    
+    def build(self):
+        if not self.hasMakefile(): return Project.build(self)
+        guessname = os.path.basename(self.srcdir)
+        shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s -j" % (MYPATH, self.outwhere), curdir=self.srcdir)
+        return os.path.join(self.outwhere, guessname)
+
 def writeSpecsFile(outfile):
     with open(outfile, "w") as f:
         print("*cpp_unique_options:", file=f)
@@ -557,18 +566,10 @@ print('')
 USERSPACE_PRINT_PREFIX="Building userspace tools: "
 print(USERSPACE_PRINT_PREFIX)
 
-print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
-print("pager", end='', flush=True)
-PAGER_DIR = os.path.abspath(os.path.join(MYPATH, "apps", "pager"))
-shell("make -j PUPPY_ROOT=%s V=1" % (MYPATH), curdir=PAGER_DIR)
-copy("out/apps/pager", "out/mnt/apps/pager")
-print("(%d bytes) " % os.stat("out/apps/pager").st_size)
-
 APP_DIRS = findSubdirectories("apps", self=False)
 for app in APP_DIRS:
     app_p = UserspaceTool(name = os.path.basename(app),
                           srcdir = app)
-    if (app_p.name == 'pager'): continue
     APP_PROJECTS.append(app_p.name)
     print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
     print(app_p.name, end='', flush=True)
@@ -578,13 +579,6 @@ for app in APP_DIRS:
     if config["mainfs"]: APP_REFS.append(app_o)
     if config["initrd"]: INITRD_REFS.append(app_o)
     print("(%d bytes) " % os.stat(app_o).st_size)
-
-print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
-print("micropython", end='', flush=True)
-MICROPYTHON_DIR = os.path.abspath(os.path.join(MYPATH, "third_party", "micropython", "ports", "puppy"))
-shell("make -j V=1", curdir=MICROPYTHON_DIR)
-copy("out/apps/micropython", "out/mnt/apps/micropython")
-print("(%d bytes) " % os.stat("out/apps/micropython").st_size)
 
 print('')
 
