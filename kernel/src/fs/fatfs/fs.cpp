@@ -58,9 +58,9 @@ static uint64_t fatTimeToUnix(uint16_t ftime) {
 }
 
 FATFileSystem::FATFileSystem(Volume* vol) {
-    char buf[3] = {0};
+    char buf[5] = {0};
     auto nextid = gNextId();
-    sprint(&buf[0], 2, "%d:", nextid);
+    sprint(&buf[0], 4, "%d:", nextid);
 
     LOG_DEBUG("mounting volume 0x%p as id %s", vol, &buf[0]);
 
@@ -218,7 +218,7 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
         switch(st_out = f_stat(fullpath, &fileInfo)) {
             case FR_OK: break;
             default:
-                LOG_ERROR("f_stat of %s failed: %d", fullpath, st_out);
+                LOG_ERROR("f_stat of '%s' failed: %d", fullpath, st_out);
                 bzero(&fileInfo, sizeof(fileInfo));
                 break;
         }
@@ -233,7 +233,7 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
                 LOG_DEBUG("returning file handle 0x%p for %s", fil, fullpath);
                 return new FATFileSystemFile(fil_delptr.reset(), fileInfo);
             default:
-                LOG_ERROR("f_open of %s failed: %d", fullpath, op_out);
+                LOG_ERROR("f_open of '%s' failed: %d", fullpath, op_out);
                 return nullptr;
         }
     }
