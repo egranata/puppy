@@ -17,6 +17,7 @@
 #include <kernel/mm/virt.h>
 #include <kernel/libc/memory.h>
 #include <kernel/libc/string.h>
+#include <kernel/i386/mtrr.h>
 
 #include <xnu_font/font.c>
 
@@ -312,6 +313,14 @@ uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	mBackBuffer = malloc(size());
 	LOG_DEBUG("mBackBuffer = 0x%p", mBackBuffer);
 	return end;
+}
+
+bool Framebuffer::enableWriteCombining(MTRR* mtrr) {
+#ifdef FRAMEBUFFER_WANTS_WC
+	return mtrr->setAsWriteCombining(mPhysicalAddress, size());
+#else
+	return false;
+#endif
 }
 
 Framebuffer& Framebuffer::putc(char c) {

@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/i386/primitives.h>
 #include <kernel/log/log.h>
+
+#include <kernel/i386/primitives.h>
 #include <kernel/i386/cpuid.h>
 #include <kernel/boot/phase.h>
 #include <kernel/drivers/cpu/device.h>
+#include <kernel/i386/mtrr.h>
+#include <kernel/drivers/framebuffer/fb.h>
 
 namespace boot::i386 {
     uint32_t init() {
@@ -65,6 +68,21 @@ namespace boot::i386 {
         LOG_DEBUG("original CR4 = 0x%p, final CR4 = 0x%p", original_cr4, cr4);
 
         CPUDevice::get();
+
+        MTRR *mtrr = MTRR::tryGet();
+        if (mtrr == nullptr) {
+            LOG_WARNING("MTRR not supported by CPU");
+        } else {
+            LOG_INFO("MTRR support available");
+            if (mtrr->doesWriteCombining()) {
+                bool fbwc = Framebuffer::get().enableWriteCombining(mtrr);
+                if (fbwc) {
+                    LOG_INFO("Framebuffer will perform write combining");
+                } else {
+                    LOG_WARNING("Framebuffer can't write-combine; performance may suffer");
+                }
+            }
+        }
 
         return 0;
     }

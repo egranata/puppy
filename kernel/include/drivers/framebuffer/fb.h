@@ -20,6 +20,8 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/sys/nocopy.h>
 
+class MTRR;
+
 class Framebuffer : NOCOPY {
     public:
         struct color_t {
@@ -75,6 +77,7 @@ class Framebuffer : NOCOPY {
         void setbg(const color_t&, bool recolor);
 
         uintptr_t map(uintptr_t base);
+        bool enableWriteCombining(MTRR*);
 
         void cls();
         void clearAtCursor();
