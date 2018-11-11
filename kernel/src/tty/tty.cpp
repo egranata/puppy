@@ -189,3 +189,10 @@ void TTY::setANSIForegroundColor(int code) {
         mFramebuffer.setfg(gANSIColors[code]);
     }
 }
+
+void TTY::setANSIBackgroundColor(int r, int g, int b) {
+    mFramebuffer.setbg(Framebuffer::color_t(r, g, b), true);
+}
+void TTY::setANSIForegroundColor(int r, int g, int b) {
+    mFramebuffer.setfg(Framebuffer::color_t(r, g, b));
+}

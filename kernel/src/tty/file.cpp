@@ -309,6 +309,7 @@ entry:
 }
 
 #define CURRENT_CSI_INPUT mEscapeSequenceInput[mCurrentEscapeSequenceInput]
+#define NUM_CSI_INPUTS (mCurrentEscapeSequenceInput+1)
 
 size_t TTYFile::write(size_t s, char* buffer) {
     const size_t s0 = s;
@@ -342,6 +343,7 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     CURRENT_CSI_INPUT = 10 * CURRENT_CSI_INPUT + (c - '0');
+                    TAG_DEBUG(RAWTTY, "c = %c, CURRENT_CSI_INPUT = %d", c, CURRENT_CSI_INPUT);
                 }
             } break;
             case ';': {
@@ -436,10 +438,20 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (CURRENT_CSI_INPUT == 0) mTTY->resetGraphics();
-                    if (CURRENT_CSI_INPUT == 7) mTTY->swapColors();
-                    if (CURRENT_CSI_INPUT >= 30 && CURRENT_CSI_INPUT < 39) mTTY->setANSIForegroundColor(CURRENT_CSI_INPUT);
-                    if (CURRENT_CSI_INPUT >= 40 && CURRENT_CSI_INPUT < 49) mTTY->setANSIBackgroundColor(CURRENT_CSI_INPUT);
+                    if (NUM_CSI_INPUTS == 1) {
+                        if (CURRENT_CSI_INPUT == 0) mTTY->resetGraphics();
+                        if (CURRENT_CSI_INPUT == 7) mTTY->swapColors();
+                        if (CURRENT_CSI_INPUT >= 30 && CURRENT_CSI_INPUT < 39) mTTY->setANSIForegroundColor(CURRENT_CSI_INPUT);
+                        if (CURRENT_CSI_INPUT >= 40 && CURRENT_CSI_INPUT < 49) mTTY->setANSIBackgroundColor(CURRENT_CSI_INPUT);
+                    }
+                    if (NUM_CSI_INPUTS == 5) {
+                        if (mEscapeSequenceInput[0] == 38 && mEscapeSequenceInput[1] == 2) {
+                            mTTY->setANSIForegroundColor(mEscapeSequenceInput[2], mEscapeSequenceInput[3], mEscapeSequenceInput[4]);
+                        }
+                        if (mEscapeSequenceInput[0] == 48 && mEscapeSequenceInput[1] == 2) {
+                            mTTY->setANSIBackgroundColor(mEscapeSequenceInput[2], mEscapeSequenceInput[3], mEscapeSequenceInput[4]);
+                        }
+                    }
                 }
             } break;
         }
@@ -450,6 +462,10 @@ size_t TTYFile::write(size_t s, char* buffer) {
 
     return s0;
 }
+
+#undef NUM_CSI_INPUTS
+#undef CURRENT_CSI_INPUT
+
 
 bool TTYFile::doStat(stat_t& stat) {
     stat.kind = file_kind_t::tty;

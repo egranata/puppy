@@ -61,6 +61,9 @@ class TTY {
         void setANSIBackgroundColor(int code);
         void setANSIForegroundColor(int code);
 
+        void setANSIBackgroundColor(int r, int g, int b);
+        void setANSIForegroundColor(int r, int g, int b);
+
     private:
         static constexpr size_t gQueueSize = 1024;
 
