@@ -29,7 +29,7 @@ class TTYFile : public Filesystem::File {
         bool seek(size_t) override;
         size_t read(size_t, char*) override;
         size_t write(size_t, char*) override;
-        bool stat(stat_t&) override;
+        bool doStat(stat_t&) override;
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
     private:
         TTY* mTTY;

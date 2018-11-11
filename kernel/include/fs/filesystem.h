@@ -33,7 +33,8 @@ class Filesystem {
                 using kind_t = file_kind_t;
                 virtual ~FilesystemObject() = default;
 
-                virtual bool stat(stat_t&) = 0;
+                virtual bool doStat(stat_t&) = 0;
+                bool stat(stat_t&);
 
                 kind_t kind() const;
                 void kind(kind_t);

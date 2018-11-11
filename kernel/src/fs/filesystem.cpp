@@ -60,6 +60,11 @@ bool Filesystem::mkdir(const char*) {
     return false;
 }
 
+bool Filesystem::FilesystemObject::stat(stat_t& st) {
+    st.kind = kind();
+    return doStat(st);
+}
+
 void Filesystem::close(FilesystemObject* object) {
     if (0 == object->decref()) {
         LOG_DEBUG("0x%p refcount is 0; go ahead and nuke it from orbit", object);

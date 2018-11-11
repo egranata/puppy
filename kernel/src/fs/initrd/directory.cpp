@@ -17,7 +17,7 @@
 #include <kernel/libc/str.h>
 #include <muzzle/string.h>
 
-bool InitrdDirectory::stat(stat_t& stat) {
+bool InitrdDirectory::doStat(stat_t& stat) {
     stat.kind = file_kind_t::directory;
     stat.size = 0;
     stat.time = 0; // TODO: support initrd root timestamp

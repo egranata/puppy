@@ -195,7 +195,7 @@ class RootDirectory : public Filesystem::Directory {
             mTime = TimeManager::get().UNIXtime();
         }
 
-        bool stat(stat_t& stat) {
+        bool doStat(stat_t& stat) {
             stat.kind = file_kind_t::directory;
             stat.size = 0;
             stat.time = mTime;

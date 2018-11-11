@@ -101,7 +101,7 @@ class FATFileSystemFile : public Filesystem::File {
             }
         }
 
-        bool stat(stat_t& stat) override {
+        bool doStat(stat_t& stat) override {
             stat.kind = file_kind_t::file;
             stat.size = mFileInfo.fsize ? mFileInfo.fsize : f_size(mFile);
             stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);
@@ -142,7 +142,7 @@ class FATFileSystemDirectory : public Filesystem::Directory {
             }
         }
 
-        bool stat(stat_t& stat) override {
+        bool doStat(stat_t& stat) override {
             stat.kind = file_kind_t::directory;
             stat.size = 0;
             stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);
@@ -178,7 +178,7 @@ class FATFileSystemDirectory_AsFile : public Filesystem::File {
             return 0;
         }
 
-        bool stat(stat_t& stat) override {
+        bool doStat(stat_t& stat) override {
             stat.kind = file_kind_t::directory;
             stat.size = 0;
             stat.time = fatDateToUnix(mFileInfo.fdate) + fatTimeToUnix(mFileInfo.ftime);

@@ -67,7 +67,7 @@ class PipeManager : public Filesystem {
         class PipeFile : public Filesystem::File {
             public:
                 PipeFile(PipeBuffer *);
-                bool stat(stat_t&) override;
+                bool doStat(stat_t&) override;
                 bool seek(size_t) override;
                 size_t read(size_t, char*) override;
                 size_t write(size_t, char*) override;

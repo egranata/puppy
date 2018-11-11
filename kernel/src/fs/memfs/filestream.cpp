@@ -62,7 +62,7 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
                 return mFile->ioctl(a,b);
             }
 
-            bool stat(stat_t& stat) {
+            bool doStat(stat_t& stat) {
                 stat.kind = mFile->kind();
                 stat.size = mContent->len();
                 stat.time = mFile->time();

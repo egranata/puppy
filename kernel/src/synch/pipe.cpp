@@ -125,7 +125,7 @@ PipeManager::ReadFile::ReadFile(PipeBuffer* buffer) : PipeFile(buffer) {}
 PipeManager::WriteFile::WriteFile(PipeBuffer* buffer) : PipeFile(buffer) {}
 
 // TODO: could we support these?
-bool PipeManager::PipeFile::stat(stat_t&) { return false; }
+bool PipeManager::PipeFile::doStat(stat_t&) { return false; }
 bool PipeManager::PipeFile::seek(size_t) { return false; }
 
 size_t PipeManager::PipeFile::read(size_t, char*) { return 0; }

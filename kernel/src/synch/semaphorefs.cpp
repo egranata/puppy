@@ -49,7 +49,7 @@ public:
         kind(file_kind_t::semaphore);
     }
 
-    bool stat(stat_t& stat) override {
+    bool doStat(stat_t& stat) override {
         stat.kind = file_kind_t::semaphore;
         stat.size = 0;
         stat.time = 0;

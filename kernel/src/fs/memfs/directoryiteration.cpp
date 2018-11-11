@@ -27,7 +27,7 @@ Filesystem::Directory* MemFS::opendir(const char* path) {
                 mDirectory->unlock();
             }
 
-        bool stat(stat_t& stat) override {
+        bool doStat(stat_t& stat) override {
             stat.kind = file_kind_t::directory;
             stat.size = 0;
             stat.time = mDirectory->time();

@@ -429,7 +429,7 @@ size_t TTYFile::write(size_t s, char* buffer) {
     return s0;
 }
 
-bool TTYFile::stat(stat_t& stat) {
+bool TTYFile::doStat(stat_t& stat) {
     stat.kind = file_kind_t::tty;
     stat.size = 0;
     stat.time = 0;

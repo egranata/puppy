@@ -49,7 +49,7 @@ public:
         kind(file_kind_t::mutex);
     }
 
-    bool stat(stat_t& stat) override {
+    bool doStat(stat_t& stat) override {
         stat.kind = file_kind_t::mutex;
         stat.size = 0;
         stat.time = 0;

@@ -70,7 +70,7 @@ class MessageQueueFile : public Filesystem::File {
     public:
         MessageQueueFile(MessageQueueBuffer*);
 
-        bool stat(stat_t&) override { return false; }
+        bool doStat(stat_t&) override { return false; }
         bool seek(size_t) override { return false; }
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
 
