@@ -65,7 +65,9 @@ class TTYFile : public Filesystem::File {
             ESC,
             CSI
         } mEscapeStatus = escape_sequence_status_t::OFF;
-        int mEscapeSequenceInput = 0;
+        static constexpr size_t gNumEscapeInputs = 6;
+        int mEscapeSequenceInput[gNumEscapeInputs] = {0};
+        int mCurrentEscapeSequenceInput = 0;
 
         key_event_t procureOne();
 

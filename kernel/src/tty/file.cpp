@@ -308,6 +308,8 @@ entry:
     return n0;
 }
 
+#define CURRENT_CSI_INPUT mEscapeSequenceInput[mCurrentEscapeSequenceInput]
+
 size_t TTYFile::write(size_t s, char* buffer) {
     const size_t s0 = s;
 
@@ -318,7 +320,8 @@ size_t TTYFile::write(size_t s, char* buffer) {
             case ESCAPE: {
                 writeThis = false;
                 mEscapeStatus = escape_sequence_status_t::ESC;
-                mEscapeSequenceInput = 0;
+                bzero(mEscapeSequenceInput, sizeof(mEscapeSequenceInput));
+                mCurrentEscapeSequenceInput = 0;
             } break;
             case '[': {
                 if (mEscapeStatus == escape_sequence_status_t::ESC) {
@@ -338,18 +341,26 @@ size_t TTYFile::write(size_t s, char* buffer) {
             case '9': {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
-                    mEscapeSequenceInput = 10 * mEscapeSequenceInput + (c - '0');
+                    CURRENT_CSI_INPUT = 10 * CURRENT_CSI_INPUT + (c - '0');
                 }
             } break;
+            case ';': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    if (mCurrentEscapeSequenceInput == gNumEscapeInputs - 1) {
+                        LOG_WARNING("escape sequence using too many input entries; ignoring");
+                    } else ++mCurrentEscapeSequenceInput;
+                } break;
+            }
             case 'A': {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
-                    TAG_DEBUG(RAWTTY, "cursor move up by %d", mEscapeSequenceInput);
+                    if (CURRENT_CSI_INPUT == 0) CURRENT_CSI_INPUT = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move up by %d", CURRENT_CSI_INPUT);
                     uint16_t row = 0, col = 0;
                     mTTY->getPosition(&row, &col);
-                    if (row >= mEscapeSequenceInput) row -= mEscapeSequenceInput;
+                    if (row >= CURRENT_CSI_INPUT) row -= CURRENT_CSI_INPUT;
                     else row = 0;
                     mTTY->setPosition(row, col);
                 }
@@ -358,11 +369,11 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
-                    TAG_DEBUG(RAWTTY, "cursor move down by %d", mEscapeSequenceInput);
+                    if (CURRENT_CSI_INPUT == 0) CURRENT_CSI_INPUT = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move down by %d", CURRENT_CSI_INPUT);
                     uint16_t row = 0, col = 0;
                     mTTY->getPosition(&row, &col);
-                    row += mEscapeSequenceInput;
+                    row += CURRENT_CSI_INPUT;
                     mTTY->setPosition(row, col);
                 }
             } break;
@@ -370,11 +381,11 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
-                    TAG_DEBUG(RAWTTY, "cursor move forward by %d", mEscapeSequenceInput);
+                    if (CURRENT_CSI_INPUT == 0) CURRENT_CSI_INPUT = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move forward by %d", CURRENT_CSI_INPUT);
                     uint16_t row = 0, col = 0;
                     mTTY->getPosition(&row, &col);
-                    col += mEscapeSequenceInput;
+                    col += CURRENT_CSI_INPUT;
                     mTTY->setPosition(row, col);
                 }
             } break;
@@ -382,11 +393,11 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (mEscapeSequenceInput == 0) mEscapeSequenceInput = 1;
-                    TAG_DEBUG(RAWTTY, "cursor move backwards by %d", mEscapeSequenceInput);
+                    if (CURRENT_CSI_INPUT == 0) CURRENT_CSI_INPUT = 1;
+                    TAG_DEBUG(RAWTTY, "cursor move backwards by %d", CURRENT_CSI_INPUT);
                     uint16_t row = 0, col = 0;
                     mTTY->getPosition(&row, &col);
-                    if (col >= mEscapeSequenceInput) col -= mEscapeSequenceInput;
+                    if (col >= CURRENT_CSI_INPUT) col -= CURRENT_CSI_INPUT;
                     else col = 0;
                     mTTY->setPosition(row, col);
                 }
@@ -395,7 +406,7 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    TAG_DEBUG(RAWTTY, "cursor move to origin", mEscapeSequenceInput);
+                    TAG_DEBUG(RAWTTY, "cursor move to origin", CURRENT_CSI_INPUT);
                     mTTY->setPosition(0, 0);
                 }
             } break;
@@ -403,11 +414,11 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (mEscapeSequenceInput == 2) {
+                    if (CURRENT_CSI_INPUT == 2) {
                         TAG_DEBUG(RAWTTY, "screen clear command");
                         mTTY->clearScreen();
                     } else {
-                        TAG_DEBUG(RAWTTY, "unknown screen clear command %d", mEscapeSequenceInput);
+                        TAG_DEBUG(RAWTTY, "unknown screen clear command %d", CURRENT_CSI_INPUT);
                     }
                 }
             } break;
@@ -415,20 +426,20 @@ size_t TTYFile::write(size_t s, char* buffer) {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    TAG_DEBUG(RAWTTY, "line clear command %d", mEscapeSequenceInput);
-                    if (mEscapeSequenceInput == 0) mTTY->clearLine(false, true);
-                    if (mEscapeSequenceInput == 1) mTTY->clearLine(true, false);
-                    if (mEscapeSequenceInput == 2) mTTY->clearLine(true, true);
+                    TAG_DEBUG(RAWTTY, "line clear command %d", CURRENT_CSI_INPUT);
+                    if (CURRENT_CSI_INPUT == 0) mTTY->clearLine(false, true);
+                    if (CURRENT_CSI_INPUT == 1) mTTY->clearLine(true, false);
+                    if (CURRENT_CSI_INPUT == 2) mTTY->clearLine(true, true);
                 }
             } break;
             case 'm': {
                 if (mEscapeStatus == escape_sequence_status_t::CSI) {
                     writeThis = false;
                     mEscapeStatus = escape_sequence_status_t::OFF;
-                    if (mEscapeSequenceInput == 0) mTTY->resetGraphics();
-                    if (mEscapeSequenceInput == 7) mTTY->swapColors();
-                    if (mEscapeSequenceInput >= 30 && mEscapeSequenceInput < 39) mTTY->setANSIForegroundColor(mEscapeSequenceInput);
-                    if (mEscapeSequenceInput >= 40 && mEscapeSequenceInput < 49) mTTY->setANSIBackgroundColor(mEscapeSequenceInput);
+                    if (CURRENT_CSI_INPUT == 0) mTTY->resetGraphics();
+                    if (CURRENT_CSI_INPUT == 7) mTTY->swapColors();
+                    if (CURRENT_CSI_INPUT >= 30 && CURRENT_CSI_INPUT < 39) mTTY->setANSIForegroundColor(CURRENT_CSI_INPUT);
+                    if (CURRENT_CSI_INPUT >= 40 && CURRENT_CSI_INPUT < 49) mTTY->setANSIBackgroundColor(CURRENT_CSI_INPUT);
                 }
             } break;
         }
