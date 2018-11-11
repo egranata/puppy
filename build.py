@@ -413,8 +413,8 @@ Muzzle.link = Muzzle.linkAr
 
 Kernel = Project(name="Kernel",
     srcdir="kernel/src",
-    cflags=BASIC_CFLAGS + ["-mgeneral-regs-only"],
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS + ["-mgeneral-regs-only"],
+    cflags=BASIC_CFLAGS,
+    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
     ldflags=BASIC_LDFLAGS + ["-T build/kernel.ld", '-Wl,-gc-sections'],
     assembler="nasm",
     linkerdeps=["out/libmuzzle.a", "out/libfatfs.a", "out/libacpica.a"])

@@ -62,8 +62,6 @@ static struct {
 	uintptr_t offset;
 } __attribute__((packed)) gIDT;
 
-__attribute__((interrupt))  void handler(void*) {}
-
 static_assert(sizeof(gIDT) == 6, "IDT reference not 6 bytes in size");
 
 void Interrupts::install() {
