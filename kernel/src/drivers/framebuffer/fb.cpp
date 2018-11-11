@@ -315,7 +315,9 @@ uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	return end;
 }
 
-bool Framebuffer::enableWriteCombining(MTRR* mtrr) {
+bool Framebuffer::enableWriteCombining(__attribute__((unused)) MTRR* mtrr) {
+	if (mtrr == nullptr) return false;
+
 #ifdef FRAMEBUFFER_WANTS_WC
 	return mtrr->setAsWriteCombining(mPhysicalAddress, size());
 #else
