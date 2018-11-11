@@ -7,15 +7,8 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
 	unsigned char *d = dest;
 	const unsigned char *s = src;
 
-#ifdef __GNUC__
-
-#if __BYTE_ORDER == __LITTLE_ENDIAN
 #define LS >>
 #define RS <<
-#else
-#define LS <<
-#define RS >>
-#endif
 
 	typedef uint32_t __attribute__((__may_alias__)) u32;
 	uint32_t w, x;
@@ -116,9 +109,5 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
 	if (n&1) {
 		*d = *s;
 	}
-	return dest;
-#endif
-
-	for (; n; n--) *d++ = *s++;
 	return dest;
 }
