@@ -16,6 +16,7 @@
 #include <kernel/drivers/acpi/acpica/acpica.h>
 #include <kernel/drivers/pic/pic.h>
 #include <kernel/drivers/acpi/acpica/osi.h>
+#include <kernel/drivers/acpi/acpica/device.h>
 
 #define IS_ERR (acpi_init != AE_OK)
 
@@ -32,34 +33,10 @@ static UINT32 acpi_power_button_event_handler(void* context) {
     return ACPI_INTERRUPT_HANDLED;
 }
 
-static ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void* ctx, void**) {
-    uint64_t *num_devices = (uint64_t*)ctx;
-    ACPI_OBJECT_TYPE type;
-
-    ACPI_STATUS ok = AcpiGetType(handle, &type);
-    if (ok != AE_OK) {
-        TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: 0x%p level: %u", handle, level);
-        return AE_OK;
-    }
-    ACPI_BUFFER nameBuffer = {0};
-    nameBuffer.Length = 128;
-    nameBuffer.Pointer = calloc(sizeof(char), nameBuffer.Length);
-    ok = AcpiGetName(handle, ACPI_FULL_PATHNAME, &nameBuffer);
-    ACPI_BUFFER diBuffer = {0};
-    diBuffer.Length = sizeof(ACPI_DEVICE_INFO);
-    diBuffer.Pointer = calloc(1, sizeof(ACPI_DEVICE_INFO));
-    ACPI_DEVICE_INFO *di = (ACPI_DEVICE_INFO*)diBuffer.Pointer;
-    ok = AcpiGetObjectInfo(handle, &di);
-    if (ok == AE_OK && (di->Valid & ACPI_VALID_HID)) {
-        TAG_INFO(ACPICA, "device detect: path=%s hid=%s", nameBuffer.Pointer, di->HardwareId.String);
-    } else {
-        TAG_INFO(ACPICA, "device detect: path=%s hid=<invalid>", nameBuffer.Pointer);
-    }
-    // TODO: do something useful with the devices
-    free(nameBuffer.Pointer);
-    free(diBuffer.Pointer);
-    ++*num_devices;
-    return AE_OK;
+static void acpi_scan_callback(const acpica_device_t& device, void* ctx) {
+    uint64_t *count = (uint64_t*)ctx;
+    ++*count;
+    TAG_INFO(ACPICA, "device discovered: %s", device.pathname);
 }
 
 namespace boot::acpica {
@@ -115,7 +92,7 @@ namespace boot::acpica {
         if (IS_ERR) return gFatalFailure;
 
         uint64_t num_acpi_devs = 0;
-        acpi_init = AcpiGetDevices(nullptr, acpi_device_scanner, &num_acpi_devs, nullptr);
+        acpi_init = discoverACPIDevices(acpi_scan_callback, &num_acpi_devs);
         if (IS_ERR) return gFatalFailure;
 
         bootphase_t::printf("%llu ACPI devices detected\n", num_acpi_devs);
