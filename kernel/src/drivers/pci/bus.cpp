@@ -50,9 +50,9 @@ namespace {
     void printPCIDevice(const char* kind, const PCIBus::pci_hdr_0& hdr) {
         bootphase_t::printf("PCI Bus %u Slot %u Function %u:\n", hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.func);
         bootphase_t::printf("                              Device kind: %s\n", kind);
-        bootphase_t::printf("                              Vendor: %x Device: %x Class: %u Subclass: %u ProgIF: %u\n",
+        bootphase_t::printf("                              Vendor: 0x%x Device: 0x%x Class: %u Subclass: %u ProgIF: %u\n",
             hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif);
-        bootphase_t::printf("                              BAR: [0]=%x [1]=%x [2]=%x [3]=%x [4]=%x [5]=%x\n",
+        bootphase_t::printf("                              BAR: [0]=0x%x [1]=0x%x [2]=0x%x [3]=0x%x [4]=0x%x [5]=0x%x\n",
             hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
     }
 }

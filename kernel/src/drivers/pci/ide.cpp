@@ -156,7 +156,7 @@ bool IDEController::preparepio(const disk_t& disk, const pio_op_params_t& params
 
     for(tries = 500u; tries != 0; --tries) {
         auto status = read(disk.chan, gStatusRegister);
-        TAG_DEBUG(DISKACCESS, "status register: %x", status);
+        TAG_DEBUG(DISKACCESS, "status register: 0x%x", status);
         if (status & gStatusBusy) continue;
         break;
     }
@@ -181,7 +181,7 @@ bool IDEController::preparepio(const disk_t& disk, const pio_op_params_t& params
 
     for(tries = 500u; tries != 0; --tries) {
         auto status = read(disk.chan, gStatusRegister);
-        TAG_DEBUG(DISKACCESS, "status register: %x", status);
+        TAG_DEBUG(DISKACCESS, "status register: 0x%x", status);
         if (status & gStatusBusy) continue;
         if (0 == (status & gStatusDriveReady)) continue;
         break;
@@ -239,12 +239,12 @@ bool IDEController::doread(const disk_t& disk, uint32_t sector, uint8_t num, uns
     pio_op_params_t params{disk, sector, num};
     params.command = params.lba48 ? gReadLBA48PIOCommand : gReadPIOCommand;
     
-    TAG_DEBUG(DISKACCESS, "attempting to read from disk %u-%u:%u - params are cmd: %x, sector: %u %u %u %u %u sel: %x count: %u",
+    TAG_DEBUG(DISKACCESS, "attempting to read from disk %u-%u:%u - params are cmd: 0x%x, sector: %u %u %u %u %u sel: 0x%x count: %u",
         disk.chan, disk.bus, sector, params.command, params.sector[0],params.sector[1],params.sector[2],params.sector[3],params.sector[4],
         params.sel, params.count);
 
     if (preparepio(disk, params)) {
-        TAG_DEBUG(DISKACCESS, "polled disk successfully - copying data from port %x", disk.iobase);
+        TAG_DEBUG(DISKACCESS, "polled disk successfully - copying data from port 0x%x", disk.iobase);
         for (auto j = 0; j < num; ++j) {
             if (!poll(disk.chan)) {
                 TAG_ERROR(DISKACCESS, "read failed before sector %u", j);
@@ -270,12 +270,12 @@ bool IDEController::dowrite(const disk_t& disk, uint32_t sector, uint8_t num, un
     pio_op_params_t params{disk, sector, num};
     params.command = params.lba48 ? gWriteLBA48PIOCommand : gWritePIOCommand;
 
-    TAG_DEBUG(DISKACCESS, "attempting to write to disk %u-%u:%u - params are cmd: %x, sector: %u %u %u %u %u sel: %x count: %u",
+    TAG_DEBUG(DISKACCESS, "attempting to write to disk %u-%u:%u - params are cmd: 0x%x, sector: %u %u %u %u %u sel: 0x%x count: %u",
         disk.chan, disk.bus, sector, params.command, params.sector[0],params.sector[1],params.sector[2],params.sector[3],params.sector[4],
         params.sel, params.count);
 
     if (preparepio(disk, params)) {
-        TAG_DEBUG(DISKACCESS, "polled disk successfully - copying data to port %x", disk.iobase);
+        TAG_DEBUG(DISKACCESS, "polled disk successfully - copying data to port 0x%x", disk.iobase);
         for (auto j = 0; j < num; ++j) {
             if (!poll(disk.chan, true)) {
                 LOG_ERROR("write failed after sector %u", j);
@@ -314,7 +314,7 @@ bool IDEController::poll(channelid_t chan, bool check) {
 
     if(check) {
         auto status = read(chan, gStatusRegister);
-        TAG_DEBUG(DISKACCESS, "status register: %x", status);
+        TAG_DEBUG(DISKACCESS, "status register: 0x%x", status);
         if ((status & gStatusError) || (status & gStatusDeviceFault)) {
             return false;
         }
@@ -354,7 +354,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
 
     mInfo.bar4 &= 0xFFFFFFFC;
 
-    LOG_DEBUG("adjusted BARs: [0] = %x [1] = %x [2] = %x [3] = %x [4] = %x",
+    LOG_DEBUG("adjusted BARs: [0] = 0x%x [1] = 0x%x [2] = 0x%x [3] = 0x%x [4] = 0x%x",
         mInfo.bar0, mInfo.bar1, mInfo.bar2, mInfo.bar3, mInfo.bar4);
 
     mChannel[0] = channel_t{
@@ -441,7 +441,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             bool error = false;
             while(true) {
                 auto status = read(ch, gStatusRegister);
-                LOG_DEBUG("status register read %x", status);
+                LOG_DEBUG("status register read 0x%x", status);
                 if (status & gStatusError) {
                     LOG_DEBUG("device in error state - next");
                     error = true;
@@ -461,7 +461,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             auto lba1 = read(ch, gLBA1Register);
             auto lba2 = read(ch, gLBA2Register);
 
-            LOG_DEBUG("lba1 = %x, lba2 = %x", lba1, lba2);
+            LOG_DEBUG("lba1 = 0x%x, lba2 = 0x%x", lba1, lba2);
             if ((lba1 == 0x14) && (lba2 == 0xEB)) {
                 device.kind = channel_t::device_t::kind_t::atapi;
                 LOG_DEBUG("device is ATAPI");
@@ -512,7 +512,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
                 device.serial[k + 1] = buf.byte[gIdentitySerial + k];
             }
 
-            LOG_DEBUG("found a valid IDE device - signature %u, features %x, cmdsets %x, sector count %u, model %s, serial %s",
+            LOG_DEBUG("found a valid IDE device - signature %u, features 0x%x, cmdsets 0x%x, sector count %u, model %s, serial %s",
                 device.signature, device.features, device.cmdsets, device.sectors, device.model, device.serial);
         }
     }

@@ -65,7 +65,7 @@ pair<bool, const char*> fatfs_trymount(Volume* vol, const char* where) {
         // TODO: LEAK
         return {true,strdup(where)};
     } else {
-        LOG_ERROR("ebr16->signature = %x and ebr32->signature = %x - not matching valid FAT signature", ebr16->signature, ebr32->signature);
+        LOG_ERROR("ebr16->signature = 0x%x and ebr32->signature = 0x%x - not matching valid FAT signature", ebr16->signature, ebr32->signature);
     }
 
     return {false, nullptr};

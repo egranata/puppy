@@ -49,7 +49,7 @@ void reboot() {
     switch (resetreg.space) {
         case acpi_address_t::addr_space_t::memory: {
             uint8_t *resetptr = (uint8_t*)resetreg.address;
-            LOG_DEBUG("forcing ACPI reboot by writing %x to 0x%p", resetval, resetptr);
+            LOG_DEBUG("forcing ACPI reboot by writing 0x%x to 0x%p", resetval, resetptr);
 
             auto pg(VirtualPageManager::page((uintptr_t)resetptr));
             auto off(VirtualPageManager::offset((uintptr_t)resetptr));
@@ -64,7 +64,7 @@ void reboot() {
         }
         case acpi_address_t::addr_space_t::io: {
             uint16_t resetport = (uint16_t)resetreg.address;
-            LOG_DEBUG("forcing ACPI reboot by writing %x to io port %x", resetval, resetport);
+            LOG_DEBUG("forcing ACPI reboot by writing 0x%x to io port 0x%x", resetval, resetport);
             outb(resetport, resetval);
             break;
         }

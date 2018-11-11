@@ -358,7 +358,7 @@ uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_opti
 		gCurrentProcess->memstats.allocated += gPageSize;
 	}
 
-	if (gCurrentProcess) TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u allocated page virt=%x phys=%x", gCurrentProcess->pid, virt, phys);
+	if (gCurrentProcess) TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u allocated page virt=0x%x phys=0x%x", gCurrentProcess->pid, virt, phys);
 
 	return virt;
 }
@@ -426,7 +426,7 @@ void VirtualPageManager::unmap(uintptr_t virt) {
 		gCurrentProcess->memstats.allocated -= gPageSize;
 	}
 
-	if (gCurrentProcess) TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=%x phys=%x", gCurrentProcess->pid, virt, phys);
+	if (gCurrentProcess) TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=0x%x phys=0x%x", gCurrentProcess->pid, virt, phys);
 }
 
 void VirtualPageManager::unmaprange(uintptr_t low, uintptr_t high) {
@@ -576,7 +576,7 @@ uintptr_t VirtualPageManager::cloneAddressSpace() {
 				tbl.cow(true);
 				tbl.rw(false);
 			}
-			LOG_INFO("cloning indices 0x%p (%u, %u) into dir = %u, tbl = %u - writing %x", indices.address(), indices.dir, indices.tbl, i, j, (uint32_t)tbl);
+			LOG_INFO("cloning indices 0x%p (%u, %u) into dir = %u, tbl = %u - writing 0x%x", indices.address(), indices.dir, indices.tbl, i, j, (uint32_t)tbl);
 			pageTbl[j] = (uint32_t)tbl;
 			if (tbl.frompmm()) {
 				// add a reference to the page so we don't let go of it
@@ -676,7 +676,7 @@ void VirtualPageManager::cleanAddressSpace() {
 				auto ptr = tbl[j].page();
 				LOG_DEBUG("freeing page %u at 0x%p", j, ptr);
 				phys.dealloc(ptr);
-				TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=%x phys=%x", gCurrentProcess->pid, 0x0, ptr);
+				TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=0x%x phys=0x%x", gCurrentProcess->pid, 0x0, ptr);
 			}
 		}
 

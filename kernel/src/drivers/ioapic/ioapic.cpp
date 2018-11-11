@@ -68,7 +68,7 @@ IOAPIC::IOAPIC() {
             auto apic_address = vmm.getScratchPage(ioapic->address, VirtualPageManager::map_options_t::kernel().cached(false)).reset();
             uint32_t apicver = readRegister(apic_address, 0x1);
             uint32_t numirqs = 1 + ((apicver & 0xFF0000) >> 16);
-            LOG_DEBUG("IOAPIC[%u] info: GSI base: %u, address phys=%x virt=%x, num IRQs: %u",
+            LOG_DEBUG("IOAPIC[%u] info: GSI base: %u, address phys=0x%x virt=0x%x, num IRQs: %u",
                 (uint32_t)ioapic->apicid,
                 (uint32_t)ioapic->globalSystemInterruptBase,
                 (uint32_t)ioapic->address,
@@ -76,13 +76,13 @@ IOAPIC::IOAPIC() {
                 (uint32_t)numirqs);
         }
         if (auto irqoverride = entry->asIRQsrcOverride()) {
-            LOG_DEBUG("IRQ override: src = %u, GSI: %u, flags = %x",
+            LOG_DEBUG("IRQ override: src = %u, GSI: %u, flags = 0x%x",
                 (uint32_t)irqoverride->irqsrc,
                 (uint32_t)irqoverride->globalSystemInterrupt,
                 (uint32_t)irqoverride->flags);
         }
         if (auto nmi = entry->asnmi()) {
-            LOG_DEBUG("NMI: num #%u, flags: %x",
+            LOG_DEBUG("NMI: num #%u, flags: 0x%x",
                 (uint32_t)nmi->lintnum,
                 (uint32_t)nmi->flags);
         }

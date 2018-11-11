@@ -131,7 +131,7 @@ static void reserveMemory(multiboot_info* multiboot) {
 
 static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot_magic) {
 	if (gMultibootValid != multiboot_magic) {
-		LOG_ERROR("invalid multiboot_magic, got %x but expected %x. hanging.", multiboot_magic, gMultibootValid);
+		LOG_ERROR("invalid multiboot_magic, got 0x%x but expected 0x%x. hanging.", multiboot_magic, gMultibootValid);
 		while(true);
 	}
 
@@ -142,7 +142,7 @@ static multiboot_info* getMultiboot(uintptr_t multiboot_data, uint32_t multiboot
 	auto multiboot_hdr = (multiboot_info*)(mbpage+multibootOffset(multiboot_data));
 
 	if (0x1041 != (multiboot_hdr->flags & 0x1041)) {
-		LOG_ERROR("multiboot flags value %x implies no memory map. hanging.", multiboot_hdr->flags);
+		LOG_ERROR("multiboot flags value 0x%x implies no memory map. hanging.", multiboot_hdr->flags);
 		while(true);
 	}
 

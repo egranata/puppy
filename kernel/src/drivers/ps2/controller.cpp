@@ -212,7 +212,7 @@ PS2Controller::PS2Controller() : mDevice1(nullptr) {
     device1(gDeviceNoScan);
     auto d1resp = response();
     if (0xFA != d1resp) {
-        LOG_ERROR("device responded %x, which is not 0xFA; out of here", d1resp);
+        LOG_ERROR("device responded 0x%x, which is not 0xFA; out of here", d1resp);
         return;
     }
 
@@ -220,12 +220,12 @@ PS2Controller::PS2Controller() : mDevice1(nullptr) {
     device1(gDeviceIdentify);
     d1resp = response();
     if (0xFA != d1resp) {
-        LOG_ERROR("device responded %x, which is not 0xFA; out of here", d1resp);
+        LOG_ERROR("device responded 0x%x, which is not 0xFA; out of here", d1resp);
         return;
     }
     kind1 = response(50000000, 0xFF);
     kind2 = response(50000000, 0xAA);
-    LOG_INFO("PS/2 device1 identified as %x %x", kind1, kind2);
+    LOG_INFO("PS/2 device1 identified as 0x%x 0x%x", kind1, kind2);
 
     if (kind1 != 0xAB || (kind2 != 0x83 && kind2 != 0x41 && kind2 != 0xC1)) {
         LOG_DEBUG("no keyboard detected. don't know how to try port2 yet.");
@@ -235,7 +235,7 @@ PS2Controller::PS2Controller() : mDevice1(nullptr) {
     device1(gDeviceScan);
     d1resp = response();
     if (0xFA != d1resp) {
-        LOG_ERROR("device responded %x, which is not 0xFA; out of here", d1resp);
+        LOG_ERROR("device responded 0x%x, which is not 0xFA; out of here", d1resp);
         return;
     }
 

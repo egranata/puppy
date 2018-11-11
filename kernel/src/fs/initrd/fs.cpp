@@ -24,7 +24,7 @@ Initrd::file_t* Initrd::file(uint32_t idx) {
 }
 
 Initrd::Initrd(uintptr_t address) {
-    LOG_DEBUG("trying to setup an initrd filesystem at %x", address);
+    LOG_DEBUG("trying to setup an initrd filesystem at 0x%x", address);
     mBase = (uint8_t*)address;
     mHeader = (header_t*)address;
     mFiles = (files_t*)(address + sizeof(header_t));
@@ -55,7 +55,7 @@ Initrd* Initrd::tryget(uintptr_t address) {
 
 Filesystem::File* Initrd::open(const char* path, uint32_t mode) {
     if (mode & (FILE_OPEN_WRITE | FILE_OPEN_APPEND | FILE_OPEN_NEW)) {
-        LOG_ERROR("file mode %x not allowed for initrd", mode);
+        LOG_ERROR("file mode 0x%x not allowed for initrd", mode);
         return nullptr;
     }
 

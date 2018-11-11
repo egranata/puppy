@@ -128,7 +128,7 @@ static bool parse_scan_code() {
     LOG_DEBUG("in keyboard IRQ");
     auto b = inb(0x60);
 
-    LOG_DEBUG("b = %x", b);
+    LOG_DEBUG("b = 0x%x", b);
 
     if (b == 0xE0) {
         gIsLong = true;

@@ -118,14 +118,14 @@ void TTYFile::processOne_Canonical(key_event_t evt) {
     }
 
     uint16_t ch = evt.keycode;
-    TAG_DEBUG(TTYFILE, "got a character: %x", ch);
+    TAG_DEBUG(TTYFILE, "got a character: 0x%x", ch);
     // ignore HBS characters; they are not for us
     if (ch & 0xFF00) {
         TAG_DEBUG(TTYFILE, "HBS characters ignored by TTYFile");
         return;
     }
     char c = (char)(ch & 0x00FF);
-    TAG_DEBUG(TTYFILE, "got a byte: %x", c);
+    TAG_DEBUG(TTYFILE, "got a byte: 0x%x", c);
     switch (c) {
         case '\b':
             if (mInput.emptyWrite()) {
@@ -218,7 +218,7 @@ void TTYFile::processOne_Raw(key_event_t evt) {
     }
 
     uint16_t ch = evt.keycode;
-    TAG_DEBUG(RAWTTY, "got a character: %x", ch);
+    TAG_DEBUG(RAWTTY, "got a character: 0x%x", ch);
     if (ch & 0xFF00) {
         if      (ch == key_event_t::UP)  RAW_COMBO(ESCAPE, '[', 'A')
         else if (ch == key_event_t::DWN) RAW_COMBO(ESCAPE, '[', 'B')
@@ -251,7 +251,7 @@ void TTYFile::processOne_Raw(key_event_t evt) {
 
 size_t TTYFile::read(size_t n, char* b) {
 entry:
-    TAG_DEBUG(TTYFILE, "trying to consume up to %u bytes from the TTY - mode is %x", n, mMode);
+    TAG_DEBUG(TTYFILE, "trying to consume up to %u bytes from the TTY - mode is 0x%x", n, mMode);
     if (n == 0) return n;
 
     while (mMode == mode_t::READ_FROM_IRQ) {
@@ -297,7 +297,7 @@ entry:
                 }
             } else {
                 mInput.consumeOne(b);
-                TAG_DEBUG(TTYFILE, "consumed a byte: %x", *b);
+                TAG_DEBUG(TTYFILE, "consumed a byte: 0x%x", *b);
                 ++b;
             }
         }

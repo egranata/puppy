@@ -121,7 +121,7 @@ uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
         TAG_DEBUG(RAMDISK, "creating FATFileSystem helper for volume file 0x%p", volfile);
         FATFileSystem* fsobj = new FATFileSystem(volfile->volume());
         FATFS* fat = fsobj->getFAT();
-        TAG_DEBUG(RAMDISK, "fat = 0x%p, fat->pdrv = %x", fat, (uint32_t)fat->pdrv);
+        TAG_DEBUG(RAMDISK, "fat = 0x%p, fat->pdrv = 0x%x", fat, (uint32_t)fat->pdrv);
         uint8_t drive_id[3] = {'0', ':', 0};
         drive_id[0] += fat->pdrv;
         TAG_DEBUG(RAMDISK, "making RAM disk - size = %u, volfile = 0x%p, fsobj = 0x%p, fat = 0x%p, drive_id = %s",

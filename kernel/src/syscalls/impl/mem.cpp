@@ -28,7 +28,7 @@ syscall_response_t mapregion_syscall_handler(uint32_t size, uint32_t perm) {
 
     auto opts = VirtualPageManager::map_options_t().user(true).clear(true).cached(true).rw(REGION_ALLOW_WRITE == (perm & REGION_ALLOW_WRITE));
 
-    LOG_DEBUG("perm = %x, opts.rw() = %s", perm, opts.rw() ? "true" : "false");
+    LOG_DEBUG("perm = 0x%x, opts.rw() = %s", perm, opts.rw() ? "true" : "false");
 
     auto&& memmgr = gCurrentProcess->getMemoryManager();
 

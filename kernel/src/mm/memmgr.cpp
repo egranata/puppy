@@ -99,7 +99,7 @@ bool MemoryManager::protectRegionAtAddress(uintptr_t address, const VirtualPageM
 bool MemoryManager::findRegionImpl(size_t size, MemoryManager::region_t& region) {
     size = toPage(size);
     if (mRegions.findFree(size, region)) {
-        LOG_DEBUG("free region found [%x - %x]", region.from, region.to);
+        LOG_DEBUG("free region found [0x%x - 0x%x]", region.from, region.to);
         return true;
     } else {
         LOG_DEBUG("failed to find a region, returning false");
@@ -168,7 +168,7 @@ void MemoryManager::removeRegion(region_t region) {
 }
 
 MemoryManager::region_t MemoryManager::addRegion(const MemoryManager::region_t& region) {
-    LOG_DEBUG("adding a memory region [%x - %x]", region.from, region.to);
+    LOG_DEBUG("adding a memory region [0x%x - 0x%x]", region.from, region.to);
     mAllRegionsSize += region.size();
     gCurrentProcess->memstats.available += region.size();
     return mRegions.add(region), region;

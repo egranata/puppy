@@ -56,7 +56,7 @@ PMTimer* PMTimer::tryget() {
     auto body = fadt->fadt;
     if (body == nullptr) return gTimer;
 
-    TAG_DEBUG(PMTIMER, "pmtmrblk = %x, pmtmrlen = %u", body->pmtmrblk, body->pmtmrlen);
+    TAG_DEBUG(PMTIMER, "pmtmrblk = 0x%x, pmtmrlen = %u", body->pmtmrblk, body->pmtmrlen);
     if (body->pmtmrblk && body->pmtmrlen) {
         gTimer = new PMTimer(body);
     }

@@ -37,7 +37,7 @@ static uint64_t fatDateToUnix(uint16_t fdate) {
     auto day = fdate & 31;
     auto month = (fdate >> 5) & 15;
     auto year = (fdate >> 9) & 127;
-    LOG_DEBUG("out of fdate=%x, day=%u month=%u year=%u", fdate, day, month, year);
+    LOG_DEBUG("out of fdate=0x%x, day=%u month=%u year=%u", fdate, day, month, year);
     return date_components_to_epoch({
         (uint8_t)day,
         (uint8_t)month,
@@ -49,7 +49,7 @@ static uint64_t fatTimeToUnix(uint16_t ftime) {
     auto second = 2 * (ftime & 31); // FAT uses an "every other second" model
     auto minute = (ftime >> 5) & 63;
     auto hour = (ftime >> 11) & 31;
-    LOG_DEBUG("out of ftime=%x, hour=%u minute=%u second=%u", ftime, hour, minute, second);
+    LOG_DEBUG("out of ftime=0x%x, hour=%u minute=%u second=%u", ftime, hour, minute, second);
     return time_components_to_epoch({
         (uint8_t)hour,
         (uint8_t)minute,
@@ -96,7 +96,7 @@ class FATFileSystemFile : public Filesystem::File {
             switch (result = f_write(mFile, src, size, &bw)) {
                 case FR_OK: return bw;
                 default:
-                LOG_ERROR("FatFS error (%u) writing to file 0x%p (mode=%x)", result, mFile, mFile->flag);
+                LOG_ERROR("FatFS error (%u) writing to file 0x%p (mode=0x%x)", result, mFile, mFile->flag);
                 return bw;
             }
         }
@@ -212,7 +212,7 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
         if (mode & FILE_NO_CREATE) realmode |= FA_OPEN_EXISTING;
         if (mode & FILE_OPEN_APPEND) realmode |= FA_OPEN_APPEND;
 
-        LOG_DEBUG("VFS mode: %x, FatFS mode: %x", mode, realmode);
+        LOG_DEBUG("VFS mode: 0x%x, FatFS mode: 0x%x", mode, realmode);
 
         FRESULT st_out = FR_OK;
         switch(st_out = f_stat(fullpath, &fileInfo)) {

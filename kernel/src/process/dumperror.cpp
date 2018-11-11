@@ -26,18 +26,18 @@ void dumpErrorState(GPR& gpr, InterruptStack& stack) {
     LOG_ERROR("irq: %u error code: %u", stack.irqnumber, stack.error);
 
 	fb.write("\nIRQ: ",Framebuffer::color_t::blue());
-    sprint(&buffer[0], 1024, "%x    ", stack.irqnumber);
+    sprint(&buffer[0], 1024, "0x%x    ", stack.irqnumber);
     fb.write(&buffer[0]);
 
 	fb.write("Error code: ",Framebuffer::color_t::blue());
-    sprint(&buffer[0], 1024, "%x\n", stack.error);
+    sprint(&buffer[0], 1024, "0x%x\n", stack.error);
     fb.write(&buffer[0]);
 
 	fb.write("\nRegister dump:\n",Framebuffer::color_t::blue());
 
 	#define GPREG(name) ( \
-        LOG_ERROR("register %s: %x", #name, gpr. name), \
-        sprint(&buffer[0], 1024, #name " = %x ", gpr. name), \
+        LOG_ERROR("register %s: 0x%x", #name, gpr. name), \
+        sprint(&buffer[0], 1024, #name " = 0x%x ", gpr. name), \
         fb.write(&buffer[0]), fb \
 	)
 
@@ -58,28 +58,28 @@ void dumpErrorState(GPR& gpr, InterruptStack& stack) {
 
 	#undef GPREG
 
-    LOG_ERROR("flags = 0x%p, x87 status = %x", stack.eflags, readfpsw());
+    LOG_ERROR("flags = 0x%p, x87 status = 0x%x", stack.eflags, readfpsw());
     LOG_ERROR("segments: cs: 0x%p, ds: 0x%p, es: 0x%p, fs: 0x%p, gs: 0x%p, ss: 0x%p", stack.cs, readds(), reades(), readfs(), readgs(), readss());
 
-    sprint(&buffer[0], 1024, "eflags = %x, x87 status = %x\n", stack.eflags, readfpsw());
+    sprint(&buffer[0], 1024, "eflags = 0x%x, x87 status = 0x%x\n", stack.eflags, readfpsw());
     fb.write(&buffer[0]);
 
 	fb.write("\nSegment registers:\n",Framebuffer::color_t::blue());
-    sprint(&buffer[0], 1024,"cs  %x    ds  %x    es  %x    fs  %x    gs  %x    ss  %x\n",
+    sprint(&buffer[0], 1024,"cs  0x%x    ds  0x%x    es  0x%x    fs  0x%x    gs  0x%x    ss  0x%x\n",
         stack.cs, readds(), reades(), readfs(), readgs(), readss());
     fb.write(&buffer[0]);
 
-	LOG_ERROR("eip = %x", stack.eip);
-    sprint(&buffer[0], 1024, "%x\n", stack.eip);
+	LOG_ERROR("eip = 0x%x", stack.eip);
+    sprint(&buffer[0], 1024, "0x%x\n", stack.eip);
 	fb.write("\nEIP: ", Framebuffer::color_t::blue()).write(&buffer[0]);
 
 	fb.write("\nBacktrace:\n",Framebuffer::color_t::blue());
-    sprint(&buffer[0], 1024, "    %x\n", readeip());
+    sprint(&buffer[0], 1024, "    0x%x\n", readeip());
 	fb.write(&buffer[0]);
     Backtrace::backtrace(gpr, [] (uint32_t eip) -> bool {
         auto&& fb(Framebuffer::get());
         char seip[32];
-        sprint(&seip[0], 32, "    %x", eip);
+        sprint(&seip[0], 32, "    0x%x", eip);
 
 		LOG_ERROR(&seip[0]);
 		fb.write(&seip[0]).write("\n");
