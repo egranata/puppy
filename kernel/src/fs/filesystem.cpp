@@ -61,8 +61,15 @@ bool Filesystem::mkdir(const char*) {
 }
 
 bool Filesystem::FilesystemObject::stat(stat_t& st) {
-    st.kind = kind();
-    return doStat(st);
+    const auto expectedKind = kind();
+    st.kind = expectedKind;
+    const auto ok = doStat(st);
+    if (ok) {
+        if (st.kind != expectedKind) {
+            LOG_WARNING("filesystem kind of 0x%p is %u but doStat() said %u instead", this, expectedKind, st.kind);
+        }
+    }
+    return ok;
 }
 
 void Filesystem::close(FilesystemObject* object) {

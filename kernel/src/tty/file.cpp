@@ -24,6 +24,7 @@ LOG_TAG(TTYFILE, 2);
 LOG_TAG(TTYEOF, 2);
 
 TTYFile::TTYFile(TTY* tty) : mTTY(tty) {
+    kind(file_kind_t::tty);
     mInput.clear();
 }
 
