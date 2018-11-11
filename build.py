@@ -377,20 +377,30 @@ def writeSpecsFile(outfile):
 
 def createDiskImage(file, megsOfSize=64):
     rootFile = file
+    tempFile = "%s.tmp" % file
     headerFile = "%s.boot" % file
     fatFile = "%s.fat" % file
 
     megsOfFATVolume = megsOfSize - 1
 
-    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (headerFile, 1024*1024, 1)
+    # in order for fdisk to be able to fill in the entire disk with our mainfs, it needs to know the actual
+    # size of the disk; so create a full size disk only to then truncate it to its first megabyte
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (tempFile, 1024*1024, megsOfSize)
     shell(CMDLINE)
+
     CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (fatFile, 1024*1024, megsOfFATVolume)
     shell(CMDLINE)
-    CMDLINE="fdisk %s" % headerFile
+
+    CMDLINE="fdisk %s" % tempFile
     shell(CMDLINE, stdin=open('build/fdisk.in'))
 
     CMDLINE="mkfs.fat -F32 %s" % (fatFile)
     shell(CMDLINE)
+
+    CMDLINE="dd if=%s of=%s bs=%s count=%s" % (tempFile, headerFile, 1024, 1024)
+    shell(CMDLINE)
+
+    os.unlink(tempFile)
 
     return (rootFile, headerFile, fatFile)
 
@@ -484,7 +494,7 @@ ShellSupport.build()
 Linenoise.build()
 
 IMG_FILE = "out/os.img"
-ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE)
+ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
 print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
 
 makeDir("out/mnt/apps")
@@ -692,7 +702,10 @@ shell(CMDLINE)
 
 PART_USAGE = calculateSize("out/mnt")
 
-CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=512 count=1 of=%s" % (BOOT_DISK)
+CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=1 count=446 of=%s" % (BOOT_DISK)
+shell(CMDLINE)
+
+CMDLINE="dd if=build/bootsect.0 conv=notrunc ibs=1 obs=1 seek=510 skip=510 count=2 of=%s" % (BOOT_DISK)
 shell(CMDLINE)
 
 CMDLINE="grub-mkimage -c build/earlygrub.cfg -O i386-pc -o out/boot.ldr -p /boot/grub part_msdos biosdisk fat multiboot configfile"
