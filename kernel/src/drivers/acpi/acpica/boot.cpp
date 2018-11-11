@@ -32,7 +32,8 @@ static UINT32 acpi_power_button_event_handler(void* context) {
     return ACPI_INTERRUPT_HANDLED;
 }
 
-static ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void*, void**) {
+static ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void* ctx, void**) {
+    uint64_t *num_devices = (uint64_t*)ctx;
     ACPI_OBJECT_TYPE type;
 
     ACPI_STATUS ok = AcpiGetType(handle, &type);
@@ -57,6 +58,7 @@ static ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void*, 
     // TODO: do something useful with the devices
     free(nameBuffer.Pointer);
     free(diBuffer.Pointer);
+    ++*num_devices;
     return AE_OK;
 }
 
@@ -112,8 +114,11 @@ namespace boot::acpica {
         acpi_init = AcpiEnableEvent(ACPI_EVENT_POWER_BUTTON, 0);
         if (IS_ERR) return gFatalFailure;
 
-        acpi_init = AcpiGetDevices(nullptr, acpi_device_scanner, nullptr, nullptr);
+        uint64_t num_acpi_devs = 0;
+        acpi_init = AcpiGetDevices(nullptr, acpi_device_scanner, &num_acpi_devs, nullptr);
         if (IS_ERR) return gFatalFailure;
+
+        bootphase_t::printf("%llu ACPI devices detected\n", num_acpi_devs);
 
         return bootphase_t::gSuccess;
     }
