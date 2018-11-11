@@ -32,7 +32,7 @@ void getPrompt(eastl::string& prompt) {
     if (cwd.empty()) {
         prompt.append_sprintf("shell> ");
     } else {
-        //prompt.append_sprintf("\x1b[38;2;205;205;0m%s\x1b[0m$ ", cwd.c_str());
-        prompt.append_sprintf("%s$ ", cwd.c_str());
+        prompt.append_sprintf("\x1b[38;2;205;205;0m%s\x1b[0m$ ", cwd.c_str());
+        //prompt.append_sprintf("%s$ ", cwd.c_str());
     }
 }
