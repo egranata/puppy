@@ -22,6 +22,6 @@
 
 void __failed(const char* test, const char* file, int line, const char* condition) {
     fprintf(getLogFile(), "[TEST[%s] FAIL condition failed: %s at %s:%d", test, condition, file, line);
-    printf("[TEST[%s] FAIL condition failed: %s at %s:%d\n", test, condition, file, line);
+    printf("TEST[%s] \x1b[31mFAIL\x1b[0m condition failed: %s at %s:%d\n", test, condition, file, line);
     exit(1);
 }

@@ -72,11 +72,14 @@ Framebuffer* Framebuffer::init(uint16_t width, uint16_t height, uint16_t pitch, 
     return gFramebuffer;
 }
 
+Framebuffer::color_t Framebuffer::defaultBackgroundColor = Framebuffer::color_t::black();
+Framebuffer::color_t Framebuffer::defaultForegroundColor = Framebuffer::color_t::green();
+
 Framebuffer::Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys) :
     mWidth(width), mHeight(height), mPitch(pitch), mBytesPerPixel(bpp / 8), mPhysicalAddress(phys), mAddress(0), mX(0), mY(0) {
     
-    mBackground = color_t::black();
-    mForeground = color_t::green();
+    mBackground = Framebuffer::defaultBackgroundColor = Framebuffer::color_t::black();
+    mForeground = Framebuffer::defaultForegroundColor= Framebuffer::color_t::green();
 
     LOG_DEBUG("initialized a framebuffer of %u x %u pixels - pitch = %u, bpp = %u, base = 0x%p; rows by cols = %u x %u",
         mWidth, mHeight, mPitch, mBytesPerPixel, mPhysicalAddress,

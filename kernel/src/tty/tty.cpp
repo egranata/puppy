@@ -137,3 +137,55 @@ void TTY::killForegroundProcess() {
         ProcessManager::get().kill(pid);
     }
 }
+
+void TTY::resetGraphics() {
+    mFramebuffer.setbg(Framebuffer::defaultBackgroundColor, true);
+    mFramebuffer.setfg(Framebuffer::defaultForegroundColor);
+}
+
+void TTY::swapColors() {
+    auto bg = mFramebuffer.getbg();
+    auto fg = mFramebuffer.getfg();
+
+    mFramebuffer.setbg(fg, true);
+    mFramebuffer.setfg(bg);
+}
+
+static Framebuffer::color_t gANSIColors[] = {
+/* 30 */    Framebuffer::color_t(0,   0,   0),
+/* 31 */    Framebuffer::color_t(255, 0,   0),
+/* 32 */    Framebuffer::color_t(0,   170, 0),
+/* 33 */    Framebuffer::color_t(187, 187, 0),
+/* 34 */    Framebuffer::color_t(0,   0,   187),
+/* 35 */    Framebuffer::color_t(170, 0,   170),
+/* 36 */    Framebuffer::color_t(0,   170, 170),
+/* 37 */    Framebuffer::color_t(255, 255, 255),
+};
+
+void TTY::setANSIBackgroundColor(int code) {
+    if (code < 30 || code > 39) return;
+
+    // TODO: support custom color code
+    if (code == 38) return;
+
+    if (code == 39) {
+        mFramebuffer.setbg(Framebuffer::defaultBackgroundColor, true);
+    } else {
+        code -= 30;
+        mFramebuffer.setbg(gANSIColors[code], true);
+    }
+}
+
+void TTY::setANSIForegroundColor(int code) {
+    if (code < 30 || code > 39) return;
+
+    // TODO: support custom color code
+    if (code == 38) return;
+
+    if (code == 39) {
+        mFramebuffer.setfg(Framebuffer::defaultForegroundColor);
+    } else {
+        code -= 30;
+        mFramebuffer.setfg(gANSIColors[code]);
+    }
+}

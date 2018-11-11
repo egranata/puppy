@@ -56,6 +56,11 @@ class TTY {
 
         void killForegroundProcess();
 
+        void resetGraphics();
+        void swapColors();
+        void setANSIBackgroundColor(int code);
+        void setANSIForegroundColor(int code);
+
     private:
         static constexpr size_t gQueueSize = 1024;
 

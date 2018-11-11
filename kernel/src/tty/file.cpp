@@ -420,6 +420,16 @@ size_t TTYFile::write(size_t s, char* buffer) {
                     if (mEscapeSequenceInput == 2) mTTY->clearLine(true, true);
                 }
             } break;
+            case 'm': {
+                if (mEscapeStatus == escape_sequence_status_t::CSI) {
+                    writeThis = false;
+                    mEscapeStatus = escape_sequence_status_t::OFF;
+                    if (mEscapeSequenceInput == 0) mTTY->resetGraphics();
+                    if (mEscapeSequenceInput == 7) mTTY->swapColors();
+                    if (mEscapeSequenceInput >= 30 && mEscapeSequenceInput < 39) mTTY->setANSIForegroundColor(mEscapeSequenceInput);
+                    if (mEscapeSequenceInput >= 40 && mEscapeSequenceInput < 49) mTTY->setANSIBackgroundColor(mEscapeSequenceInput);
+                }
+            } break;
         }
         if (writeThis) {
             mTTY->write(1, &c);

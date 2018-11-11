@@ -39,6 +39,9 @@ class Framebuffer : NOCOPY {
             explicit operator uint32_t() const;
         };
 
+        static color_t defaultBackgroundColor;
+        static color_t defaultForegroundColor;
+
         static Framebuffer& get();
 
         static Framebuffer* init(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);

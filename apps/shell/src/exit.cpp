@@ -21,13 +21,16 @@ void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {
         int status = WEXITSTATUS(exitcode);
         if (status || anyExit) {
-            printf("[child %u] exited - status %d\n", pid, status);
+            if (status) printf("\x1b[31m");
+            printf("[child %u] exited - status %d", pid, status);
+            if (status) printf("\x1b[0m");
+            printf("\n");
         }
     } else if(WIFSIGNALED(exitcode)) {
         int sig = WTERMSIG(exitcode);
-        printf("[child %u] terminated - signal %d\n", pid, sig);
+        printf("\x1b[31m[child %u] terminated - signal %d\x1b[0m\n", pid, sig);
     } else {
-        printf("[child %u] terminated - exit status %d\n", pid, exitcode);
+        printf("\x1b[31m[child %u] terminated - exit status %d\x1b[0m\n", pid, exitcode);
     }
 }
 
