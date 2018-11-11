@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#define LOG_LEVEL 2
+#include <kernel/log/log.h>
+
 #include <kernel/drivers/ps2/keyboard.h>
 #include <kernel/drivers/pic/pic.h>
 #include <kernel/i386/idt.h>
 #include <kernel/i386/primitives.h>
-
-#define LOG_LEVEL 2
-#include <kernel/log/log.h>
 
 LOG_TAG(BOOTINFO, 0);
 
