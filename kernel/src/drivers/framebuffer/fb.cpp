@@ -89,17 +89,26 @@ Framebuffer::Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_
 uintptr_t Framebuffer::base() const {
     return mAddress;
 }
+uintptr_t Framebuffer::backBase() const {
+    return (uintptr_t)mBackBuffer;
+}
 
 uintptr_t Framebuffer::end() const {
 	return base() + size();
+}
+uintptr_t Framebuffer::backEnd() const {
+	return backBase() + size();
 }
 
 size_t Framebuffer::size() const {
 	return mWidth * mHeight * mBytesPerPixel;
 }
 
-uint32_t* Framebuffer::getpixel(uint16_t x, uint16_t y) {
-    return (uint32_t*)(mAddress + x*mPitch + y*mBytesPerPixel);
+Framebuffer::pixel_data_t Framebuffer::getpixel(uint16_t x, uint16_t y) {
+	pixel_data_t pdata;
+	pdata.vram = (uint32_t*)(mAddress + x*mPitch + y*mBytesPerPixel);
+	pdata.back = (uint32_t*)((uintptr_t)mBackBuffer + x*mPitch + y*mBytesPerPixel);
+	return pdata;
 }
 
 Framebuffer::color_t Framebuffer::getfg() {
@@ -154,6 +163,7 @@ void Framebuffer::setCol(uint16_t c) {
 
 void Framebuffer::cls() {
 	memset_pattern4((void*)base(), (uint32_t)mBackground, size());
+	memset_pattern4((void*)backBase(), (uint32_t)mBackground, size());
 	setRow(0);
 	setCol(0);
 }
@@ -165,6 +175,13 @@ uint8_t* Framebuffer::row(int16_t n) const {
 		return (uint8_t*)(base() + n*FONT_HEIGHT*mPitch);
 	}
 }
+uint8_t* Framebuffer::backRow(int16_t n) const {
+	if (n < 0) {
+		return (uint8_t*)(backEnd() - (-n)*FONT_HEIGHT*mPitch);
+	} else {
+		return (uint8_t*)(backBase() + n*FONT_HEIGHT*mPitch);
+	}
+}
 
 void Framebuffer::recolor(const color_t& Old, const color_t& New) {
 	uint32_t oldVal = (uint32_t)Old;
@@ -173,14 +190,9 @@ void Framebuffer::recolor(const color_t& Old, const color_t& New) {
 	for(uint16_t x = 0; x < mHeight; ++x) {
 		for (uint16_t y = 0; y < mWidth; ++y) {
 			auto p = getpixel(x,y);
-			if (*p == oldVal) *p = newVal;
+			if (*p.back == oldVal) *p.vram = *p.back = newVal;
 		}
 	}
-}
-
-void Framebuffer::paint(uint16_t x, uint16_t y, const color_t& color) {
-    auto p = getpixel(x, y);
-	*p = (uint32_t)color;
 }
 
 void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t start_y, const color_t& color) {
@@ -188,12 +200,15 @@ void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t st
 	auto fg = (uint32_t)color;
 	auto p = p0;
 
-    for (uint8_t i = 0u; i < FONT_HEIGHT; ++i, p += (mPitch >> 2)) {
+    for (uint8_t i = 0u; i < FONT_HEIGHT; ++i, p.vram += (mPitch >> 2), p.back += (mPitch >> 2)) {
 		auto&& fdi = fontdata[i];
 		auto j = FONT_WIDTH - 1;
 		do {
 			auto light_up = 0 != (fdi & (1 << j));
-			if (light_up) p[j * (mBytesPerPixel >> 2)] = fg;
+			if (light_up) {
+				p.vram[j * (mBytesPerPixel >> 2)] = fg;
+				p.back[j * (mBytesPerPixel >> 2)] = fg;
+			}
 			if (j == 0) break;
 			--j;
 		} while(true);
@@ -264,11 +279,15 @@ void Framebuffer::nl() {
 
 	if((mX + FONT_HEIGHT) > mHeight) {
 		uint8_t* row0 = row(0);
-		uint8_t* row1 = row(1);
+		uint8_t* backRow0 = backRow(0);
+		uint8_t* backRow1 = backRow(1);
 		uint8_t* rowlast = row(-1);
+		uint8_t* backRowlast = backRow(-1);
 		auto sz = size() - (FONT_HEIGHT * mPitch);
-		memcpy(row0, row1, sz);
+		memcpy(row0, backRow1, sz);
+		memcpy(backRow0, backRow1, sz);
 		memset_pattern4((void*)rowlast, (uint32_t)mBackground, FONT_HEIGHT * mPitch);
+		memset_pattern4((void*)backRowlast, (uint32_t)mBackground, FONT_HEIGHT * mPitch);
 		mX = FONT_HEIGHT*((mHeight / FONT_HEIGHT) -1);
 	}
 }
@@ -290,6 +309,8 @@ uintptr_t Framebuffer::map(uintptr_t vmbase) {
 	auto end = vmbase + b;
 	mAddress = vmbase;
 	LOG_DEBUG("mapping of framebuffer complete at 0x%p", end);
+	mBackBuffer = malloc(size());
+	LOG_DEBUG("mBackBuffer = 0x%p", mBackBuffer);
 	return end;
 }
 

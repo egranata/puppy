@@ -46,7 +46,6 @@ class Framebuffer : NOCOPY {
 
         static Framebuffer* init(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);
 
-        void paint(uint16_t x, uint16_t y, const color_t&);
         Framebuffer& write(const char* s);
         Framebuffer& write(const char* s, const color_t&);
 
@@ -85,10 +84,22 @@ class Framebuffer : NOCOPY {
         Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);
 
         void recolor(const color_t& oc, const color_t& nc);
-        uint32_t* getpixel(uint16_t x, uint16_t y);
+
+        struct pixel_data_t {
+            uint32_t *vram;
+            uint32_t *back;
+        };
+
+        pixel_data_t getpixel(uint16_t x, uint16_t y);
+
         void putdata(unsigned char* fontdata, uint16_t x, uint16_t y, const color_t&);
         void putchar(uint16_t x, uint16_t y, uint8_t chr, const color_t&);
+
         uint8_t* row(int16_t n) const;
+
+        uintptr_t backBase() const;
+        uintptr_t backEnd() const;
+        uint8_t *backRow(int16_t n) const;
 
         void advance();
         void rewind(bool erase);
@@ -107,6 +118,8 @@ class Framebuffer : NOCOPY {
 
         uint16_t mX;
         uint16_t mY;
+
+        void *mBackBuffer;
 };
 
 #endif
