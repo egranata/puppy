@@ -32,22 +32,32 @@ ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void* ctx, voi
         TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: 0x%p level: %u", handle, level);
         return AE_OK;
     }
+
     ACPI_BUFFER nameBuffer = {0};
     nameBuffer.Length = 128;
     nameBuffer.Pointer = calloc(sizeof(char), nameBuffer.Length);
     ok = AcpiGetName(handle, ACPI_FULL_PATHNAME, &nameBuffer);
-    if (ok != AE_OK) return AE_OK;
+    if (ok != AE_OK) {
+        TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: 0x%p level: %u", handle, level);
+        return AE_OK;
+    }
+
     ACPI_BUFFER diBuffer = {0};
     diBuffer.Length = sizeof(ACPI_DEVICE_INFO);
     diBuffer.Pointer = calloc(1, sizeof(ACPI_DEVICE_INFO));
     ACPI_DEVICE_INFO *di = (ACPI_DEVICE_INFO*)diBuffer.Pointer;
     ok = AcpiGetObjectInfo(handle, &di);
-    if (ok != AE_OK) return AE_OK;
+    if (ok != AE_OK) {
+        TAG_ERROR(ACPICA, "ACPI enumeration failed, handle: 0x%p level: %u", handle, level);
+        return AE_OK;
+    }
 
     AcpiDeviceManager::acpica_device_t device;
     device.handle = handle;
     device.devinfo = di;
+    device.type = type;
     device.pathname = (const char*)nameBuffer.Pointer;
+
     if (scan_ctx->callback) scan_ctx->callback(device, scan_ctx->context);
     if (scan_ctx->destination) scan_ctx->destination->push_back(device);
     return AE_OK;

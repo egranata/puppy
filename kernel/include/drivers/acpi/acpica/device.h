@@ -27,6 +27,7 @@ class AcpiDeviceManager : NOCOPY {
 
         struct acpica_device_t {
             ACPI_HANDLE handle;
+            ACPI_OBJECT_TYPE type;
             ACPI_DEVICE_INFO *devinfo;
             const char* pathname;
         };
