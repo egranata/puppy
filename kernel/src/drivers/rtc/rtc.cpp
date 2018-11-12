@@ -23,6 +23,7 @@
 #include <kernel/panic/panic.h>
 #include <kernel/time/manager.h>
 #include <kernel/boot/phase.h>
+#include <kernel/drivers/acpi/match.h>
 
 static uint64_t gBoot_RTC_Timestamp = 0;
 
@@ -196,3 +197,8 @@ void RTC::write(uint8_t reg, uint8_t value) {
 bool RTC::updating() const {
     return 0 != (0x80 & read(gStatusRegisterA));
 }
+
+static bool rtc_acpi(const AcpiDeviceManager::acpica_device_t&) {
+    return false;
+}
+ACPI_HID_MATCH(PNP0B00, rtc_acpi);

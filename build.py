@@ -407,7 +407,7 @@ def createDiskImage(file, megsOfSize=64):
 ACPICA = Project(name="ACPICA",
     srcdir="third_party/acpica/src",
     assembler="nasm",
-    cflags=BASIC_CFLAGS + ['-Wno-error=unused-parameter', '-ffunction-sections'])
+    cflags=BASIC_CFLAGS + ['-Wno-error=unused-parameter'])
 ACPICA.link = ACPICA.linkAr
 
 FatFS = Project(name="FatFS",
@@ -425,7 +425,7 @@ Kernel = Project(name="Kernel",
     srcdir="kernel/src",
     cflags=BASIC_CFLAGS,
     cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
-    ldflags=BASIC_LDFLAGS + ["-T build/kernel.ld", '-Wl,-gc-sections'],
+    ldflags=BASIC_LDFLAGS + ["-T build/kernel.ld"],
     assembler="nasm",
     linkerdeps=["out/libmuzzle.a", "out/libfatfs.a", "out/libacpica.a"])
 Kernel.link = Kernel.linkGcc

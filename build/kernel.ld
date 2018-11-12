@@ -35,5 +35,12 @@ SECTIONS {
         *(.bss*)
     }
 	
+	.acpi_ddriv ALIGN (0x1000) : AT(ADDR(.acpi_ddriv)-0xC0000000) {
+		__acpi_ddriv_start = .;
+		KEEP(*(.acpi_ddriv))
+		*(.acpi_ddriv)
+		__acpi_ddriv_end = .;
+	}
+
 	__kernel_end = .;
 }

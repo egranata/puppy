@@ -48,4 +48,8 @@ AcpiOsPredefinedOverride (
     const ACPI_PREDEFINED_NAMES *InitVal,
     ACPI_STRING                 *NewVal);
 
+extern "C" void
+AcpiOsWaitEventsComplete (
+    void);
+
 #endif

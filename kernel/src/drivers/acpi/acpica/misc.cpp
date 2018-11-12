@@ -47,3 +47,5 @@ extern "C" ACPI_STATUS AcpiOsPredefinedOverride (const ACPI_PREDEFINED_NAMES *, 
     *NewVal = nullptr;
     return AE_OK;
 }
+
+extern "C" void AcpiOsWaitEventsComplete (void) {}

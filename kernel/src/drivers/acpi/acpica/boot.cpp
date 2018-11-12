@@ -36,7 +36,8 @@ static UINT32 acpi_power_button_event_handler(void* context) {
 static void acpi_scan_callback(const AcpiDeviceManager::acpica_device_t& device, void* ctx) {
     uint64_t *count = (uint64_t*)ctx;
     ++*count;
-    TAG_INFO(ACPICA, "device discovered: %s", device.pathname);
+    TAG_INFO(ACPICA, "device discovered: %s (hid=%s)", device.pathname,
+        device.devinfo->HardwareId.String ? device.devinfo->HardwareId.String : "none");
 }
 
 namespace boot::acpica {
@@ -96,6 +97,8 @@ namespace boot::acpica {
         if (IS_ERR) return gFatalFailure;
 
         bootphase_t::printf("%llu ACPI devices detected\n", num_acpi_devs);
+
+        AcpiDeviceManager::get().tryLoadDrivers();
 
         return bootphase_t::gSuccess;
     }

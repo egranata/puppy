@@ -45,6 +45,8 @@ class AcpiDeviceManager : NOCOPY {
                        acpica_device_t* device,
                        uint32_t flags = ACPICA_DEVICE_SEARCH_FLAGS_HID | ACPICA_DEVICE_SEARCH_FLAGS_PATH);
 
+        void tryLoadDrivers();
+
     private:
         vector<acpica_device_t> mDevices;
         AcpiDeviceManager();

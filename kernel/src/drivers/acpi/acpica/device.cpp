@@ -15,6 +15,8 @@
  */
 
 #include <kernel/drivers/acpi/acpica/device.h>
+#include <kernel/drivers/acpi/match.h>
+#include <kernel/sys/globals.h>
 
 namespace {
 struct scanner_ctx_t {
@@ -119,4 +121,21 @@ bool AcpiDeviceManager::findDevice(const char* key,
     }
 
     return false;
+}
+
+void AcpiDeviceManager::tryLoadDrivers() {
+    auto begin = addr_acpi_devices_start<acpi_device_match_data_t*>();
+    auto end = addr_acpi_devices_end<acpi_device_match_data_t*>();
+
+    TAG_DEBUG(ACPICA, "ACPI device matches; begin = 0x%p end=0x%p", begin, end);
+    while(begin != end) {
+        TAG_DEBUG(ACPICA, "ACPI device 0x%p hid=%s", begin, begin->key);
+        AcpiDeviceManager::acpica_device_t device;
+        if (findDevice(begin->key, &device, begin->flags)) {
+            TAG_DEBUG(ACPICA, "device match found, path is %s", device.pathname);
+            bool ok = begin->handler(device);
+            TAG_DEBUG(ACPICA, "driver handler 0x%p responded %d", begin->handler, ok);
+        }
+        ++begin;
+    }
 }
