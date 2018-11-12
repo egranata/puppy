@@ -33,6 +33,8 @@ static T val_ ## apiname () { \
 GLOBAL_ITEM(__kernel_start, 			 kernel_start);
 GLOBAL_ITEM(__ctors_start,  		     ctors_start);
 GLOBAL_ITEM(__ctors_end,    			 ctors_end);
+GLOBAL_ITEM(__acpi_ddriv_start,  		 acpi_devices_start);
+GLOBAL_ITEM(__acpi_ddriv_end,  		     acpi_devices_end);
 GLOBAL_ITEM(__kernel_end,   			 kernel_end);
 GLOBAL_ITEM(__bootpagetbl,  			 bootpagetable);
 GLOBAL_ITEM(__bootpagedir,  		     bootpagedirectory);

@@ -27,24 +27,6 @@
 
 static uint64_t gBoot_RTC_Timestamp = 0;
 
-namespace boot::rtc {
-    uint32_t init() {
-        RTC::get();
-
-        TimeManager::get().UNIXtimeIncrement(gBoot_RTC_Timestamp);
-        PIC::get().accept(RTC::gIRQNumber);
-
-    	LOG_INFO("RTC gathered - timestamp is %llu", gBoot_RTC_Timestamp);
-        bootphase_t::printf("UNIX timestamp at boot: %llu\n", gBoot_RTC_Timestamp);
-
-        return 0;
-    }
-
-    bool fail(uint32_t) {
-        return false;
-    }
-}
-
 bool RTC::cmos_now_t::time_t::operator==(const time_t& t) const {
     return (t.second == second) && (t.minute == minute) && (t.hour == hour);
 }
@@ -149,8 +131,8 @@ RTC::RTC() {
     gBoot_RTC_Timestamp = rightnow.timestamp();
 
     // interrupts should be disabled when doing this
-    bool IF = (readflags() & 0x200) != 0;
-    if (IF) PANIC("cannot configure RTC with IF == 1");
+    const bool IF = (readflags() & 0x200) != 0;
+    if (IF) disableirq();
 
     auto irq = PIC::gIRQNumber(8);
     Interrupts::get().sethandler(irq, "RTC", ::rtchandler);
@@ -165,6 +147,8 @@ RTC::RTC() {
     write(gStatusRegisterB, regB);
     auto regC = read(gStatusRegisterC);
     LOG_DEBUG("RTC regC = %u", regC);
+
+    if (IF) enableirq();
 }
 
 RTC::cmos_now_t RTC::now() {
@@ -199,6 +183,14 @@ bool RTC::updating() const {
 }
 
 static bool rtc_acpi(const AcpiDeviceManager::acpica_device_t&) {
-    return false;
+    RTC::get();
+
+    TimeManager::get().UNIXtimeIncrement(gBoot_RTC_Timestamp);
+    PIC::get().accept(RTC::gIRQNumber);
+
+    LOG_INFO("RTC gathered - timestamp is %llu", gBoot_RTC_Timestamp);
+    bootphase_t::printf("UNIX timestamp at boot: %llu\n", gBoot_RTC_Timestamp);
+
+    return true;
 }
 ACPI_HID_MATCH(PNP0B00, rtc_acpi);

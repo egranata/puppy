@@ -40,10 +40,6 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
-    namespace rtc {
-        uint32_t init();
-        bool fail(uint32_t);
-    }
     namespace i386 {
         uint32_t init();
     }
@@ -139,22 +135,6 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "Setup Interrupt Controller",
-        visible : false,
-        operation : boot::pic::init,
-        onSuccess : nullptr,
-        onFailure : boot::pic::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Setup date/time",
-        visible : false,
-        operation : boot::rtc::init,
-        onSuccess : nullptr,
-        onFailure : boot::rtc::fail
-    });
-
-    registerBootPhase(bootphase_t{
         description : "VFS",
         visible : false,
         operation : boot::vfs::init,
@@ -163,19 +143,11 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "Print System Info",
+        description : "Setup Interrupt Controller",
         visible : false,
-        operation : boot::info::init,
+        operation : boot::pic::init,
         onSuccess : nullptr,
-        onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Setup keyboard",
-        visible : false,
-        operation : boot::ps2::init,
-        onSuccess : nullptr,
-        onFailure : boot::ps2::fail
+        onFailure : boot::pic::fail
     });
 
     registerBootPhase(bootphase_t{
@@ -192,6 +164,30 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::irq::init,
         onSuccess : nullptr,
         onFailure : boot::irq::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "ACPICA initialization",
+        visible : false,
+        operation : boot::acpica::init,
+        onSuccess : nullptr,
+        onFailure : boot::acpica::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Print System Info",
+        visible : false,
+        operation : boot::info::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Setup keyboard",
+        visible : false,
+        operation : boot::ps2::init,
+        onSuccess : nullptr,
+        onFailure : boot::ps2::fail
     });
 
     registerBootPhase(bootphase_t{
@@ -216,14 +212,6 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::acpi::init,
         onSuccess : nullptr,
         onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "ACPICA initialization",
-        visible : false,
-        operation : boot::acpica::init,
-        onSuccess : nullptr,
-        onFailure : boot::acpica::fail
     });
 
     registerBootPhase(bootphase_t{
