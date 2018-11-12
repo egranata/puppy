@@ -32,10 +32,6 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
-    namespace ps2 {
-        uint32_t init();
-        bool fail(uint32_t);
-    }
     namespace irq {
         uint32_t init();
         bool fail(uint32_t);
@@ -180,14 +176,6 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::info::init,
         onSuccess : nullptr,
         onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Setup keyboard",
-        visible : false,
-        operation : boot::ps2::init,
-        onSuccess : nullptr,
-        onFailure : boot::ps2::fail
     });
 
     registerBootPhase(bootphase_t{

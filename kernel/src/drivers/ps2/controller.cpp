@@ -18,30 +18,7 @@
 #include <kernel/log/log.h>
 #include <kernel/boot/phase.h>
 #include <kernel/drivers/pic/pic.h>
-
-
-namespace boot::ps2 {
-    uint32_t init() {
-        auto&& ps2(PS2Controller::get());
-        auto device = ps2.getDevice1();
-        if (device == nullptr) {
-            LOG_ERROR("could not find PS/2 keyboard.");
-            return -1;
-        }
-        if (device->getType() != PS2Controller::Device::Type::KEYBOARD) {
-            LOG_ERROR("could not find PS/2 keyboard.");
-            return -1;
-        }
-
-        PIC::get().accept(1);
-
-        return 0;
-    }
-
-    bool fail(uint32_t) {
-        return bootphase_t::gPanic;
-    }
-}
+#include <kernel/drivers/acpi/match.h>
 
 PS2Controller::Device::Device(uint8_t) {}
 
@@ -257,3 +234,20 @@ void PS2Controller::Device::send(uint8_t devid, uint8_t byte) {
 uint8_t PS2Controller::Device::receive(uint8_t) {
     return PS2Controller::response();
 }
+
+static bool ps2_acpi(const AcpiDeviceManager::acpica_device_t&) {
+        auto&& ps2(PS2Controller::get());
+        auto device = ps2.getDevice1();
+        if (device == nullptr) {
+            LOG_ERROR("could not find PS/2 keyboard.");
+            return false;
+        }
+        if (device->getType() != PS2Controller::Device::Type::KEYBOARD) {
+            LOG_ERROR("could not find PS/2 keyboard.");
+            return false;
+        }
+
+        PIC::get().accept(1);
+        return true;
+}
+ACPI_HID_MATCH(PNP0303, ps2_acpi);
