@@ -18,14 +18,35 @@
 #define DRIVERS_ACPI_ACPICA_DEVICE
 
 #include <kernel/drivers/acpi/acpica/acpica.h>
+#include <kernel/sys/nocopy.h>
+#include <kernel/libc/vec.h>
 
-struct acpica_device_t {
-    ACPI_HANDLE handle;
-    ACPI_DEVICE_INFO *devinfo;
-    const char* pathname;
+class AcpiDeviceManager : NOCOPY {
+    public:
+        static AcpiDeviceManager& get();
+
+        struct acpica_device_t {
+            ACPI_HANDLE handle;
+            ACPI_DEVICE_INFO *devinfo;
+            const char* pathname;
+        };
+        typedef void(*discover_callback_f)(const acpica_device_t&, void* ctx);
+
+        ACPI_STATUS discoverDevices(discover_callback_f callback = nullptr, void* = nullptr);
+
+        enum acpica_device_search_flags {
+            ACPICA_DEVICE_SEARCH_FLAGS_HID    = 1 << 0,
+            ACPICA_DEVICE_SEARCH_FLAGS_PATH   = 1 << 1,
+            ACPICA_DEVICE_SEARCH_FLAGS_EXACT  = 1 << 2
+        };
+
+        bool findDevice(const char* key,
+                       acpica_device_t* device,
+                       uint32_t flags = ACPICA_DEVICE_SEARCH_FLAGS_HID | ACPICA_DEVICE_SEARCH_FLAGS_PATH);
+
+    private:
+        vector<acpica_device_t> mDevices;
+        AcpiDeviceManager();
 };
-
-ACPI_STATUS discoverACPIDevices( void(*callback)(const acpica_device_t&, void* ctx) = nullptr,
-                                 void* context = nullptr );
 
 #endif

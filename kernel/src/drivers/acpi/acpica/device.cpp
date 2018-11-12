@@ -18,8 +18,9 @@
 
 namespace {
 struct scanner_ctx_t {
-    void (*callback)(const acpica_device_t&, void*);
+    AcpiDeviceManager::discover_callback_f callback;
     void* context;
+    vector<AcpiDeviceManager::acpica_device_t>* destination;
 };
 
 ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void* ctx, void**) {
@@ -43,20 +44,69 @@ ACPI_STATUS acpi_device_scanner(ACPI_HANDLE handle, UINT32 level, void* ctx, voi
     ok = AcpiGetObjectInfo(handle, &di);
     if (ok != AE_OK) return AE_OK;
 
-    acpica_device_t device;
+    AcpiDeviceManager::acpica_device_t device;
     device.handle = handle;
     device.devinfo = di;
     device.pathname = (const char*)nameBuffer.Pointer;
-    scan_ctx->callback(device, scan_ctx->context);
+    if (scan_ctx->callback) scan_ctx->callback(device, scan_ctx->context);
+    if (scan_ctx->destination) scan_ctx->destination->push_back(device);
     return AE_OK;
 }
 }
 
-ACPI_STATUS discoverACPIDevices( void(*callback)(const acpica_device_t&, void* ctx),
-                                 void* context ) {
+AcpiDeviceManager& AcpiDeviceManager::get() {
+    static AcpiDeviceManager gManager;
+    return gManager;
+}
+
+AcpiDeviceManager::AcpiDeviceManager() = default;
+
+ACPI_STATUS AcpiDeviceManager::discoverDevices( AcpiDeviceManager::discover_callback_f callback, void* context ) {
     scanner_ctx_t scan_context {
         .callback = callback,
-        .context = context
+        .context = context,
+        .destination = &mDevices,
     };
     return AcpiGetDevices(nullptr, acpi_device_scanner, &scan_context, nullptr);
+}
+
+namespace {
+    bool isMatch(const char* key, const AcpiDeviceManager::acpica_device_t& device, uint32_t flags) {
+        if (key == nullptr || key[0] == 0) return false;
+
+        if (flags & AcpiDeviceManager::acpica_device_search_flags::ACPICA_DEVICE_SEARCH_FLAGS_HID) {
+            if (device.devinfo->HardwareId.String && (device.devinfo->Valid & ACPI_VALID_HID)) {
+                if (flags & AcpiDeviceManager::acpica_device_search_flags::ACPICA_DEVICE_SEARCH_FLAGS_EXACT) {
+                    if (0 == strcmp(key, device.devinfo->HardwareId.String)) return true;
+                } else {
+                    if (nullptr != strstr(device.devinfo->HardwareId.String, key)) return true;
+                }
+            }
+        }
+
+        if (flags & AcpiDeviceManager::acpica_device_search_flags::ACPICA_DEVICE_SEARCH_FLAGS_PATH) {
+            if (device.pathname) {
+                if (flags & AcpiDeviceManager::acpica_device_search_flags::ACPICA_DEVICE_SEARCH_FLAGS_EXACT) {
+                    if (0 == strcmp(key, device.pathname)) return true;
+                } else {
+                    if (nullptr != strstr(device.pathname, key)) return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
+bool AcpiDeviceManager::findDevice(const char* key,
+                                  AcpiDeviceManager::acpica_device_t* outdev,
+                                  uint32_t flags) {
+    for (auto& device : mDevices) {
+        if (isMatch(key, device, flags)) {
+            if (outdev) *outdev = device;
+            return true;
+        }
+    }
+
+    return false;
 }
