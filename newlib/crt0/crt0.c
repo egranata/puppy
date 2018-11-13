@@ -33,8 +33,8 @@ typedef struct {
 } func_chain_t;
 
 #define CHAIN(name) \
-extern cdfunc __ ## name ## _start; \
-extern cdfunc __ ## name ## _end; \
+extern cdfunc __ ## name ## _start __attribute__((weak)); \
+extern cdfunc __ ## name ## _end __attribute__((weak)); \
 static func_chain_t name ## _ ## chain = { \
     .start = & __ ## name ## _start, \
     .end = & __ ## name ## _end \
