@@ -37,6 +37,11 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
                 return false;
             }
 
+            bool tell(size_t* pos) override {
+                if (pos) *pos = mIndex;
+                return true;
+            }
+
             size_t read(size_t n, char* dest) {
                 if (0 == (mMode & FILE_OPEN_READ)) return 0;
                 TAG_DEBUG(MEMFS, "asked to read %u bytes into 0x%p starting index = %u", n, dest, mIndex);

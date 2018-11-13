@@ -59,6 +59,9 @@ public:
     bool seek(size_t) override {
         return false;
     }
+    bool tell(size_t*) override {
+        return false;
+    }
     size_t read(size_t, char*) override {
         return 0;
     }

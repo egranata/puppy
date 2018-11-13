@@ -85,6 +85,9 @@ syscall_response_t fstat_syscall(uint32_t arg1,uint32_t arg2) {
 syscall_response_t fseek_syscall(uint32_t arg1,uint32_t arg2) {
 	return syscall2(fseek_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
+syscall_response_t ftell_syscall(uint16_t arg1,size_t* arg2) {
+	return syscall2(ftell_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
+}
 syscall_response_t fopendir_syscall(uint32_t arg1) {
 	return syscall1(fopendir_syscall_id,(uint32_t)arg1);
 }

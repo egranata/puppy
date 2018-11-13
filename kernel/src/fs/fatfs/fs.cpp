@@ -82,6 +82,11 @@ class FATFileSystemFile : public Filesystem::File {
             }
         }
 
+        bool tell(size_t *pos) override {
+            *pos = f_tell(mFile);
+            return true;
+        }
+
         size_t read(size_t size, char* dest) override {
             UINT br = 0;
             switch (f_read(mFile, dest, size, &br)) {
@@ -169,6 +174,10 @@ class FATFileSystemDirectory_AsFile : public Filesystem::File {
         }
 
         bool seek(size_t) override {
+            return false;
+        }
+
+        bool tell(size_t*) override {
             return false;
         }
 

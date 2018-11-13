@@ -16,6 +16,7 @@
     {"name":"kill",             "argc":1},
     {"name":"fstat",            "argc":2},
     {"name":"fseek",            "argc":2},
+    {"name":"ftell",            "argtypes":["uint16_t", "size_t*"]},
     {"name":"fopendir",         "argc":1},
     {"name":"freaddir",         "argtypes":["uint16_t", "file_info_t*"]},
     {"name":"getppid",          "argc":0},

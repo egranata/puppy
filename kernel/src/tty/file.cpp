@@ -71,6 +71,10 @@ bool TTYFile::seek(size_t) {
     return false;
 }
 
+bool TTYFile::tell(size_t*) {
+    return false;
+}
+
 // TODO: this should be using waitqueues - not yielding
 key_event_t TTYFile::procureOne() {
 ch:

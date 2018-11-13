@@ -53,6 +53,7 @@ class Filesystem {
                 using stat_t = file_stat_t;
 
                 virtual bool seek(size_t) = 0;
+                virtual bool tell(size_t*) = 0;
                 virtual size_t read(size_t, char*) = 0;
                 virtual size_t write(size_t, char*) = 0;
                 

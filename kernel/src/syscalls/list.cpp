@@ -52,6 +52,8 @@ extern syscall_response_t fstat_syscall_handler(uint32_t arg1,uint32_t arg2);
 extern syscall_response_t fstat_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t fseek_syscall_handler(uint32_t arg1,uint32_t arg2);
 extern syscall_response_t fseek_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t ftell_syscall_handler(uint16_t arg1,size_t* arg2);
+extern syscall_response_t ftell_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t fopendir_syscall_handler(uint32_t arg1);
 extern syscall_response_t fopendir_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t freaddir_syscall_handler(uint16_t arg1,file_info_t* arg2);
@@ -109,25 +111,26 @@ void SyscallManager::sethandlers() {
 	handle(15, kill_syscall_helper, false); 
 	handle(16, fstat_syscall_helper, false); 
 	handle(17, fseek_syscall_helper, false); 
-	handle(18, fopendir_syscall_helper, false); 
-	handle(19, freaddir_syscall_helper, false); 
-	handle(20, getppid_syscall_helper, false); 
-	handle(21, collect_syscall_helper, false); 
-	handle(22, fioctl_syscall_helper, false); 
-	handle(23, fwrite_syscall_helper, false); 
-	handle(24, prioritize_syscall_helper, false); 
-	handle(25, mapregion_syscall_helper, false); 
-	handle(26, unmapregion_syscall_helper, false); 
-	handle(27, setregionperms_syscall_helper, false); 
-	handle(28, trymount_syscall_helper, false); 
-	handle(29, collectany_syscall_helper, false); 
-	handle(30, clone_syscall_helper, false); 
-	handle(31, fdel_syscall_helper, false); 
-	handle(32, mkdir_syscall_helper, false); 
-	handle(33, proctable_syscall_helper, false); 
-	handle(34, vmcheckreadable_syscall_helper, false); 
-	handle(35, vmcheckwritable_syscall_helper, false); 
-	handle(36, pipe_syscall_helper, false); 
+	handle(18, ftell_syscall_helper, false); 
+	handle(19, fopendir_syscall_helper, false); 
+	handle(20, freaddir_syscall_helper, false); 
+	handle(21, getppid_syscall_helper, false); 
+	handle(22, collect_syscall_helper, false); 
+	handle(23, fioctl_syscall_helper, false); 
+	handle(24, fwrite_syscall_helper, false); 
+	handle(25, prioritize_syscall_helper, false); 
+	handle(26, mapregion_syscall_helper, false); 
+	handle(27, unmapregion_syscall_helper, false); 
+	handle(28, setregionperms_syscall_helper, false); 
+	handle(29, trymount_syscall_helper, false); 
+	handle(30, collectany_syscall_helper, false); 
+	handle(31, clone_syscall_helper, false); 
+	handle(32, fdel_syscall_helper, false); 
+	handle(33, mkdir_syscall_helper, false); 
+	handle(34, proctable_syscall_helper, false); 
+	handle(35, vmcheckreadable_syscall_helper, false); 
+	handle(36, vmcheckwritable_syscall_helper, false); 
+	handle(37, pipe_syscall_helper, false); 
 }
 
 syscall_response_t yield_syscall_helper(SyscallManager::Request&) {
@@ -225,6 +228,12 @@ syscall_response_t fseek_syscall_helper(SyscallManager::Request& req) {
 }
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+
+syscall_response_t ftell_syscall_helper(SyscallManager::Request& req) {
+	return ftell_syscall_handler((uint16_t)req.arg1,(size_t*)req.arg2);
+}
+static_assert(sizeof(uint16_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(size_t*) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
 syscall_response_t fopendir_syscall_helper(SyscallManager::Request& req) {
 	return fopendir_syscall_handler((uint32_t)req.arg1);

@@ -147,6 +147,21 @@ HANDLER2(fseek,fid,pos) {
     }
 }
 
+syscall_response_t ftell_syscall_handler(uint16_t fid, size_t* pos) {
+    VFS::filehandle_t file = {nullptr, nullptr};
+    if (!gCurrentProcess->fds.is(fid,&file)) {
+        return ERR(NO_SUCH_FILE);
+    } else {
+        if (file.second) {
+            auto realFile = asFile(file.second);
+            if (realFile == nullptr) return ERR(NOT_A_FILE);
+            return realFile->tell(pos) ? OK : ERR(NO_SUCH_FILE);
+        } else {
+            return ERR(NO_SUCH_FILE);
+        }
+    }
+}
+
 HANDLER3(fioctl,fid,a1,a2) {
     VFS::filehandle_t file = {nullptr, nullptr};
     if (!gCurrentProcess->fds.is(fid,&file)) {

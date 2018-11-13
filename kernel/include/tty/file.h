@@ -27,6 +27,7 @@ class TTYFile : public Filesystem::File {
         void setTTY(TTY* tty);
 
         bool seek(size_t) override;
+        bool tell(size_t*) override;
         size_t read(size_t, char*) override;
         size_t write(size_t, char*) override;
         bool doStat(stat_t&) override;

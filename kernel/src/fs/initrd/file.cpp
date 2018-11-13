@@ -19,6 +19,10 @@ bool InitrdFile::seek(size_t) {
     return false;
 }
 
+bool InitrdFile::tell(size_t*) {
+    return false;
+}
+
 size_t InitrdFile::read(size_t n, char* buf) {
     if (n > mSizeLeft) n = mSizeLeft;
     memcopy(mPointer, (uint8_t*)buf, n);

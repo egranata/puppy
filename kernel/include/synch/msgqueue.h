@@ -72,6 +72,7 @@ class MessageQueueFile : public Filesystem::File {
 
         bool doStat(stat_t&) override { return false; }
         bool seek(size_t) override { return false; }
+        bool tell(size_t*) override { return false; }
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
 
         virtual bool isReader() const = 0;

@@ -119,7 +119,7 @@ class SystemCall(object):
         return 'syscall_response_t %s_syscall(%s)' % (self.name, self.argDecls())
 
     def commonConstant(self):
-        return 'constexpr uint8_t %s_syscall_id = 0x0x%x' % (self.name, self.number)
+        return 'constexpr uint8_t %s_syscall_id = 0x%x' % (self.name, self.number)
 
     def commonImpl(self):
         return 'syscall_response_t %s_syscall(%s) {\n\treturn syscall%d(%s);\n}' % (self.name, self.argDecls(), self.argc, self.argUsage())
