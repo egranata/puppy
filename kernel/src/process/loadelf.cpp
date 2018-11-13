@@ -21,7 +21,7 @@
 
 extern "C" char *stpcpy(char *__restrict, const char *__restrict);
 
-LOG_TAG(LOADELF, 1);
+LOG_TAG(LOADELF, 0);
 LOG_TAG(COPYENV, 0);
 LOG_TAG(ARGV, 0);
 
@@ -87,17 +87,20 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
         auto vaddr0 = (uintptr_t)vaddr; // low address for this section
         auto vaddr1 = (uintptr_t)vaddr; // high address for this section
         while(len != 0) {
-            TAG_DEBUG(LOADELF, "start by mapping a page at 0x%p", vaddr);
+            auto vaddr_Page = VirtualPageManager::page((uintptr_t)vaddr);
+            auto vaddr_PageDelta = (uintptr_t)vaddr - vaddr_Page;
+            TAG_DEBUG(LOADELF, "start by mapping a page at 0x%p (page delta = %u)", vaddr, vaddr_PageDelta);
+            const auto residualPage = VirtualPageManager::gPageSize - vaddr_PageDelta;
 
-            vmm.mapAnyPhysicalPage((uintptr_t)vaddr, mapopts.rw(true));
-            vaddr1 += VirtualPageManager::gPageSize;
+            vmm.mapAnyPhysicalPage( vaddr_Page, mapopts.rw(true) );
+            vaddr1 = (vaddr_Page + VirtualPageManager::gPageSize);
 
             auto chunk = len;
-            if (chunk < VirtualPageManager::gPageSize) {
+            if (chunk < residualPage) {
                 TAG_DEBUG(LOADELF, "chunk size %u is < page size", chunk);
-            } else if (chunk > VirtualPageManager::gPageSize) {
+            } else if (chunk > residualPage) {
                 TAG_DEBUG(LOADELF, "chunk size %u is > page size - truncating to page size", chunk);
-                chunk = VirtualPageManager::gPageSize;
+                chunk = residualPage;
             }
             if (chunk <= flen) {
                 TAG_DEBUG(LOADELF, "chunk size %u is <= flen %u - copying entire chunk from file", chunk, flen);
