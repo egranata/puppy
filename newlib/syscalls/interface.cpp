@@ -211,6 +211,10 @@ NEWLIB_IMPL_REQUIREMENT int stat(const char *file, struct stat *st) {
     return ok;
 }
 
+NEWLIB_IMPL_REQUIREMENT int	lstat (const char *__restrict __path, struct stat *__restrict __buf ) {
+    return stat(__path, __buf);
+}
+
 NEWLIB_IMPL_REQUIREMENT clock_t times(struct tms* /*buf*/) {
     return -1;
 }
@@ -354,3 +358,19 @@ NEWLIB_IMPL_REQUIREMENT int pipe (int fd[2]) {
     if (pipe_ok & 1) ERR_EXIT(EMFILE);
     return 0;
 }
+
+NEWLIB_IMPL_REQUIREMENT int	chmod (const char* /*__path*/, mode_t /*__mode*/ ) {
+    return 0;
+}
+
+int fchmod (int /*__fd*/, mode_t /*__mode*/ ) {
+    return 0;
+}
+
+mode_t umask (mode_t __mask) {
+    static mode_t old_mask = 022;
+    mode_t ret = old_mask;
+    old_mask = __mask;
+    return ret;
+}
+
