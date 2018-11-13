@@ -96,7 +96,29 @@ NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
     return -1;
 }
 
-NEWLIB_IMPL_REQUIREMENT int lseek(int /*file*/, int /*ptr*/, int /*dir*/) { return 0; }
+NEWLIB_IMPL_REQUIREMENT int lseek(int file, int ptr, int dir) {
+    if (dir == SEEK_END) ERR_EXIT(EINVAL);
+    if (dir == SEEK_CUR && ptr == 0) {
+        size_t pos = 0;
+        if (0 != ftell_syscall((uint16_t)file, &pos)) ERR_EXIT(EINVAL);
+        return pos;
+    }
+    if (dir == SEEK_CUR) {
+        size_t pos = 0;
+        if (0 != ftell_syscall((uint16_t)file, &pos)) ERR_EXIT(EINVAL);
+        pos += ptr;
+        if (0 != fseek_syscall(file, pos)) ERR_EXIT(EINVAL);
+        if (0 != ftell_syscall((uint16_t)file, &pos)) ERR_EXIT(EINVAL);
+        return pos;
+    }
+    if (dir == SEEK_SET) {
+        size_t pos;
+        if (0 != fseek_syscall(file, ptr)) ERR_EXIT(EINVAL);
+        if (0 != ftell_syscall((uint16_t)file, &pos)) ERR_EXIT(EINVAL);
+        return pos;
+    }
+    ERR_EXIT(ENOENT);
+}
 
 #define FLAG_TEST(flag) (flag == (flags & flag))
 
