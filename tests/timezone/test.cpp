@@ -48,6 +48,8 @@ class TheTest : public Test {
             CHECK_EQ(0, lt->tm_mon);
             CHECK_EQ(1, lt->tm_mday);
             CHECK_EQ(1, lt->tm_hour);
+
+            CHECK_NOT_EQ(nullptr, ctime(&at));
         }
 };
 
