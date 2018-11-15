@@ -69,10 +69,9 @@ class TheTest : public Test {
             printf("fd2 = %u\n", fd2);
             CHECK_EQ(0, (fd2 & 1));
             fd2 >>= 1;
-            int fd3 = fdup_syscall(fd2);
+            int fd3 = dup(fd2);
             printf("fd3 = %u\n", fd3);
-            CHECK_EQ(0, (fd3 & 1));
-            fd3 >>= 1;
+            CHECK_NOT_EQ(-1, fd3);
 
             uint8_t data = 0;
             READ_BYTE(fd,  'h');

@@ -363,14 +363,19 @@ NEWLIB_IMPL_REQUIREMENT int	chmod (const char* /*__path*/, mode_t /*__mode*/ ) {
     return 0;
 }
 
-int fchmod (int /*__fd*/, mode_t /*__mode*/ ) {
+NEWLIB_IMPL_REQUIREMENT int fchmod (int /*__fd*/, mode_t /*__mode*/ ) {
     return 0;
 }
 
-mode_t umask (mode_t __mask) {
+NEWLIB_IMPL_REQUIREMENT mode_t umask (mode_t __mask) {
     static mode_t old_mask = 022;
     mode_t ret = old_mask;
     old_mask = __mask;
     return ret;
 }
 
+NEWLIB_IMPL_REQUIREMENT int dup(int oldfd) {
+    int newfd = fdup_syscall(oldfd);
+    if (newfd & 1) ERR_EXIT(EBADF);
+    return newfd >> 1;
+}
