@@ -384,3 +384,19 @@ NEWLIB_IMPL_REQUIREMENT int dup(int oldfd) {
     if (newfd & 1) ERR_EXIT(EBADF);
     return newfd >> 1;
 }
+
+NEWLIB_IMPL_REQUIREMENT int fcntl(int /* fd */, int /* cmd */, ... /* arg */ ) {
+    return -1;
+}
+
+NEWLIB_IMPL_REQUIREMENT long sysconf(int /*name*/) {
+    return -1;
+}
+
+NEWLIB_IMPL_REQUIREMENT int chown (const char* /* __path */ , uid_t /*__owner*/, gid_t /*__group*/) {
+    return 0;
+}
+
+NEWLIB_IMPL_REQUIREMENT int utime(const char* /*filename*/, const struct utimbuf* /*times*/) {
+    return 0;
+}
