@@ -101,7 +101,7 @@ class FATFileSystemFile : public Filesystem::File {
             switch (result = f_write(mFile, src, size, &bw)) {
                 case FR_OK: return bw;
                 default:
-                LOG_ERROR("FatFS error (%u) writing to file 0x%p (mode=0x%x)", result, mFile, mFile->flag);
+                LOG_ERROR("FatFS error (%u) writing to file 0x%p (mode=0x%x), bw = %u", result, mFile, mFile->flag, bw);
                 return bw;
             }
         }

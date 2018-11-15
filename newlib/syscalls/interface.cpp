@@ -143,7 +143,8 @@ NEWLIB_IMPL_REQUIREMENT int open(const char *name, int flags, ... /*mode: file p
     } else {
         FLAG_MATCH(O_WRONLY, FILE_OPEN_WRITE);
         FLAG_MATCH(O_APPEND, FILE_OPEN_APPEND);
-        FLAG_MATCH(O_TRUNC, FILE_OPEN_NEW);
+        FLAG_MATCH(O_TRUNC,  FILE_OPEN_NEW);
+        FLAG_MATCH(O_RDWR,   FILE_OPEN_READ | FILE_OPEN_WRITE);
     }
 
     auto fd = fopen_syscall(rp.ptr, puppy_flags);
