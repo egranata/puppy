@@ -361,7 +361,7 @@ namespace {
     }
 }
 
-void *dlsym(void* handle, const char* target) {
+NEWLIB_IMPL_REQUIREMENT void *dlsym(void* handle, const char* target) {
     if (handle == RTLD_DEFAULT) {
         loaded_elf_images_t* i = &dylibs_set;
         while(i->dylib) {
@@ -376,7 +376,11 @@ void *dlsym(void* handle, const char* target) {
     }
 }
 
-int dlclose(void* /* handle */) {
+NEWLIB_IMPL_REQUIREMENT int dlclose(void* /* handle */) {
     errno = EINVAL;
     return -1;
+}
+
+NEWLIB_IMPL_REQUIREMENT char* dlerror(void) {
+    return nullptr;
 }
