@@ -219,7 +219,7 @@ NEWLIB_IMPL_REQUIREMENT clock_t times(struct tms* /*buf*/) {
     return -1;
 }
 
-NEWLIB_IMPL_REQUIREMENT int unlink(char *path) {
+NEWLIB_IMPL_REQUIREMENT int unlink(const char *path) {
     if (path == nullptr || path[0] == 0) ERR_EXIT(ENOENT);
     auto rp = newlib::puppy::impl::makeAbsolutePath(path);
     if (rp.ptr == 0 || rp.ptr[0] == 0) ERR_EXIT(ENOENT);
@@ -227,6 +227,10 @@ NEWLIB_IMPL_REQUIREMENT int unlink(char *path) {
     auto r = fdel_syscall(rp.ptr);
     if (r == 0) return 0;
     ERR_EXIT(ENOENT);
+}
+
+NEWLIB_IMPL_REQUIREMENT int rmdir(const char *pathname) {
+    return unlink(pathname);
 }
 
 NEWLIB_IMPL_REQUIREMENT int processexitstatus2wait(process_exit_status_t status) {

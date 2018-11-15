@@ -275,7 +275,7 @@ bool FATFileSystem::del(const char* path) {
             }
             default: {
                 LOG_WARNING("no file found at path %s", fullpath);
-                return true;
+                return false;
             }
         }
     }
