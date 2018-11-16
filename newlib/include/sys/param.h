@@ -32,4 +32,9 @@
 #define    howmany(x, y)   (((x)+((y)-1))/(y))
 #endif
 
+#ifndef roundup
+#define roundup(x, y) ({typeof(x) _x = (x); typeof(y) _y = (y); \
+			  ((_x + _y - 1) / _y) * _y; })
+#endif
+
 #endif

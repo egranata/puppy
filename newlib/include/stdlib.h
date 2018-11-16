@@ -94,6 +94,10 @@ void	exit (int __status) _ATTRIBUTE ((__noreturn__));
 void	free (void *) _NOTHROW;
 char *  getenv (const char *__string);
 char *	_getenv_r (struct _reent *, const char *__string);
+
+const char *getprogname (void);
+void	setprogname (const char *);
+
 char *	_findenv (const char *, int *);
 char *	_findenv_r (struct _reent *, const char *, int *);
 #if __POSIX_VISIBLE >= 200809

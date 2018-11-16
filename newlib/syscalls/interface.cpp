@@ -400,3 +400,28 @@ NEWLIB_IMPL_REQUIREMENT int chown (const char* /* __path */ , uid_t /*__owner*/,
 NEWLIB_IMPL_REQUIREMENT int utime(const char* /*filename*/, const struct utimbuf* /*times*/) {
     return 0;
 }
+
+static const char* gProgramName;
+
+NEWLIB_IMPL_REQUIREMENT const char *getprogname (void) {
+    return gProgramName;
+}
+
+NEWLIB_IMPL_REQUIREMENT void setprogname (const char* path) {
+    free((void*)gProgramName);
+    const char* last_slash = strrchr(path, '/');
+    if (last_slash == nullptr) gProgramName = strdup(path);
+    else gProgramName = strdup(last_slash+1);
+}
+
+NEWLIB_IMPL_REQUIREMENT char *basename (char* path) {
+    const char* last_slash = strrchr(path, '/');
+    if (last_slash == nullptr) return path;
+    else return path+1;
+}
+
+NEWLIB_IMPL_REQUIREMENT char* dirname (char *path) {
+    char* last_slash = strrchr(path, '/');
+    if (last_slash != nullptr) *last_slash = 0;
+    return path;
+}
