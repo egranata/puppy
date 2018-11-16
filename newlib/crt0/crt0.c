@@ -63,6 +63,8 @@ void _start(char** argp, char** envp) {
     __sinit(_global_impure_ptr);
     stdin->_flags |= __SLBF;
 
+    if (argp && argp[0]) setprogname(argp[0]);
+
 	int ex = 0;
 
     runChain(ctors_chain);

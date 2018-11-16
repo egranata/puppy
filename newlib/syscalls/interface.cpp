@@ -408,7 +408,8 @@ NEWLIB_IMPL_REQUIREMENT const char *getprogname (void) {
 }
 
 NEWLIB_IMPL_REQUIREMENT void setprogname (const char* path) {
-    free((void*)gProgramName);
+    if (gProgramName) free((void*)gProgramName);
+    if (path == nullptr) return;
     const char* last_slash = strrchr(path, '/');
     if (last_slash == nullptr) gProgramName = strdup(path);
     else gProgramName = strdup(last_slash+1);
