@@ -430,3 +430,7 @@ NEWLIB_IMPL_REQUIREMENT char* dirname (char *path) {
     if (last_slash != nullptr) *last_slash = 0;
     return path;
 }
+
+NEWLIB_IMPL_REQUIREMENT unsigned int alarm(unsigned int /*seconds*/) {
+    return 0;
+}
