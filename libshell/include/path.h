@@ -24,4 +24,6 @@ namespace libShellSupport {
     const char* findInPotentialPaths(const char* path, const char* list);
 }
 
+extern "C" int execvp(const char *file, char *const argv[]);
+
 #endif

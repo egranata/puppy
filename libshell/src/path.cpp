@@ -62,3 +62,10 @@ namespace libShellSupport {
         return nullptr;
     }
 }
+
+extern "C" int execvp(const char *file, char *const argv[]) {
+    const char* path = libShellSupport::findInPotentialPaths(file, getenv("PATH"));
+    int ret = execv(path, argv);
+    free((void*)path);
+    return ret;
+}

@@ -81,6 +81,9 @@ class TestPathSearching : public Test {
             CHECK_TRUE(streq("/system/apps/now", output_1));
             const char* output_2 = libShellSupport::findInPotentialPaths(prog_input_2, env_input);
             CHECK_NULL(output_2);
+
+            int ok = execvp("ls", nullptr);
+            CHECK_NOT_EQ(ok, -1);
         }
 };
 
