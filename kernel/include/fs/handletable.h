@@ -38,8 +38,10 @@ class Handletable {
             return N;
         }
 
-        bool set(const T& value, size_t& idx) {
-            for (auto i = 0u; i < N; ++i) {
+        bool set(const T& value, size_t& idx, size_t idx0 = 0) {
+            for (auto _i = 0u; _i < N; ++_i) {
+                auto i = (_i + idx0) % N;
+
                 if (!is(i)) {
                     mValid[i / 8] |= bit(i);
                     mData[i] = value;

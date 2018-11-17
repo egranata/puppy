@@ -379,10 +379,14 @@ NEWLIB_IMPL_REQUIREMENT mode_t umask (mode_t __mask) {
     return ret;
 }
 
+NEWLIB_IMPL_REQUIREMENT int dup2(int oldfd, int newfd) {
+    int outfd = fdup_syscall(oldfd, newfd);
+    if (outfd & 1) ERR_EXIT(EBADF);
+    return outfd >> 1;
+}
+
 NEWLIB_IMPL_REQUIREMENT int dup(int oldfd) {
-    int newfd = fdup_syscall(oldfd);
-    if (newfd & 1) ERR_EXIT(EBADF);
-    return newfd >> 1;
+    return dup2(oldfd, 0);
 }
 
 NEWLIB_IMPL_REQUIREMENT int fcntl(int /* fd */, int /* cmd */, ... /* arg */ ) {

@@ -65,13 +65,17 @@ class TheTest : public Test {
             printf("fd = %u\n", fd);
             CHECK_EQ(0, (fd & 1));
             fd >>= 1;
-            int fd2 = fdup_syscall(fd);
+            int fd2 = dup(fd);
             printf("fd2 = %u\n", fd2);
-            CHECK_EQ(0, (fd2 & 1));
-            fd2 >>= 1;
-            int fd3 = dup(fd2);
+            CHECK_NOT_EQ(-1, fd2);
+            int fd3 = dup2(fd2, 20);
             printf("fd3 = %u\n", fd3);
             CHECK_NOT_EQ(-1, fd3);
+            CHECK_TRUE(fd3 >= 20);
+            int fd4 = dup2(fd2, 20);
+            printf("fd4 = %u\n", fd4);
+            CHECK_NOT_EQ(-1, fd4);
+            CHECK_TRUE(fd4 >= 21);
 
             uint8_t data = 0;
             READ_BYTE(fd,  'h');
