@@ -44,12 +44,12 @@ C_OPTIONS = [
     '-funsigned-char',
     '-m32',
     '-march=i686',
-    '-masm=intel',
     '-nostdlib',
     '-O2',
     '-Wall',
     '-Wextra']
 BASIC_CFLAGS = [
+    '-masm=intel',
     '-Werror',
     '-Wno-error=format',
     '-Wno-main',
