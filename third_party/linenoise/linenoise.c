@@ -1447,6 +1447,10 @@ int linenoiseHistorySetMaxLen(int len) {
     return 1;
 }
 
+int linenoiseHistoryGetMaxLen(void) {
+    return history_max_len;
+}
+
 /* Save the history in the specified file. On success 0 is returned
  * otherwise -1 is returned. */
 int linenoiseHistorySave(const char *filename) {
@@ -1493,3 +1497,14 @@ int linenoiseHistoryLoad(const char *filename) {
     return 0;
 }
 
+/* Copy the history into the specified array.
+ * it must already be allocated to have at least destlen spaces.
+ * The size of the history is returned. */
+int linenoiseHistoryCopy(char** dest, int destlen) {
+    for(int i = 0; i < destlen; ++i) {
+        if (i >= history_len) break;
+        dest[i] = strdup(history[i]);
+    }
+
+     return history_len;
+}
