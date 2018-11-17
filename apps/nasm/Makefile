@@ -14,6 +14,6 @@
 
 all:
 	cp -R $(PUPPY_ROOT)/third_party/nasm $(PUPPY_ROOT)/out
-	cd $(PUPPY_ROOT)/out/nasm; ./autogen.sh; CC=$(PUPPY_ROOT)/build/gcc.sh ./configure --host=linux
+	cd $(PUPPY_ROOT)/out/nasm; ./autogen.sh; ./configure --host=linux
 	$(MAKE) -C $(PUPPY_ROOT)/out/nasm
 	cp $(PUPPY_ROOT)/out/nasm/nasm $(PUPPY_ROOT)/$(OUTWHERE)/nasm

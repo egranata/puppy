@@ -7,8 +7,6 @@ QSTR_DEFS = qstrdefsport.h
 
 UNAME_S = puppy
 
-PUPPY_GCC = $(PUPPY_ROOT)/build/gcc.sh
-
 include $(TOP)/py/py.mk
 
 INC +=  -I.
@@ -39,9 +37,7 @@ OBJ = $(PY_O)
 OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/, $(SRC_CXX:.cpp=.o))
 
-CC = $(PUPPY_GCC)
-LD = $(PUPPY_GCC)
-CXX = $(PUPPY_GCC)
+LD = $(CC)
 
 define compile_cpp
 $(ECHO) "CXX $<"

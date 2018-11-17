@@ -48,15 +48,15 @@ C_OPTIONS = [
     '-nostdlib',
     '-O2',
     '-Wall',
+    '-Wextra']
+BASIC_CFLAGS = [
     '-Werror',
-    '-Wextra',
     '-Wno-error=format',
     '-Wno-main',
-    '-Wno-missing-field-initializers']
-BASIC_CFLAGS = [
-    '-c',
+    '-Wno-missing-field-initializers',
     '-nodefaultlibs',
-    '-nostartfiles'] + C_OPTIONS
+    '-nostartfiles',
+    '-c'] + C_OPTIONS
 BASIC_CPPFLAGS = [
     '-fno-exceptions',
     '-fno-rtti',
@@ -315,6 +315,9 @@ USERSPACE_LD_SCRIPT = "out/mnt/libs/app.ld"
 
 GCC_SPECS_PATH = "out/mnt/libs/gcc.specs"
 
+MY_CC_PATH = os.path.join(MYPATH, "build", "gcc.sh")
+MY_CXX_PATH = os.path.join(MYPATH, "build", "g++.sh")
+
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
         cflags = USERSPACE_CFLAGS + (cflags if cflags else [])
@@ -346,7 +349,7 @@ class UserspaceTool(Project):
     def build(self):
         if not self.hasMakefile(): return Project.build(self)
         guessname = os.path.basename(self.srcdir)
-        shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s -j" % (MYPATH, self.outwhere), curdir=self.srcdir)
+        shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s CC=%s CXX=%s -j" % (MYPATH, self.outwhere, MY_CC_PATH, MY_CXX_PATH), curdir=self.srcdir)
         return os.path.join(self.outwhere, guessname)
 
 def writeSpecsFile(outfile):
