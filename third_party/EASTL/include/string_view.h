@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// This file implements the eastl::string_view which is part of the C++ standard
+// This file implements the std::string_view which is part of the C++ standard
 // STL library specification.
 //
 // http://en.cppreference.com/w/cpp/header/string_view
@@ -22,7 +22,7 @@
 
 EA_DISABLE_VC_WARNING(4814)
 
-namespace eastl
+namespace std
 {
 	template <typename T>
 	class basic_string_view
@@ -36,8 +36,8 @@ namespace eastl
 		typedef const T& 									const_reference;
 		typedef T* 											iterator;
 		typedef const T* 									const_iterator;
-		typedef eastl::reverse_iterator<iterator> 			reverse_iterator;
-		typedef eastl::reverse_iterator<const_iterator> 	const_reverse_iterator;
+		typedef std::reverse_iterator<iterator> 			reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> 	const_reverse_iterator;
 		typedef size_t 										size_type;
 		typedef ptrdiff_t 									difference_type;
 
@@ -111,8 +111,8 @@ namespace eastl
 		// 21.4.2.5, modifiers
 		EA_CPP14_CONSTEXPR void swap(basic_string_view& v)
 		{
-			eastl::swap(mpBegin, v.mpBegin);
-			eastl::swap(mnCount, v.mnCount);
+			std::swap(mpBegin, v.mpBegin);
+			std::swap(mnCount, v.mnCount);
 		}
 
 		EA_CPP14_CONSTEXPR void remove_prefix(size_type n)
@@ -140,7 +140,7 @@ namespace eastl
 					EASTL_FAIL_MSG("string_view::copy -- out of range");
 			#endif
 
-			count = eastl::min(count, mnCount - pos);
+			count = std::min(count, mnCount - pos);
 			auto* pResult = CharStringUninitializedCopy(mpBegin + pos, mpBegin + pos + count, pDestination);
 			*pResult = 0; // write null-terminator
 			return pResult - pDestination;
@@ -156,7 +156,7 @@ namespace eastl
 					EASTL_FAIL_MSG("string_view::substr -- out of range");
 			#endif
 
-			count = eastl::min(count, mnCount - pos);
+			count = std::min(count, mnCount - pos);
 			return this_type(mpBegin + pos, count);
 		}
 
@@ -164,7 +164,7 @@ namespace eastl
 		{
 			const ptrdiff_t n1   = pEnd1 - pBegin1;
 			const ptrdiff_t n2   = pEnd2 - pBegin2;
-			const ptrdiff_t nMin = eastl::min_alt(n1, n2);
+			const ptrdiff_t nMin = std::min_alt(n1, n2);
 			const int       cmp  = Compare(pBegin1, pBegin2, (size_t)nMin);
 
 			return (cmp != 0 ? cmp : (n1 < n2 ? -1 : (n1 > n2 ? 1 : 0)));
@@ -206,7 +206,7 @@ namespace eastl
 			auto* pEnd = mpBegin + mnCount;
 			if (EASTL_LIKELY(((npos - sw.size()) >= pos) && (pos + sw.size()) <= mnCount))
 			{
-				const value_type* const pTemp = eastl::search(mpBegin + pos, pEnd, sw.data(), sw.data() + sw.size());
+				const value_type* const pTemp = std::search(mpBegin + pos, pEnd, sw.data(), sw.data() + sw.size());
 
 				if ((pTemp != pEnd) || (sw.size() == 0))
 					return (size_type)(pTemp - mpBegin);
@@ -235,7 +235,7 @@ namespace eastl
 		{
 			if (EASTL_LIKELY(mnCount))
 			{
-				const value_type* const pEnd = mpBegin + eastl::min_alt(mnCount - 1, pos) + 1;
+				const value_type* const pEnd = mpBegin + std::min_alt(mnCount - 1, pos) + 1;
 				const value_type* const pResult = CharTypeStringRFind(pEnd, mpBegin, c);
 
 				if (pResult != mpBegin)
@@ -263,14 +263,14 @@ namespace eastl
 			{
 				if (EASTL_LIKELY(n))
 				{
-					const const_iterator pEnd = mpBegin + eastl::min_alt(mnCount - n, pos) + n;
+					const const_iterator pEnd = mpBegin + std::min_alt(mnCount - n, pos) + n;
 					const const_iterator pResult = CharTypeStringRSearch(mpBegin, pEnd, s, s + n);
 
 					if (pResult != pEnd)
 						return (size_type)(pResult - mpBegin);
 				}
 				else
-					return eastl::min_alt(mnCount, pos);
+					return std::min_alt(mnCount, pos);
 			}
 			return npos;
 		}
@@ -319,7 +319,7 @@ namespace eastl
 			// If n is zero or position is >= size, we return npos.
 			if (EASTL_LIKELY(mnCount))
 			{
-				const value_type* const pEnd = mpBegin + eastl::min_alt(mnCount - 1, pos) + 1;
+				const value_type* const pEnd = mpBegin + std::min_alt(mnCount - 1, pos) + 1;
 				const value_type* const pResult = CharTypeStringRFindFirstOf(pEnd, mpBegin, s, s + n);
 
 				if (pResult != mpBegin)
@@ -380,7 +380,7 @@ namespace eastl
 			if (EASTL_LIKELY(mnCount))
 			{
 				// Todo: Possibly make a specialized version of CharTypeStringRFindFirstNotOf(pBegin, pEnd, c).
-				const value_type* const pEnd = mpBegin + eastl::min_alt(mnCount - 1, pos) + 1;
+				const value_type* const pEnd = mpBegin + std::min_alt(mnCount - 1, pos) + 1;
 				const value_type* const pResult = CharTypeStringRFindFirstNotOf(pEnd, mpBegin, &c, &c + 1);
 
 				if (pResult != mpBegin)
@@ -393,7 +393,7 @@ namespace eastl
 		{
 			if (EASTL_LIKELY(mnCount))
 			{
-				const value_type* const pEnd = mpBegin + eastl::min_alt(mnCount - 1, pos) + 1;
+				const value_type* const pEnd = mpBegin + std::min_alt(mnCount - 1, pos) + 1;
 				const value_type* const pResult = CharTypeStringRFindFirstNotOf(pEnd, mpBegin, s, s + n);
 
 				if (pResult != mpBegin)
@@ -574,7 +574,7 @@ namespace eastl
 		EA_RESTORE_VC_WARNING() // warning: 4455
 	#endif
 
-} // namespace eastl
+} // namespace std
 
 EA_RESTORE_VC_WARNING()
 #endif // EASTL_STRING_VIEW_H

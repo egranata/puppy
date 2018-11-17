@@ -20,9 +20,9 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
-#include <EASTL/map.h>
-#include <EASTL/string.h>
-#include <EASTL/vector.h>
+#include <map>
+#include <string>
+#include <vector>
 
 #include <kernel/syscalls/types.h>
 
@@ -36,7 +36,7 @@ struct color_t {
     }
 };
 
-using ColorMap = eastl::map<eastl::string, color_t>;
+using ColorMap = std::map<std::string, color_t>;
 
 class fdeleter_t {
     public:
@@ -56,7 +56,7 @@ static bool loadFromDisk(const char* path, ColorMap& dest) {
     if (fp == nullptr) return false;
     fdeleter_t _deleter(fp);
 
-    eastl::vector<char> data(fs.st_size);
+    std::vector<char> data(fs.st_size);
     fread(data.data(), 1, fs.st_size, fp);
 
     JSON_Value* jv = json_parse_string(data.data());
@@ -82,7 +82,7 @@ static bool loadFromDisk(const char* path, ColorMap& dest) {
         if (INVALID(val3)) return false;
 #undef INVALID
 
-        eastl::string name = eastl::string(json_object_get_name(colors, i));
+        std::string name = std::string(json_object_get_name(colors, i));
         dest.emplace(name, color_t{
             .red = (uint8_t)val1,
             .green = (uint8_t)val2,

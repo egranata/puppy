@@ -15,7 +15,7 @@
 #ifndef SHELL_HISTORY
 #define SHELL_HISTORY
 
-#include <EASTL/string.h>
+#include <string>
 
 class History {
     public:
@@ -23,11 +23,11 @@ class History {
         void save();
         ~History();
 
-        void add(const eastl::string& s);
+        void add(const std::string& s);
 
         static History& defaultHistory();
     private:
-        eastl::string mFilePath;
+        std::string mFilePath;
 };
 
 #endif

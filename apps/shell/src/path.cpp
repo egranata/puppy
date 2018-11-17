@@ -15,11 +15,11 @@
 #include "../include/path.h"
 #include <libshell/path.h>
 
-eastl::string getProgramPath(const char* program) {
+std::string getProgramPath(const char* program) {
     const char* path = getenv("PATH");
     const char* result = libShellSupport::findInPotentialPaths(program, path);
     if (result) {
-        eastl::string s_result(result);
+        std::string s_result(result);
         free((void*)result);
         return s_result;
     } else {

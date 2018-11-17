@@ -30,7 +30,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	/// EASTL_RING_BUFFER_DEFAULT_NAME
 	///
@@ -200,7 +200,7 @@ namespace eastl
 	///     debugLogText.push_front();
 	///     debugLogText.front() = "Player fired weapon";
 	///
-	template <typename T, typename Container = eastl::vector<T>, typename Allocator = typename Container::allocator_type>
+	template <typename T, typename Container = std::vector<T>, typename Allocator = typename Container::allocator_type>
 	class ring_buffer
 	{
 	public:
@@ -217,8 +217,8 @@ namespace eastl
 		typedef typename Container::const_iterator                     container_const_iterator;
 		typedef ring_buffer_iterator<T, T*, T&, Container>             iterator;
 		typedef ring_buffer_iterator<T, const T*, const T&, Container> const_iterator;
-		typedef eastl::reverse_iterator<iterator>                      reverse_iterator;
-		typedef eastl::reverse_iterator<const_iterator>                const_reverse_iterator;    
+		typedef std::reverse_iterator<iterator>                      reverse_iterator;
+		typedef std::reverse_iterator<const_iterator>                const_reverse_iterator;    
 
 	public:                             // We declare public so that global comparison operators can be implemented without adding an inline level and without tripping up GCC 2.x friend declaration failures. GCC (through at least v4.0) is poor at inlining and performance wins over correctness.
 		Container          c;           // We follow the naming convention established for stack, queue, priority_queue and name this 'c'. This variable must always have a size of at least 1, as even an empty ring_buffer has an unused terminating element.
@@ -435,7 +435,7 @@ namespace eastl
 	typename ring_buffer_iterator<T, Pointer, Reference, Container>::this_type&
 	ring_buffer_iterator<T, Pointer, Reference, Container>::operator+=(difference_type n)
 	{
-		typedef typename eastl::iterator_traits<container_iterator>::iterator_category IC;
+		typedef typename std::iterator_traits<container_iterator>::iterator_category IC;
 		increment(n, IC());
 		return *this;
 	}
@@ -445,7 +445,7 @@ namespace eastl
 	typename ring_buffer_iterator<T, Pointer, Reference, Container>::this_type&
 	ring_buffer_iterator<T, Pointer, Reference, Container>::operator-=(difference_type n)
 	{
-		typedef typename eastl::iterator_traits<container_iterator>::iterator_category IC;
+		typedef typename std::iterator_traits<container_iterator>::iterator_category IC;
 		increment(-n, IC());
 		return *this;
 	}
@@ -645,8 +645,8 @@ namespace eastl
 		mEnd   = mBegin;
 		mSize  = x.mSize;
 
-		eastl::advance(mBegin, eastl::distance(const_cast<this_type&>(x).c.begin(), x.mBegin)); // We can do a simple distance algorithm here, as there will be no wraparound.
-		eastl::advance(mEnd,   eastl::distance(const_cast<this_type&>(x).c.begin(), x.mEnd));
+		std::advance(mBegin, std::distance(const_cast<this_type&>(x).c.begin(), x.mBegin)); // We can do a simple distance algorithm here, as there will be no wraparound.
+		std::advance(mEnd,   std::distance(const_cast<this_type&>(x).c.begin(), x.mEnd));
 	}
 
 	template <typename T, typename Container, typename Allocator>
@@ -702,8 +702,8 @@ namespace eastl
 			mEnd   = mBegin;
 			mSize  = x.mSize;
 
-			eastl::advance(mBegin, eastl::distance(const_cast<this_type&>(x).c.begin(), x.mBegin)); // We can do a simple distance algorithm here, as there will be no wraparound.
-			eastl::advance(mEnd,   eastl::distance(const_cast<this_type&>(x).c.begin(), x.mEnd));
+			std::advance(mBegin, std::distance(const_cast<this_type&>(x).c.begin(), x.mBegin)); // We can do a simple distance algorithm here, as there will be no wraparound.
+			std::advance(mEnd,   std::distance(const_cast<this_type&>(x).c.begin(), x.mEnd));
 		}
 
 		return *this;
@@ -746,26 +746,26 @@ namespace eastl
 	{
 		if(&x != this)
 		{
-			const difference_type dBegin  = eastl::distance(c.begin(), mBegin); // We can do a simple distance algorithm here, as there will be no wraparound.
-			const difference_type dEnd    = eastl::distance(c.begin(), mEnd);
+			const difference_type dBegin  = std::distance(c.begin(), mBegin); // We can do a simple distance algorithm here, as there will be no wraparound.
+			const difference_type dEnd    = std::distance(c.begin(), mEnd);
 
-			const difference_type dxBegin = eastl::distance(x.c.begin(), x.mBegin);
-			const difference_type dxEnd   = eastl::distance(x.c.begin(), x.mEnd);
+			const difference_type dxBegin = std::distance(x.c.begin(), x.mBegin);
+			const difference_type dxEnd   = std::distance(x.c.begin(), x.mEnd);
 
-			eastl::swap(c, x.c);
-			eastl::swap(mSize, x.mSize);
+			std::swap(c, x.c);
+			std::swap(mSize, x.mSize);
 
 			mBegin = c.begin();
-			eastl::advance(mBegin, dxBegin); // We can do a simple advance algorithm here, as there will be no wraparound.
+			std::advance(mBegin, dxBegin); // We can do a simple advance algorithm here, as there will be no wraparound.
 
 			mEnd = c.begin();
-			eastl::advance(mEnd, dxEnd);
+			std::advance(mEnd, dxEnd);
 
 			x.mBegin = x.c.begin();
-			eastl::advance(x.mBegin, dBegin);
+			std::advance(x.mBegin, dBegin);
 
 			x.mEnd = x.c.begin();
-			eastl::advance(x.mEnd, dEnd);
+			std::advance(x.mEnd, dEnd);
 		}
 	}
 
@@ -893,9 +893,9 @@ namespace eastl
 		return mSize;
 
 		// Alternatives:
-		// return eastl::distance(begin(), end());
+		// return std::distance(begin(), end());
 		// return end() - begin(); // This is more direct than using distance().
-		//typedef typename eastl::iterator_traits<container_iterator>::iterator_category IC;
+		//typedef typename std::iterator_traits<container_iterator>::iterator_category IC;
 		//return DoGetSize(IC()); // This is more direct than using iterator math.
 	}
 
@@ -905,7 +905,7 @@ namespace eastl
 	typename ring_buffer<T, Container, Allocator>::size_type
 	ring_buffer<T, Container, Allocator>::DoGetSize(EASTL_ITC_NS::input_iterator_tag) const
 	{
-		// We could alternatively just use eastl::distance() here, but we happen to
+		// We could alternatively just use std::distance() here, but we happen to
 		// know that such code would boil down to what we have here, and we might
 		// as well remove function calls where possible. 
 		difference_type d = 0;
@@ -923,15 +923,15 @@ namespace eastl
 	ring_buffer<T, Container, Allocator>::DoGetSize(EASTL_ITC_NS::random_access_iterator_tag) const
 	{
 		// A simpler but less efficient implementation fo this function would be:
-		//     return eastl::distance(mBegin, mEnd);
+		//     return std::distance(mBegin, mEnd);
 		//
 		// The calculation of distance here takes advantage of the fact that random
 		// access iterators' distances can be calculated by simple pointer calculation.
 		// Thus the code below boils down to a few subtractions when using a vector,
 		// string, or array as the Container type. 
 		//
-		const difference_type dBegin = eastl::distance(const_cast<Container&>(c).begin(), mBegin); // const_cast here solves a little compiler 
-		const difference_type dEnd   = eastl::distance(const_cast<Container&>(c).begin(), mEnd);   // argument matching problem.
+		const difference_type dBegin = std::distance(const_cast<Container&>(c).begin(), mBegin); // const_cast here solves a little compiler 
+		const difference_type dEnd   = std::distance(const_cast<Container&>(c).begin(), mEnd);   // argument matching problem.
 
 		if(dEnd >= dBegin)
 			return dEnd - dBegin;
@@ -1013,18 +1013,18 @@ namespace eastl
 
 			ContainerTemporary<Container> cTemp(c);
 			cTemp.get().resize(n + 1);
-			eastl::copy(begin(), end(), cTemp.get().begin());
-			eastl::swap(c, cTemp.get());
+			std::copy(begin(), end(), cTemp.get().begin());
+			std::swap(c, cTemp.get());
 
 			mBegin = c.begin();
 			mEnd   = mBegin;
-			eastl::advance(mEnd, n); // We can do a simple advance algorithm on this because we know that mEnd will not wrap around.
+			std::advance(mEnd, n); // We can do a simple advance algorithm on this because we know that mEnd will not wrap around.
 		}
 		else // We could do a check here for n != size(), but that would be costly and people don't usually resize things to their same size.
 		{
 			mEnd = mBegin;
 
-			// eastl::advance(mEnd, n); // We *cannot* use this because there may be wraparound involved.
+			// std::advance(mEnd, n); // We *cannot* use this because there may be wraparound involved.
 
 			// To consider: Possibly we should implement some more detailed logic to optimize the code here.
 			// We'd need to do different behaviour dending on whether the container iterator type is a 
@@ -1063,16 +1063,16 @@ namespace eastl
 
 			if(n < mSize) // If we are shrinking the capacity, to less than our size...
 			{
-				eastl::advance(itCopyBegin, mSize - n);
+				std::advance(itCopyBegin, mSize - n);
 				mSize = n;
 			}
 
-			eastl::copy(itCopyBegin, end(), cTemp.get().begin());  // The begin-end range may in fact be larger than n, in which case values will be overwritten.
-			eastl::swap(c, cTemp.get());
+			std::copy(itCopyBegin, end(), cTemp.get().begin());  // The begin-end range may in fact be larger than n, in which case values will be overwritten.
+			std::swap(c, cTemp.get());
 
 			mBegin = c.begin();
 			mEnd   = mBegin;
-			eastl::advance(mEnd, mSize); // We can do a simple advance algorithm on this because we know that mEnd will not wrap around.
+			std::advance(mEnd, mSize); // We can do a simple advance algorithm on this because we know that mEnd will not wrap around.
 		}
 	}
 
@@ -1087,12 +1087,12 @@ namespace eastl
 		{
 			ContainerTemporary<Container> cTemp(c);
 			cTemp.get().resize(n + 1);
-			eastl::copy(begin(), end(), cTemp.get().begin());
-			eastl::swap(c, cTemp.get());
+			std::copy(begin(), end(), cTemp.get().begin());
+			std::swap(c, cTemp.get());
 
 			mBegin = c.begin();
 			mEnd   = mBegin;
-			eastl::advance(mEnd, mSize); // We can do a simple advance algorithm on this because we know that mEnd will not wrap around.
+			std::advance(mEnd, mSize); // We can do a simple advance algorithm on this because we know that mEnd will not wrap around.
 		}
 	}
 
@@ -1258,7 +1258,7 @@ namespace eastl
 		// This should compile to code that is nearly as efficient as that above.
 		// The primary difference is the possible generation of a temporary in this case.
 		iterator temp(begin());
-		eastl::advance(temp, n);
+		std::advance(temp, n);
 		return *(temp.mContainerIterator);
 	}
 
@@ -1272,7 +1272,7 @@ namespace eastl
 		// This should compile to code that is nearly as efficient as that above.
 		// The primary difference is the possible generation of a temporary in this case.
 		const_iterator temp(begin());
-		eastl::advance(temp, n);
+		std::advance(temp, n);
 		return *(temp.mContainerIterator);
 	}
 
@@ -1296,7 +1296,7 @@ namespace eastl
 			push_back();
 
 		iterator itPosition(position.mpContainer, position.mContainerIterator); // We merely copy from const_iterator to iterator.
-		eastl::copy_backward(itPosition, beforeEnd, end());
+		std::copy_backward(itPosition, beforeEnd, end());
 		*itPosition = value;
 
 		return itPosition;
@@ -1340,7 +1340,7 @@ namespace eastl
 		iterator itPosition(position.mpContainer, position.mContainerIterator); // We merely copy from const_iterator to iterator.
 		iterator iNext(itPosition);
 
-		eastl::copy(++iNext, end(), itPosition);
+		std::copy(++iNext, end(), itPosition);
 		pop_back();
 
 		return itPosition;
@@ -1354,9 +1354,9 @@ namespace eastl
 		iterator itFirst(first.mpContainer, first.mContainerIterator); // We merely copy from const_iterator to iterator.
 		iterator itLast(last.mpContainer, last.mContainerIterator);
 
-		typename iterator::difference_type d = eastl::distance(itFirst, itLast);
+		typename iterator::difference_type d = std::distance(itFirst, itLast);
 
-		eastl::copy(itLast, end(), itFirst);
+		std::copy(itLast, end(), itFirst);
 
 		while(d--)      // To do: improve this implementation.
 			pop_back();
@@ -1520,7 +1520,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

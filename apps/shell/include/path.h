@@ -15,10 +15,10 @@
 #ifndef SHELL_PATH
 #define SHELL_PATH
 
-#include <EASTL/string.h>
-#include <EASTL/vector.h>
+#include <string>
+#include <vector>
 
-eastl::vector<eastl::string> getPathEntries();
-eastl::string getProgramPath(const char* program);
+std::vector<std::string> getPathEntries();
+std::string getProgramPath(const char* program);
 
 #endif

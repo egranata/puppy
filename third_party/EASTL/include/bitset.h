@@ -57,7 +57,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	// To consider: Enable this for backwards compatibility with any user code that might be using BitsetWordType:
 	// #define BitsetWordType EASTL_BITSET_WORD_TYPE_DEFAULT
@@ -2231,7 +2231,7 @@ EA_RESTORE_GCC_WARNING()
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #if defined(_MSC_VER)

@@ -15,7 +15,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 
 	namespace Internal
@@ -37,7 +37,7 @@ namespace eastl
 			static T* test(...);
 
 		public:
-			typedef decltype(test<typename eastl::remove_reference<Deleter>::type>(0)) type;
+			typedef decltype(test<typename std::remove_reference<Deleter>::type>(0)) type;
 		};
 
 
@@ -61,22 +61,22 @@ namespace eastl
 
 		#define EASTL_TYPE_TRAIT_is_array_cv_convertible_CONFORMANCE 1
 
-		template <typename P1, typename P2, bool = eastl::is_same<typename eastl::remove_cv<typename pointer_traits<P1>::element_type>::type,
-																  typename eastl::remove_cv<typename pointer_traits<P2>::element_type>::type>::value>
+		template <typename P1, typename P2, bool = std::is_same<typename std::remove_cv<typename pointer_traits<P1>::element_type>::type,
+																  typename std::remove_cv<typename pointer_traits<P2>::element_type>::type>::value>
 		struct is_array_cv_convertible_impl 
-			: public eastl::is_convertible<P1, P2> {};  // Return true if P1 is convertible to P2.
+			: public std::is_convertible<P1, P2> {};  // Return true if P1 is convertible to P2.
 
 		template <typename P1, typename P2>
 		struct is_array_cv_convertible_impl<P1, P2, false> 
-			: public eastl::false_type {};              // P1's underlying type is not the same as P2's, so it can't be converted, even if P2 refers to a subclass of P1. Parent == Child, but Parent[] != Child[]
+			: public std::false_type {};              // P1's underlying type is not the same as P2's, so it can't be converted, even if P2 refers to a subclass of P1. Parent == Child, but Parent[] != Child[]
 
-		template <typename P1, typename P2, bool = eastl::is_scalar<P1>::value && !eastl::is_pointer<P1>::value>
+		template <typename P1, typename P2, bool = std::is_scalar<P1>::value && !std::is_pointer<P1>::value>
 		struct is_array_cv_convertible
 			: public is_array_cv_convertible_impl<P1, P2> {};
 
 		template <typename P1, typename P2>
 		struct is_array_cv_convertible<P1, P2, true>
-			: public eastl::false_type {};              // P1 is scalar not a pointer, so it can't be converted to a pointer.
+			: public std::false_type {};              // P1 is scalar not a pointer, so it can't be converted to a pointer.
 
 
 		///////////////////////////////////////////////////////////////////////
@@ -100,12 +100,12 @@ namespace eastl
 			#define EASTL_TYPE_TRAIT_is_derived_CONFORMANCE 1
 
 			template <typename Base, typename Derived>
-			struct is_derived : public eastl::integral_constant<bool, eastl::is_base_of<Base, Derived>::value && !eastl::is_same<typename eastl::remove_cv<Base>::type, typename eastl::remove_cv<Derived>::type>::value> {};
+			struct is_derived : public std::integral_constant<bool, std::is_base_of<Base, Derived>::value && !std::is_same<typename std::remove_cv<Base>::type, typename std::remove_cv<Derived>::type>::value> {};
 		#else
 			#define EASTL_TYPE_TRAIT_is_derived_CONFORMANCE 0
 
 			template <typename Base, typename Derived> // This returns true if Derived is unrelated to Base. That's a wrong answer, but is better for us than returning false for compilers that don't support is_base_of.
-			struct is_derived : public eastl::integral_constant<bool, !eastl::is_same<typename eastl::remove_cv<Base>::type, typename eastl::remove_cv<Derived>::type>::value> {};
+			struct is_derived : public std::integral_constant<bool, !std::is_same<typename std::remove_cv<Base>::type, typename std::remove_cv<Derived>::type>::value> {};
 		#endif
 
 
@@ -123,9 +123,9 @@ namespace eastl
 		///////////////////////////////////////////////////////////////////////
 
 		template <typename T, typename T_pointer, typename U, typename U_pointer>
-		struct is_safe_array_conversion : public eastl::integral_constant<bool, eastl::is_convertible<U_pointer, T_pointer>::value &&
-																				eastl::is_array<U>::value && 
-																				(!eastl::is_pointer<U_pointer>::value || !is_pointer<T_pointer>::value || !Internal::is_derived<T, typename eastl::remove_extent<U>::type>::value)> {};
+		struct is_safe_array_conversion : public std::integral_constant<bool, std::is_convertible<U_pointer, T_pointer>::value &&
+																				std::is_array<U>::value && 
+																				(!std::is_pointer<U_pointer>::value || !is_pointer<T_pointer>::value || !Internal::is_derived<T, typename std::remove_extent<U>::type>::value)> {};
 
 	} // namespace Internal
 
@@ -159,7 +159,7 @@ namespace eastl
 		#endif
 
 		template <typename U>  // Enable if T* can be constructed with U* (i.e. U* is convertible to T*).
-		default_delete(const default_delete<U>&, typename eastl::enable_if<is_convertible<U*, T*>::value>::type* = 0) EA_NOEXCEPT {}
+		default_delete(const default_delete<U>&, typename std::enable_if<is_convertible<U*, T*>::value>::type* = 0) EA_NOEXCEPT {}
 
 		void operator()(T* p) const EA_NOEXCEPT
 			{ delete p; }
@@ -176,7 +176,7 @@ namespace eastl
 		#endif
 
 		template <typename U> // This ctor is enabled if T is equal to or a base of U, and if U is less or equal const/volatile-qualified than T.
-		default_delete(const default_delete<U[]>&, typename eastl::enable_if<Internal::is_array_cv_convertible<U*, T*>::value>::type* = 0) EA_NOEXCEPT {}
+		default_delete(const default_delete<U[]>&, typename std::enable_if<Internal::is_array_cv_convertible<U*, T*>::value>::type* = 0) EA_NOEXCEPT {}
 
 		void operator()(T* p) const EA_NOEXCEPT
 			{ delete[] p; }
@@ -241,7 +241,7 @@ namespace eastl
 	};
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

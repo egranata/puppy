@@ -71,7 +71,7 @@ namespace {
         FILE* f = fopen(where.c_str(), "r");
         if (f == nullptr) return false;
 
-        eastl::string line;
+        std::string line;
         while(!feof(f)) {
             int c = fgetc(f);
             if (c == EOF) break;

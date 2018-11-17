@@ -78,7 +78,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_SHARED_ARRAY_DEFAULT_NAME
@@ -235,12 +235,12 @@ namespace eastl
 		{
 			// We leave mAllocator as-is.
 
-			// eastl::swap(mpArray, sharedArray.mpArray);
+			// std::swap(mpArray, sharedArray.mpArray);
 			T* const pArray     = sharedArray.mpArray;
 			sharedArray.mpArray = mpArray;
 			mpArray             = pArray;
 
-			// eastl::swap(mpRefCount, sharedArray.mpRefCount);
+			// std::swap(mpRefCount, sharedArray.mpRefCount);
 			ref_count* const pRefCount = sharedArray.mpRefCount;
 			sharedArray.mpRefCount     = mpRefCount;
 			mpRefCount                 = pRefCount;
@@ -420,7 +420,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

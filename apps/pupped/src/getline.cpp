@@ -19,7 +19,7 @@
 
 #define HISTORY_FILE "/system/config/pupped.history"
 
-eastl::string getline(bool history, const char* prompt) {
+std::string getline(bool history, const char* prompt) {
     static bool didSetupLinenoise = false;
     if (!didSetupLinenoise) {
         linenoiseHistoryLoad(HISTORY_FILE);
@@ -27,7 +27,7 @@ eastl::string getline(bool history, const char* prompt) {
     }
     if (prompt == nullptr) prompt = "> ";
     char* data = linenoise(prompt);
-    auto out = eastl::string(data);
+    auto out = std::string(data);
     if (history) {
         linenoiseHistoryAdd(data);
         linenoiseHistorySave(HISTORY_FILE);

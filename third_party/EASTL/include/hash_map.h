@@ -26,7 +26,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_HASH_MAP_DEFAULT_NAME
@@ -96,15 +96,15 @@ namespace eastl
 	///     hash_map<string, int> hashMap;
 	///     i = hashMap.find_as("hello", hash<char*>(), equal_to_2<string, char*>());
 	///
-	template <typename Key, typename T, typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>, 
+	template <typename Key, typename T, typename Hash = std::hash<Key>, typename Predicate = std::equal_to<Key>, 
 			  typename Allocator = EASTLAllocatorType, bool bCacheHashCode = false>
 	class hash_map
-		: public hashtable<Key, eastl::pair<const Key, T>, Allocator, eastl::use_first<eastl::pair<const Key, T> >, Predicate,
+		: public hashtable<Key, std::pair<const Key, T>, Allocator, std::use_first<std::pair<const Key, T> >, Predicate,
 							Hash, mod_range_hashing, default_ranged_hash, prime_rehash_policy, bCacheHashCode, true, true>
 	{
 	public:
-		typedef hashtable<Key, eastl::pair<const Key, T>, Allocator, 
-						  eastl::use_first<eastl::pair<const Key, T> >, 
+		typedef hashtable<Key, std::pair<const Key, T>, Allocator, 
+						  std::use_first<std::pair<const Key, T> >, 
 						  Predicate, Hash, mod_range_hashing, default_ranged_hash, 
 						  prime_rehash_policy, bCacheHashCode, true, true>        base_type;
 		typedef hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>      this_type;
@@ -127,7 +127,7 @@ namespace eastl
 		///
 		explicit hash_map(const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
 			: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(), 
-						Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						Predicate(), std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -142,7 +142,7 @@ namespace eastl
 		explicit hash_map(size_type nBucketCount, const Hash& hashFunction = Hash(), 
 						  const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
 			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
-						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						predicate, std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -155,13 +155,13 @@ namespace eastl
 
 
 		hash_map(this_type&& x)
-		  : base_type(eastl::move(x))
+		  : base_type(std::move(x))
 		{
 		}
 
 
 		hash_map(this_type&& x, const allocator_type& allocator)
-		  : base_type(eastl::move(x), allocator)
+		  : base_type(std::move(x), allocator)
 		{
 		}
 
@@ -174,7 +174,7 @@ namespace eastl
 		hash_map(std::initializer_list<value_type> ilist, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
 				   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
 			: base_type(ilist.begin(), ilist.end(), nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
-						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						predicate, std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -189,7 +189,7 @@ namespace eastl
 		hash_map(ForwardIterator first, ForwardIterator last, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
 				 const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
 			: base_type(first, last, nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
-						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						predicate, std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -209,7 +209,7 @@ namespace eastl
 
 		this_type& operator=(this_type&& x)
 		{
-			return static_cast<this_type&>(base_type::operator=(eastl::move(x)));
+			return static_cast<this_type&>(base_type::operator=(std::move(x)));
 		}
 
 
@@ -264,7 +264,7 @@ namespace eastl
 
 		insert_return_type insert(key_type&& key)
 		{
-			return base_type::DoInsertKey(true_type(), eastl::move(key));
+			return base_type::DoInsertKey(true_type(), std::move(key));
 		}
 
 
@@ -282,7 +282,7 @@ namespace eastl
 		mapped_type& operator[](key_type&& key)
 		{
 			// The Standard states that this function "inserts the value value_type(std::move(key), mapped_type())"
-			return (*base_type::DoInsertKey(true_type(), eastl::move(key)).first).second;
+			return (*base_type::DoInsertKey(true_type(), std::move(key)).first).second;
 		}
 
 
@@ -299,15 +299,15 @@ namespace eastl
 	/// except that contained elements need not be unique. See the 
 	/// documentation for hash_set for details.
 	///
-	template <typename Key, typename T, typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>,
+	template <typename Key, typename T, typename Hash = std::hash<Key>, typename Predicate = std::equal_to<Key>,
 			  typename Allocator = EASTLAllocatorType, bool bCacheHashCode = false>
 	class hash_multimap
-		: public hashtable<Key, eastl::pair<const Key, T>, Allocator, eastl::use_first<eastl::pair<const Key, T> >, Predicate,
+		: public hashtable<Key, std::pair<const Key, T>, Allocator, std::use_first<std::pair<const Key, T> >, Predicate,
 						   Hash, mod_range_hashing, default_ranged_hash, prime_rehash_policy, bCacheHashCode, true, false>
 	{
 	public:
-		typedef hashtable<Key, eastl::pair<const Key, T>, Allocator, 
-						  eastl::use_first<eastl::pair<const Key, T> >, 
+		typedef hashtable<Key, std::pair<const Key, T>, Allocator, 
+						  std::use_first<std::pair<const Key, T> >, 
 						  Predicate, Hash, mod_range_hashing, default_ranged_hash, 
 						  prime_rehash_policy, bCacheHashCode, true, false>           base_type;
 		typedef hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>     this_type;
@@ -333,7 +333,7 @@ namespace eastl
 		///
 		explicit hash_multimap(const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
 			: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(), 
-						Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						Predicate(), std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -348,7 +348,7 @@ namespace eastl
 		explicit hash_multimap(size_type nBucketCount, const Hash& hashFunction = Hash(), 
 							   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
 			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
-						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						predicate, std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -361,13 +361,13 @@ namespace eastl
 
 
 		hash_multimap(this_type&& x)
-		  : base_type(eastl::move(x))
+		  : base_type(std::move(x))
 		{
 		}
 
 
 		hash_multimap(this_type&& x, const allocator_type& allocator)
-		  : base_type(eastl::move(x), allocator)
+		  : base_type(std::move(x), allocator)
 		{
 		}
 
@@ -380,7 +380,7 @@ namespace eastl
 		hash_multimap(std::initializer_list<value_type> ilist, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
 				   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
 			: base_type(ilist.begin(), ilist.end(), nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
-						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						predicate, std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -395,7 +395,7 @@ namespace eastl
 		hash_multimap(ForwardIterator first, ForwardIterator last, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
 					  const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
 			: base_type(first, last, nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
-						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+						predicate, std::use_first<std::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -415,7 +415,7 @@ namespace eastl
 
 		this_type& operator=(this_type&& x)
 		{
-			return static_cast<this_type&>(base_type::operator=(eastl::move(x)));
+			return static_cast<this_type&>(base_type::operator=(std::move(x)));
 		}
 
 
@@ -433,7 +433,7 @@ namespace eastl
 
 		insert_return_type insert(key_type&& key)
 		{
-			return base_type::DoInsertKey(false_type(), eastl::move(key));
+			return base_type::DoInsertKey(false_type(), std::move(key));
 		}
 
 
@@ -481,7 +481,7 @@ namespace eastl
 						   const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& b)
 	{
 		typedef typename hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>::const_iterator const_iterator;
-		typedef typename eastl::iterator_traits<const_iterator>::difference_type difference_type;
+		typedef typename std::iterator_traits<const_iterator>::difference_type difference_type;
 
 		// We implement branching with the assumption that the return value is usually false.
 		if(a.size() != b.size())
@@ -491,8 +491,8 @@ namespace eastl
 		// two elements in a has those same two elements in b but in different order (which should 
 		// still result in equality). Also it's possible that one bucket in a has two elements which 
 		// both match a solitary element in the equivalent bucket in b (which shouldn't result in equality).
-		eastl::pair<const_iterator, const_iterator> aRange;
-		eastl::pair<const_iterator, const_iterator> bRange;
+		std::pair<const_iterator, const_iterator> aRange;
+		std::pair<const_iterator, const_iterator> bRange;
 
 		for(const_iterator ai = a.begin(), aiEnd = a.end(); ai != aiEnd; ai = aRange.second) // For each element in a...
 		{
@@ -500,8 +500,8 @@ namespace eastl
 			bRange = b.equal_range(ai->first); // Get the range of elements in b that are equal to ai.
 
 			// We need to verify that aRange == bRange. First make sure the range sizes are equivalent...
-			const difference_type aDistance = eastl::distance(aRange.first, aRange.second);
-			const difference_type bDistance = eastl::distance(bRange.first, bRange.second);
+			const difference_type aDistance = std::distance(aRange.first, aRange.second);
+			const difference_type bDistance = std::distance(bRange.first, bRange.second);
 
 			if(aDistance != bDistance)
 				return false;
@@ -517,7 +517,7 @@ namespace eastl
 			{
 				// Check to see if these aRange and bRange are any permutation of each other. 
 				// This check gets slower as there are more elements in the range.
-				if(!eastl::is_permutation(aRange.first, aRange.second, bRange.first))
+				if(!std::is_permutation(aRange.first, aRange.second, bRange.first))
 					return false;
 			}
 		}
@@ -533,7 +533,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

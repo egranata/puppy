@@ -15,9 +15,9 @@
 #ifndef SHELL_BUILTIN
 #define SHELL_BUILTIN
 
-#include <EASTL/functional.h>
+#include <functional>
 
-typedef eastl::function<bool(size_t, char**)> builtin_cmd_f;
+typedef std::function<bool(size_t, char**)> builtin_cmd_f;
 
 bool registerBuiltinCommand(const char*, builtin_cmd_f);
 

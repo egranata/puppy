@@ -12,7 +12,7 @@
 	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
 #endif
 
-namespace eastl
+namespace std
 {
 	/// unordered_map 
 	///
@@ -21,13 +21,13 @@ namespace eastl
 	/// container was added to the C++11 standard the committee chose the name
 	/// "unordered_map" to clarify that internally the elements are NOT sorted in
 	/// any particular order.  We provide a template alias here to ensure feature
-	/// parity with the original eastl::hash_map.
+	/// parity with the original std::hash_map.
 	///
 	#if !defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
 		template <typename Key,
 				  typename T,
-				  typename Hash = eastl::hash<Key>,
-				  typename Predicate = eastl::equal_to<Key>,
+				  typename Hash = std::hash<Key>,
+				  typename Predicate = std::equal_to<Key>,
 				  typename Allocator = EASTLAllocatorType,
 				  bool bCacheHashCode = false>
 		using unordered_map = hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>;
@@ -41,14 +41,14 @@ namespace eastl
 	#if !defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
 		template <typename Key,
 				  typename T,
-				  typename Hash = eastl::hash<Key>,
-				  typename Predicate = eastl::equal_to<Key>,
+				  typename Hash = std::hash<Key>,
+				  typename Predicate = std::equal_to<Key>,
 				  typename Allocator = EASTLAllocatorType,
 				  bool bCacheHashCode = false>
 		using unordered_multimap = hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>;
     #endif
 
-} // namespace eastl
+} // namespace std
 
 #endif // Header include guard
 

@@ -21,7 +21,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 	/// EASTL_FIXED_STRING_DEFAULT_NAME
 	///
@@ -544,7 +544,7 @@ namespace eastl
 	inline void fixed_string<T, nodeCount, bEnableOverflow, OverflowAllocator>::swap(this_type& x)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(*this, x);
+		std::fixed_swap(*this, x);
 	}
 
 
@@ -633,7 +633,7 @@ namespace eastl
 		#endif
 
 			return fixed_string(internalLayout().HeapBeginPtr() + position,
-								internalLayout().HeapBeginPtr() + position + eastl::min_alt(n, internalLayout().GetSize() - position));
+								internalLayout().HeapBeginPtr() + position + std::min_alt(n, internalLayout().GetSize() - position));
 	}
 
 
@@ -808,10 +808,10 @@ namespace eastl
 					 fixed_string<T, nodeCount, bEnableOverflow, OverflowAllocator>& b)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(a, b);
+		std::fixed_swap(a, b);
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 #endif // Header include guard

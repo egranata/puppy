@@ -1079,7 +1079,7 @@
 	// Refers to C++11 alias templates.
 	// Example alias template usage:
 	//     template <typename T>
-	//     using Dictionary = eastl::map<eastl::string, T>;
+	//     using Dictionary = std::map<std::string, T>;
 	//
 	//     Dictionary<int> StringIntDictionary;
 	//
@@ -1274,7 +1274,7 @@
 	// EA_COMPILER_NO_RIGHT_ANGLE_BRACKETS
 	//
 	// Defines if the compiler supports >> (as opposed to > >) in template 
-	// declarations such as typedef eastl::list<eastl::list<int>> ListList;
+	// declarations such as typedef std::list<std::list<int>> ListList;
 	//
 	#if !defined(EA_COMPILER_NO_RIGHT_ANGLE_BRACKETS)
 		#if defined(EA_COMPILER_CPP11_ENABLED) && defined(_MSC_VER) && (EA_COMPILER_VERSION >= 1600)     // VS2010+

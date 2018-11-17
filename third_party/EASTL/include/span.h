@@ -3,10 +3,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// This file implements the eastl::span which is part of the C++ standard
+// This file implements the std::span which is part of the C++ standard
 // STL library specification.
 //
-// eastl::span is a non-owning container that refers to a contiguous block of
+// std::span is a non-owning container that refers to a contiguous block of
 // memory.  It bundles up the classic pattern of a pointer and a size into a
 // single type.  A span can either have a static extent, in which case the
 // number of elements in the sequence is known and encoded in the type, or a
@@ -28,24 +28,24 @@
 #include <EASTL/iterator.h>
 #include <EASTL/array.h>
 
-namespace eastl
+namespace std
 {
 	namespace Internal 
 	{
 		// HasSizeAndData
 		// 
-		// custom type trait to determine if eastl::data(Container) and eastl::size(Container) are well-formed.
+		// custom type trait to determine if std::data(Container) and std::size(Container) are well-formed.
 		//
 		template <typename, typename = void>
-		struct HasSizeAndData : eastl::false_type {};
+		struct HasSizeAndData : std::false_type {};
 
 		template <typename T>
-		struct HasSizeAndData<T, void_t<decltype(eastl::size(eastl::declval<T>())), decltype(eastl::data(eastl::declval<T>()))>> : eastl::true_type {};
+		struct HasSizeAndData<T, void_t<decltype(std::size(std::declval<T>())), decltype(std::data(std::declval<T>()))>> : std::true_type {};
 	}
 
 	static EA_CONSTEXPR ptrdiff_t dynamic_extent = ptrdiff_t(-1);
 
-	template <typename T, ptrdiff_t Extent = eastl::dynamic_extent>
+	template <typename T, ptrdiff_t Extent = std::dynamic_extent>
 	class span
 	{
 	public:
@@ -57,8 +57,8 @@ namespace eastl
 		typedef T&                                      reference;
 		typedef T*                                      iterator;
 		typedef const T*                                const_iterator;
-		typedef eastl::reverse_iterator<iterator>       reverse_iterator;
-		typedef eastl::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef std::reverse_iterator<iterator>       reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 		static EA_CONSTEXPR ptrdiff_t extent = Extent;
 
@@ -72,10 +72,10 @@ namespace eastl
 		// copy-assignment operator
 		EA_CPP14_CONSTEXPR span& operator=(const span& other) EA_NOEXCEPT = default;
 
-		// conversion constructors for c-array and eastl::array
+		// conversion constructors for c-array and std::array
 		template <size_t N> EA_CONSTEXPR span(element_type (&arr)[N]) EA_NOEXCEPT;
-		template <size_t N> EA_CONSTEXPR span(eastl::array<value_type, N>& arr) EA_NOEXCEPT;
-		template <size_t N> EA_CONSTEXPR span(const eastl::array<value_type, N>& arr) EA_NOEXCEPT;
+		template <size_t N> EA_CONSTEXPR span(std::array<value_type, N>& arr) EA_NOEXCEPT;
+		template <size_t N> EA_CONSTEXPR span(const std::array<value_type, N>& arr) EA_NOEXCEPT;
 
 		// SfinaeForGenericContainers
 		//
@@ -84,7 +84,7 @@ namespace eastl
 		    enable_if_t<!is_same_v<Container, span> && !is_same_v<Container, array<value_type>> &&
 		                !is_array_v<Container> &&
 		                Internal::HasSizeAndData<Container>::value &&
-		                is_convertible_v<remove_pointer_t<decltype(eastl::data(eastl::declval<Container>()))> (*)[], element_type (*)[]>>;
+		                is_convertible_v<remove_pointer_t<decltype(std::data(std::declval<Container>()))> (*)[], element_type (*)[]>>;
 
 		// generic container conversion constructors
 		template <typename Container, typename = SfinaeForGenericContainers<Container>>
@@ -93,7 +93,7 @@ namespace eastl
 		template <typename Container, typename = SfinaeForGenericContainers<Container>>
 		EA_CONSTEXPR span(const Container& cont);
 
-		template <typename U, ptrdiff_t N, typename = enable_if_t<(Extent == eastl::dynamic_extent || N == Extent) && (is_convertible_v<U(*)[], element_type(*)[]>)>>
+		template <typename U, ptrdiff_t N, typename = enable_if_t<(Extent == std::dynamic_extent || N == Extent) && (is_convertible_v<U(*)[], element_type(*)[]>)>>
 		EA_CONSTEXPR span(const span<U, N>& s) EA_NOEXCEPT;
 
 		// subviews
@@ -156,7 +156,7 @@ namespace eastl
 	template <class T, ptrdiff_t X, class U, ptrdiff_t Y>
 	EA_CONSTEXPR bool operator==(span<T, X> l, span<U, Y> r)
 	{
-		return (l.size() == r.size()) && eastl::equal(l.begin(), l.end(), r.begin());
+		return (l.size() == r.size()) && std::equal(l.begin(), l.end(), r.begin());
 	}
 
 	template <class T, ptrdiff_t X, class U, ptrdiff_t Y>
@@ -203,14 +203,14 @@ namespace eastl
 
 	template <typename T, ptrdiff_t Extent>
 	template <size_t N>
-	EA_CONSTEXPR span<T, Extent>::span(eastl::array<value_type, N> &arr) EA_NOEXCEPT 
+	EA_CONSTEXPR span<T, Extent>::span(std::array<value_type, N> &arr) EA_NOEXCEPT 
 		: span(arr.data(), arr.size())
 	{
 	}
 
 	template <typename T, ptrdiff_t Extent>
 	template <size_t N>
-	EA_CONSTEXPR span<T, Extent>::span(const eastl::array<value_type, N>& arr) EA_NOEXCEPT
+	EA_CONSTEXPR span<T, Extent>::span(const std::array<value_type, N>& arr) EA_NOEXCEPT
 		: span(arr.data(), arr.size())
 	{
 	}
@@ -219,14 +219,14 @@ namespace eastl
 	template <typename T, ptrdiff_t Extent>
 	template <typename Container, typename>
 	EA_CONSTEXPR span<T, Extent>::span(Container& cont)
-		: span(static_cast<pointer>(eastl::data(cont)), static_cast<index_type>(eastl::size(cont)))
+		: span(static_cast<pointer>(std::data(cont)), static_cast<index_type>(std::size(cont)))
 	{
 	}
 
 	template <typename T, ptrdiff_t Extent>
 	template <typename Container, typename>
 	EA_CONSTEXPR span<T, Extent>::span(const Container& cont)
-		: span(static_cast<pointer>(eastl::data(cont)), static_cast<index_type>(eastl::size(cont)))
+		: span(static_cast<pointer>(std::data(cont)), static_cast<index_type>(std::size(cont)))
 	{
 	}
 

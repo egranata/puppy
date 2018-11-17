@@ -26,7 +26,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// gpAssertionFailureFunction
@@ -90,7 +90,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 

@@ -42,7 +42,7 @@ static bool runInShell(const char* program, size_t argc, char** args, bool is_bg
     return true;
 }
 
-bool runline(eastl::string cmdline) {
+bool runline(std::string cmdline) {
     trim(cmdline);
     if(cmdline.empty()) return true;
 

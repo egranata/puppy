@@ -48,7 +48,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	// kRowColIndexNone
@@ -103,7 +103,7 @@ namespace eastl
 		typedef matrix_row<T, allocator_type>                                this_type;
 		typedef T                                                            value_type;
 		typedef matrix_cell<T>                                               cell_type;
-		typedef eastl::map<int, cell_type, eastl::less<int>, allocator_type> CellMap;
+		typedef std::map<int, cell_type, std::less<int>, allocator_type> CellMap;
 
 	public:
 		int     mRow;
@@ -142,7 +142,7 @@ namespace eastl
 		typedef sparse_matrix<T, allocator_type>        MatrixType;
 		typedef matrix_row<T, allocator_type>           row_type;
 		typedef matrix_cell<T>                          cell_type;
-		typedef eastl::map<int, row_type>               RowMap;
+		typedef std::map<int, row_type>               RowMap;
 		typedef typename row_type::CellMap              CellMap;
 
 	public:
@@ -244,7 +244,7 @@ namespace eastl
 		typedef sparse_matrix<T, allocator_type>        MatrixType;
 		typedef matrix_row<T, allocator_type>           row_type;
 		typedef matrix_cell<T>                          cell_type;
-		typedef eastl::map<int, row_type>               RowMap;
+		typedef std::map<int, row_type>               RowMap;
 		typedef typename row_type::CellMap              CellMap;
 
 	public:
@@ -369,7 +369,7 @@ namespace eastl
 		typedef sparse_matrix<T, allocator_type>        MatrixType;
 		typedef matrix_row<T, allocator_type>           row_type;
 		typedef matrix_cell<T>                          cell_type;
-		typedef eastl::map<int, row_type>               RowMap;
+		typedef std::map<int, row_type>               RowMap;
 		typedef typename row_type::CellMap              CellMap;
 
 	public:
@@ -476,7 +476,7 @@ namespace eastl
 		typedef Allocator                                   allocator_type;
 		typedef matrix_row<T, Allocator>                    row_type; 
 		typedef typename row_type::CellMap                  CellMap;
-		typedef eastl::map<int, row_type, allocator_type>   RowMap;
+		typedef std::map<int, row_type, allocator_type>   RowMap;
 
 		// iterator friends
 		friend class sparse_matrix_row_iterator<T>;
@@ -668,8 +668,8 @@ namespace eastl
 	template <typename T, typename Allocator>
 	inline void sparse_matrix<T>& sparse_matrix<T, Allocator>::swap()
 	{
-		eastl::swap(mnSize,  x.mnSize);
-		eastl::swap(mRowMap, x.mRowMap);
+		std::swap(mnSize,  x.mnSize);
+		std::swap(mRowMap, x.mRowMap);
 	}
 
 
@@ -1311,7 +1311,7 @@ namespace eastl
 		{
 			const typename RowMap::value_type insertionPair(nRow, row_type(nRow));
 
-			eastl::pair<typename RowMap::iterator, bool> insertionResult = mRowMap.insert(insertionPair);
+			std::pair<typename RowMap::iterator, bool> insertionResult = mRowMap.insert(insertionPair);
 			row_type& row = (*insertionResult.first).second;
 		
 			EASTL_ASSERT(row.mRow == nRow);         // Make sure we are now on the row we just inserted.
@@ -1559,7 +1559,7 @@ namespace eastl
 
 
 
-} // namespace eastl
+} // namespace std
 
 #endif
 

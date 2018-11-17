@@ -17,8 +17,8 @@
 #ifndef PUPPED_DOCUMENT
 #define PUPPED_DOCUMENT
 
-#include <EASTL/string.h>
-#include <EASTL/vector.h>
+#include <string>
+#include <vector>
 
 class Document {
     public:
@@ -32,12 +32,12 @@ class Document {
         void deleteCurrentLine();
 
         void move(size_t newLine);
-        void insert(const eastl::string& line);
-        eastl::string toString();
-        eastl::vector<eastl::string> toLines();
+        void insert(const std::string& line);
+        std::string toString();
+        std::vector<std::string> toLines();
     private:
         size_t mIndex;
-        eastl::vector<eastl::string> mLines;
+        std::vector<std::string> mLines;
 };
 
 #endif

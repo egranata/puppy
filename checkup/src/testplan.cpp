@@ -24,7 +24,7 @@ const char* TestPlan::name() {
     return mName.c_str();
 }
 
-TestPlan& TestPlan::add(eastl::shared_ptr<Test> test) {
+TestPlan& TestPlan::add(std::shared_ptr<Test> test) {
     mTests.push_back(test);
     return *this;
 }

@@ -18,7 +18,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 	namespace Internal
 	{
@@ -93,7 +93,7 @@ namespace eastl
 
 		// We could solve this by having single global mutex for all shared_ptrs, a set of mutexes for shared_ptrs, 
 		// a single mutex for every shared_ptr, or have a template parameter that enables mutexes for just some shared_ptrs.
-		eastl::late_constructed<mutex, true> gSharedPtrMutex;
+		std::late_constructed<mutex, true> gSharedPtrMutex;
 
 		shared_ptr_auto_mutex::shared_ptr_auto_mutex(const void* /*pSharedPtr*/)
 			: auto_mutex(*gSharedPtrMutex.get())
@@ -103,7 +103,7 @@ namespace eastl
 
 	} // namespace Internal
 
-} // namespace eastl
+} // namespace std
 
 
 

@@ -16,11 +16,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <EASTL/string.h>
-#include <EASTL/unordered_map.h>
+
+#include <string>
+#include <unordered_map>
 
 namespace {
-    using builtin_map = eastl::unordered_map<eastl::string, builtin_cmd_f>;
+    using builtin_map = std::unordered_map<std::string, builtin_cmd_f>;
     builtin_map& getBuiltinMap() {
         static builtin_map gMap;
         return gMap;

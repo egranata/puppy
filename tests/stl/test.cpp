@@ -16,10 +16,12 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
-#include <EASTL/vector.h>
+
 #include <stdio.h>
-#include <EASTL/map.h>
-#include <EASTL/string.h>
+
+#include <map>
+#include <string>
+#include <vector>
 
 class TheTest : public Test {
     public:
@@ -27,7 +29,7 @@ class TheTest : public Test {
     
     private:
         void testvector() {
-            eastl::vector<int> vint;
+            std::vector<int> vint;
             CHECK_EQ(vint.size(), 0);
             CHECK_TRUE(vint.empty());
 
@@ -42,7 +44,7 @@ class TheTest : public Test {
         }
 
         void testmap() {
-            eastl::map<int, int> mint;
+            std::map<int, int> mint;
             CHECK_TRUE(mint.empty());
 
             mint.emplace(123, 456);
@@ -52,7 +54,7 @@ class TheTest : public Test {
         }
 
         void teststring() {
-            eastl::string s = "Hello world";
+            std::string s = "Hello world";
             CHECK_TRUE(s == "Hello world");
             CHECK_EQ(s[0], 'H');
             s += ". This is a test";

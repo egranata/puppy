@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // *** Note ***
 // *** This code is deprecated in favor of the C++11-conforming             *** 
-// *** eastl::unique_ptr template class found in <EASTL/unique_ptr.h>       *** 
+// *** std::unique_ptr template class found in <EASTL/unique_ptr.h>       *** 
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -24,7 +24,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	/// class scoped_ptr
 	///
@@ -240,7 +240,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

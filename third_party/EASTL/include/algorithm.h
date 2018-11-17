@@ -281,7 +281,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	/// min_element
 	///
@@ -437,14 +437,14 @@ namespace eastl
 		/// the problem and may fix it for a future VS version.
 		///
 		template <typename T>
-		inline EA_CONSTEXPR typename eastl::enable_if<eastl::is_scalar<T>::value, T>::type
+		inline EA_CONSTEXPR typename std::enable_if<std::is_scalar<T>::value, T>::type
 		min(T a, T b)
 		{
 			return b < a ? b : a;
 		}
 	
 		template <typename T>
-		inline typename eastl::enable_if<!eastl::is_scalar<T>::value, const T&>::type
+		inline typename std::enable_if<!std::is_scalar<T>::value, const T&>::type
 		min(const T& a, const T& b)
 		{
 			return b < a ? b : a;
@@ -500,14 +500,14 @@ namespace eastl
 	/// See min(a, b) for detailed specifications.
 	///
 	template <typename T>
-	inline EA_CONSTEXPR typename eastl::enable_if<eastl::is_scalar<T>::value, T>::type
+	inline EA_CONSTEXPR typename std::enable_if<std::is_scalar<T>::value, T>::type
 	min_alt(T a, T b)
 	{
 		return b < a ? b : a;
 	}
 
 	template <typename T>
-	inline typename eastl::enable_if<!eastl::is_scalar<T>::value, const T&>::type
+	inline typename std::enable_if<!std::is_scalar<T>::value, const T&>::type
 	min_alt(const T& a, const T& b)
 	{
 		return b < a ? b : a;
@@ -620,14 +620,14 @@ namespace eastl
 		/// done by other STL implementations.
 		///
 		template <typename T>
-		inline EA_CONSTEXPR typename eastl::enable_if<eastl::is_scalar<T>::value, T>::type
+		inline EA_CONSTEXPR typename std::enable_if<std::is_scalar<T>::value, T>::type
 		max(T a, T b)
 		{
 			return a < b ? b : a;
 		}
 
 		template <typename T>
-		inline typename eastl::enable_if<!eastl::is_scalar<T>::value, const T&>::type
+		inline typename std::enable_if<!std::is_scalar<T>::value, const T&>::type
 		max(const T& a, const T& b)
 		{
 			return a < b ? b : a;
@@ -682,14 +682,14 @@ namespace eastl
 	/// collisions with Microsoft #defines of min and max.
 	///
 	template <typename T>
-	inline EA_CONSTEXPR typename eastl::enable_if<eastl::is_scalar<T>::value, T>::type
+	inline EA_CONSTEXPR typename std::enable_if<std::is_scalar<T>::value, T>::type
 	max_alt(T a, T b)
 	{
 		return a < b ? b : a;
 	}
 
 	template <typename T>
-	inline typename eastl::enable_if<!eastl::is_scalar<T>::value, const T&>::type
+	inline typename std::enable_if<!std::is_scalar<T>::value, const T&>::type
 	max_alt(const T& a, const T& b)
 	{
 		return a < b ? b : a;
@@ -771,7 +771,7 @@ namespace eastl
 	template <typename T >
 	T min(std::initializer_list<T> ilist)
 	{
-		return *eastl::min_element(ilist.begin(), ilist.end());
+		return *std::min_element(ilist.begin(), ilist.end());
 	}
 
 	/// min(std::initializer_list, Compare)
@@ -779,7 +779,7 @@ namespace eastl
 	template <typename T, typename Compare>
 	T min(std::initializer_list<T> ilist, Compare compare)
 	{
-		return *eastl::min_element(ilist.begin(), ilist.end(), compare);
+		return *std::min_element(ilist.begin(), ilist.end(), compare);
 	}
 
 
@@ -788,7 +788,7 @@ namespace eastl
 	template <typename T >
 	T max(std::initializer_list<T> ilist)
 	{
-		return *eastl::max_element(ilist.begin(), ilist.end());
+		return *std::max_element(ilist.begin(), ilist.end());
 	}
 
 	/// max(std::initializer_list, Compare)
@@ -796,7 +796,7 @@ namespace eastl
 	template <typename T, typename Compare>
 	T max(std::initializer_list<T> ilist, Compare compare)
 	{
-		return *eastl::max_element(ilist.begin(), ilist.end(), compare);
+		return *std::max_element(ilist.begin(), ilist.end(), compare);
 	}
 
 
@@ -811,10 +811,10 @@ namespace eastl
 	/// where N is distance(first, last).
 	///
 	template <typename ForwardIterator, typename Compare>
-	eastl::pair<ForwardIterator, ForwardIterator> 
+	std::pair<ForwardIterator, ForwardIterator> 
 	minmax_element(ForwardIterator first, ForwardIterator last, Compare compare)
 	{
-		eastl::pair<ForwardIterator, ForwardIterator> result(first, first);
+		std::pair<ForwardIterator, ForwardIterator> result(first, first);
  
 		if(!(first == last) && !(++first == last))
 		{ 
@@ -865,12 +865,12 @@ namespace eastl
 
 
 	template <typename ForwardIterator>
-	eastl::pair<ForwardIterator, ForwardIterator> 
+	std::pair<ForwardIterator, ForwardIterator> 
 	minmax_element(ForwardIterator first, ForwardIterator last)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::value_type value_type;
+		typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
 
-		return eastl::minmax_element(first, last, eastl::less<value_type>());
+		return std::minmax_element(first, last, std::less<value_type>());
 	}
 
 
@@ -887,17 +887,17 @@ namespace eastl
 	// users unless they used auto (e.g. auto result = minmax(17, 33); )
 	//
 	// template <typename T> 
-	// inline EA_CONSTEXPR typename eastl::enable_if<eastl::is_scalar<T>::value, eastl::pair<T, T> >::type
+	// inline EA_CONSTEXPR typename std::enable_if<std::is_scalar<T>::value, std::pair<T, T> >::type
 	// minmax(T a, T b)
 	// {
-	//     return (b < a) ? eastl::make_pair(b, a) : eastl::make_pair(a, b);
+	//     return (b < a) ? std::make_pair(b, a) : std::make_pair(a, b);
 	// }
 	//
 	// template <typename T> 
-	// inline typename eastl::enable_if<!eastl::is_scalar<T>::value, eastl::pair<const T&, const T&> >::type
+	// inline typename std::enable_if<!std::is_scalar<T>::value, std::pair<const T&, const T&> >::type
 	// minmax(const T& a, const T& b)
 	// {
-	//     return (b < a) ? eastl::make_pair(b, a) : eastl::make_pair(a, b);
+	//     return (b < a) ? std::make_pair(b, a) : std::make_pair(a, b);
 	// }
 
 	// It turns out that the following conforming definition of minmax generates a warning when used with VC++ up
@@ -905,38 +905,38 @@ namespace eastl
 	// want to do that. We could do it for scalars alone, though we'd have to decide if we are going to do that 
 	// for all compilers, because it changes the return value from a pair of references to a pair of values.
 	template <typename T> 
-	inline eastl::pair<const T&, const T&>
+	inline std::pair<const T&, const T&>
 	minmax(const T& a, const T& b)
 	{
-		return (b < a) ? eastl::make_pair(b, a) : eastl::make_pair(a, b);
+		return (b < a) ? std::make_pair(b, a) : std::make_pair(a, b);
 	}
 
 
 	template <typename T, typename Compare> 
-	eastl::pair<const T&, const T&>
+	std::pair<const T&, const T&>
 	minmax(const T& a, const T& b, Compare compare)
 	{
-		return compare(b, a) ? eastl::make_pair(b, a) : eastl::make_pair(a, b);
+		return compare(b, a) ? std::make_pair(b, a) : std::make_pair(a, b);
 	}
 
 
 
 	template <typename T>
-	eastl::pair<T, T>
+	std::pair<T, T>
 	minmax(std::initializer_list<T> ilist)
 	{
 		typedef typename std::initializer_list<T>::iterator iterator_type;
-		eastl::pair<iterator_type, iterator_type> iteratorPair = eastl::minmax_element(ilist.begin(), ilist.end());
-		return eastl::make_pair(*iteratorPair.first, *iteratorPair.second);
+		std::pair<iterator_type, iterator_type> iteratorPair = std::minmax_element(ilist.begin(), ilist.end());
+		return std::make_pair(*iteratorPair.first, *iteratorPair.second);
 	}
 
 	template <typename T, class Compare>
-	eastl::pair<T, T>
+	std::pair<T, T>
 	minmax(std::initializer_list<T> ilist, Compare compare)
 	{
 		typedef typename std::initializer_list<T>::iterator iterator_type;
-		eastl::pair<iterator_type, iterator_type> iteratorPair = eastl::minmax_element(ilist.begin(), ilist.end(), compare);
-		return eastl::make_pair(*iteratorPair.first, *iteratorPair.second);
+		std::pair<iterator_type, iterator_type> iteratorPair = std::minmax_element(ilist.begin(), ilist.end(), compare);
+		return std::make_pair(*iteratorPair.first, *iteratorPair.second);
 	}
 
 	template <typename T>
@@ -945,17 +945,17 @@ namespace eastl
 		if(a < b)
 		{
 			if(b < c)
-				return eastl::forward<T>(b);
+				return std::forward<T>(b);
 			else if(a < c)
-				return eastl::forward<T>(c);
+				return std::forward<T>(c);
 			else
-				return eastl::forward<T>(a);
+				return std::forward<T>(a);
 		}
 		else if(a < c)
-			return eastl::forward<T>(a);
+			return std::forward<T>(a);
 		else if(b < c)
-			return eastl::forward<T>(c);
-		return eastl::forward<T>(b);
+			return std::forward<T>(c);
+		return std::forward<T>(b);
 	}
 
 	/// median
@@ -983,7 +983,7 @@ namespace eastl
 	template <typename T>
 	inline T&& median(T&& a, T&& b, T&& c)
 	{
-		return eastl::forward<T>(median_impl(eastl::forward<T>(a), eastl::forward<T>(b), eastl::forward<T>(c)));
+		return std::forward<T>(median_impl(std::forward<T>(a), std::forward<T>(b), std::forward<T>(c)));
 	}
 
 
@@ -993,17 +993,17 @@ namespace eastl
 		if(compare(a, b))
 		{
 			if(compare(b, c))
-				return eastl::forward<T>(b);
+				return std::forward<T>(b);
 			else if(compare(a, c))
-				return eastl::forward<T>(c);
+				return std::forward<T>(c);
 			else
-				return eastl::forward<T>(a);
+				return std::forward<T>(a);
 		}
 		else if(compare(a, c))
-			return eastl::forward<T>(a);
+			return std::forward<T>(a);
 		else if(compare(b, c))
-			return eastl::forward<T>(c);
-		return eastl::forward<T>(b);
+			return std::forward<T>(c);
+		return std::forward<T>(b);
 	}
 
 
@@ -1032,7 +1032,7 @@ namespace eastl
 	template <typename T, typename Compare>
 	inline T&& median(T&& a, T&& b, T&& c, Compare compare)
 	{
-		return eastl::forward<T>(median_impl<T&&, Compare>(eastl::forward<T>(a), eastl::forward<T>(b), eastl::forward<T>(c), compare));
+		return std::forward<T>(median_impl<T&&, Compare>(std::forward<T>(a), std::forward<T>(b), std::forward<T>(c), compare));
 	}
 
 
@@ -1167,9 +1167,9 @@ namespace eastl
 		{
 			if(first != last)
 			{
-				typedef typename eastl::iterator_traits<RandomAccessIterator>::difference_type difference_type;
-				typedef typename eastl::make_unsigned<difference_type>::type                   unsigned_difference_type;
-				typedef typename eastl::uniform_int_distribution<unsigned_difference_type>     uniform_int_distribution;
+				typedef typename std::iterator_traits<RandomAccessIterator>::difference_type difference_type;
+				typedef typename std::make_unsigned<difference_type>::type                   unsigned_difference_type;
+				typedef typename std::uniform_int_distribution<unsigned_difference_type>     uniform_int_distribution;
 				typedef typename uniform_int_distribution::param_type                          uniform_int_distribution_param_type;
 
 				uniform_int_distribution uid;
@@ -1207,7 +1207,7 @@ namespace eastl
 		inline void random_shuffle(RandomAccessIterator first, RandomAccessIterator last, RandomNumberGenerator& rng)
 	#endif
 		{
-			typedef typename eastl::iterator_traits<RandomAccessIterator>::difference_type difference_type;
+			typedef typename std::iterator_traits<RandomAccessIterator>::difference_type difference_type;
 
 			// We must do 'rand((i - first) + 1)' here and cannot do 'rand(last - first)',
 			// as it turns out that the latter results in unequal distribution probabilities.
@@ -1252,7 +1252,7 @@ namespace eastl
 	move_n_impl(InputIterator first, Size n, OutputIterator result, EASTL_ITC_NS::input_iterator_tag)
 	{
 		for(; n > 0; --n)
-			*result++ = eastl::move(*first++);
+			*result++ = std::move(*first++);
 		return result;
 	}
 
@@ -1260,7 +1260,7 @@ namespace eastl
 	inline OutputIterator
 	move_n_impl(RandomAccessIterator first, Size n, OutputIterator result, EASTL_ITC_NS::random_access_iterator_tag)
 	{ 
-		return eastl::move(first, first + n, result); // Take advantage of the optimizations present in the move algorithm.
+		return std::move(first, first + n, result); // Take advantage of the optimizations present in the move algorithm.
 	}
 
 
@@ -1268,8 +1268,8 @@ namespace eastl
 	inline OutputIterator 
 	move_n(InputIterator first, Size n, OutputIterator result)
 	{
-		typedef typename eastl::iterator_traits<InputIterator>::iterator_category IC;
-		return eastl::move_n_impl(first, n, result, IC());
+		typedef typename std::iterator_traits<InputIterator>::iterator_category IC;
+		return std::move_n_impl(first, n, result, IC());
 	}
 
 
@@ -1294,7 +1294,7 @@ namespace eastl
 	inline OutputIterator
 	copy_n_impl(RandomAccessIterator first, Size n, OutputIterator result, EASTL_ITC_NS::random_access_iterator_tag)
 	{ 
-		return eastl::copy(first, first + n, result); // Take advantage of the optimizations present in the copy algorithm.
+		return std::copy(first, first + n, result); // Take advantage of the optimizations present in the copy algorithm.
 	}
 
 
@@ -1302,8 +1302,8 @@ namespace eastl
 	inline OutputIterator 
 	copy_n(InputIterator first, Size n, OutputIterator result)
 	{
-		typedef typename eastl::iterator_traits<InputIterator>::iterator_category IC;
-		return eastl::copy_n_impl(first, n, result, IC());
+		typedef typename std::iterator_traits<InputIterator>::iterator_category IC;
+		return std::copy_n_impl(first, n, result, IC());
 	}
 
 
@@ -1349,7 +1349,7 @@ namespace eastl
 		static BidirectionalIterator2 move_or_copy_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 		{
 			while(first != last)
-				*--resultEnd = eastl::move(*--last);
+				*--resultEnd = std::move(*--last);
 			return resultEnd; // resultEnd now points to the beginning of the destination sequence instead of the end.
 		}
 	};
@@ -1361,10 +1361,10 @@ namespace eastl
 		template<typename BidirectionalIterator1, typename BidirectionalIterator2>
 		static BidirectionalIterator2 move_or_copy_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 		{
-			typedef typename eastl::iterator_traits<BidirectionalIterator1>::difference_type difference_type;
+			typedef typename std::iterator_traits<BidirectionalIterator1>::difference_type difference_type;
 
 			for(difference_type n = (last - first); n > 0; --n)
-				*--resultEnd = eastl::move(*--last);
+				*--resultEnd = std::move(*--last);
 			return resultEnd; // resultEnd now points to the beginning of the destination sequence instead of the end.
 		}
 	};
@@ -1378,7 +1378,7 @@ namespace eastl
 		template <typename BidirectionalIterator1, typename BidirectionalIterator2>
 		static BidirectionalIterator2 move_or_copy_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 		{
-			typedef typename eastl::iterator_traits<BidirectionalIterator1>::difference_type difference_type;
+			typedef typename std::iterator_traits<BidirectionalIterator1>::difference_type difference_type;
 
 			for(difference_type n = (last - first); n > 0; --n)
 				*--resultEnd = *--last;
@@ -1401,17 +1401,17 @@ namespace eastl
 	template <bool isMove, typename BidirectionalIterator1, typename BidirectionalIterator2>
 	inline BidirectionalIterator2 move_and_copy_backward_chooser(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 	{
-		typedef typename eastl::iterator_traits<BidirectionalIterator1>::iterator_category IIC;
-		typedef typename eastl::iterator_traits<BidirectionalIterator2>::iterator_category OIC;
-		typedef typename eastl::iterator_traits<BidirectionalIterator1>::value_type        value_type_input;
-		typedef typename eastl::iterator_traits<BidirectionalIterator2>::value_type        value_type_output;
+		typedef typename std::iterator_traits<BidirectionalIterator1>::iterator_category IIC;
+		typedef typename std::iterator_traits<BidirectionalIterator2>::iterator_category OIC;
+		typedef typename std::iterator_traits<BidirectionalIterator1>::value_type        value_type_input;
+		typedef typename std::iterator_traits<BidirectionalIterator2>::value_type        value_type_output;
 
-		const bool canBeMemmoved = eastl::is_trivially_copyable<value_type_output>::value && 
-								   eastl::is_same<value_type_input, value_type_output>::value && 
-								  (eastl::is_pointer<BidirectionalIterator1>::value || eastl::is_same<IIC, eastl::contiguous_iterator_tag>::value) && 
-								  (eastl::is_pointer<BidirectionalIterator2>::value || eastl::is_same<OIC, eastl::contiguous_iterator_tag>::value);
+		const bool canBeMemmoved = std::is_trivially_copyable<value_type_output>::value && 
+								   std::is_same<value_type_input, value_type_output>::value && 
+								  (std::is_pointer<BidirectionalIterator1>::value || std::is_same<IIC, std::contiguous_iterator_tag>::value) && 
+								  (std::is_pointer<BidirectionalIterator2>::value || std::is_same<OIC, std::contiguous_iterator_tag>::value);
 
-		return eastl::move_and_copy_backward_helper<IIC, isMove, canBeMemmoved>::move_or_copy_backward(first, last, resultEnd); // Need to chose based on the input iterator tag and not the output iterator tag, because containers accept input ranges of iterator types different than self.
+		return std::move_and_copy_backward_helper<IIC, isMove, canBeMemmoved>::move_or_copy_backward(first, last, resultEnd); // Need to chose based on the input iterator tag and not the output iterator tag, because containers accept input ranges of iterator types different than self.
 	}
 
 
@@ -1419,7 +1419,7 @@ namespace eastl
 	template <bool isMove, typename BidirectionalIterator1, typename BidirectionalIterator2>
 	inline BidirectionalIterator2 move_and_copy_backward_unwrapper(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 	{
-		return BidirectionalIterator2(eastl::move_and_copy_backward_chooser<isMove>(eastl::unwrap_iterator(first), eastl::unwrap_iterator(last), eastl::unwrap_iterator(resultEnd))); // Have to convert to BidirectionalIterator2 because result.base() could be a T*
+		return BidirectionalIterator2(std::move_and_copy_backward_chooser<isMove>(std::unwrap_iterator(first), std::unwrap_iterator(last), std::unwrap_iterator(resultEnd))); // Have to convert to BidirectionalIterator2 because result.base() could be a T*
 	}
 
 
@@ -1433,21 +1433,21 @@ namespace eastl
 	/// Note: If result is within [first, last), move must be used instead of move_backward. 
 	///
 	/// Example usage:
-	///     eastl::move_backward(myArray.begin(), myArray.end(), myDestArray.end()); 
+	///     std::move_backward(myArray.begin(), myArray.end(), myDestArray.end()); 
 	/// 
 	/// Reference implementation:
 	///     template <typename BidirectionalIterator1, typename BidirectionalIterator2>
 	///     BidirectionalIterator2 move_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 	///     {
 	///         while(last != first)
-	///             *--resultEnd = eastl::move(*--last);
+	///             *--resultEnd = std::move(*--last);
 	///         return resultEnd;
 	///     }
 	/// 
 	template <typename BidirectionalIterator1, typename BidirectionalIterator2>
 	inline BidirectionalIterator2 move_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 	{
-		return eastl::move_and_copy_backward_unwrapper<true>(eastl::unwrap_iterator(first), eastl::unwrap_iterator(last), resultEnd);
+		return std::move_and_copy_backward_unwrapper<true>(std::unwrap_iterator(first), std::unwrap_iterator(last), resultEnd);
 	}
 
 
@@ -1468,9 +1468,9 @@ namespace eastl
 	template <typename BidirectionalIterator1, typename BidirectionalIterator2>
 	inline BidirectionalIterator2 copy_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 resultEnd)
 	{
-		const bool isMove = eastl::is_move_iterator<BidirectionalIterator1>::value; EA_UNUSED(isMove);
+		const bool isMove = std::is_move_iterator<BidirectionalIterator1>::value; EA_UNUSED(isMove);
 
-		return eastl::move_and_copy_backward_unwrapper<isMove>(eastl::unwrap_iterator(first), eastl::unwrap_iterator(last), resultEnd);
+		return std::move_and_copy_backward_unwrapper<isMove>(std::unwrap_iterator(first), std::unwrap_iterator(last), resultEnd);
 	}
 
 
@@ -1487,10 +1487,10 @@ namespace eastl
 	/// This is because both versions would have three parameters and there could be ambiguity.
 	///
 	template <typename InputIterator, typename T>
-	inline typename eastl::iterator_traits<InputIterator>::difference_type
+	inline typename std::iterator_traits<InputIterator>::difference_type
 	count(InputIterator first, InputIterator last, const T& value)
 	{
-		typename eastl::iterator_traits<InputIterator>::difference_type result = 0;
+		typename std::iterator_traits<InputIterator>::difference_type result = 0;
 
 		for(; first != last; ++first)
 		{
@@ -1504,10 +1504,10 @@ namespace eastl
 	// C++ doesn't define a count with predicate, as it can effectively be synthesized via count_if
 	// with an appropriate predicate. However, it's often simpler to just have count with a predicate.
 	template <typename InputIterator, typename T, typename Predicate>
-	inline typename eastl::iterator_traits<InputIterator>::difference_type
+	inline typename std::iterator_traits<InputIterator>::difference_type
 	count(InputIterator first, InputIterator last, const T& value, Predicate predicate)
 	{
-		typename eastl::iterator_traits<InputIterator>::difference_type result = 0;
+		typename std::iterator_traits<InputIterator>::difference_type result = 0;
 
 		for(; first != last; ++first)
 		{
@@ -1532,10 +1532,10 @@ namespace eastl
 	/// This is because both versions would have three parameters and there could be ambiguity.
 	///
 	template <typename InputIterator, typename Predicate>
-	inline typename eastl::iterator_traits<InputIterator>::difference_type
+	inline typename std::iterator_traits<InputIterator>::difference_type
 	count_if(InputIterator first, InputIterator last, Predicate predicate)
 	{
-		typename eastl::iterator_traits<InputIterator>::difference_type result = 0;
+		typename std::iterator_traits<InputIterator>::difference_type result = 0;
 
 		for(; first != last; ++first)
 		{
@@ -1721,7 +1721,7 @@ namespace eastl
 	{
 		for(; first1 != last1; ++first1)
 		{
-			if(eastl::find(first2, last2, *first1) == last2)
+			if(std::find(first2, last2, *first1) == last2)
 				break;
 		}
 
@@ -1748,11 +1748,11 @@ namespace eastl
 					  ForwardIterator2 first2, ForwardIterator2 last2, 
 					  BinaryPredicate predicate)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator1>::value_type value_type;
+		typedef typename std::iterator_traits<ForwardIterator1>::value_type value_type;
 
 		for(; first1 != last1; ++first1)
 		{
-			if(eastl::find_if(first2, last2, eastl::bind1st<BinaryPredicate, value_type>(predicate, *first1)) == last2)
+			if(std::find_if(first2, last2, std::bind1st<BinaryPredicate, value_type>(predicate, *first1)) == last2)
 				break;
 		}
 
@@ -1769,10 +1769,10 @@ namespace eastl
 		{
 			BidirectionalIterator1 it1(last1);
 
-			while((--it1 != first1) && (eastl::find(first2, last2, *it1) == last2))
+			while((--it1 != first1) && (std::find(first2, last2, *it1) == last2))
 				; // Do nothing
 
-			if((it1 != first1) || (eastl::find(first2, last2, *it1) != last2))
+			if((it1 != first1) || (std::find(first2, last2, *it1) != last2))
 				return it1;
 		}
 
@@ -1786,16 +1786,16 @@ namespace eastl
 				 ForwardIterator2 first2, ForwardIterator2 last2, 
 				 BinaryPredicate predicate)
 	{
-		typedef typename eastl::iterator_traits<BidirectionalIterator1>::value_type value_type;
+		typedef typename std::iterator_traits<BidirectionalIterator1>::value_type value_type;
 
 		if((first1 != last1) && (first2 != last2))
 		{
 			BidirectionalIterator1 it1(last1);
 
-			while((--it1 != first1) && (eastl::find_if(first2, last2, eastl::bind1st<BinaryPredicate, value_type>(predicate, *it1)) == last2))
+			while((--it1 != first1) && (std::find_if(first2, last2, std::bind1st<BinaryPredicate, value_type>(predicate, *it1)) == last2))
 				; // Do nothing
 
-			if((it1 != first1) || (eastl::find_if(first2, last2, eastl::bind1st<BinaryPredicate, value_type>(predicate, *it1)) != last2))
+			if((it1 != first1) || (std::find_if(first2, last2, std::bind1st<BinaryPredicate, value_type>(predicate, *it1)) != last2))
 				return it1;
 		}
 
@@ -1812,10 +1812,10 @@ namespace eastl
 		{
 			BidirectionalIterator1 it1(last1);
 
-			while((--it1 != first1) && (eastl::find(first2, last2, *it1) != last2))
+			while((--it1 != first1) && (std::find(first2, last2, *it1) != last2))
 				; // Do nothing
 
-			if((it1 != first1) || (eastl::find( first2, last2, *it1) == last2))
+			if((it1 != first1) || (std::find( first2, last2, *it1) == last2))
 				return it1;
 		}
 
@@ -1829,16 +1829,16 @@ namespace eastl
 					 ForwardIterator2 first2, ForwardIterator2 last2, 
 					 BinaryPredicate predicate)
 	{
-		typedef typename eastl::iterator_traits<BidirectionalIterator1>::value_type value_type;
+		typedef typename std::iterator_traits<BidirectionalIterator1>::value_type value_type;
 
 		if((first1 != last1) && (first2 != last2))
 		{
 			BidirectionalIterator1 it1(last1);
 
-			while((--it1 != first1) && (eastl::find_if(first2, last2, eastl::bind1st<BinaryPredicate, value_type>(predicate, *it1)) != last2))
+			while((--it1 != first1) && (std::find_if(first2, last2, std::bind1st<BinaryPredicate, value_type>(predicate, *it1)) != last2))
 				; // Do nothing
 
-			if((it1 != first1) || (eastl::find_if(first2, last2, eastl::bind1st<BinaryPredicate, value_type>(predicate, *it1))) != last2)
+			if((it1 != first1) || (std::find_if(first2, last2, std::bind1st<BinaryPredicate, value_type>(predicate, *it1))) != last2)
 				return it1;
 		}
 
@@ -2163,7 +2163,7 @@ namespace eastl
 	lexicographical_compare(const char* first1, const char* last1, const char* first2, const char* last2)
 	{
 		const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		return result ? (result < 0) : (n1 < n2);
 	}
 
@@ -2171,7 +2171,7 @@ namespace eastl
 	lexicographical_compare(char* first1, char* last1, char* first2, char* last2)
 	{
 		const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		return result ? (result < 0) : (n1 < n2);
 	}
 
@@ -2179,7 +2179,7 @@ namespace eastl
 	lexicographical_compare(const unsigned char* first1, const unsigned char* last1, const unsigned char* first2, const unsigned char* last2)
 	{
 		const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		return result ? (result < 0) : (n1 < n2);
 	}
 
@@ -2187,7 +2187,7 @@ namespace eastl
 	lexicographical_compare(unsigned char* first1, unsigned char* last1, unsigned char* first2, unsigned char* last2)
 	{
 		const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		return result ? (result < 0) : (n1 < n2);
 	}
 
@@ -2195,7 +2195,7 @@ namespace eastl
 	lexicographical_compare(const signed char* first1, const signed char* last1, const signed char* first2, const signed char* last2)
 	{
 		const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		return result ? (result < 0) : (n1 < n2);
 	}
 
@@ -2203,7 +2203,7 @@ namespace eastl
 	lexicographical_compare(signed char* first1, signed char* last1, signed char* first2, signed char* last2)
 	{
 		const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		return result ? (result < 0) : (n1 < n2);
 	}
 
@@ -2213,7 +2213,7 @@ namespace eastl
 		//lexicographical_compare(const bool* first1, const bool* last1, const bool* first2, const bool* last2)
 		//{
 		//    const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		//    const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		//    const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		//    return result ? (result < 0) : (n1 < n2);
 		//}
 		//
@@ -2221,7 +2221,7 @@ namespace eastl
 		//lexicographical_compare(bool* first1, bool* last1, bool* first2, bool* last2)
 		//{
 		//    const ptrdiff_t n1(last1 - first1), n2(last2 - first2);
-		//    const int result = memcmp(first1, first2, (size_t)eastl::min_alt(n1, n2));
+		//    const int result = memcmp(first1, first2, (size_t)std::min_alt(n1, n2));
 		//    return result ? (result < 0) : (n1 < n2);
 		//}
 	#endif
@@ -2282,7 +2282,7 @@ namespace eastl
 	/// Complexity: At most last1 first1 applications of the corresponding predicate.
 	///
 	template <class InputIterator1, class InputIterator2>
-	inline eastl::pair<InputIterator1, InputIterator2>
+	inline std::pair<InputIterator1, InputIterator2>
 	mismatch(InputIterator1 first1, InputIterator1 last1,
 			 InputIterator2 first2) // , InputIterator2 last2)
 	{
@@ -2292,7 +2292,7 @@ namespace eastl
 			++first2;
 		}
 
-		return eastl::pair<InputIterator1, InputIterator2>(first1, first2);
+		return std::pair<InputIterator1, InputIterator2>(first1, first2);
 	}
 
 
@@ -2311,7 +2311,7 @@ namespace eastl
 	/// Complexity: At most last1 first1 applications of the corresponding predicate.
 	///
 	template <class InputIterator1, class InputIterator2, class BinaryPredicate>
-	inline eastl::pair<InputIterator1, InputIterator2>
+	inline std::pair<InputIterator1, InputIterator2>
 	mismatch(InputIterator1 first1, InputIterator1 last1,
 			 InputIterator2 first2, // InputIterator2 last2,
 			 BinaryPredicate predicate)
@@ -2322,7 +2322,7 @@ namespace eastl
 			++first2;
 		}
 
-		return eastl::pair<InputIterator1, InputIterator2>(first1, first2);
+		return std::pair<InputIterator1, InputIterator2>(first1, first2);
 	}
 
 
@@ -2348,16 +2348,16 @@ namespace eastl
 	ForwardIterator
 	lower_bound(ForwardIterator first, ForwardIterator last, const T& value)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::difference_type DifferenceType;
+		typedef typename std::iterator_traits<ForwardIterator>::difference_type DifferenceType;
 
-		DifferenceType d = eastl::distance(first, last); // This will be efficient for a random access iterator such as an array.
+		DifferenceType d = std::distance(first, last); // This will be efficient for a random access iterator such as an array.
 
 		while(d > 0)
 		{
 			ForwardIterator i  = first;
 			DifferenceType  d2 = d >> 1; // We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 
-			eastl::advance(i, d2); // This will be efficient for a random access iterator such as an array.
+			std::advance(i, d2); // This will be efficient for a random access iterator such as an array.
 
 			if(*i < value)
 			{
@@ -2396,16 +2396,16 @@ namespace eastl
 	ForwardIterator
 	lower_bound(ForwardIterator first, ForwardIterator last, const T& value, Compare compare)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::difference_type DifferenceType;
+		typedef typename std::iterator_traits<ForwardIterator>::difference_type DifferenceType;
 
-		DifferenceType d = eastl::distance(first, last); // This will be efficient for a random access iterator such as an array.
+		DifferenceType d = std::distance(first, last); // This will be efficient for a random access iterator such as an array.
 
 		while(d > 0)
 		{
 			ForwardIterator i  = first;
 			DifferenceType  d2 = d >> 1; // We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 
-			eastl::advance(i, d2); // This will be efficient for a random access iterator such as an array.
+			std::advance(i, d2); // This will be efficient for a random access iterator such as an array.
 
 			if(compare(*i, value))
 			{
@@ -2439,16 +2439,16 @@ namespace eastl
 	ForwardIterator
 	upper_bound(ForwardIterator first, ForwardIterator last, const T& value)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::difference_type DifferenceType;
+		typedef typename std::iterator_traits<ForwardIterator>::difference_type DifferenceType;
 
-		DifferenceType len = eastl::distance(first, last);
+		DifferenceType len = std::distance(first, last);
 
 		while(len > 0)
 		{
 			ForwardIterator i    = first;
 			DifferenceType  len2 = len >> 1; // We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 
-			eastl::advance(i, len2);
+			std::advance(i, len2);
 
 			if(!(value < *i)) // Note that we always express value comparisons in terms of < or ==.
 			{
@@ -2485,16 +2485,16 @@ namespace eastl
 	ForwardIterator
 	upper_bound(ForwardIterator first, ForwardIterator last, const T& value, Compare compare)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::difference_type DifferenceType;
+		typedef typename std::iterator_traits<ForwardIterator>::difference_type DifferenceType;
 
-		DifferenceType len = eastl::distance(first, last);
+		DifferenceType len = std::distance(first, last);
 
 		while(len > 0)
 		{
 			ForwardIterator i    = first;
 			DifferenceType  len2 = len >> 1; // We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 
-			eastl::advance(i, len2);
+			std::advance(i, len2);
 
 			if(!compare(value, *i))
 			{
@@ -2524,16 +2524,16 @@ namespace eastl
 	equal_range(ForwardIterator first, ForwardIterator last, const T& value)
 	{
 		typedef pair<ForwardIterator, ForwardIterator> ResultType;
-		typedef typename eastl::iterator_traits<ForwardIterator>::difference_type DifferenceType;
+		typedef typename std::iterator_traits<ForwardIterator>::difference_type DifferenceType;
 
-		DifferenceType d = eastl::distance(first, last);
+		DifferenceType d = std::distance(first, last);
 
 		while(d > 0)
 		{
 			ForwardIterator i(first);
 			DifferenceType  d2 = d >> 1; // We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 
-			eastl::advance(i, d2);
+			std::advance(i, d2);
 
 			if(*i < value)
 			{
@@ -2551,8 +2551,8 @@ namespace eastl
 			{
 				ForwardIterator j(i);
 
-				return ResultType(eastl::lower_bound(first, i, value), 
-								  eastl::upper_bound(++j, last, value));
+				return ResultType(std::lower_bound(first, i, value), 
+								  std::upper_bound(++j, last, value));
 			}
 		}
 		return ResultType(first, first);
@@ -2572,16 +2572,16 @@ namespace eastl
 	equal_range(ForwardIterator first, ForwardIterator last, const T& value, Compare compare)
 	{
 		typedef pair<ForwardIterator, ForwardIterator> ResultType;
-		typedef typename eastl::iterator_traits<ForwardIterator>::difference_type DifferenceType;
+		typedef typename std::iterator_traits<ForwardIterator>::difference_type DifferenceType;
 
-		DifferenceType d = eastl::distance(first, last);
+		DifferenceType d = std::distance(first, last);
 
 		while(d > 0)
 		{
 			ForwardIterator i(first);
 			DifferenceType  d2 = d >> 1; // We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 
-			eastl::advance(i, d2);
+			std::advance(i, d2);
 
 			if(compare(*i, value))
 			{
@@ -2599,8 +2599,8 @@ namespace eastl
 			{
 				ForwardIterator j(i);
 
-				return ResultType(eastl::lower_bound(first, i, value, compare), 
-								  eastl::upper_bound(++j, last, value, compare));
+				return ResultType(std::lower_bound(first, i, value, compare), 
+								  std::upper_bound(++j, last, value, compare));
 			}
 		}
 		return ResultType(first, first);
@@ -2699,7 +2699,7 @@ namespace eastl
 		{
 			if(!predicate(*first))
 			{
-				*result = eastl::move(*first);
+				*result = std::move(*first);
 				++result;
 			}
 		}
@@ -2734,11 +2734,11 @@ namespace eastl
 	inline ForwardIterator
 	remove(ForwardIterator first, ForwardIterator last, const T& value)
 	{
-		first = eastl::find(first, last, value);
+		first = std::find(first, last, value);
 		if(first != last)
 		{
 			ForwardIterator i(first);
-			return eastl::remove_copy(++i, last, first, value);
+			return std::remove_copy(++i, last, first, value);
 		}
 		return first;
 	}
@@ -2771,11 +2771,11 @@ namespace eastl
 	inline ForwardIterator
 	remove_if(ForwardIterator first, ForwardIterator last, Predicate predicate)
 	{
-		first = eastl::find_if(first, last, predicate);
+		first = std::find_if(first, last, predicate);
 		if(first != last)
 		{
 			ForwardIterator i(first);
-			return eastl::remove_copy_if<ForwardIterator, ForwardIterator, Predicate>(++i, last, first, predicate);
+			return std::remove_copy_if<ForwardIterator, ForwardIterator, Predicate>(++i, last, first, predicate);
 		}
 		return first;
 	}
@@ -2842,7 +2842,7 @@ namespace eastl
 	inline void reverse_impl(BidirectionalIterator first, BidirectionalIterator last, EASTL_ITC_NS::bidirectional_iterator_tag)
 	{
 		for(; (first != last) && (first != --last); ++first) // We are not allowed to use operator <, <=, >, >= with a
-			eastl::iter_swap(first, last);                   // generic (bidirectional or otherwise) iterator.
+			std::iter_swap(first, last);                   // generic (bidirectional or otherwise) iterator.
 	}
 
 	template <typename RandomAccessIterator>
@@ -2851,7 +2851,7 @@ namespace eastl
 		if(first != last)
 		{
 			for(; first < --last; ++first)      // With a random access iterator, we can use operator < to more efficiently implement
-				eastl::iter_swap(first, last);  // this algorithm. A generic iterator doesn't necessarily have an operator < defined.
+				std::iter_swap(first, last);  // this algorithm. A generic iterator doesn't necessarily have an operator < defined.
 		}
 	}
 
@@ -2867,8 +2867,8 @@ namespace eastl
 	template <typename BidirectionalIterator>
 	inline void reverse(BidirectionalIterator first, BidirectionalIterator last)
 	{
-		typedef typename eastl::iterator_traits<BidirectionalIterator>::iterator_category IC;
-		eastl::reverse_impl(first, last, IC());
+		typedef typename std::iterator_traits<BidirectionalIterator>::iterator_category IC;
+		std::reverse_impl(first, last, IC());
 	}
 
 
@@ -2933,7 +2933,7 @@ namespace eastl
 
 				while(first1 != last1)
 				{
-					// The following loop is the equivalent of eastl::find(first1, last1, *first2)
+					// The following loop is the equivalent of std::find(first1, last1, *first2)
 					while((first1 != last1) && !(*first1 == *first2))
 						++first1;
 
@@ -2963,7 +2963,7 @@ namespace eastl
 				// Fall through to the end.
 			}
 			else
-				return eastl::find(first1, last1, *first2);
+				return std::find(first1, last1, *first2);
 		}
 
 		return first1;
@@ -2971,12 +2971,12 @@ namespace eastl
 
 		#if 0
 		/*  Another implementation which is a little more simpler but executes a little slower on average.
-			typedef typename eastl::iterator_traits<ForwardIterator1>::difference_type difference_type_1;
-			typedef typename eastl::iterator_traits<ForwardIterator2>::difference_type difference_type_2;
+			typedef typename std::iterator_traits<ForwardIterator1>::difference_type difference_type_1;
+			typedef typename std::iterator_traits<ForwardIterator2>::difference_type difference_type_2;
 
-			const difference_type_2 d2 = eastl::distance(first2, last2);
+			const difference_type_2 d2 = std::distance(first2, last2);
 
-			for(difference_type_1 d1 = eastl::distance(first1, last1); d1 >= d2; ++first1, --d1)
+			for(difference_type_1 d1 = std::distance(first1, last1); d1 >= d2; ++first1, --d1)
 			{
 				ForwardIterator1 temp1 = first1;
 
@@ -3015,19 +3015,19 @@ namespace eastl
 		   ForwardIterator2 first2, ForwardIterator2 last2,
 		   BinaryPredicate predicate)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator1>::difference_type difference_type_1;
-		typedef typename eastl::iterator_traits<ForwardIterator2>::difference_type difference_type_2;
+		typedef typename std::iterator_traits<ForwardIterator1>::difference_type difference_type_1;
+		typedef typename std::iterator_traits<ForwardIterator2>::difference_type difference_type_2;
 
-		difference_type_2 d2 = eastl::distance(first2, last2);
+		difference_type_2 d2 = std::distance(first2, last2);
 
 		if(d2 != 0)
 		{
 			ForwardIterator1 i(first1);
-			eastl::advance(i, d2);
+			std::advance(i, d2);
 
-			for(difference_type_1 d1 = eastl::distance(first1, last1); d1 >= d2; --d1)
+			for(difference_type_1 d1 = std::distance(first1, last1); d1 >= d2; --d1)
 			{
-				if(eastl::equal<ForwardIterator1, ForwardIterator2, BinaryPredicate>(first1, i, first2, predicate))
+				if(std::equal<ForwardIterator1, ForwardIterator2, BinaryPredicate>(first1, i, first2, predicate))
 					return first1;
 				if(d1 > d2) // To do: Find a way to make the algorithm more elegant.
 				{
@@ -3051,7 +3051,7 @@ namespace eastl
 		if(count <= 0)
 			return first;
 
-		Size d1 = (Size)eastl::distance(first, last); // Should d1 be of type Size, ptrdiff_t, or iterator_traits<ForwardIterator>::difference_type?
+		Size d1 = (Size)std::distance(first, last); // Should d1 be of type Size, ptrdiff_t, or iterator_traits<ForwardIterator>::difference_type?
 													  // The problem with using iterator_traits<ForwardIterator>::difference_type is that 
 		if(count > d1)                                // ForwardIterator may not be a true iterator but instead something like a pointer.
 			return last;
@@ -3141,8 +3141,8 @@ namespace eastl
 	ForwardIterator
 	search_n(ForwardIterator first, ForwardIterator last, Size count, const T& value)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::iterator_category IC;
-		return eastl::search_n_impl(first, last, count, value, IC());
+		typedef typename std::iterator_traits<ForwardIterator>::iterator_category IC;
+		return std::search_n_impl(first, last, count, value, IC());
 	}
 
 
@@ -3172,7 +3172,7 @@ namespace eastl
 	binary_search(ForwardIterator first, ForwardIterator last, const T& value)
 	{
 		// To do: This can be made slightly faster by not using lower_bound.
-		ForwardIterator i(eastl::lower_bound<ForwardIterator, T>(first, last, value));
+		ForwardIterator i(std::lower_bound<ForwardIterator, T>(first, last, value));
 		return ((i != last) && !(value < *i)); // Note that we always express value comparisons in terms of < or ==.
 	}
 
@@ -3192,7 +3192,7 @@ namespace eastl
 	binary_search(ForwardIterator first, ForwardIterator last, const T& value, Compare compare)
 	{
 		// To do: This can be made slightly faster by not using lower_bound.
-		ForwardIterator i(eastl::lower_bound<ForwardIterator, T, Compare>(first, last, value, compare));
+		ForwardIterator i(std::lower_bound<ForwardIterator, T, Compare>(first, last, value, compare));
 		return ((i != last) && !compare(value, *i));
 	}
 
@@ -3210,7 +3210,7 @@ namespace eastl
 	binary_search_i(ForwardIterator first, ForwardIterator last, const T& value)
 	{
 		// To do: This can be made slightly faster by not using lower_bound.
-		ForwardIterator i(eastl::lower_bound<ForwardIterator, T>(first, last, value));
+		ForwardIterator i(std::lower_bound<ForwardIterator, T>(first, last, value));
 		if((i != last) && !(value < *i)) // Note that we always express value comparisons in terms of < or ==.
 			return i;
 		return last;
@@ -3230,7 +3230,7 @@ namespace eastl
 	binary_search_i(ForwardIterator first, ForwardIterator last, const T& value, Compare compare)
 	{
 		// To do: This can be made slightly faster by not using lower_bound.
-		ForwardIterator i(eastl::lower_bound<ForwardIterator, T, Compare>(first, last, value, compare));
+		ForwardIterator i(std::lower_bound<ForwardIterator, T, Compare>(first, last, value, compare));
 		if((i != last) && !compare(value, *i))
 			return i;
 		return last;
@@ -3262,7 +3262,7 @@ namespace eastl
 	template <typename ForwardIterator>
 	ForwardIterator unique(ForwardIterator first, ForwardIterator last)
 	{
-		first = eastl::adjacent_find<ForwardIterator>(first, last);
+		first = std::adjacent_find<ForwardIterator>(first, last);
 
 		if(first != last) // We expect that there are duplicated items, else the user wouldn't be calling this function.
 		{
@@ -3299,7 +3299,7 @@ namespace eastl
 	template <typename ForwardIterator, typename BinaryPredicate>
 	ForwardIterator unique(ForwardIterator first, ForwardIterator last, BinaryPredicate predicate)
 	{
-		first = eastl::adjacent_find<ForwardIterator, BinaryPredicate>(first, last, predicate);
+		first = std::adjacent_find<ForwardIterator, BinaryPredicate>(first, last, predicate);
 
 		if(first != last) // We expect that there are duplicated items, else the user wouldn't be calling this function.
 		{
@@ -3334,7 +3334,7 @@ namespace eastl
 		{
 			for(ForwardIterator1 result(last1); ; )
 			{
-				const ForwardIterator1 resultNext(eastl::search(first1, last1, first2, last2));
+				const ForwardIterator1 resultNext(std::search(first1, last1, first2, last2));
 
 				if(resultNext != last1) // If another sequence was found...
 				{
@@ -3354,16 +3354,16 @@ namespace eastl
 				  BidirectionalIterator2 first2, BidirectionalIterator2 last2,
 				  EASTL_ITC_NS::bidirectional_iterator_tag, EASTL_ITC_NS::bidirectional_iterator_tag)
 	{
-		typedef eastl::reverse_iterator<BidirectionalIterator1> reverse_iterator1;
-		typedef eastl::reverse_iterator<BidirectionalIterator2> reverse_iterator2;
+		typedef std::reverse_iterator<BidirectionalIterator1> reverse_iterator1;
+		typedef std::reverse_iterator<BidirectionalIterator2> reverse_iterator2;
 
-		reverse_iterator1 rresult(eastl::search(reverse_iterator1(last1), reverse_iterator1(first1), 
+		reverse_iterator1 rresult(std::search(reverse_iterator1(last1), reverse_iterator1(first1), 
 												reverse_iterator2(last2), reverse_iterator2(first2)));
 		if(rresult.base() != first1) // If we found something...
 		{
 			BidirectionalIterator1 result(rresult.base());
 
-			eastl::advance(result, -eastl::distance(first2, last2)); // We have an opportunity to optimize this, as the 
+			std::advance(result, -std::distance(first2, last2)); // We have an opportunity to optimize this, as the 
 			return result;                                           // search function already calculates this distance.
 		}
 		return last1;
@@ -3385,10 +3385,10 @@ namespace eastl
 	find_end(ForwardIterator1 first1, ForwardIterator1 last1,
 			 ForwardIterator2 first2, ForwardIterator2 last2)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator1>::iterator_category IC1;
-		typedef typename eastl::iterator_traits<ForwardIterator2>::iterator_category IC2;
+		typedef typename std::iterator_traits<ForwardIterator1>::iterator_category IC1;
+		typedef typename std::iterator_traits<ForwardIterator2>::iterator_category IC2;
 
-		return eastl::find_end_impl(first1, last1, first2, last2, IC1(), IC2());
+		return std::find_end_impl(first1, last1, first2, last2, IC1(), IC2());
 	}
 
 
@@ -3407,7 +3407,7 @@ namespace eastl
 		{
 			for(ForwardIterator1 result = last1; ; )
 			{
-				const ForwardIterator1 resultNext(eastl::search<ForwardIterator1, ForwardIterator2, BinaryPredicate>(first1, last1, first2, last2, predicate));
+				const ForwardIterator1 resultNext(std::search<ForwardIterator1, ForwardIterator2, BinaryPredicate>(first1, last1, first2, last2, predicate));
 
 				if(resultNext != last1) // If another sequence was found...
 				{
@@ -3428,17 +3428,17 @@ namespace eastl
 				  BinaryPredicate predicate, 
 				  EASTL_ITC_NS::bidirectional_iterator_tag, EASTL_ITC_NS::bidirectional_iterator_tag)
 	{
-		typedef eastl::reverse_iterator<BidirectionalIterator1> reverse_iterator1;
-		typedef eastl::reverse_iterator<BidirectionalIterator2> reverse_iterator2;
+		typedef std::reverse_iterator<BidirectionalIterator1> reverse_iterator1;
+		typedef std::reverse_iterator<BidirectionalIterator2> reverse_iterator2;
 
-		reverse_iterator1 rresult(eastl::search<reverse_iterator1, reverse_iterator2, BinaryPredicate>
+		reverse_iterator1 rresult(std::search<reverse_iterator1, reverse_iterator2, BinaryPredicate>
 											   (reverse_iterator1(last1), reverse_iterator1(first1), 
 												reverse_iterator2(last2), reverse_iterator2(first2),
 												predicate));
 		if(rresult.base() != first1) // If we found something...
 		{
 			BidirectionalIterator1 result(rresult.base());
-			eastl::advance(result, -eastl::distance(first2, last2));
+			std::advance(result, -std::distance(first2, last2));
 			return result;
 		}
 		return last1;
@@ -3463,10 +3463,10 @@ namespace eastl
 			 ForwardIterator2 first2, ForwardIterator2 last2,
 			 BinaryPredicate predicate)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator1>::iterator_category IC1;
-		typedef typename eastl::iterator_traits<ForwardIterator2>::iterator_category IC2;
+		typedef typename std::iterator_traits<ForwardIterator1>::iterator_category IC1;
+		typedef typename std::iterator_traits<ForwardIterator2>::iterator_category IC2;
 
-		return eastl::find_end_impl<ForwardIterator1, ForwardIterator2, BinaryPredicate>
+		return std::find_end_impl<ForwardIterator1, ForwardIterator2, BinaryPredicate>
 								   (first1, last1, first2, last2, predicate, IC1(), IC2());
 	}
 
@@ -3510,7 +3510,7 @@ namespace eastl
 			}
 		}
 
-		return eastl::copy(first1, last1, result);
+		return std::copy(first1, last1, result);
 	}
 
 
@@ -3540,7 +3540,7 @@ namespace eastl
 			}
 		}
 
-		return eastl::copy(first1, last1, result);
+		return std::copy(first1, last1, result);
 	}
 
 
@@ -3588,7 +3588,7 @@ namespace eastl
 			}
 		}
 	
-		return eastl::copy(first2, last2, eastl::copy(first1, last1, result));
+		return std::copy(first2, last2, std::copy(first1, last1, result));
 	}
 
 
@@ -3620,7 +3620,7 @@ namespace eastl
 			}
 		}
 	
-		return eastl::copy(first2, last2, eastl::copy(first1, last1, result));
+		return std::copy(first2, last2, std::copy(first1, last1, result));
 	}
 
 
@@ -3743,7 +3743,7 @@ namespace eastl
 			++result;
 		}
 
-		return eastl::copy(first2, last2, eastl::copy(first1, last1, result));
+		return std::copy(first2, last2, std::copy(first1, last1, result));
 	}
 
 
@@ -3775,7 +3775,7 @@ namespace eastl
 			++result;
 		}
 
-		return eastl::copy(first2, last2, eastl::copy(first1, last1, result));
+		return std::copy(first2, last2, std::copy(first1, last1, result));
 	}
 
 
@@ -3784,7 +3784,7 @@ namespace eastl
 	template<typename ForwardIterator1, typename ForwardIterator2>
 	bool is_permutation(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator1>::difference_type difference_type;
+		typedef typename std::iterator_traits<ForwardIterator1>::difference_type difference_type;
 
 		// Skip past any equivalent initial elements.
 		while((first1 != last1) && (*first1 == *first2))
@@ -3795,17 +3795,17 @@ namespace eastl
 
 		if(first1 != last1)
 		{
-			const difference_type first1Size = eastl::distance(first1, last1);
+			const difference_type first1Size = std::distance(first1, last1);
 			ForwardIterator2 last2 = first2;
-			eastl::advance(last2, first1Size);
+			std::advance(last2, first1Size);
 
 			for(ForwardIterator1 i = first1; i != last1; ++i)
 			{
-				if(i == eastl::find(first1, i, *i)) 
+				if(i == std::find(first1, i, *i)) 
 				{
-					const difference_type c = eastl::count(first2, last2, *i);
+					const difference_type c = std::count(first2, last2, *i);
 
-					if((c == 0) || (c != eastl::count(i, last1, *i)))
+					if((c == 0) || (c != std::count(i, last1, *i)))
 						return false;
 				}
 			}
@@ -3819,7 +3819,7 @@ namespace eastl
 	template<typename ForwardIterator1, typename ForwardIterator2, class BinaryPredicate>
 	bool is_permutation(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, BinaryPredicate predicate)
 	{
-		typedef typename eastl::iterator_traits<ForwardIterator1>::difference_type difference_type;
+		typedef typename std::iterator_traits<ForwardIterator1>::difference_type difference_type;
 
 		// Skip past any equivalent initial elements.
 		while((first1 != last1) && predicate(*first1, *first2))
@@ -3830,17 +3830,17 @@ namespace eastl
 
 		if(first1 != last1)
 		{
-			const difference_type first1Size = eastl::distance(first1, last1);
+			const difference_type first1Size = std::distance(first1, last1);
 			ForwardIterator2 last2 = first2;
-			eastl::advance(last2, first1Size);
+			std::advance(last2, first1Size);
 
 			for(ForwardIterator1 i = first1; i != last1; ++i)
 			{
-				if(i == eastl::find(first1, i, *i, predicate)) 
+				if(i == std::find(first1, i, *i, predicate)) 
 				{
-					const difference_type c = eastl::count(first2, last2, *i, predicate);
+					const difference_type c = std::count(first2, last2, *i, predicate);
 
-					if((c == 0) || (c != eastl::count(i, last1, *i, predicate)))
+					if((c == 0) || (c != std::count(i, last1, *i, predicate)))
 						return false;
 				}
 			}
@@ -3894,14 +3894,14 @@ namespace eastl
 						j = last;
 						while(!compare(*i, *--j)) // Find the final value that's greater than the first (it may be equal to the second).
 							{}
-						eastl::iter_swap(i, j);     // Swap the first and the final.
-						eastl::reverse(ii, last);   // Reverse the ranget from second to last. 
+						std::iter_swap(i, j);     // Swap the first and the final.
+						std::reverse(ii, last);   // Reverse the ranget from second to last. 
 						return true;
 					}
 
 					if(i == first) // There are no two consecutive values where the first is less than the second, meaning the range is in reverse order. The reverse ordered range is always the last permutation.
 					{
-						eastl::reverse(first, last);
+						std::reverse(first, last);
 						break; // We are done.
 					}
 				}
@@ -3914,9 +3914,9 @@ namespace eastl
 	template<typename BidirectionalIterator>
 	bool next_permutation(BidirectionalIterator first, BidirectionalIterator last)
 	{
-		typedef typename eastl::iterator_traits<BidirectionalIterator>::value_type value_type;
+		typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
 
-		return next_permutation(first, last, eastl::less<value_type>());
+		return next_permutation(first, last, std::less<value_type>());
 	}
 
 
@@ -3962,7 +3962,7 @@ namespace eastl
 		template<typename ForwardIterator>
 		ForwardIterator rotate_general_impl(ForwardIterator first, ForwardIterator middle, ForwardIterator last)
 		{
-			using eastl::swap;
+			using std::swap;
 
 			ForwardIterator current = middle;
 
@@ -3993,11 +3993,11 @@ namespace eastl
 		template <typename ForwardIterator>
 		ForwardIterator move_rotate_left_by_one(ForwardIterator first, ForwardIterator last)
 		{
-			typedef typename eastl::iterator_traits<ForwardIterator>::value_type value_type;
+			typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
 
-			value_type temp(eastl::move(*first));
-			ForwardIterator result = eastl::move(eastl::next(first), last, first); // Note that while our template type is BidirectionalIterator, if the actual
-			*result = eastl::move(temp);                                           // iterator is a RandomAccessIterator then this move will be a memmove for trivial types.
+			value_type temp(std::move(*first));
+			ForwardIterator result = std::move(std::next(first), last, first); // Note that while our template type is BidirectionalIterator, if the actual
+			*result = std::move(temp);                                           // iterator is a RandomAccessIterator then this move will be a memmove for trivial types.
 
 			return result; // result points to the final element in the range.
 		}
@@ -4006,12 +4006,12 @@ namespace eastl
 		template <typename BidirectionalIterator>
 		BidirectionalIterator move_rotate_right_by_one(BidirectionalIterator first, BidirectionalIterator last)
 		{
-			typedef typename eastl::iterator_traits<BidirectionalIterator>::value_type value_type;
+			typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
 
-			BidirectionalIterator beforeLast = eastl::prev(last);
-			value_type temp(eastl::move(*beforeLast));
-			BidirectionalIterator result = eastl::move_backward(first, beforeLast, last); // Note that while our template type is BidirectionalIterator, if the actual
-			*first = eastl::move(temp);                                                   // iterator is a RandomAccessIterator then this move will be a memmove for trivial types.
+			BidirectionalIterator beforeLast = std::prev(last);
+			value_type temp(std::move(*beforeLast));
+			BidirectionalIterator result = std::move_backward(first, beforeLast, last); // Note that while our template type is BidirectionalIterator, if the actual
+			*first = std::move(temp);                                                   // iterator is a RandomAccessIterator then this move will be a memmove for trivial types.
 
 			return result; // result points to the first element in the range.
 		}
@@ -4030,7 +4030,7 @@ namespace eastl
 			template <typename ForwardIterator>
 			static ForwardIterator rotate_impl(ForwardIterator first, ForwardIterator middle, ForwardIterator last)
 			{
-				if(eastl::next(first) == middle) // If moving trivial types by a single element, memcpy is fast for that case.
+				if(std::next(first) == middle) // If moving trivial types by a single element, memcpy is fast for that case.
 					return Internal::move_rotate_left_by_one(first, last);
 				return Internal::rotate_general_impl(first, middle, last);
 			}
@@ -4048,9 +4048,9 @@ namespace eastl
 			template <typename BidirectionalIterator>
 			static BidirectionalIterator rotate_impl(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last)
 			{ 
-				eastl::reverse(first, middle);
-				eastl::reverse(middle, last);
-				eastl::reverse(first, last);
+				std::reverse(first, middle);
+				std::reverse(middle, last);
+				std::reverse(first, last);
 				return first + (last - middle); // This can be slow for large ranges because operator + and - are O(n).
 			}
 
@@ -4059,24 +4059,24 @@ namespace eastl
 			static BidirectionalIterator rotate_impl(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last)
 			{
 				// This is the "flipping hands" algorithm.
-				eastl::reverse_impl(first,  middle, EASTL_ITC_NS::bidirectional_iterator_tag()); // Reverse the left side.
-				eastl::reverse_impl(middle, last,   EASTL_ITC_NS::bidirectional_iterator_tag()); // Reverse the right side.
+				std::reverse_impl(first,  middle, EASTL_ITC_NS::bidirectional_iterator_tag()); // Reverse the left side.
+				std::reverse_impl(middle, last,   EASTL_ITC_NS::bidirectional_iterator_tag()); // Reverse the right side.
 
 				// Reverse the entire range.
 				while((first != middle) && (middle != last)) 
 				{
-					eastl::iter_swap(first, --last);
+					std::iter_swap(first, --last);
 					++first;
 				}
 
 				if(first == middle) // Finish reversing the entire range.
 				{
-					eastl::reverse_impl(middle, last, bidirectional_iterator_tag());
+					std::reverse_impl(middle, last, bidirectional_iterator_tag());
 					return last;
 				}
 				else
 				{
-					eastl::reverse_impl(first, middle, bidirectional_iterator_tag());
+					std::reverse_impl(first, middle, bidirectional_iterator_tag());
 					return first;
 				}
 			}
@@ -4089,9 +4089,9 @@ namespace eastl
 			template <typename BidirectionalIterator>
 			static BidirectionalIterator rotate_impl(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last)
 			{
-				if(eastl::next(first) == middle) // If moving trivial types by a single element, memcpy is fast for that case. 
+				if(std::next(first) == middle) // If moving trivial types by a single element, memcpy is fast for that case. 
 					return Internal::move_rotate_left_by_one(first, last);
-				if(eastl::next(middle) == last)
+				if(std::next(middle) == last)
 					return Internal::move_rotate_right_by_one(first, last);
 				return Internal::rotate_general_impl(first, middle, last);
 			}
@@ -4128,12 +4128,12 @@ namespace eastl
 
 				for(RandomAccessIterator p = first + g; p != first;)
 				{
-					temp = eastl::move(*--p);
+					temp = std::move(*--p);
 					RandomAccessIterator p1 = p;
 					RandomAccessIterator p2 = p + m1;
 					do
 					{
-						*p1 = eastl::move(*p2);
+						*p1 = std::move(*p2);
 						p1 = p2;
 						const difference_type d = (last - p2);
 
@@ -4143,7 +4143,7 @@ namespace eastl
 							p2 = first + (m1 - d);
 					} while(p2 != p);
 
-					*p1 = eastl::move(temp);
+					*p1 = std::move(temp);
 				}
 
 				return first + m2;
@@ -4162,9 +4162,9 @@ namespace eastl
 			template <typename RandomAccessIterator>
 			static RandomAccessIterator rotate_impl(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last)
 			{
-				if(eastl::next(first) == middle) // If moving trivial types by a single element, memcpy is fast for that case. 
+				if(std::next(first) == middle) // If moving trivial types by a single element, memcpy is fast for that case. 
 					return Internal::move_rotate_left_by_one(first, last);
-				if(eastl::next(middle) == last)
+				if(std::next(middle) == last)
 					return Internal::move_rotate_right_by_one(first, last);
 				if((last - first) < 32) // For small ranges rotate_general_impl is faster.
 					return Internal::rotate_general_impl(first, middle, last);
@@ -4182,12 +4182,12 @@ namespace eastl
 		{
 			if(middle != last)
 			{
-				typedef typename eastl::iterator_traits<ForwardIterator>::iterator_category IC;
-				typedef typename eastl::iterator_traits<ForwardIterator>::value_type        value_type;
+				typedef typename std::iterator_traits<ForwardIterator>::iterator_category IC;
+				typedef typename std::iterator_traits<ForwardIterator>::value_type        value_type;
 
-				return Internal::rotate_helper<IC, eastl::is_trivially_move_assignable<value_type>::value || // This is the best way of telling if we can move types via memmove, but without a conforming C++11 compiler it usually returns false.
-												   eastl::is_pod<value_type>::value                       || // This is a more conservative way of telling if we can move types via memmove, and most compilers support it, but it doesn't have as full of coverage as is_trivially_move_assignable.
-												   eastl::is_scalar<value_type>::value>                      // This is the most conservative means and works with all compilers, but works only for scalars.
+				return Internal::rotate_helper<IC, std::is_trivially_move_assignable<value_type>::value || // This is the best way of telling if we can move types via memmove, but without a conforming C++11 compiler it usually returns false.
+												   std::is_pod<value_type>::value                       || // This is a more conservative way of telling if we can move types via memmove, and most compilers support it, but it doesn't have as full of coverage as is_trivially_move_assignable.
+												   std::is_scalar<value_type>::value>                      // This is the most conservative means and works with all compilers, but works only for scalars.
 											   ::rotate_impl(first, middle, last);
 			}
 
@@ -4208,7 +4208,7 @@ namespace eastl
 	template <typename ForwardIterator, typename OutputIterator>
 	OutputIterator rotate_copy(ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator result)
 	{
-		return eastl::copy(first, middle, eastl::copy(middle, last, result));
+		return std::copy(first, middle, std::copy(middle, last, result));
 	}
 
 
@@ -4222,7 +4222,7 @@ namespace eastl
 	template <class T>
 	EA_CONSTEXPR const T& clamp(const T& v, const T& lo, const T& hi)
 	{
-		return clamp(v, lo, hi, eastl::less<>());
+		return clamp(v, lo, hi, std::less<>());
 	}
 
 	template <class T, class Compare>
@@ -4234,7 +4234,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

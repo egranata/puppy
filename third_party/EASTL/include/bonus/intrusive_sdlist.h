@@ -62,7 +62,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 
@@ -157,8 +157,8 @@ namespace eastl
 		typedef const T*                                        const_pointer;
 		typedef IntrusiveSDListIterator<T, T*, T&>              iterator;
 		typedef IntrusiveSDListIterator<T, const T*, const T&>  const_iterator;
-		typedef eastl::reverse_iterator<iterator>               reverse_iterator;
-		typedef eastl::reverse_iterator<const_iterator>         const_reverse_iterator;
+		typedef std::reverse_iterator<iterator>               reverse_iterator;
+		typedef std::reverse_iterator<const_iterator>         const_reverse_iterator;
 
 	public:
 		intrusive_sdlist();                       ///< Creates an empty list.
@@ -630,7 +630,7 @@ namespace eastl
 	template <typename T>
 	bool operator<(const intrusive_sdlist<T>& a, const intrusive_sdlist<T>& b)
 	{
-		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+		return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 	}
 
 	template <typename T>
@@ -664,7 +664,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

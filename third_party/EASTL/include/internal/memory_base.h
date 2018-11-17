@@ -18,7 +18,7 @@
 // in other EASTL code while avoid circular dependencies.
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace eastl
+namespace std
 {
 	/// addressof
 	///
@@ -31,7 +31,7 @@ namespace eastl
 		return reinterpret_cast<T*>(&const_cast<char&>(reinterpret_cast<const volatile char&>(value)));
 	}
 
-} // namespace eastl
+} // namespace std
 
 #endif // EASTL_INTERNAL_MEMORY_BASE_H
 

@@ -14,7 +14,7 @@
 	#pragma once
 #endif
 
-namespace eastl
+namespace std
 {
 
 
@@ -55,21 +55,21 @@ namespace eastl
 
 	template <> 
 	struct has_void_arg<> 
-		: public eastl::false_type {};
+		: public std::false_type {};
 
 	template <typename A0, typename ...Args>
 	struct has_void_arg<A0, Args...>
-		{ static const bool value = (eastl::is_void<A0>::value || eastl::has_void_arg<Args...>::value); };
+		{ static const bool value = (std::is_void<A0>::value || std::has_void_arg<Args...>::value); };
 
 
 	///////////////////////////////////////////////////////////////////////
 	// is_null_pointer
 	//
 	// C++14 type trait. Refers only to nullptr_t and not NULL (0).
-	// eastl::is_null_pointer<nullptr>::value == true
-	// eastl::is_null_pointer<std::nullptr_t>::value == true
-	// eastl::is_null_pointer<void*>::value == false
-	// eastl::is_null_pointer<NULL>::value == [cannot compile]
+	// std::is_null_pointer<nullptr>::value == true
+	// std::is_null_pointer<std::nullptr_t>::value == true
+	// std::is_null_pointer<void*>::value == false
+	// std::is_null_pointer<NULL>::value == [cannot compile]
 	//
 	///////////////////////////////////////////////////////////////////////
 
@@ -77,12 +77,12 @@ namespace eastl
 		#define EASTL_TYPE_TRAIT_is_null_pointer_CONFORMANCE 1
 
 		template <typename T> 
-		struct is_null_pointer : public eastl::is_same<typename eastl::remove_cv<T>::type, decltype(nullptr)> {}; // A C++11 compiler defines nullptr, but you need a C++11 standard library to declare std::nullptr_t. So it's safer to compare against decltype(nullptr) than to use std::nullptr_t, because we may have a C++11 compiler but C++98 library (happens with Apple frequently).
+		struct is_null_pointer : public std::is_same<typename std::remove_cv<T>::type, decltype(nullptr)> {}; // A C++11 compiler defines nullptr, but you need a C++11 standard library to declare std::nullptr_t. So it's safer to compare against decltype(nullptr) than to use std::nullptr_t, because we may have a C++11 compiler but C++98 library (happens with Apple frequently).
 	#else
 		#define EASTL_TYPE_TRAIT_is_null_pointer_CONFORMANCE 1
 
 		template <typename T> 
-		struct is_null_pointer : public eastl::is_same<typename eastl::remove_cv<T>::type, std::nullptr_t> {};
+		struct is_null_pointer : public std::is_same<typename std::remove_cv<T>::type, std::nullptr_t> {};
 	#endif
 
 	#if EASTL_VARIABLE_TEMPLATES_ENABLED
@@ -141,10 +141,10 @@ namespace eastl
 	#endif
 
 	template <typename T>
-	struct is_integral : public eastl::is_integral_helper<typename eastl::remove_cv<T>::type>{};
+	struct is_integral : public std::is_integral_helper<typename std::remove_cv<T>::type>{};
 
 	#define EASTL_DECLARE_INTEGRAL(T)                                             \
-	namespace eastl{                                                              \
+	namespace std{                                                              \
 		template <> struct is_integral<T>                : public true_type{};    \
 		template <> struct is_integral<const T>          : public true_type{};    \
 		template <> struct is_integral<volatile T>       : public true_type{};    \
@@ -176,10 +176,10 @@ namespace eastl
 	template <> struct is_floating_point_helper<long double> : public true_type{};
 
 	template <typename T>
-	struct is_floating_point : public eastl::is_floating_point_helper<typename eastl::remove_cv<T>::type>{};
+	struct is_floating_point : public std::is_floating_point_helper<typename std::remove_cv<T>::type>{};
 
 	#define EASTL_DECLARE_FLOATING_POINT(T)                                             \
-	namespace eastl{                                                                    \
+	namespace std{                                                                    \
 		template <> struct is_floating_point<T>                : public true_type{};    \
 		template <> struct is_floating_point<const T>          : public true_type{};    \
 		template <> struct is_floating_point<volatile T>       : public true_type{};    \
@@ -241,9 +241,9 @@ namespace eastl
 	#endif 
 
 	template <typename T>
-	struct is_hat_type : public eastl::is_hat_type_helper<T> {};
+	struct is_hat_type : public std::is_hat_type_helper<T> {};
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

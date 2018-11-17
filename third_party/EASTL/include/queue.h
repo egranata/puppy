@@ -24,7 +24,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_QUEUE_DEFAULT_NAME
@@ -57,7 +57,7 @@ namespace eastl
 	/// a vector or string pop_front would be inefficient and could lead to 
 	/// silently poor performance.
 	///
-	template <typename T, typename Container = eastl::deque<T, EASTLAllocatorType, DEQUE_DEFAULT_SUBARRAY_SIZE(T)> >
+	template <typename T, typename Container = std::deque<T, EASTLAllocatorType, DEQUE_DEFAULT_SUBARRAY_SIZE(T)> >
 	class queue
 	{
 	public:
@@ -79,21 +79,21 @@ namespace eastl
 		// have allocators. For containers that don't have allocator types, you could use void or char as the Allocator template type.
 
 		template <class Allocator>                      
-		explicit queue(const Allocator& allocator, typename eastl::enable_if<eastl::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+		explicit queue(const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
 		  : c(allocator)
 		{
 		}    
 
 		template <class Allocator>
-		queue(const this_type& x, const Allocator& allocator, typename eastl::enable_if<eastl::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+		queue(const this_type& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
 		  : c(x.c, allocator)
 		{
 		}
 
 		#if EASTL_MOVE_SEMANTICS_ENABLED
 			template <class Allocator>
-			queue(this_type&& x, const Allocator& allocator, typename eastl::enable_if<eastl::uses_allocator<container_type, Allocator>::value>::type* = NULL)
-			  : c(eastl::move(x.c), allocator)
+			queue(this_type&& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+			  : c(std::move(x.c), allocator)
 			{
 			}
 		#endif
@@ -145,7 +145,7 @@ namespace eastl
 		container_type&       get_container();
 		const container_type& get_container() const;
 
-		void swap(this_type& x) EA_NOEXCEPT_IF((eastl::is_nothrow_swappable<this_type::container_type>::value));
+		void swap(this_type& x) EA_NOEXCEPT_IF((std::is_nothrow_swappable<this_type::container_type>::value));
 
 		bool validate() const;
 
@@ -177,7 +177,7 @@ namespace eastl
 	#if EASTL_MOVE_SEMANTICS_ENABLED
 		template <typename T, typename Container>
 		inline queue<T, Container>::queue(Container&& x)
-			: c(eastl::move(x))
+			: c(std::move(x))
 		{
 			// Empty
 		}
@@ -258,7 +258,7 @@ namespace eastl
 		template <typename T, typename Container>
 		inline void queue<T, Container>::push(value_type&& x) 
 		{
-			c.push_back(eastl::move(x));
+			c.push_back(std::move(x));
 		}
 	#endif
 
@@ -268,14 +268,14 @@ namespace eastl
 		template <class... Args> 
 		inline void queue<T, Container>::emplace_back(Args&&... args)
 		{
-			c.emplace_back(eastl::forward<Args>(args)...);
+			c.emplace_back(std::forward<Args>(args)...);
 		}
 	#else
 		#if EASTL_MOVE_SEMANTICS_ENABLED
 			template <typename T, typename Container>
 			inline void queue<T, Container>::emplace_back(value_type&& x)
 			{
-				c.emplace_back(eastl::move(x));
+				c.emplace_back(std::move(x));
 			}
 		#endif
 
@@ -311,9 +311,9 @@ namespace eastl
 
 
 	template <typename T, typename Container>
-	void queue<T, Container>::swap(this_type& x) EA_NOEXCEPT_IF((eastl::is_nothrow_swappable<this_type::container_type>::value))
+	void queue<T, Container>::swap(this_type& x) EA_NOEXCEPT_IF((std::is_nothrow_swappable<this_type::container_type>::value))
 	{
-		using eastl::swap;
+		using std::swap;
 		swap(c, x.c);
 	}
 
@@ -367,13 +367,13 @@ namespace eastl
 
 
 	template <typename T, typename Container>
-	inline void swap(queue<T, Container>& a, queue<T, Container>& b) EA_NOEXCEPT_IF((eastl::is_nothrow_swappable<typename queue<T, Container>::container_type>::value)) // EDG has a bug and won't let us use Container in this noexcept statement
+	inline void swap(queue<T, Container>& a, queue<T, Container>& b) EA_NOEXCEPT_IF((std::is_nothrow_swappable<typename queue<T, Container>::container_type>::value)) // EDG has a bug and won't let us use Container in this noexcept statement
 	{
 		a.swap(b);
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

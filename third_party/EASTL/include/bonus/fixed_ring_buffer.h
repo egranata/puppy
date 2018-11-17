@@ -13,15 +13,15 @@
 	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
 #endif
 
-namespace eastl
+namespace std
 {
 
 	/// fixed_ring_buffer
 	///
 	/// This is a convenience template alias for creating a fixed-sized
-	/// ring_buffer using eastl::fixed_vector as its storage container. This has
+	/// ring_buffer using std::fixed_vector as its storage container. This has
 	/// been tricky for users to get correct due to the constructor requirements
-	/// of eastl::ring_buffer leaking the implementation detail of the sentinel
+	/// of std::ring_buffer leaking the implementation detail of the sentinel
 	/// value being used internally.  In addition, it was not obvious what the
 	/// correct allocator_type template parameter should be used for containers
 	/// providing both a default allocator type and an overflow allocator type.
@@ -44,7 +44,7 @@ namespace eastl
 	    ring_buffer<T, fixed_vector<T, N + 1, false>, typename fixed_vector<T, N + 1, false>::overflow_allocator_type>;
 #endif
 
-} // namespace eastl
+} // namespace std
 
 #endif // Header include guard
 

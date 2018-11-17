@@ -12,7 +12,7 @@
 	#pragma once
 #endif
 
-namespace eastl
+namespace std
 {
 	namespace Internal
 	{
@@ -70,7 +70,7 @@ namespace eastl
 	inline in_place_tag in_place(Internal::in_place_index_tag<I>) { return Internal_ConstructInPlaceTag(); }
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

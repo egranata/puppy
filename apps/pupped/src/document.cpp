@@ -21,7 +21,7 @@ void Document::move(size_t newLine) {
     if (mIndex > mLines.size()) mIndex = mLines.size();
 }
 
-void Document::insert(const eastl::string& line) {
+void Document::insert(const std::string& line) {
     if (mIndex == mLines.size()) {
         mLines.push_back(line);
     } else {
@@ -41,8 +41,8 @@ void Document::deleteCurrentLine() {
     mLines.erase(mLines.begin() + mIndex);
 }
 
-eastl::string Document::toString() {
-    eastl::string out;
+std::string Document::toString() {
+    std::string out;
     bool first = true;
 
     for (const auto& line : mLines) {
@@ -54,6 +54,6 @@ eastl::string Document::toString() {
     return out;
 }
 
-eastl::vector<eastl::string> Document::toLines() {
+std::vector<std::string> Document::toLines() {
     return mLines;
 }

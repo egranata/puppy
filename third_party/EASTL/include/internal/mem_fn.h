@@ -14,7 +14,7 @@
 // The code in this file is a modification of the libcxx implementation.  We copy
 // the license information here as required.
 //
-// We implement only enough of mem_fn to implement eastl::function.
+// We implement only enough of mem_fn to implement std::function.
 ////////////////////////////////////////////////////////////////////////////////
 
 //===------------------------ functional ----------------------------------===//
@@ -27,7 +27,7 @@
 //===----------------------------------------------------------------------===//
 
 
-namespace eastl
+namespace std
 {
 	//
 	// apply_cv
@@ -55,13 +55,13 @@ namespace eastl
 	{
 	private:
 		template <class U>
-		static eastl::no_type test(...);
+		static std::no_type test(...);
 
 		template <class U>
-		static eastl::yes_type test(typename U::result_type* = 0);
+		static std::yes_type test(typename U::result_type* = 0);
 
 	public:
-		static const bool value = sizeof(test<T>(0)) == sizeof(eastl::yes_type);
+		static const bool value = sizeof(test<T>(0)) == sizeof(std::yes_type);
 	};
 
 
@@ -74,13 +74,13 @@ namespace eastl
 	struct derives_from_unary_function
 	{
 	private:
-		static eastl::no_type test(...);
+		static std::no_type test(...);
 
 		template <class A, class R>
 		static unary_function<A, R> test(const volatile unary_function<A, R>*);
 
 	public:
-		static const bool value = !is_same<decltype(test((T*)0)), eastl::no_type>::value;
+		static const bool value = !is_same<decltype(test((T*)0)), std::no_type>::value;
 		typedef decltype(test((T*)0)) type;
 	};
 
@@ -88,12 +88,12 @@ namespace eastl
 	struct derives_from_binary_function
 	{
 	private:
-		static eastl::no_type test(...);
+		static std::no_type test(...);
 		template <class A1, class A2, class R>
 		static binary_function<A1, A2, R> test(const volatile binary_function<A1, A2, R>*);
 
 	public:
-		static const bool value = !is_same<decltype(test((T*)0)), eastl::no_type>::value;
+		static const bool value = !is_same<decltype(test((T*)0)), std::no_type>::value;
 		typedef decltype(test((T*)0)) type;
 	};
 
@@ -182,8 +182,8 @@ namespace eastl
 	template <class T>
 	class mem_fn_impl 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900)  // VS2015 or later
-		// Due to a (seemingly random) internal compiler error on VS2013 we disable eastl::unary_function and
-		// binary_function support for eastl::mem_fn as its not widely (if at all) used.  If you require this support
+		// Due to a (seemingly random) internal compiler error on VS2013 we disable std::unary_function and
+		// binary_function support for std::mem_fn as its not widely (if at all) used.  If you require this support
 		// on VS2013 or below please contact us.
 		: public weak_result_type<T>
 #endif
@@ -201,7 +201,7 @@ namespace eastl
 	    template <class... ArgTypes>
 	    typename invoke_result<type, ArgTypes...>::type operator()(ArgTypes&&... args) const
 	    {
-		    return invoke(func, eastl::forward<ArgTypes>(args)...);
+		    return invoke(func, std::forward<ArgTypes>(args)...);
 	    }
 #else
 	    typename invoke_result<type>::type operator()() const { return invoke_impl(func); }
@@ -299,6 +299,6 @@ namespace eastl
 	EASTL_FORCE_INLINE mem_fn_impl<R (T::*)(A0, A1, A2) const volatile> mem_fn(R (T::*pm)(A0, A1, A2) const volatile)
 	{ return mem_fn_impl<R (T::*)(A0, A1, A2) const volatile>(pm); }
 
-} // namespace eastl
+} // namespace std
 
 #endif // EASTL_INTERNAL_MEM_FN_H

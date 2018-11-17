@@ -15,9 +15,9 @@
 #ifndef SHELL_CWD
 #define SHELL_CWD
 
-#include <EASTL/string.h>
+#include <string>
 
-eastl::string getCurrentDirectory();
-void getPrompt(eastl::string& prompt);
+std::string getCurrentDirectory();
+void getPrompt(std::string& prompt);
 
 #endif

@@ -15,8 +15,8 @@
 #ifndef SHELL_RUNLINE
 #define SHELL_RUNLINE
 
-#include <EASTL/string.h>
+#include <string>
 
-bool runline(eastl::string cmdline);
+bool runline(std::string cmdline);
 
 #endif

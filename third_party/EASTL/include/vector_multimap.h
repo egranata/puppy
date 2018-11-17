@@ -43,7 +43,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_VECTOR_MULTIMAP_DEFAULT_NAME
@@ -117,9 +117,9 @@ namespace eastl
 	/// the implementation is lost, as the compiler will let the wayward user modify 
 	/// a key and thus make the container no longer ordered behind its back.
 	///
-	template <typename Key, typename T, typename Compare = eastl::less<Key>, 
+	template <typename Key, typename T, typename Compare = std::less<Key>, 
 			  typename Allocator = EASTLAllocatorType,
-			  typename RandomAccessContainer = eastl::vector<eastl::pair<Key, T>, Allocator> >
+			  typename RandomAccessContainer = std::vector<std::pair<Key, T>, Allocator> >
 	class vector_multimap : public RandomAccessContainer
 	{
 	public:
@@ -128,7 +128,7 @@ namespace eastl
 		typedef Allocator                                                          allocator_type;
 		typedef Key                                                                key_type;
 		typedef T                                                                  mapped_type;
-		typedef eastl::pair<Key, T>                                                value_type;
+		typedef std::pair<Key, T>                                                value_type;
 		typedef Compare                                                            key_compare;
 		typedef multimap_value_compare<Key, value_type, Compare>                   value_compare;
 		typedef value_type*                                                        pointer;
@@ -212,7 +212,7 @@ namespace eastl
 
 		iterator insert(const value_type& value);   // The signature of this function was change in EASTL v2.05.00 from (the mistaken) pair<iterator, bool> to (the correct) iterator.
 
-		template <typename P, typename = eastl::enable_if_t<eastl::is_constructible_v<value_type, P&&>>>
+		template <typename P, typename = std::enable_if_t<std::is_constructible_v<value_type, P&&>>>
 		iterator insert(P&& otherValue);
 
 		iterator insert(const key_type& otherValue);
@@ -250,13 +250,13 @@ namespace eastl
 		iterator       upper_bound(const key_type& k);
 		const_iterator upper_bound(const key_type& k) const;
 
-		eastl::pair<iterator, iterator>             equal_range(const key_type& k);
-		eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
+		std::pair<iterator, iterator>             equal_range(const key_type& k);
+		std::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
 
 		/// equal_range_small
 		/// This is a special version of equal_range which is optimized for the 
 		/// case of there being few or no duplicated keys in the tree.
-		eastl::pair<iterator, iterator>             equal_range_small(const key_type& k)
+		std::pair<iterator, iterator>             equal_range_small(const key_type& k)
 		{
 			// Defined inline because VC7.1 is broken for when it's defined outside.
 			const iterator itLower(lower_bound(k));
@@ -265,9 +265,9 @@ namespace eastl
 			while((itUpper != end()) && !mValueCompare(k, *itUpper))
 				++itUpper;
 
-			return eastl::pair<iterator, iterator>(itLower, itUpper);
+			return std::pair<iterator, iterator>(itLower, itUpper);
 		}
-		eastl::pair<const_iterator, const_iterator> equal_range_small(const key_type& k) const;
+		std::pair<const_iterator, const_iterator> equal_range_small(const key_type& k) const;
 
 		// Functions which are disallowed due to being unsafe. We are looking for a way to disable these at compile-time. Declaring but not defining them doesn't work due to explicit template instantiations.
 		//void      push_back(const value_type& value);
@@ -317,7 +317,7 @@ namespace eastl
 
 	template <typename K, typename T, typename C, typename A, typename RAC>
 	inline vector_multimap<K, T, C, A, RAC>::vector_multimap(this_type&& x)
-		: base_type(eastl::move(x)), mValueCompare(x.mValueCompare)
+		: base_type(std::move(x)), mValueCompare(x.mValueCompare)
 	{
 		// Empty. Note: x is left with empty contents but its original mValueCompare instead of the default one. 
 	}
@@ -325,7 +325,7 @@ namespace eastl
 
 	template <typename K, typename T, typename C, typename A, typename RAC>
 	inline vector_multimap<K, T, C, A, RAC>::vector_multimap(this_type&& x, const allocator_type& allocator)
-		: base_type(eastl::move(x), allocator), mValueCompare(x.mValueCompare)
+		: base_type(std::move(x), allocator), mValueCompare(x.mValueCompare)
 	{
 		// Empty. Note: x is left with empty contents but its original mValueCompare instead of the default one. 
 	}
@@ -371,8 +371,8 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::this_type&
 	vector_multimap<K, T, C, A, RAC>::operator=(this_type&& x)
 	{
-		base_type::operator=(eastl::move(x));
-		eastl::swap(mValueCompare, x.mValueCompare);
+		base_type::operator=(std::move(x));
+		std::swap(mValueCompare, x.mValueCompare);
 		return *this;
 	}
 
@@ -391,7 +391,7 @@ namespace eastl
 	inline void vector_multimap<K, T, C, A, RAC>::swap(this_type& x)
 	{
 		base_type::swap(x);
-		eastl::swap(mValueCompare, x.mValueCompare);
+		std::swap(mValueCompare, x.mValueCompare);
 	}
 
 
@@ -433,11 +433,11 @@ namespace eastl
 	vector_multimap<K, T, C, A, RAC>::emplace(Args&&... args)
 	{
 		#if EASTL_USE_FORWARD_WORKAROUND
-			auto value = value_type(eastl::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
+			auto value = value_type(std::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
 		#else
-			value_type  value(eastl::forward<Args>(args)...);
+			value_type  value(std::forward<Args>(args)...);
 		#endif
-		return insert(eastl::move(value));
+		return insert(std::move(value));
 	}
 
 	template <typename K, typename T, typename C, typename A, typename RAC>
@@ -446,11 +446,11 @@ namespace eastl
 	vector_multimap<K, T, C, A, RAC>::emplace_hint(const_iterator position, Args&&... args)
 	{
 		#if EASTL_USE_FORWARD_WORKAROUND
-			auto value = value_type(eastl::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
+			auto value = value_type(std::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
 		#else
-			value_type  value(eastl::forward<Args>(args)...);
+			value_type  value(std::forward<Args>(args)...);
 		#endif
-		return insert(position, eastl::move(value));
+		return insert(position, std::move(value));
 	}
 
 
@@ -468,9 +468,9 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::iterator
 	vector_multimap<K, T, C, A, RAC>::insert(P&& otherValue)
 	{
-		value_type value(eastl::forward<P>(otherValue));
+		value_type value(std::forward<P>(otherValue));
 		const iterator itLB(lower_bound(value.first));
-		return base_type::insert(itLB, eastl::move(value));
+		return base_type::insert(itLB, std::move(value));
 	}
 
 
@@ -478,9 +478,9 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::iterator
 	vector_multimap<K, T, C, A, RAC>::insert(const key_type& otherValue)
 	{
-		value_type value(eastl::pair_first_construct, otherValue);
+		value_type value(std::pair_first_construct, otherValue);
 		const iterator itLB(lower_bound(value.first));
-		return base_type::insert(itLB, eastl::move(value));
+		return base_type::insert(itLB, std::move(value));
 	}
 
 
@@ -488,9 +488,9 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::iterator
 	vector_multimap<K, T, C, A, RAC>::insert(key_type&& otherValue)
 	{
-		value_type value(eastl::pair_first_construct, eastl::move(otherValue));
+		value_type value(std::pair_first_construct, std::move(otherValue));
 		const iterator itLB(lower_bound(value.first));
-		return base_type::insert(itLB, eastl::move(value));
+		return base_type::insert(itLB, std::move(value));
 	}
 
 
@@ -521,11 +521,11 @@ namespace eastl
 		if((position == end()) || !mValueCompare(*position, value))  // If value is <= the element at position...
 		{
 			if((position == begin()) || !mValueCompare(value, *(position - 1))) // If value is >= the element before position...
-				return base_type::insert(position, eastl::move(value));
+				return base_type::insert(position, std::move(value));
 		}
 
 		// In this case we have an incorrect position. We fall back to the regular insert function.
-		return insert(eastl::move(value));
+		return insert(std::move(value));
 	}
 
 
@@ -575,12 +575,12 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::size_type
 	vector_multimap<K, T, C, A, RAC>::erase(const key_type& k)
 	{
-		const eastl::pair<iterator, iterator> pairIts(equal_range(k));
+		const std::pair<iterator, iterator> pairIts(equal_range(k));
 
 		if(pairIts.first != pairIts.second)
 			base_type::erase(pairIts.first, pairIts.second);
 
-		return (size_type)eastl::distance(pairIts.first, pairIts.second); // This can result in any value >= 0.
+		return (size_type)std::distance(pairIts.first, pairIts.second); // This can result in any value >= 0.
 	}
 
 
@@ -604,7 +604,7 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::iterator
 	vector_multimap<K, T, C, A, RAC>::find(const key_type& k)
 	{
-		const eastl::pair<iterator, iterator> pairIts(equal_range(k));
+		const std::pair<iterator, iterator> pairIts(equal_range(k));
 
 		if(pairIts.first != pairIts.second)
 			return pairIts.first;
@@ -616,7 +616,7 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::const_iterator
 	vector_multimap<K, T, C, A, RAC>::find(const key_type& k) const
 	{
-		const eastl::pair<const_iterator, const_iterator> pairIts(equal_range(k));
+		const std::pair<const_iterator, const_iterator> pairIts(equal_range(k));
 
 		if(pairIts.first != pairIts.second)
 			return pairIts.first;
@@ -630,7 +630,7 @@ namespace eastl
 	vector_multimap<K, T, C, A, RAC>::find_as(const U& u, BinaryPredicate predicate) const
 	{
 		multimap_value_compare<U, value_type, BinaryPredicate> predicate_cmp(predicate);
-		const eastl::pair<const_iterator, const_iterator> pairIts(eastl::equal_range(begin(), end(), u, predicate_cmp));
+		const std::pair<const_iterator, const_iterator> pairIts(std::equal_range(begin(), end(), u, predicate_cmp));
 		return (pairIts.first != pairIts.second) ? pairIts.first : end();
 	}
 
@@ -641,7 +641,7 @@ namespace eastl
 	vector_multimap<K, T, C, A, RAC>::find_as(const U& u, BinaryPredicate predicate)
 	{
 		multimap_value_compare<U, value_type, BinaryPredicate> predicate_cmp(predicate);
-		const eastl::pair<iterator, iterator> pairIts(eastl::equal_range(begin(), end(), u, predicate_cmp));
+		const std::pair<iterator, iterator> pairIts(std::equal_range(begin(), end(), u, predicate_cmp));
 		return (pairIts.first != pairIts.second) ? pairIts.first : end();
 	}
 
@@ -650,8 +650,8 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::size_type
 	vector_multimap<K, T, C, A, RAC>::count(const key_type& k) const
 	{
-		const eastl::pair<const_iterator, const_iterator> pairIts(equal_range(k));
-		return (size_type)eastl::distance(pairIts.first, pairIts.second); 
+		const std::pair<const_iterator, const_iterator> pairIts(equal_range(k));
+		return (size_type)std::distance(pairIts.first, pairIts.second); 
 	}
 
 
@@ -659,7 +659,7 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::iterator
 	vector_multimap<K, T, C, A, RAC>::lower_bound(const key_type& k)
 	{
-		return eastl::lower_bound(begin(), end(), k, mValueCompare);
+		return std::lower_bound(begin(), end(), k, mValueCompare);
 	}
 
 
@@ -667,7 +667,7 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::const_iterator
 	vector_multimap<K, T, C, A, RAC>::lower_bound(const key_type& k) const
 	{
-		return eastl::lower_bound(begin(), end(), k, mValueCompare);
+		return std::lower_bound(begin(), end(), k, mValueCompare);
 	}
 
 
@@ -675,7 +675,7 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::iterator
 	vector_multimap<K, T, C, A, RAC>::upper_bound(const key_type& k)
 	{
-		return eastl::upper_bound(begin(), end(), k, mValueCompare);
+		return std::upper_bound(begin(), end(), k, mValueCompare);
 	}
 
 
@@ -683,30 +683,30 @@ namespace eastl
 	inline typename vector_multimap<K, T, C, A, RAC>::const_iterator 
 	vector_multimap<K, T, C, A, RAC>::upper_bound(const key_type& k) const
 	{
-		return eastl::upper_bound(begin(), end(), k, mValueCompare);
+		return std::upper_bound(begin(), end(), k, mValueCompare);
 	}
 
 
 	template <typename K, typename T, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multimap<K, T, C, A, RAC>::iterator, typename vector_multimap<K, T, C, A, RAC>::iterator>
+	inline std::pair<typename vector_multimap<K, T, C, A, RAC>::iterator, typename vector_multimap<K, T, C, A, RAC>::iterator>
 	vector_multimap<K, T, C, A, RAC>::equal_range(const key_type& k)
 	{
-		return eastl::equal_range(begin(), end(), k, mValueCompare);
+		return std::equal_range(begin(), end(), k, mValueCompare);
 	}
 
 
 	template <typename K, typename T, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multimap<K, T, C, A, RAC>::const_iterator, typename vector_multimap<K, T, C, A, RAC>::const_iterator>
+	inline std::pair<typename vector_multimap<K, T, C, A, RAC>::const_iterator, typename vector_multimap<K, T, C, A, RAC>::const_iterator>
 	vector_multimap<K, T, C, A, RAC>::equal_range(const key_type& k) const
 	{
-		return eastl::equal_range(begin(), end(), k, mValueCompare);
+		return std::equal_range(begin(), end(), k, mValueCompare);
 	}
 
 
 	/*
 	// VC++ fails to compile this when defined here, saying the function isn't a member of vector_multimap.
 	template <typename K, typename T, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multimap<K, T, C, A, RAC>::iterator, typename vector_multimap<K, T, C, A, RAC>::iterator>
+	inline std::pair<typename vector_multimap<K, T, C, A, RAC>::iterator, typename vector_multimap<K, T, C, A, RAC>::iterator>
 	vector_multimap<K, T, C, A, RAC>::equal_range_small(const key_type& k)
 	{
 		const iterator itLower(lower_bound(k));
@@ -715,13 +715,13 @@ namespace eastl
 		while((itUpper != end()) && !mValueCompare(k, *itUpper))
 			++itUpper;
 
-		return eastl::pair<iterator, iterator>(itLower, itUpper);
+		return std::pair<iterator, iterator>(itLower, itUpper);
 	}
 	*/
 
 
 	template <typename K, typename T, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multimap<K, T, C, A, RAC>::const_iterator, typename vector_multimap<K, T, C, A, RAC>::const_iterator>
+	inline std::pair<typename vector_multimap<K, T, C, A, RAC>::const_iterator, typename vector_multimap<K, T, C, A, RAC>::const_iterator>
 	vector_multimap<K, T, C, A, RAC>::equal_range_small(const key_type& k) const
 	{
 		const const_iterator itLower(lower_bound(k));
@@ -730,7 +730,7 @@ namespace eastl
 		while((itUpper != end()) && !mValueCompare(k, *itUpper))
 			++itUpper;
 
-		return eastl::pair<const_iterator, const_iterator>(itLower, itUpper);
+		return std::pair<const_iterator, const_iterator>(itLower, itUpper);
 	}
 
 
@@ -796,7 +796,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

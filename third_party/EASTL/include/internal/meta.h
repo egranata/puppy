@@ -15,7 +15,7 @@ EA_ONCE()
 // the right to change this file at any time as it is only intended to be used internally.
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace eastl
+namespace std
 {
 	namespace meta
 	{
@@ -208,7 +208,7 @@ namespace eastl
 		using overload_resolution_t = typename overload_resolution<decay_t<T>, OverloadSet>::type;
 
 	} // namespace meta 
-} // namespace eastl
+} // namespace std
 
 #endif // EASTL_INTERNAL_META_H
 

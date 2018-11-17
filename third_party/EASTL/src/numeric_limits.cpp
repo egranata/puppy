@@ -9,7 +9,7 @@
 #if EASTL_CUSTOM_FLOAT_CONSTANTS_REQUIRED
 	#include <limits> // See notes below about usage of this header.
 
-	namespace eastl
+	namespace std
 	{
 		namespace Internal
 		{
@@ -47,7 +47,7 @@
 	// http://bytes.com/topic/c/answers/710704-const-static-initialization-visual-studio
 #else
 
-	namespace eastl
+	namespace std
 	{
 		namespace Internal
 		{
@@ -565,7 +565,7 @@
 		EA_CONSTEXPR_OR_CONST bool                  numeric_limits<long double>::has_denorm_loss;
 		EA_CONSTEXPR_OR_CONST bool                  numeric_limits<long double>::is_iec559;
 
-	} // namespace eastl
+	} // namespace std
 
 #endif // (VC++ 2010 or earlier)
 

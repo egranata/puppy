@@ -44,7 +44,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_FIXED_POOL_DEFAULT_NAME
@@ -511,7 +511,7 @@ namespace eastl
 				else
 				{
 					p = allocate_memory(mOverflowAllocator, mnNodeSize, alignment, alignmentOffset);
-					EASTL_ASSERT_MSG(p != nullptr, "the behaviour of eastl::allocators that return nullptr is not defined.");
+					EASTL_ASSERT_MSG(p != nullptr, "the behaviour of std::allocators that return nullptr is not defined.");
 				}
 
 			}
@@ -1627,7 +1627,7 @@ namespace eastl
 
 
 
-} // namespace eastl
+} // namespace std
 
 
 #if defined(_MSC_VER)

@@ -72,7 +72,7 @@ EA_RESTORE_ALL_VC_WARNINGS()
 
 
 
-namespace eastl
+namespace std
 {
 	///////////////////////////////////////////////////////////////////////////
 	// shared_ptr
@@ -102,7 +102,7 @@ namespace eastl
 
 
 	#if EASTL_EXCEPTIONS_ENABLED
-		// We define eastl::bad_weak_ptr as opposed to std::bad_weak_ptr. The reason is that 
+		// We define std::bad_weak_ptr as opposed to std::bad_weak_ptr. The reason is that 
 		// we can't easily know of std::bad_weak_ptr exists and we would have to #include <memory>
 		// to use it. EASTL "owns" the types that are defined in EASTL headers, and std::bad_weak_ptr 
 		// is declared in <memory>.
@@ -218,7 +218,7 @@ namespace eastl
 		allocator_type mAllocator;
 
 		ref_count_sp_t(value_type value, deleter_type deleter, allocator_type allocator)
-			: ref_count_sp(), mValue(value), mDeleter(eastl::move(deleter)), mAllocator(eastl::move(allocator))
+			: ref_count_sp(), mValue(value), mDeleter(std::move(deleter)), mAllocator(std::move(allocator))
 		{}
 
 		void free_value() EA_NOEXCEPT
@@ -259,7 +259,7 @@ namespace eastl
 		typedef ref_count_sp_t_inst<T, Allocator>                                        this_type;
 		typedef T                                                                        value_type;
 		typedef Allocator                                                                allocator_type;
-		typedef typename aligned_storage<sizeof(T), eastl::alignment_of<T>::value>::type storage_type;
+		typedef typename aligned_storage<sizeof(T), std::alignment_of<T>::value>::type storage_type;
 
 		storage_type   mMemory;
 		allocator_type mAllocator;
@@ -268,9 +268,9 @@ namespace eastl
 
 		template <typename... Args>
 		ref_count_sp_t_inst(allocator_type allocator, Args&&... args)
-			: ref_count_sp(), mAllocator(eastl::move(allocator))
+			: ref_count_sp(), mAllocator(std::move(allocator))
 		{
-			new (&mMemory) value_type(eastl::forward<Args>(args)...);
+			new (&mMemory) value_type(std::forward<Args>(args)...);
 		}
 
 		void free_value() EA_NOEXCEPT
@@ -396,7 +396,7 @@ namespace eastl
 		/// Postcondition in the event of no exception: use_count() == 1 && get() == p
 		template <typename U>
 		explicit shared_ptr(U* pValue,
-		                    typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0)
+		                    typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0)
 		    : mpValue(NULL), mpRefCount(NULL) // alloc_internal will set this.
 		{
 			// We explicitly use default_delete<U>. You can use the other version of this constructor to provide a
@@ -430,17 +430,17 @@ namespace eastl
 		template <typename U, typename Deleter>
 		shared_ptr(U* pValue,
 		           Deleter deleter,
-		           typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0)
+		           typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0)
 		    : mpValue(NULL), mpRefCount(NULL)
 		{
-			alloc_internal(pValue, default_allocator_type(), eastl::move(deleter));
+			alloc_internal(pValue, default_allocator_type(), std::move(deleter));
 		}
 
 		template <typename Deleter>
 		shared_ptr(std::nullptr_t, Deleter deleter)
 		    : mpValue(NULL), mpRefCount(NULL) // alloc_internal will set this.
 		{
-			alloc_internal(NULL, default_allocator_type(), eastl::move(deleter));
+			alloc_internal(NULL, default_allocator_type(), std::move(deleter));
 		}
 
 
@@ -457,10 +457,10 @@ namespace eastl
 		explicit shared_ptr(U* pValue,
 		                    Deleter deleter,
 		                    const Allocator& allocator,
-		                    typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0)
+		                    typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0)
 		    : mpValue(NULL), mpRefCount(NULL) // alloc_internal will set this.
 		{
-			alloc_internal(pValue, eastl::move(allocator), eastl::move(deleter));
+			alloc_internal(pValue, std::move(allocator), std::move(deleter));
 		}
 
 		template <typename Deleter, typename Allocator>
@@ -468,7 +468,7 @@ namespace eastl
 			: mpValue(NULL),
 			  mpRefCount(NULL) // alloc_internal will set this.
 		{
-			alloc_internal(NULL, eastl::move(allocator), eastl::move(deleter));
+			alloc_internal(NULL, std::move(allocator), std::move(deleter));
 		}
 
 
@@ -493,7 +493,7 @@ namespace eastl
 		/// To accomplish this in a thread-safe way requires use of shared_ptr atomic_store.
 		template <typename U>
 		shared_ptr(const shared_ptr<U>& sharedPtr,
-		           typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
+		           typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
 		    : mpValue(sharedPtr.mpValue),
 		      mpRefCount(sharedPtr.mpRefCount)
 		{
@@ -539,7 +539,7 @@ namespace eastl
 
 		template <typename U>
 		shared_ptr(shared_ptr<U>&& sharedPtr,
-		           typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
+		           typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
 		    : mpValue(sharedPtr.mpValue),
 		      mpRefCount(sharedPtr.mpRefCount)
 		{
@@ -550,8 +550,8 @@ namespace eastl
 		// unique_ptr constructor
 		template <typename U, typename Deleter>
 		shared_ptr(unique_ptr<U, Deleter>&& uniquePtr,
-		           typename eastl::enable_if<!eastl::is_array<U>::value && !is_lvalue_reference<Deleter>::value &&
-		                                     eastl::is_convertible<U*, element_type*>::value>::type* = 0)
+		           typename std::enable_if<!std::is_array<U>::value && !is_lvalue_reference<Deleter>::value &&
+		                                     std::is_convertible<U*, element_type*>::value>::type* = 0)
 		    : mpValue(NULL), mpRefCount(NULL)
 		{
 			alloc_internal(uniquePtr.release(), default_allocator_type(), uniquePtr.get_deleter());
@@ -562,8 +562,8 @@ namespace eastl
 		template <typename U, typename Deleter, typename Allocator>
 		shared_ptr(unique_ptr<U, Deleter>&& uniquePtr,
 		           const Allocator& allocator,
-		           typename eastl::enable_if<!eastl::is_array<U>::value && !is_lvalue_reference<Deleter>::value &&
-		                                     eastl::is_convertible<U*, element_type*>::value>::type* = 0)
+		           typename std::enable_if<!std::is_array<U>::value && !is_lvalue_reference<Deleter>::value &&
+		                                     std::is_convertible<U*, element_type*>::value>::type* = 0)
 		    : mpValue(NULL), mpRefCount(NULL)
 		{
 			alloc_internal(uniquePtr.release(), allocator, uniquePtr.get_deleter());
@@ -575,7 +575,7 @@ namespace eastl
 		/// This function increments the shared reference count on the pointer.
 		template <typename U>
 		explicit shared_ptr(const weak_ptr<U>& weakPtr,
-		                    typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0)
+		                    typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0)
 		    : mpValue(weakPtr.mpValue)
 		    , mpRefCount(weakPtr.mpRefCount ?
 		                     weakPtr.mpRefCount->lock() :
@@ -586,9 +586,9 @@ namespace eastl
 				mpValue = NULL; // Question: Is it right for us to NULL this or not?
 
 			#if EASTL_EXCEPTIONS_ENABLED
-				throw eastl::bad_weak_ptr();
+				throw std::bad_weak_ptr();
 			#else
-				EASTL_FAIL_MSG("eastl::shared_ptr -- bad_weak_ptr");
+				EASTL_FAIL_MSG("std::shared_ptr -- bad_weak_ptr");
 			#endif
 			}
 		}
@@ -616,7 +616,7 @@ namespace eastl
 		// potential collisions. Use the reset(p) and reset() functions instead.
 		//
 		// template <typename U>
-		// typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		// typename std::enable_if<std::is_convertible<U*, element_type*>::value, this_type&>::type
 		// operator=(const U* pValue) EA_NOEXCEPT
 		// {
 		//     reset(pValue);
@@ -653,7 +653,7 @@ namespace eastl
 		/// count and deleting it if zero, takes shared ownership of the new 
 		/// pointer and increments its reference count.
 		template <typename U>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, this_type&>::type
 		operator=(const shared_ptr<U>& sharedPtr) EA_NOEXCEPT
 		{
 			if(!equivalent_ownership(sharedPtr))
@@ -670,7 +670,7 @@ namespace eastl
 		this_type& operator=(shared_ptr&& sharedPtr) EA_NOEXCEPT
 		{
 			if(&sharedPtr != this)
-				this_type(eastl::move(sharedPtr)).swap(*this);
+				this_type(std::move(sharedPtr)).swap(*this);
 
 			return *this;
 		}
@@ -684,22 +684,22 @@ namespace eastl
 		/// count and deleting it if zero, takes shared ownership of the new 
 		/// pointer and increments its reference count.
 		template <typename U>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, this_type&>::type
 		operator=(shared_ptr<U>&& sharedPtr) EA_NOEXCEPT
 		{
 			if(!equivalent_ownership(sharedPtr))
-				shared_ptr(eastl::move(sharedPtr)).swap(*this);
+				shared_ptr(std::move(sharedPtr)).swap(*this);
 			return *this;
 		}
 
 
 		// unique_ptr operator=
 		template <typename U, typename Deleter>
-		typename eastl::enable_if<!eastl::is_array<U>::value && eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		typename std::enable_if<!std::is_array<U>::value && std::is_convertible<U*, element_type*>::value, this_type&>::type
 		operator=(unique_ptr<U, Deleter>&& uniquePtr)
 		{
 			// Note that this will use the default EASTL allocator
-			this_type(eastl::move(uniquePtr)).swap(*this);
+			this_type(std::move(uniquePtr)).swap(*this);
 			return *this;
 		}
 
@@ -716,7 +716,7 @@ namespace eastl
 		/// Releases the owned pointer and takes ownership of the 
 		/// passed in pointer.
 		template <typename U>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, void>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, void>::type
 		reset(U* pValue)
 		{
 			this_type(pValue).swap(*this);
@@ -727,7 +727,7 @@ namespace eastl
 		/// Releases the owned pointer and takes ownership of the 
 		/// passed in pointer.
 		template <typename U, typename Deleter>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, void>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, void>::type
 		reset(U* pValue, Deleter deleter)
 		{
 			shared_ptr(pValue, deleter).swap(*this);
@@ -737,7 +737,7 @@ namespace eastl
 		/// reset
 		/// Resets the shared_ptr
 		template <typename U, typename Deleter, typename Allocator>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, void>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, void>::type
 		reset(U* pValue, Deleter deleter, const Allocator& allocator)
 		{
 			shared_ptr(pValue, deleter, allocator).swap(*this);
@@ -791,7 +791,7 @@ namespace eastl
 		/// it is unspecified what its return type is, except that the declaration (although not necessarily the
 		/// definition) of the function is guaranteed to be legal.
 		//
-		// TODO(rparolin): This is disabled because eastl::shared_ptr needs array support.
+		// TODO(rparolin): This is disabled because std::shared_ptr needs array support.
 		// element_type& operator[](ptrdiff_t idx)
 		// {
 		//     return get()[idx];
@@ -913,7 +913,7 @@ namespace eastl
 					void* const pMemory = EASTLAlloc(allocator, sizeof(ref_count_type));
 					if(!pMemory) 
 						throw std::bad_alloc();
-					mpRefCount = ::new(pMemory) ref_count_type(pValue, eastl::move(deleter), eastl::move(allocator));
+					mpRefCount = ::new(pMemory) ref_count_type(pValue, std::move(deleter), std::move(allocator));
 					mpValue = pValue;
 					do_enable_shared_from_this(mpRefCount, pValue, pValue);
 				}
@@ -926,7 +926,7 @@ namespace eastl
 				void* const pMemory = EASTLAlloc(allocator, sizeof(ref_count_type));
 				if(pMemory)
 				{
-					mpRefCount = ::new(pMemory) ref_count_type(pValue, eastl::move(deleter), eastl::move(allocator));
+					mpRefCount = ::new(pMemory) ref_count_type(pValue, std::move(deleter), std::move(allocator));
 					mpValue = pValue;
 					do_enable_shared_from_this(mpRefCount, pValue, pValue);
 				}
@@ -985,12 +985,12 @@ namespace eastl
 	template <typename T, typename U> 
 	inline bool operator<(const shared_ptr<T>& a, const shared_ptr<U>& b) EA_NOEXCEPT
 	{
-		//typedef typename eastl::common_type<T*, U*>::type CPointer;
+		//typedef typename std::common_type<T*, U*>::type CPointer;
 		//return less<CPointer>()(a.get(), b.get());
 
-		typedef typename eastl::common_type<T*, U*>::type CPointer; // We currently need to make these temporary variables, as otherwise clang complains about CPointer being int*&&&.
+		typedef typename std::common_type<T*, U*>::type CPointer; // We currently need to make these temporary variables, as otherwise clang complains about CPointer being int*&&&.
 		CPointer pT = a.get();                                      // I wonder if there's something wrong with our common_type type trait implementation.
-		CPointer pU = b.get();                                      // "in instantiation of function template specialization 'eastl::operator<<int, int>, no known conversion from 'element_type *' (aka 'int *') to 'int *&&&' for 1st argument"
+		CPointer pU = b.get();                                      // "in instantiation of function template specialization 'std::operator<<int, int>, no known conversion from 'element_type *' (aka 'int *') to 'int *&&&' for 1st argument"
 		return less<CPointer>()(pT, pU);                            // It looks like common_type is making CPointer be (e.g.) int*&& instead of int*, though the problem may be in how less<> deals with that.
 	}
 
@@ -1166,25 +1166,25 @@ namespace eastl
 		}
 
 		template <typename T, typename U> // Retained for support for pre-C++11 shared_ptr.
-		inline typename eastl::enable_if<!eastl::is_array<T>::value && !eastl::is_array<U>::value, shared_ptr<T> >::type
+		inline typename std::enable_if<!std::is_array<T>::value && !std::is_array<U>::value, shared_ptr<T> >::type
 		dynamic_shared_pointer_cast(const shared_ptr<U>& sharedPtr) EA_NOEXCEPT
 			{ return dynamic_pointer_cast<T, U>(sharedPtr); }
 	#endif
 
 
 	/// hash specialization for shared_ptr.
-	/// It simply returns eastl::hash(x.get()). If your unique_ptr pointer type (the return value of shared_ptr<T>::get) is 
-	/// a custom type and not a built-in pointer type then you will need to independently define eastl::hash for that type.
+	/// It simply returns std::hash(x.get()). If your unique_ptr pointer type (the return value of shared_ptr<T>::get) is 
+	/// a custom type and not a built-in pointer type then you will need to independently define std::hash for that type.
 	template <typename T> 
 	struct hash< shared_ptr<T> >
 	{ 
 		size_t operator()(const shared_ptr<T>& x) const EA_NOEXCEPT
-			{ return eastl::hash<T*>()(x.get()); }
+			{ return std::hash<T*>()(x.get()); }
 	};
 
 
 	template <typename T>
-	void allocate_shared_helper(eastl::shared_ptr<T>& sharedPtr, ref_count_sp* pRefCount, T* pValue)
+	void allocate_shared_helper(std::shared_ptr<T>& sharedPtr, ref_count_sp* pRefCount, T* pValue)
 	{
 		sharedPtr.mpRefCount = pRefCount;
 		sharedPtr.mpValue = pValue;
@@ -1199,7 +1199,7 @@ namespace eastl
 		void* const pMemory = EASTLAlloc(const_cast<Allocator&>(allocator), sizeof(ref_count_type));
 		if(pMemory)
 		{
-			ref_count_type* pRefCount = ::new(pMemory) ref_count_type(allocator, eastl::forward<Args>(args)...);
+			ref_count_type* pRefCount = ::new(pMemory) ref_count_type(allocator, std::forward<Args>(args)...);
 			allocate_shared_helper(ret, pRefCount, pRefCount->GetValue());
 		}
 		return ret;
@@ -1209,7 +1209,7 @@ namespace eastl
 	shared_ptr<T> make_shared(Args&&... args)
 	{
 		// allocate with the default allocator.
-		return allocate_shared<T>(EASTL_SHARED_PTR_DEFAULT_ALLOCATOR, eastl::forward<Args>(args)...);
+		return allocate_shared<T>(EASTL_SHARED_PTR_DEFAULT_ALLOCATOR, std::forward<Args>(args)...);
 	}
 
 
@@ -1402,7 +1402,7 @@ namespace eastl
 		/// weak_ptr
 		/// Constructs a weak_ptr from another weak_ptr.
 		template <typename U>
-		weak_ptr(const weak_ptr<U>& weakPtr, typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
+		weak_ptr(const weak_ptr<U>& weakPtr, typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
 			: mpValue(weakPtr.mpValue),
 				mpRefCount(weakPtr.mpRefCount)
 		{
@@ -1415,7 +1415,7 @@ namespace eastl
 		/// Move constructs a weak_ptr from another weak_ptr.
 		template <typename U>
 		weak_ptr(weak_ptr<U>&& weakPtr,
-		         typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
+		         typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
 		    : mpValue(weakPtr.mpValue),
 		      mpRefCount(weakPtr.mpRefCount)
 		{
@@ -1428,7 +1428,7 @@ namespace eastl
 		/// Constructs a weak_ptr from a shared_ptr.
 		template <typename U>
 		weak_ptr(const shared_ptr<U>& sharedPtr,
-		         typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
+		         typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
 		    : mpValue(sharedPtr.mpValue),
 		      mpRefCount(sharedPtr.mpRefCount)
 		{
@@ -1456,14 +1456,14 @@ namespace eastl
 
 		this_type& operator=(this_type&& weakPtr) EA_NOEXCEPT
 		{
-			weak_ptr(eastl::move(weakPtr)).swap(*this);
+			weak_ptr(std::move(weakPtr)).swap(*this);
 			return *this;
 		}
 
 
 		/// operator=(weak_ptr)
 		template <typename U>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, this_type&>::type
 		operator=(const weak_ptr<U>& weakPtr) EA_NOEXCEPT
 		{
 			assign(weakPtr);
@@ -1472,10 +1472,10 @@ namespace eastl
 
 
 		template <typename U>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, this_type&>::type
 		operator=(weak_ptr<U>&& weakPtr) EA_NOEXCEPT
 		{
-			weak_ptr(eastl::move(weakPtr)).swap(*this);
+			weak_ptr(std::move(weakPtr)).swap(*this);
 			return *this;
 		}
 
@@ -1483,7 +1483,7 @@ namespace eastl
 		/// operator=(shared_ptr)
 		/// Assigns to a weak_ptr from a shared_ptr.
 		template <typename U>
-		typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value, this_type&>::type
+		typename std::enable_if<std::is_convertible<U*, element_type*>::value, this_type&>::type
 		operator=(const shared_ptr<U>& sharedPtr) EA_NOEXCEPT
 		{
 			if(mpRefCount != sharedPtr.mpRefCount) // This check encompasses assignment to self.
@@ -1549,7 +1549,7 @@ namespace eastl
 		///
 		template <typename U>
 		void assign(const weak_ptr<U>& weakPtr,
-		            typename eastl::enable_if<eastl::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
+		            typename std::enable_if<std::is_convertible<U*, element_type*>::value>::type* = 0) EA_NOEXCEPT
 		{
 			if(mpRefCount != weakPtr.mpRefCount) // This check encompasses assignment to self.
 			{
@@ -1656,7 +1656,7 @@ namespace eastl
 
 	template <typename T>
 	struct owner_less< shared_ptr<T> >
-		: public eastl::binary_function<shared_ptr<T>, shared_ptr<T>, bool>
+		: public std::binary_function<shared_ptr<T>, shared_ptr<T>, bool>
 	{
 		typedef bool result_type;
 
@@ -1672,7 +1672,7 @@ namespace eastl
 
 	template <typename T>
 	struct owner_less< weak_ptr<T> >
-		: public eastl::binary_function<weak_ptr<T>, weak_ptr<T>, bool>
+		: public std::binary_function<weak_ptr<T>, weak_ptr<T>, bool>
 	{
 		typedef bool result_type;
 
@@ -1687,7 +1687,7 @@ namespace eastl
 	};
 
 
-} // namespace eastl
+} // namespace std
 
 
 #ifdef _MSC_VER

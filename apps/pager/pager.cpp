@@ -22,7 +22,7 @@
 #include <sys/process.h>
 #include <libshell/expand.h>
 #include <libshell/path.h>
-#include <EASTL/string.h>
+#include <string>
 
 static int usage() {
     printf("pager: print paginated output\n");
@@ -32,7 +32,7 @@ static int usage() {
     return 1;
 }
 
-static void parseCommandLine(int argc, char** argv, eastl::string& prog, eastl::string& args) {
+static void parseCommandLine(int argc, char** argv, std::string& prog, std::string& args) {
     prog = argv[1];
     for(int i = 1; i < argc; ++i) {
         args.append_sprintf("\"%s\" ", argv[i]);
@@ -91,8 +91,8 @@ static void readToEnd(size_t fd) {
 int main(int argc, char** argv) {
     if (argc == 1) return usage();
 
-    eastl::string target_program;
-    eastl::string target_args;
+    std::string target_program;
+    std::string target_args;
 
     parseCommandLine(argc, argv, target_program, target_args);
 

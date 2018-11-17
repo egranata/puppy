@@ -12,15 +12,15 @@
 #include <EASTL/map.h>
 #include <EASTL/string.h>
 
-namespace eastl
+namespace std
 {
 
 
 template<typename T, typename Predicate = str_less<const char*>, typename Allocator = EASTLAllocatorType>
-class string_map : public eastl::map<const char*, T, Predicate, Allocator>
+class string_map : public std::map<const char*, T, Predicate, Allocator>
 {
 public:
-	typedef eastl::map<const char*, T, Predicate, Allocator> base;
+	typedef std::map<const char*, T, Predicate, Allocator> base;
 	typedef string_map<T, Predicate, Allocator>              this_type;
 	typedef typename base::base_type::allocator_type         allocator_type;
 	typedef typename base::base_type::insert_return_type     insert_return_type;
@@ -62,7 +62,7 @@ template<typename T, typename Predicate, typename Allocator>
 string_map<T, Predicate, Allocator>::string_map(const string_map& src, const allocator_type& allocator) : base(allocator)
 {
 	for (const_iterator i=src.begin(), e=src.end(); i!=e; ++i)
-		base::base_type::insert(eastl::make_pair(strduplicate(i->first), i->second));
+		base::base_type::insert(std::make_pair(strduplicate(i->first), i->second));
 }
 
 template<typename T, typename Predicate, typename Allocator>
@@ -111,7 +111,7 @@ string_map<T, Predicate, Allocator>::insert(const char* key, const T& value)
 		ret.second = false;
 		return ret;
 	}
-	return base::base_type::insert(eastl::make_pair(strduplicate(key), value));
+	return base::base_type::insert(std::make_pair(strduplicate(key), value));
 }
 
 template<typename T, typename Predicate, typename Allocator>

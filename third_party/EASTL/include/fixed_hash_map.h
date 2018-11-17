@@ -22,7 +22,7 @@ EA_DISABLE_VC_WARNING(4127) // Conditional expression is constant
 #endif
 
 
-namespace eastl
+namespace std
 {
 	/// EASTL_FIXED_HASH_MAP_DEFAULT_NAME
 	///
@@ -67,7 +67,7 @@ namespace eastl
 	///     Predicate              hash_set equality testing function. See hash_set.
 	///
 	template <typename Key, typename T, size_t nodeCount, size_t bucketCount = nodeCount + 1, bool bEnableOverflow = true,
-			  typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
+			  typename Hash = std::hash<Key>, typename Predicate = std::equal_to<Key>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
 	class fixed_hash_map : public hash_map<Key, 
 										   T,
 										   Hash,
@@ -76,7 +76,7 @@ namespace eastl
 												bucketCount + 1,
 												sizeof(typename hash_map<Key, T, Hash, Predicate, OverflowAllocator, bCacheHashCode>::node_type), 
 												nodeCount,
-												EASTL_ALIGN_OF(eastl::pair<Key, T>), 
+												EASTL_ALIGN_OF(std::pair<Key, T>), 
 												0, 
 												bEnableOverflow,
 												OverflowAllocator>, 
@@ -84,7 +84,7 @@ namespace eastl
 	{
 	public:
 		typedef fixed_hashtable_allocator<bucketCount + 1, sizeof(typename hash_map<Key, T, Hash, Predicate, 
-						OverflowAllocator, bCacheHashCode>::node_type), nodeCount, EASTL_ALIGN_OF(eastl::pair<Key, T>), 0,
+						OverflowAllocator, bCacheHashCode>::node_type), nodeCount, EASTL_ALIGN_OF(std::pair<Key, T>), 0,
 						bEnableOverflow, OverflowAllocator>                                                                         fixed_allocator_type;
 		typedef typename fixed_allocator_type::overflow_allocator_type                                                              overflow_allocator_type;
 		typedef hash_map<Key, T, Hash, Predicate, fixed_allocator_type, bCacheHashCode>                                             base_type;
@@ -158,7 +158,7 @@ namespace eastl
 	///     Predicate              hash_set equality testing function. See hash_set.
 	///
 	template <typename Key, typename T, size_t nodeCount, size_t bucketCount = nodeCount + 1, bool bEnableOverflow = true,
-			  typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
+			  typename Hash = std::hash<Key>, typename Predicate = std::equal_to<Key>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
 	class fixed_hash_multimap : public hash_multimap<Key,
 													 T,
 													 Hash,
@@ -167,7 +167,7 @@ namespace eastl
 														bucketCount + 1, 
 														sizeof(typename hash_multimap<Key, T, Hash, Predicate, OverflowAllocator, bCacheHashCode>::node_type), 
 														nodeCount,
-														EASTL_ALIGN_OF(eastl::pair<Key, T>),
+														EASTL_ALIGN_OF(std::pair<Key, T>),
 														0, 
 														bEnableOverflow,
 														OverflowAllocator>, 
@@ -175,7 +175,7 @@ namespace eastl
 	{
 	public:
 		typedef fixed_hashtable_allocator<bucketCount + 1, sizeof(typename hash_multimap<Key, T, Hash, Predicate, 
-						OverflowAllocator, bCacheHashCode>::node_type), nodeCount, EASTL_ALIGN_OF(eastl::pair<Key, T>), 0, 
+						OverflowAllocator, bCacheHashCode>::node_type), nodeCount, EASTL_ALIGN_OF(std::pair<Key, T>), 0, 
 						bEnableOverflow, OverflowAllocator>                                                                              fixed_allocator_type;
 		typedef typename fixed_allocator_type::overflow_allocator_type                                                                   overflow_allocator_type;
 		typedef hash_multimap<Key, T, Hash, Predicate, fixed_allocator_type, bCacheHashCode>                                             base_type;
@@ -443,7 +443,7 @@ namespace eastl
 	swap(this_type& x)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(*this, x);
+		std::fixed_swap(*this, x);
 	}
 
 
@@ -514,7 +514,7 @@ namespace eastl
 					 fixed_hash_map<Key, T, nodeCount, bucketCount, bEnableOverflow, Hash, Predicate, bCacheHashCode>& b)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(a, b);
+		std::fixed_swap(a, b);
 	}
 
 
@@ -728,7 +728,7 @@ namespace eastl
 	swap(this_type& x)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(*this, x);
+		std::fixed_swap(*this, x);
 	}
 
 
@@ -798,12 +798,12 @@ namespace eastl
 					 fixed_hash_multimap<Key, T, nodeCount, bucketCount, bEnableOverflow, Hash, Predicate, bCacheHashCode>& b)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(a, b);
+		std::fixed_swap(a, b);
 	}
 
 
 
-} // namespace eastl
+} // namespace std
 
 EA_RESTORE_VC_WARNING()
 

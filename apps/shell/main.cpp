@@ -24,8 +24,8 @@
 #include <sys/unistd.h>
 #include <sys/stat.h>
 
-#include <EASTL/string.h>
-#include <EASTL/vector.h>
+#include <string>
+#include <vector>
 
 #include <linenoise/linenoise.h>
 
@@ -55,7 +55,7 @@ static void runInitShellTasks() {
 }
 
 static int interactiveLoop() {
-    eastl::string prompt;
+    std::string prompt;
     History& history(History::defaultHistory());
     int count = 0;
 
@@ -64,7 +64,7 @@ static int interactiveLoop() {
         getPrompt(prompt);
         auto cmdline_cstr = linenoise(prompt.c_str());
         if (cmdline_cstr == nullptr) return 0;
-        eastl::string cmdline = cmdline_cstr;
+        std::string cmdline = cmdline_cstr;
         linenoiseFree(cmdline_cstr);
         if (runline(cmdline)) {
             history.add(cmdline);

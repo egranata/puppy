@@ -23,7 +23,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// alloc_flags
@@ -48,7 +48,7 @@ namespace eastl
 	/// operator. This is possibly because std::allocators are associated with types
 	/// instead of as instances. The potential non-equivalance of C++ std::allocator
 	/// instances has been a source of some acknowledged design problems.
-	/// We don't implement support for move construction or assignment in eastl::allocator,
+	/// We don't implement support for move construction or assignment in std::allocator,
 	/// but users can define their own allocators which do have move functions and 
 	/// the eastl containers are compatible with such allocators (i.e. nothing unexpected
 	/// will happen).
@@ -158,7 +158,7 @@ namespace eastl
 	void* allocate_memory(Allocator& a, size_t n, size_t alignment, size_t alignmentOffset);
 
 
-} // namespace eastl
+} // namespace std
 
 
 
@@ -184,7 +184,7 @@ namespace eastl
 		void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line);
 	#endif
 
-	namespace eastl
+	namespace std
 	{
 		inline allocator::allocator(const char* EASTL_NAME(pName))
 		{
@@ -316,14 +316,14 @@ namespace eastl
 		}
 
 
-	} // namespace eastl
+	} // namespace std
 
 
 #endif // EASTL_USER_DEFINED_ALLOCATOR
 
 
 
-namespace eastl
+namespace std
 {
 
 	template <typename Allocator>

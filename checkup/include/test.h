@@ -17,7 +17,7 @@
 #ifndef CHECKUP_TEST
 #define CHECKUP_TEST
 
-#include <EASTL/string.h>
+#include <string>
 
 class Test {
     public:
@@ -35,7 +35,7 @@ class Test {
         ~Test();
 
     private:
-        eastl::string mName;
+        std::string mName;
 };
 
 #endif

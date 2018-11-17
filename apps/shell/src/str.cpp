@@ -16,12 +16,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void trim(eastl::string& s) {
+void trim(std::string& s) {
     s.erase(0, s.find_first_not_of(' '));
     s.erase(s.find_last_not_of(' ') + 1);
 }
 
-eastl::string getline(const char* prompt, bool& eof) {
+std::string getline(const char* prompt, bool& eof) {
     if (prompt == nullptr) prompt = "> ";
     printf("%s", prompt);
     char* data = nullptr;
@@ -29,10 +29,10 @@ eastl::string getline(const char* prompt, bool& eof) {
     size_t n_read = __getline(&data, &len, stdin);
     if (n_read == (size_t)-1 && feof(stdin)) {
         eof = true;
-        return eastl::string();
+        return std::string();
     }
     eof = false;
-    auto out = eastl::string(data);
+    auto out = std::string(data);
     free(data);
     if (!out.empty() && out[out.size() - 1] == '\n') {
         out.pop_back();

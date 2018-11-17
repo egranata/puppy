@@ -82,7 +82,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 	namespace Internal
 	{
@@ -237,7 +237,7 @@ namespace eastl
 
 	} // namespace Internal
 
-} // namespace eastl
+} // namespace std
 
 
 #if defined(_MSC_VER)

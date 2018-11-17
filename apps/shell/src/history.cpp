@@ -23,7 +23,7 @@ History::~History() {
     save();
 }
 
-void History::add(const eastl::string& s) {
+void History::add(const std::string& s) {
     linenoiseHistoryAdd(s.c_str());
 }
 

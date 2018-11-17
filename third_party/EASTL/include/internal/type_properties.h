@@ -16,7 +16,7 @@
 #include <EASTL/internal/type_compound.h>
 
 
-namespace eastl
+namespace std
 {
 
 
@@ -125,11 +125,11 @@ namespace eastl
 	#endif
 
 	template <typename T>
-	struct is_signed : public eastl::is_signed_helper<typename eastl::remove_cv<T>::type>{};
+	struct is_signed : public std::is_signed_helper<typename std::remove_cv<T>::type>{};
 
 
 	#define EASTL_DECLARE_SIGNED(T)                                             \
-	namespace eastl{                                                            \
+	namespace std{                                                            \
 		template <> struct is_signed<T>                : public true_type{};    \
 		template <> struct is_signed<const T>          : public true_type{};    \
 		template <> struct is_signed<volatile T>       : public true_type{};    \
@@ -175,10 +175,10 @@ namespace eastl
 	#endif
 
 	template <typename T>
-	struct is_unsigned : public eastl::is_unsigned_helper<typename eastl::remove_cv<T>::type>{};
+	struct is_unsigned : public std::is_unsigned_helper<typename std::remove_cv<T>::type>{};
 
 	#define EASTL_DECLARE_UNSIGNED(T)                                             \
-	namespace eastl{                                                              \
+	namespace std{                                                              \
 		template <> struct is_unsigned<T>                : public true_type{};    \
 		template <> struct is_unsigned<const T>          : public true_type{};    \
 		template <> struct is_unsigned<volatile T>       : public true_type{};    \
@@ -247,13 +247,13 @@ namespace eastl
 	#define EASTL_TYPE_TRAIT_rank_CONFORMANCE 1    // rank is conforming.
 
 	template<typename T>
-	struct rank : public eastl::integral_constant<size_t, 0> {};
+	struct rank : public std::integral_constant<size_t, 0> {};
 
 	template<typename T>
-	struct rank<T[]> : public eastl::integral_constant<size_t, rank<T>::value + 1> {};
+	struct rank<T[]> : public std::integral_constant<size_t, rank<T>::value + 1> {};
 
 	template<typename T, size_t N>
-	struct rank<T[N]> : public eastl::integral_constant<size_t, rank<T>::value + 1> {};
+	struct rank<T[N]> : public std::integral_constant<size_t, rank<T>::value + 1> {};
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -271,7 +271,7 @@ namespace eastl
 		#define EASTL_TYPE_TRAIT_is_base_of_CONFORMANCE 1    // is_base_of is conforming.
 
 		template <typename Base, typename Derived>
-		struct is_base_of : public eastl::integral_constant<bool, __is_base_of(Base, Derived) || eastl::is_same<Base, Derived>::value>{};
+		struct is_base_of : public std::integral_constant<bool, __is_base_of(Base, Derived) || std::is_same<Base, Derived>::value>{};
 
 		#if EASTL_VARIABLE_TEMPLATES_ENABLED
 			template <typename Base, typename Derived>
@@ -292,8 +292,8 @@ namespace eastl
 
 	#define EASTL_TYPE_TRAIT_is_lvalue_reference_CONFORMANCE 1    // is_lvalue_reference is conforming.
 
-	template<typename T> struct is_lvalue_reference     : public eastl::false_type {};
-	template<typename T> struct is_lvalue_reference<T&> : public eastl::true_type {};
+	template<typename T> struct is_lvalue_reference     : public std::false_type {};
+	template<typename T> struct is_lvalue_reference<T&> : public std::true_type {};
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -304,12 +304,12 @@ namespace eastl
 	#if EASTL_NO_RVALUE_REFERENCES
 		#define EASTL_TYPE_TRAIT_is_rvalue_reference_CONFORMANCE 0    // Given that the compiler doesn't support rvalue references, maybe the conformance here should be 1, since the result of this is always correct.
 
-		template <typename T> struct is_rvalue_reference      : public eastl::false_type {};
+		template <typename T> struct is_rvalue_reference      : public std::false_type {};
 	#else
 		#define EASTL_TYPE_TRAIT_is_rvalue_reference_CONFORMANCE 1    // is_rvalue_reference is conforming.
 
-		template <typename T> struct is_rvalue_reference      : public eastl::false_type {};
-		template <typename T> struct is_rvalue_reference<T&&> : public eastl::true_type {};
+		template <typename T> struct is_rvalue_reference      : public std::false_type {};
+		template <typename T> struct is_rvalue_reference<T&&> : public std::true_type {};
 	#endif
 
 
@@ -323,7 +323,7 @@ namespace eastl
 
 	template<typename F, typename... ArgTypes>
 	struct result_of<F(ArgTypes...)>
-		{ typedef decltype(eastl::declval<F>()(eastl::declval<ArgTypes>()...)) type; };
+		{ typedef decltype(std::declval<F>()(std::declval<ArgTypes>()...)) type; };
 
 
 	// result_of_t is the C++14 using typedef for typename result_of<T>::type.
@@ -343,11 +343,11 @@ namespace eastl
 	// Determines if the specified type can be tested for equality.
 	//
 	///////////////////////////////////////////////////////////////////////
-	template <typename, typename = eastl::void_t<>>
-	struct has_equality : eastl::false_type {};
+	template <typename, typename = std::void_t<>>
+	struct has_equality : std::false_type {};
 
 	template <typename T>
-	struct has_equality<T, eastl::void_t<decltype(eastl::declval<T>() == eastl::declval<T>())>> : eastl::true_type
+	struct has_equality<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>> : std::true_type
 	{
 	};
 
@@ -356,7 +356,7 @@ namespace eastl
 		EA_CONSTEXPR auto has_equality_v = has_equality<T>::value;
 	#endif
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

@@ -23,7 +23,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// class linked_array
@@ -321,7 +321,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

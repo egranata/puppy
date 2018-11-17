@@ -14,7 +14,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 
 	/// gpEmptyBucketArray
@@ -94,7 +94,7 @@ namespace eastl
 	///
 	uint32_t prime_rehash_policy::GetPrevBucketCountOnly(uint32_t nBucketCountHint)
 	{
-		const uint32_t nPrime = *(eastl::upper_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nBucketCountHint) - 1);
+		const uint32_t nPrime = *(std::upper_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nBucketCountHint) - 1);
 		return nPrime;
 	}
 
@@ -105,7 +105,7 @@ namespace eastl
 	///
 	uint32_t prime_rehash_policy::GetPrevBucketCount(uint32_t nBucketCountHint) const
 	{
-		const uint32_t nPrime = *(eastl::upper_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nBucketCountHint) - 1);
+		const uint32_t nPrime = *(std::upper_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nBucketCountHint) - 1);
 
 		mnNextResize = (uint32_t)ceilf(nPrime * mfMaxLoadFactor);
 		return nPrime;
@@ -118,7 +118,7 @@ namespace eastl
 	///
 	uint32_t prime_rehash_policy::GetNextBucketCount(uint32_t nBucketCountHint) const
 	{
-		const uint32_t nPrime = *eastl::lower_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nBucketCountHint);
+		const uint32_t nPrime = *std::lower_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nBucketCountHint);
 
 		mnNextResize = (uint32_t)ceilf(nPrime * mfMaxLoadFactor);
 		return nPrime;
@@ -132,7 +132,7 @@ namespace eastl
 	uint32_t prime_rehash_policy::GetBucketCount(uint32_t nElementCount) const
 	{
 		const uint32_t nMinBucketCount = (uint32_t)(nElementCount / mfMaxLoadFactor);
-		const uint32_t nPrime          = *eastl::lower_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nMinBucketCount);
+		const uint32_t nPrime          = *std::lower_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, nMinBucketCount);
 
 		mnNextResize = (uint32_t)ceilf(nPrime * mfMaxLoadFactor);
 		return nPrime;
@@ -145,7 +145,7 @@ namespace eastl
 	/// pair<bool, uint32_t>(false, 0). In principle this isn't very different from GetBucketCount.
 	/// This function has a side effect of updating mnNextResize.
 	///
-	eastl::pair<bool, uint32_t>
+	std::pair<bool, uint32_t>
 	prime_rehash_policy::GetRehashRequired(uint32_t nBucketCount, uint32_t nElementCount, uint32_t nElementAdd) const
 	{
 		if((nElementCount + nElementAdd) > mnNextResize) // It is significant that we specify > next resize and not >= next resize.
@@ -157,24 +157,24 @@ namespace eastl
 
 			if(fMinBucketCount > (float)nBucketCount)
 			{
-				fMinBucketCount       = eastl::max_alt(fMinBucketCount, mfGrowthFactor * nBucketCount);
-				const uint32_t nPrime = *eastl::lower_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, (uint32_t)fMinBucketCount);
+				fMinBucketCount       = std::max_alt(fMinBucketCount, mfGrowthFactor * nBucketCount);
+				const uint32_t nPrime = *std::lower_bound(gPrimeNumberArray, gPrimeNumberArray + kPrimeCount, (uint32_t)fMinBucketCount);
 				mnNextResize          = (uint32_t)ceilf(nPrime * mfMaxLoadFactor);
 
-				return eastl::pair<bool, uint32_t>(true, nPrime);
+				return std::pair<bool, uint32_t>(true, nPrime);
 			}
 			else
 			{
 				mnNextResize = (uint32_t)ceilf(nBucketCount * mfMaxLoadFactor);
-				return eastl::pair<bool, uint32_t>(false, (uint32_t)0);
+				return std::pair<bool, uint32_t>(false, (uint32_t)0);
 			}
 		}
 
-		return eastl::pair<bool, uint32_t>(false, (uint32_t)0);
+		return std::pair<bool, uint32_t>(false, (uint32_t)0);
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 

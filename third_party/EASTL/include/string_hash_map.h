@@ -12,15 +12,15 @@
 #include <EASTL/hash_map.h>
 #include <EASTL/string.h>
 
-namespace eastl
+namespace std
 {
 
 
 template<typename T, typename Hash = hash<const char*>, typename Predicate = str_equal_to<const char*>, typename Allocator = EASTLAllocatorType>
-class string_hash_map : public eastl::hash_map<const char*, T, Hash, Predicate, Allocator>
+class string_hash_map : public std::hash_map<const char*, T, Hash, Predicate, Allocator>
 {
 public:
-	typedef eastl::hash_map<const char*, T, Hash, Predicate, Allocator> base;
+	typedef std::hash_map<const char*, T, Hash, Predicate, Allocator> base;
 	typedef string_hash_map<T, Hash, Predicate, Allocator> this_type;
 	typedef typename base::base_type::allocator_type allocator_type;
 	typedef typename base::base_type::insert_return_type insert_return_type;
@@ -61,7 +61,7 @@ template<typename T, typename Hash, typename Predicate, typename Allocator>
 string_hash_map<T, Hash, Predicate, Allocator>::string_hash_map(const string_hash_map& src, const allocator_type& allocator) : base(allocator)
 {
 	for (const_iterator i=src.begin(), e=src.end(); i!=e; ++i)
-		base::base_type::insert(eastl::make_pair(strduplicate(i->first), i->second));
+		base::base_type::insert(std::make_pair(strduplicate(i->first), i->second));
 }
 
 template<typename T, typename Hash, typename Predicate, typename Allocator>
@@ -120,7 +120,7 @@ string_hash_map<T, Hash, Predicate, Allocator>::insert(const char* key, const T&
 		ret.second = false;
 		return ret;
 	}
-	return base::base_type::insert(eastl::make_pair(strduplicate(key), value));
+	return base::base_type::insert(std::make_pair(strduplicate(key), value));
 }
 
 template<typename T, typename Hash, typename Predicate, typename Allocator>

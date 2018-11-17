@@ -9,7 +9,7 @@
 
 #if EASTL_TUPLE_ENABLED
 
-namespace eastl
+namespace std
 {
 	template <typename... T>
 	class tuple;

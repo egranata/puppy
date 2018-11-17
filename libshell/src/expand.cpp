@@ -40,9 +40,9 @@ namespace {
 
 namespace libShellSupport {
     char** parseCommandLine(const char* cmdline, size_t* argc) {
-        eastl::vector<eastl::string> result;
-        eastl::string buffer;
-        eastl::stack<parser_state_t> pstate;
+        std::vector<std::string> result;
+        std::string buffer;
+        std::stack<parser_state_t> pstate;
         NEW_STATE(ORDINARY);
         for(; cmdline && *cmdline; ++cmdline) {
             char c = *cmdline;

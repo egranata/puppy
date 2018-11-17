@@ -41,7 +41,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_VECTOR_MULTISET_DEFAULT_NAME
@@ -86,8 +86,8 @@ namespace eastl
 	/// more efficient use of the container and is consistent with the C++ language 
 	/// defect report #130 (DR 130)
 	///
-	template <typename Key, typename Compare = eastl::less<Key>, typename Allocator = EASTLAllocatorType, 
-			  typename RandomAccessContainer = eastl::vector<Key, Allocator> >
+	template <typename Key, typename Compare = std::less<Key>, typename Allocator = EASTLAllocatorType, 
+			  typename RandomAccessContainer = std::vector<Key, Allocator> >
 	class vector_multiset : public RandomAccessContainer
 	{
 	public:
@@ -231,13 +231,13 @@ namespace eastl
 		iterator       upper_bound(const key_type& k);
 		const_iterator upper_bound(const key_type& k) const;
 
-		eastl::pair<iterator, iterator>             equal_range(const key_type& k);
-		eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
+		std::pair<iterator, iterator>             equal_range(const key_type& k);
+		std::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
 
 		/// equal_range_small
 		/// This is a special version of equal_range which is optimized for the 
 		/// case of there being few or no duplicated keys in the tree.
-		eastl::pair<iterator, iterator>             equal_range_small(const key_type& k)
+		std::pair<iterator, iterator>             equal_range_small(const key_type& k)
 		{
 			// Defined inline because VC7.1 is broken for when it's defined outside.
 			const iterator itLower(lower_bound(k));
@@ -246,9 +246,9 @@ namespace eastl
 			while((itUpper != end()) && !mCompare(k, *itUpper))
 				++itUpper;
 
-			return eastl::pair<iterator, iterator>(itLower, itUpper);
+			return std::pair<iterator, iterator>(itLower, itUpper);
 		}
-		eastl::pair<const_iterator, const_iterator> equal_range_small(const key_type& k) const;
+		std::pair<const_iterator, const_iterator> equal_range_small(const key_type& k) const;
 
 		// Functions which are disallowed due to being unsafe. We are looking for a way to disable these at
 		// compile-time. Declaring but not defining them doesn't work due to explicit template instantiations.
@@ -320,14 +320,14 @@ namespace eastl
 	#if EASTL_MOVE_SEMANTICS_ENABLED
 		template <typename K, typename C, typename A, typename RAC>
 		inline vector_multiset<K, C, A, RAC>::vector_multiset(this_type&& x)
-			: base_type(eastl::move(x)), mCompare(x.mCompare)
+			: base_type(std::move(x)), mCompare(x.mCompare)
 		{
 			// Empty. Note: x is left with empty contents but its original mValueCompare instead of the default one. 
 		}
 
 		template <typename K, typename C, typename A, typename RAC>
 		inline vector_multiset<K, C, A, RAC>::vector_multiset(this_type&& x, const allocator_type& allocator)
-			: base_type(eastl::move(x), allocator), mCompare(x.mCompare)
+			: base_type(std::move(x), allocator), mCompare(x.mCompare)
 		{
 			// Empty. Note: x is left with empty contents but its original mValueCompare instead of the default one. 
 		}
@@ -357,8 +357,8 @@ namespace eastl
 		inline vector_multiset<K, C, A, RAC>&
 		vector_multiset<K, C, A, RAC>::operator=(this_type&& x)
 		{
-			base_type::operator=(eastl::move(x));
-			eastl::swap(mCompare, x.mCompare);
+			base_type::operator=(std::move(x));
+			std::swap(mCompare, x.mCompare);
 			return *this;
 		}
 	#endif
@@ -378,7 +378,7 @@ namespace eastl
 	inline void vector_multiset<K, C, A, RAC>::swap(this_type& x)
 	{
 		base_type::swap(x);
-		eastl::swap(mCompare, x.mCompare);
+		std::swap(mCompare, x.mCompare);
 	}
 
 
@@ -421,11 +421,11 @@ namespace eastl
 		vector_multiset<K, C, A, RAC>::emplace(Args&&... args)
 		{
 			#if EASTL_USE_FORWARD_WORKAROUND
-				auto value = value_type(eastl::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
+				auto value = value_type(std::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
 			#else
-				value_type  value(eastl::forward<Args>(args)...);
+				value_type  value(std::forward<Args>(args)...);
 			#endif
-			return insert(eastl::move(value));
+			return insert(std::move(value));
 		}
 
 		template <typename K, typename C, typename A, typename RAC>
@@ -434,11 +434,11 @@ namespace eastl
 		vector_multiset<K, C, A, RAC>::emplace_hint(const_iterator position, Args&&... args)
 		{
 			#if EASTL_USE_FORWARD_WORKAROUND
-				auto value = value_type(eastl::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
+				auto value = value_type(std::forward<Args>(args)...);  // Workaround for compiler bug in VS2013 which results in a compiler internal crash while compiling this code.
 			#else
-				value_type  value(eastl::forward<Args>(args)...);
+				value_type  value(std::forward<Args>(args)...);
 			#endif
-			return insert(position, eastl::move(value));
+			return insert(position, std::move(value));
 		}
 	#else
 		#if EASTL_MOVE_SEMANTICS_ENABLED
@@ -446,14 +446,14 @@ namespace eastl
 			typename vector_multiset<K, C, A, RAC>::iterator
 			vector_multiset<K, C, A, RAC>::emplace(value_type&& value)
 			{
-				return insert(eastl::move(value));
+				return insert(std::move(value));
 			}
 
 			template <typename K, typename C, typename A, typename RAC>
 			typename vector_multiset<K, C, A, RAC>::iterator
 			vector_multiset<K, C, A, RAC>::emplace_hint(const_iterator position, value_type&& value)
 			{
-				return insert(position, eastl::move(value));
+				return insert(position, std::move(value));
 			}
 		#endif
 
@@ -488,9 +488,9 @@ namespace eastl
 		typename vector_multiset<K, C, A, RAC>::iterator
 		vector_multiset<K, C, A, RAC>::insert(P&& otherValue)
 		{
-			value_type value(eastl::forward<P>(otherValue));
+			value_type value(std::forward<P>(otherValue));
 			const iterator itLB(lower_bound(value));
-			return base_type::insert(itLB, eastl::move(value));
+			return base_type::insert(itLB, std::move(value));
 		}
 	#endif
 
@@ -530,11 +530,11 @@ namespace eastl
 			if((position == end()) || !mCompare(*position, value))  // If value is <= the element at position...
 			{
 				if((position == begin()) || !mCompare(value, *(position - 1))) // If value is >= the element before position...
-					return base_type::insert(position, eastl::move(value));
+					return base_type::insert(position, std::move(value));
 			}
 
 			// In this case we have an incorrect position. We fall back to the regular insert function.
-			return insert(eastl::move(value));
+			return insert(std::move(value));
 		}
 	#endif
 
@@ -594,12 +594,12 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::size_type
 	vector_multiset<K, C, A, RAC>::erase(const key_type& k)
 	{
-		const eastl::pair<iterator, iterator> pairIts(equal_range(k));
+		const std::pair<iterator, iterator> pairIts(equal_range(k));
 
 		if(pairIts.first != pairIts.second)
 			base_type::erase(pairIts.first, pairIts.second);
 
-		return (size_type)eastl::distance(pairIts.first, pairIts.second); // This can result in any value >= 0.
+		return (size_type)std::distance(pairIts.first, pairIts.second); // This can result in any value >= 0.
 	}
 
 
@@ -607,7 +607,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::iterator
 	vector_multiset<K, C, A, RAC>::find(const key_type& k)
 	{
-		const eastl::pair<iterator, iterator> pairIts(equal_range(k));
+		const std::pair<iterator, iterator> pairIts(equal_range(k));
 		return (pairIts.first != pairIts.second) ? pairIts.first : end();
 	}
 
@@ -617,7 +617,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::iterator
 	vector_multiset<K, C, A, RAC>::find_as(const U& u, BinaryPredicate predicate)
 	{
-		const eastl::pair<iterator, iterator> pairIts(eastl::equal_range(begin(), end(), u, predicate));
+		const std::pair<iterator, iterator> pairIts(std::equal_range(begin(), end(), u, predicate));
 		return (pairIts.first != pairIts.second) ? pairIts.first : end();
 	}
 
@@ -627,7 +627,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::const_iterator
 	vector_multiset<K, C, A, RAC>::find_as(const U& u, BinaryPredicate predicate) const
 	{
-		const eastl::pair<const_iterator, const_iterator> pairIts(eastl::equal_range(begin(), end(), u, predicate));
+		const std::pair<const_iterator, const_iterator> pairIts(std::equal_range(begin(), end(), u, predicate));
 		return (pairIts.first != pairIts.second) ? pairIts.first : end();
 	}
 
@@ -636,7 +636,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::const_iterator
 	vector_multiset<K, C, A, RAC>::find(const key_type& k) const
 	{
-		const eastl::pair<const_iterator, const_iterator> pairIts(equal_range(k));
+		const std::pair<const_iterator, const_iterator> pairIts(equal_range(k));
 		return (pairIts.first != pairIts.second) ? pairIts.first : end();
 	}
 
@@ -645,8 +645,8 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::size_type
 	vector_multiset<K, C, A, RAC>::count(const key_type& k) const
 	{
-		const eastl::pair<const_iterator, const_iterator> pairIts(equal_range(k));
-		return (size_type)eastl::distance(pairIts.first, pairIts.second);
+		const std::pair<const_iterator, const_iterator> pairIts(equal_range(k));
+		return (size_type)std::distance(pairIts.first, pairIts.second);
 	}
 
 
@@ -654,7 +654,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::iterator
 	vector_multiset<K, C, A, RAC>::lower_bound(const key_type& k)
 	{
-		return eastl::lower_bound(begin(), end(), k, mCompare);
+		return std::lower_bound(begin(), end(), k, mCompare);
 	}
 
 
@@ -662,7 +662,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::const_iterator
 	vector_multiset<K, C, A, RAC>::lower_bound(const key_type& k) const
 	{
-		return eastl::lower_bound(begin(), end(), k, mCompare);
+		return std::lower_bound(begin(), end(), k, mCompare);
 	}
 
 
@@ -670,7 +670,7 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::iterator
 	vector_multiset<K, C, A, RAC>::upper_bound(const key_type& k)
 	{
-		return eastl::upper_bound(begin(), end(), k, mCompare);
+		return std::upper_bound(begin(), end(), k, mCompare);
 	}
 
 
@@ -678,30 +678,30 @@ namespace eastl
 	inline typename vector_multiset<K, C, A, RAC>::const_iterator
 	vector_multiset<K, C, A, RAC>::upper_bound(const key_type& k) const
 	{
-		return eastl::upper_bound(begin(), end(), k, mCompare);
+		return std::upper_bound(begin(), end(), k, mCompare);
 	}
 
 
 	template <typename K, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multiset<K, C, A, RAC>::iterator, typename vector_multiset<K, C, A, RAC>::iterator>
+	inline std::pair<typename vector_multiset<K, C, A, RAC>::iterator, typename vector_multiset<K, C, A, RAC>::iterator>
 	vector_multiset<K, C, A, RAC>::equal_range(const key_type& k)
 	{
-		return eastl::equal_range(begin(), end(), k, mCompare);
+		return std::equal_range(begin(), end(), k, mCompare);
 	}
 
 
 	template <typename K, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multiset<K, C, A, RAC>::const_iterator, typename vector_multiset<K, C, A, RAC>::const_iterator>
+	inline std::pair<typename vector_multiset<K, C, A, RAC>::const_iterator, typename vector_multiset<K, C, A, RAC>::const_iterator>
 	vector_multiset<K, C, A, RAC>::equal_range(const key_type& k) const
 	{
-		return eastl::equal_range(begin(), end(), k, mCompare);
+		return std::equal_range(begin(), end(), k, mCompare);
 	}
 
 
 	/*
 	// VC++ fails to compile this when defined here, saying the function isn't a memgber of vector_multimap.
 	template <typename K, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multiset<K, C, A, RAC>::iterator, typename vector_multiset<K, C, A, RAC>::iterator>
+	inline std::pair<typename vector_multiset<K, C, A, RAC>::iterator, typename vector_multiset<K, C, A, RAC>::iterator>
 	vector_multiset<K, C, A, RAC>::equal_range_small(const key_type& k)
 	{
 		const iterator itLower(lower_bound(k));
@@ -710,13 +710,13 @@ namespace eastl
 		while((itUpper != end()) && !mCompare(k, *itUpper))
 			++itUpper;
 
-		return eastl::pair<iterator, iterator>(itLower, itUpper);
+		return std::pair<iterator, iterator>(itLower, itUpper);
 	}
 	*/
 
 
 	template <typename K, typename C, typename A, typename RAC>
-	inline eastl::pair<typename vector_multiset<K, C, A, RAC>::const_iterator, typename vector_multiset<K, C, A, RAC>::const_iterator>
+	inline std::pair<typename vector_multiset<K, C, A, RAC>::const_iterator, typename vector_multiset<K, C, A, RAC>::const_iterator>
 	vector_multiset<K, C, A, RAC>::equal_range_small(const key_type& k) const
 	{
 		const const_iterator itLower(lower_bound(k));
@@ -725,7 +725,7 @@ namespace eastl
 		while((itUpper != end()) && !mCompare(k, *itUpper))
 			++itUpper;
 
-		return eastl::pair<const_iterator, const_iterator>(itLower, itUpper);
+		return std::pair<const_iterator, const_iterator>(itLower, itUpper);
 	}
 
 
@@ -790,7 +790,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

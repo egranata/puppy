@@ -19,7 +19,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// linked_ptr_base
@@ -400,7 +400,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

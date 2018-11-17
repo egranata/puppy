@@ -309,7 +309,7 @@ NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
               "out/mnt/libs/libc.a"]
 NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
 
-SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib"]
+SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib", "out/mnt/include/stl"]
 
 USERSPACE_LD_SCRIPT = "out/mnt/libs/app.ld"
 
@@ -461,25 +461,25 @@ EASTL.link = EASTL.linkAr
 Checkup = Project(name="Checkup",
     srcdir="checkup/src",
     assembler="nasm",
-    ipaths=["include", "include/newlib", "include/EASTL"],
+    ipaths=["include", "include/newlib", "include/stl"],
     linkerdeps=NEWLIB_DEPS)
 Checkup.link = Checkup.linkAr
 
 Parson = Project(name="Parson",
     srcdir="third_party/parson",
-    ipaths=["include", "include/newlib", "include/EASTL"],
+    ipaths=["include", "include/newlib", "include/stl"],
     linkerdeps=NEWLIB_DEPS)
 Parson.link = Parson.linkAr
 
 ShellSupport = Project(name="shellsupport",
     srcdir="libshell/src",
-    ipaths=["include", "include/newlib", "include/EASTL"],
+    ipaths=["include", "include/newlib", "include/stl"],
     linkerdeps=NEWLIB_DEPS)
 ShellSupport.link = ShellSupport.linkAr
 
 Linenoise = Project(name="linenoise",
     srcdir="third_party/linenoise",
-    ipaths=["include", "include/newlib"],
+    ipaths=["include", "include/newlib", "include/stl"],
     linkerdeps=NEWLIB_DEPS)
 Linenoise.link = Linenoise.linkAr
 

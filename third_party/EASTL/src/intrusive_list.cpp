@@ -5,7 +5,7 @@
 #include <EASTL/intrusive_list.h>
 
 
-namespace eastl
+namespace std
 {
 
 
@@ -67,7 +67,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 

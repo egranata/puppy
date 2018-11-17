@@ -16,14 +16,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
-#include <EASTL/vector.h>
-#include <EASTL/string.h>
-#include <EASTL/unique_ptr.h>
-#include <EASTL/unordered_map.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <libshell/expand.h>
 #include <sys/collect.h>
+
+#include <vector>
+#include <string>
+#include <unique_ptr>
+#include <unordered_map>
+
 
 static const char* gConfigScript = "/system/config/init.cfg";
 static const char* gServicesList = "/system/config/init.svc";
@@ -37,7 +39,7 @@ namespace {
     };
 }
 
-using safe_fd = eastl::unique_ptr<FILE, fd_delete>;
+using safe_fd = std::unique_ptr<FILE, fd_delete>;
 
 enum class InitScriptResult {
     OK,
@@ -46,7 +48,7 @@ enum class InitScriptResult {
     READ_ERROR
 };
 
-InitScriptResult readInitScript(const char* path, eastl::string* dest) {
+InitScriptResult readInitScript(const char* path, std::string* dest) {
     *dest = "";
 
     struct stat fs;
@@ -60,47 +62,47 @@ InitScriptResult readInitScript(const char* path, eastl::string* dest) {
     stat(gConfigScript, &fs);
     if (fs.st_size == 0) return InitScriptResult::FILE_EMPTY;
 
-    eastl::unique_ptr<uint8_t> content((uint8_t*)calloc(fs.st_size, 1));
+    std::unique_ptr<uint8_t> content((uint8_t*)calloc(fs.st_size, 1));
     if (!content)
         return InitScriptResult::READ_ERROR;
 
     fread(content.get(), 1, fs.st_size, fd.get());
 
-    *dest = eastl::string((const char*)content.get());
+    *dest = std::string((const char*)content.get());
     return InitScriptResult::OK;
 }
 
-eastl::vector<eastl::string> tokenize(eastl::string s) {
-    eastl::vector<eastl::string> result;
+std::vector<std::string> tokenize(std::string s) {
+    std::vector<std::string> result;
 
-    auto add_to_vec = [&result] (const eastl::string& line) {
+    auto add_to_vec = [&result] (const std::string& line) {
         if (line.empty()) return;
         if (line[0] == '#') return;
         result.push_back(line);
     };
 
     decltype(s)::size_type pos = 0;
-    auto end = eastl::string::npos;
+    auto end = std::string::npos;
     while (true) {
         auto nl = s.find('\n', pos);
         if (nl == end) break;
-        eastl::string line = s.substr(pos, nl-pos);
+        std::string line = s.substr(pos, nl-pos);
         pos = nl + 1;
         add_to_vec(line);
     }
     if (pos != end) {
-        eastl::string line = s.substr(pos);
+        std::string line = s.substr(pos);
         add_to_vec(line);
     }
     return result;
 }
 
-int runCommand(const eastl::string& line) {
+int runCommand(const std::string& line) {
     uint16_t pid;
     int result;
 
     auto space = line.find(' ');
-    if (space == eastl::string::npos) {
+    if (space == std::string::npos) {
         pid = exec_syscall(line.c_str(), nullptr, environ, 0, nullptr);
     } else {
         size_t argc;
@@ -116,7 +118,7 @@ int runCommand(const eastl::string& line) {
     return result;
 }
 
-kpid_t spawnService(eastl::string& line) {
+kpid_t spawnService(std::string& line) {
     kpid_t pid;
 
     int flags = PROCESS_IS_FOREGROUND;
@@ -126,7 +128,7 @@ kpid_t spawnService(eastl::string& line) {
     }
 
     auto space = line.find(' ');
-    if (space == eastl::string::npos) {
+    if (space == std::string::npos) {
         pid = exec_syscall(line.c_str(), nullptr, environ, flags, nullptr);
     } else {
         size_t argc;
@@ -141,7 +143,7 @@ kpid_t spawnService(eastl::string& line) {
 }
 
 bool runInitScript(bool allow_missing_or_empty = true, bool allow_spawn_error = false) {
-    eastl::string content;
+    std::string content;
     switch (readInitScript(gConfigScript, &content)) {
         case InitScriptResult::FILE_NOT_FOUND:
         case InitScriptResult::FILE_EMPTY:
@@ -164,13 +166,13 @@ bool runInitScript(bool allow_missing_or_empty = true, bool allow_spawn_error = 
     return true;
 }
 
-typedef eastl::unordered_map<kpid_t, eastl::string> ServicesMap;
+typedef std::unordered_map<kpid_t, std::string> ServicesMap;
 ServicesMap& getServicesMap() {
     static ServicesMap gMap;
     return gMap;
 }
 
-bool spawnInitService(eastl::string& command) {
+bool spawnInitService(std::string& command) {
     auto pid = spawnService(command);
     if (pid == 0) {
         printf("[init] process did not start\n");
@@ -182,7 +184,7 @@ bool spawnInitService(eastl::string& command) {
 }
 
 bool loadInitServices(bool allow_missing_or_empty = true, bool allow_spawn_fail = false) {
-    eastl::string content;
+    std::string content;
     switch (readInitScript(gServicesList, &content)) {
         case InitScriptResult::FILE_NOT_FOUND:
         case InitScriptResult::FILE_EMPTY:

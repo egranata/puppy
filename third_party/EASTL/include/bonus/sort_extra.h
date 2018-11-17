@@ -30,7 +30,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	/// selection_sort
 	///
@@ -56,16 +56,16 @@ namespace eastl
 			}
 
 			if(first != iMin)
-				eastl::iter_swap(first, iMin);
+				std::iter_swap(first, iMin);
 		}
 	} // selection_sort
 
 	template <typename ForwardIterator>
 	inline void selection_sort(ForwardIterator first, ForwardIterator last)
 	{
-		typedef eastl::less<typename eastl::iterator_traits<ForwardIterator>::value_type> Less;
+		typedef std::less<typename std::iterator_traits<ForwardIterator>::value_type> Less;
 
-		eastl::selection_sort<ForwardIterator, Less>(first, last, Less());
+		std::selection_sort<ForwardIterator, Less>(first, last, Less());
 	}
 
 
@@ -98,7 +98,7 @@ namespace eastl
 					{
 						EASTL_VALIDATE_COMPARE(!compare(*iCurrent, *iNext)); // Validate that the compare function is sane.
 						iLastModified = iCurrent;
-						eastl::iter_swap(iCurrent, iNext);
+						std::iter_swap(iCurrent, iNext);
 					}
 				}
 
@@ -115,7 +115,7 @@ namespace eastl
 						{
 							EASTL_VALIDATE_COMPARE(!compare(*iNext, *iCurrent)); // Validate that the compare function is sane.
 							iLastModified = iCurrent;
-							eastl::iter_swap(iNext, iCurrent);
+							std::iter_swap(iNext, iCurrent);
 						}
 					}
 					first = iLastModified;
@@ -127,9 +127,9 @@ namespace eastl
 	template <typename BidirectionalIterator>
 	inline void shaker_sort(BidirectionalIterator first, BidirectionalIterator last)
 	{
-		typedef eastl::less<typename eastl::iterator_traits<BidirectionalIterator>::value_type> Less;
+		typedef std::less<typename std::iterator_traits<BidirectionalIterator>::value_type> Less;
 
-		eastl::shaker_sort<BidirectionalIterator, Less>(first, last, Less());
+		std::shaker_sort<BidirectionalIterator, Less>(first, last, Less());
 	}
 
 
@@ -146,7 +146,7 @@ namespace eastl
 	///     intArray[i] = rand() % kElementRange;
 	///  
 	///  vector< vector<int> > bucketArray(kElementRange);
-	///  bucket_sort(intArray.begin(), intArray.end(), bucketArray, eastl::hash_use_self<int>());
+	///  bucket_sort(intArray.begin(), intArray.end(), bucketArray, std::hash_use_self<int>());
 	///
 	template <typename T>
 	struct hash_use_self
@@ -173,12 +173,12 @@ namespace eastl
 			bucketArray[hash(*iInput)].push_back(*iInput);
 
 		for(typename ContainerArray::const_iterator iBucket = bucketArray.begin(); iBucket != bucketArray.end(); ++iBucket)
-			first = eastl::copy((*iBucket).begin(), (*iBucket).end(), first);
+			first = std::copy((*iBucket).begin(), (*iBucket).end(), first);
 	}
 
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

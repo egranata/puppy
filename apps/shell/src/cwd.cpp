@@ -15,8 +15,8 @@
 #include "../include/cwd.h"
 #include <unistd.h>
 
-eastl::string getCurrentDirectory() {
-    eastl::string cwds;
+std::string getCurrentDirectory() {
+    std::string cwds;
 
     auto cwd = getcwd(nullptr, 0);
     if (cwd && cwd[0]) cwds.append_sprintf("%s", cwd);
@@ -25,7 +25,7 @@ eastl::string getCurrentDirectory() {
     return cwds;
 }
 
-void getPrompt(eastl::string& prompt) {
+void getPrompt(std::string& prompt) {
     auto cwd = getCurrentDirectory();
     prompt.clear();
 

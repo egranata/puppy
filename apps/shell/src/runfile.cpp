@@ -17,13 +17,13 @@
 
 #include <stdio.h>
 
-#include <EASTL/string.h>
+#include <string>
 
 void runfile(const char* file) {
     FILE* fd = fopen(file, "r");
     if (fd == nullptr) return;
 
-    eastl::string s;
+    std::string s;
     while (!feof(fd)) {
         int c = fgetc(fd);
         if (c < 0) break;

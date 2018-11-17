@@ -17,18 +17,18 @@
 #ifndef CHECKUP_TESTPLAN
 #define CHECKUP_TESTPLAN
 
-#include <EASTL/vector.h>
-#include <EASTL/shared_ptr.h>
-#include <EASTL/string.h>
+#include <vector>
+#include <shared_ptr>
+#include <string>
 
 class Test;
 
 class TestPlan {
     private:
-        using tests_t = eastl::vector<eastl::shared_ptr<Test>>;
+        using tests_t = std::vector<std::shared_ptr<Test>>;
 
         tests_t mTests;
-        eastl::string mName;
+        std::string mName;
     public:
         static TestPlan& defaultPlan(const char* name);
 
@@ -36,11 +36,11 @@ class TestPlan {
 
         const char* name();
 
-        TestPlan& add(eastl::shared_ptr<Test> test);
+        TestPlan& add(std::shared_ptr<Test> test);
 
         template<typename T, class... Args>
         TestPlan& add(Args&&... args) {
-            return add(eastl::make_shared<T>(args...));
+            return add(std::make_shared<T>(args...));
         }
 
         void test();

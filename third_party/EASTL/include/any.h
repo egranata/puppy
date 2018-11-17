@@ -4,10 +4,10 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// This file implements the eastl::any which is part of the C++ standard STL
+// This file implements the std::any which is part of the C++ standard STL
 // library specification.  
 //
-// eastl::any is a type-safe container for single values of any type.  Our
+// std::any is a type-safe container for single values of any type.  Our
 // implementation makes use of the "small local buffer" optimization to avoid
 // unnecessary dynamic memory allocation if the specified type is a eligible to
 // be stored in its local buffer.  The user type must satisfy the size
@@ -38,7 +38,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 	///////////////////////////////////////////////////////////////////////////////
 	// bad_any_cast
@@ -149,19 +149,19 @@ namespace eastl
 			template <typename V>
 			static void construct(storage& s, V&& v)
 			{
-				::new(&s.internal_storage) T(eastl::forward<V>(v));
+				::new(&s.internal_storage) T(std::forward<V>(v));
 			}
 
 			template <typename... Args>
 			static void construct_inplace(storage& s, Args... args)
 			{
-				::new(&s.internal_storage) T(eastl::forward<Args>(args)...);
+				::new(&s.internal_storage) T(std::forward<Args>(args)...);
 			}
 
 			template <class NT, class U, class... Args>
 			static void construct_inplace(storage& s, std::initializer_list<U> il, Args&&... args)
 			{
-				::new(&s.internal_storage) NT(il, eastl::forward<Args>(args)...);
+				::new(&s.internal_storage) NT(il, std::forward<Args>(args)...);
 			}
 
 			static inline void destroy(any& refAny)
@@ -203,7 +203,7 @@ namespace eastl
 					{
 						EASTL_ASSERT(pThis);
 						EASTL_ASSERT(pOther);
-						construct(pOther->m_storage, eastl::move(*(T*)(&pThis->m_storage.internal_storage)));
+						construct(pOther->m_storage, std::move(*(T*)(&pThis->m_storage.internal_storage)));
 						destroy(const_cast<any&>(*pThis));
 					}
 					break;
@@ -237,19 +237,19 @@ namespace eastl
 			template <typename V>
 			static inline void construct(storage& s, V&& v) 
 			{
-				s.external_storage = ::new T(eastl::forward<V>(v));
+				s.external_storage = ::new T(std::forward<V>(v));
 			}
 
 			template <typename... Args>
 			static inline void construct_inplace(storage& s, Args... args)
 			{
-				s.external_storage = ::new T(eastl::forward<Args>(args)...);
+				s.external_storage = ::new T(std::forward<Args>(args)...);
 			}
 
 			template <class NT, class U, class... Args>
 			static inline void construct_inplace(storage& s, std::initializer_list<U> il, Args&&... args)
 			{
-				s.external_storage = ::new NT(il, eastl::forward<Args>(args)...);
+				s.external_storage = ::new NT(il, std::forward<Args>(args)...);
 			}
 
 			static inline void destroy(any& refAny)
@@ -289,7 +289,7 @@ namespace eastl
 					{
 						EASTL_ASSERT(pThis);
 						EASTL_ASSERT(pOther);
-						construct(pOther->m_storage, eastl::move(*(T*)(pThis->m_storage.external_storage)));
+						construct(pOther->m_storage, std::move(*(T*)(pThis->m_storage.external_storage)));
 						destroy(const_cast<any&>(*pThis));
 					}
 					break;
@@ -370,7 +370,7 @@ namespace eastl
 				// storage because because the storage class has effectively
 				// type erased user type so we have to defer to the handler
 				// function to get the type back and pass on the move request.
-				m_handler = eastl::move(other.m_handler);
+				m_handler = std::move(other.m_handler);
 				other.m_handler(storage_operation::MOVE, &other, this);
 			}
 		}
@@ -379,11 +379,11 @@ namespace eastl
 
 		template <class ValueType>
 		any(ValueType&& value,
-		    typename eastl::enable_if<!eastl::is_same<typename eastl::decay<ValueType>::type, any>::value>::type* = 0)
+		    typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, any>::value>::type* = 0)
 		{
 			typedef decay_t<ValueType> DecayedValueType;
 			static_assert(is_copy_constructible<DecayedValueType>::value, "ValueType must be copy-constructible");
-			storage_handler<DecayedValueType>::construct(m_storage, eastl::forward<ValueType>(value));
+			storage_handler<DecayedValueType>::construct(m_storage, std::forward<ValueType>(value));
 			m_handler = &storage_handler<DecayedValueType>::handler_func;
 		}
 
@@ -391,9 +391,9 @@ namespace eastl
 		explicit any(in_place_type_t<T>, Args&&... args) 
 		{
 			typedef storage_handler<decay_t<T>> StorageHandlerT;
-			static_assert(eastl::is_constructible<T, Args...>::value, "T must be constructible with Args...");
+			static_assert(std::is_constructible<T, Args...>::value, "T must be constructible with Args...");
 
-			StorageHandlerT::construct_inplace(m_storage, eastl::forward<Args>(args)...);
+			StorageHandlerT::construct_inplace(m_storage, std::forward<Args>(args)...);
 			m_handler = &StorageHandlerT::handler_func;
 		}
 
@@ -401,12 +401,12 @@ namespace eastl
 		explicit any(in_place_type_t<T>,
 		             std::initializer_list<U> il,
 		             Args&&... args,
-		             typename eastl::enable_if<eastl::is_constructible<T, std::initializer_list<U>&, Args...>::value,
+		             typename std::enable_if<std::is_constructible<T, std::initializer_list<U>&, Args...>::value,
 		                                       void>::type* = 0)
 		{
 			typedef storage_handler<decay_t<T>> StorageHandlerT;
 
-			StorageHandlerT::construct_inplace(m_storage, il, eastl::forward<Args>(args)...);
+			StorageHandlerT::construct_inplace(m_storage, il, std::forward<Args>(args)...);
 			m_handler = &StorageHandlerT::handler_func;
 		}
 
@@ -415,7 +415,7 @@ namespace eastl
 		any& operator=(ValueType&& value)
 		{
 			static_assert(is_copy_constructible<decay_t<ValueType>>::value, "ValueType must be copy-constructible");
-			any(eastl::forward<ValueType>(value)).swap(*this);
+			any(std::forward<ValueType>(value)).swap(*this);
 			return *this;
 		}
 
@@ -427,7 +427,7 @@ namespace eastl
 
 		any& operator=(any&& other) EA_NOEXCEPT 
 		{ 
-			any(eastl::move(other)).swap(*this);
+			any(std::move(other)).swap(*this);
 			return *this; 
 		}
 
@@ -437,21 +437,21 @@ namespace eastl
 			void emplace(Args&&... args)
 			{
 			    typedef storage_handler<decay_t<T>> StorageHandlerT;
-				static_assert(eastl::is_constructible<T, Args...>::value, "T must be constructible with Args...");
+				static_assert(std::is_constructible<T, Args...>::value, "T must be constructible with Args...");
 
 			    reset();
-				StorageHandlerT::construct_inplace(m_storage, eastl::forward<Args>(args)...);
+				StorageHandlerT::construct_inplace(m_storage, std::forward<Args>(args)...);
 				m_handler = &StorageHandlerT::handler_func;
 			}
 
 			template <class NT, class U, class... Args>
-		    typename eastl::enable_if<eastl::is_constructible<NT, std::initializer_list<U>&, Args...>::value, void>::type
+		    typename std::enable_if<std::is_constructible<NT, std::initializer_list<U>&, Args...>::value, void>::type
 			emplace(std::initializer_list<U> il, Args&&... args)
 			{
 			    typedef storage_handler<decay_t<NT>> StorageHandlerT;
 
 				reset();
-				StorageHandlerT::construct_inplace(m_storage, il, eastl::forward<Args>(args)...);
+				StorageHandlerT::construct_inplace(m_storage, il, std::forward<Args>(args)...);
 				m_handler = &StorageHandlerT::handler_func;
 			}
         #endif
@@ -481,12 +481,12 @@ namespace eastl
 			}
 			else if (m_handler == nullptr)
 			{
-				eastl::swap(m_handler, other.m_handler);
+				std::swap(m_handler, other.m_handler);
 				m_handler(storage_operation::MOVE, &other, this);
 			}
 			else if(other.m_handler == nullptr)
 			{
-				eastl::swap(m_handler, other.m_handler);
+				std::swap(m_handler, other.m_handler);
 				other.m_handler(storage_operation::MOVE, this, &other);
 			}
 		}
@@ -524,7 +524,7 @@ namespace eastl
 	template <class ValueType>
 	inline ValueType any_cast(const any& operand)
 	{
-		static_assert(eastl::is_reference<ValueType>::value || eastl::is_copy_constructible<ValueType>::value,
+		static_assert(std::is_reference<ValueType>::value || std::is_copy_constructible<ValueType>::value,
 		              "ValueType must be a reference or copy constructible");
 
 		auto* p = any_cast<typename add_const<typename remove_reference<ValueType>::type>::type>(&operand);
@@ -538,7 +538,7 @@ namespace eastl
 	template <class ValueType>
     inline ValueType any_cast(any& operand)
     {
-		static_assert(eastl::is_reference<ValueType>::value || eastl::is_copy_constructible<ValueType>::value,
+		static_assert(std::is_reference<ValueType>::value || std::is_copy_constructible<ValueType>::value,
 		              "ValueType must be a reference or copy constructible");
 
 		auto* p = any_cast<typename remove_reference<ValueType>::type>(&operand);
@@ -552,7 +552,7 @@ namespace eastl
 	template <class ValueType>
 	inline ValueType any_cast(any&& operand)
 	{
-		static_assert(eastl::is_reference<ValueType>::value || eastl::is_copy_constructible<ValueType>::value,
+		static_assert(std::is_reference<ValueType>::value || std::is_copy_constructible<ValueType>::value,
 		              "ValueType must be a reference or copy constructible");
 
 		auto* p = any_cast<typename remove_reference<ValueType>::type>(&operand);
@@ -564,7 +564,7 @@ namespace eastl
 	}
 
 	// NOTE(rparolin): The runtime type check was commented out because in DLL builds the templated function pointer
-	// value will be different -- completely breaking the validation mechanism.  Due to the fact that eastl::any uses
+	// value will be different -- completely breaking the validation mechanism.  Due to the fact that std::any uses
 	// type erasure we can't refesh (on copy/move) the cached function pointer to the internal handler function because
 	// we don't statically know the type.
 	template <class ValueType>
@@ -598,16 +598,16 @@ namespace eastl
 		template <class T, class... Args>
 		inline any make_any(Args&&... args)
 		{
-			return any(eastl::in_place<T>, eastl::forward<Args>(args)...);
+			return any(std::in_place<T>, std::forward<Args>(args)...);
 		}
 
 		template <class T, class U, class... Args>
 		inline any make_any(std::initializer_list<U> il, Args&&... args)
 		{
-			return any(eastl::in_place<T>, il, eastl::forward<Args>(args)...);
+			return any(std::in_place<T>, il, std::forward<Args>(args)...);
 		}
     #endif
 
-} // namespace eastl
+} // namespace std
 
 #endif // EASTL_ANY_H

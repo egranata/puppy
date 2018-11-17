@@ -69,10 +69,10 @@
 #endif
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900)  // VS2015 or later
-	EA_DISABLE_VC_WARNING(4626 5027) // warning C4626: 'eastl::compressed_pair_imp<T1,T2,0>': assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+	EA_DISABLE_VC_WARNING(4626 5027) // warning C4626: 'std::compressed_pair_imp<T1,T2,0>': assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
 #endif
 
-namespace eastl
+namespace std
 {
 
 	template <typename T1, typename T2>
@@ -448,7 +448,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900)  // VS2015 or later
 	EA_RESTORE_VC_WARNING()

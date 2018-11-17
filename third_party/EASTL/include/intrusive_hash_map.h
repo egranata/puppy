@@ -17,7 +17,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// intrusive_hash_map
@@ -29,7 +29,7 @@ namespace eastl
 	///     Hash            Hash function. See functional.h for examples of hash functions.
 	///     Equal           Equality testing predicate; tells if two elements are equal.
 	///
-	template <typename Key, typename T, size_t bucketCount, typename Hash = eastl::hash<Key>, typename Equal = eastl::equal_to<Key> >
+	template <typename Key, typename T, size_t bucketCount, typename Hash = std::hash<Key>, typename Equal = std::equal_to<Key> >
 	class intrusive_hash_map : public intrusive_hashtable<Key, T, Hash, Equal, bucketCount, false, true>
 	{
 	public:
@@ -64,7 +64,7 @@ namespace eastl
 	///     Hash            Hash function. See functional.h for examples of hash functions.
 	///     Equal           Equality testing predicate; tells if two elements are equal.
 	///
-	template <typename Key, typename T, size_t bucketCount, typename Hash = eastl::hash<Key>, typename Equal = eastl::equal_to<Key> >
+	template <typename Key, typename T, size_t bucketCount, typename Hash = std::hash<Key>, typename Equal = std::equal_to<Key> >
 	class intrusive_hash_multimap : public intrusive_hashtable<Key, T, Hash, Equal, bucketCount, false, false>
 	{
 	public:
@@ -86,7 +86,7 @@ namespace eastl
 
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

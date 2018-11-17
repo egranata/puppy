@@ -63,18 +63,18 @@ namespace EA
 		/// Example usage:
 		///     #include <coreallocator/icoreallocator_interface.h>
 		///     typedef EA::Allocator::CoreAllocatorAdapter<EASTLTestCoreAllocator> Adapter;
-		///     eastl::list<Widget, Adapter> widgetList(Adapter("UI/WidgetList", pSomeCoreAllocator));
+		///     std::list<Widget, Adapter> widgetList(Adapter("UI/WidgetList", pSomeCoreAllocator));
 		///     widgetList.push_back(Widget());
 		///
 		/// Example usage:
 		///     #include <MyEquivalentCoreAllocatorInterface.h>
-		///     eastl::list<Widget, CoreAllocatorAdapter<MyCoreAllocatorInterface> > widgetList;
+		///     std::list<Widget, CoreAllocatorAdapter<MyCoreAllocatorInterface> > widgetList;
 		///     widgetList.push_back(Widget());
 		///
 		/// Example usage:
 		///     #include <coreallocator/icoreallocator_interface.h>
 		///     typedef EA::Allocator::CoreAllocatorAdapter<EASTLTestCoreAllocator> Adapter;
-		///     typedef eastl::list<Widget, Adapter> WidgetList;
+		///     typedef std::list<Widget, Adapter> WidgetList;
 		///     CoreAllocatorFixed<WidgetList::node_type> widgetCoreAllocator(pFixedAllocatorForWidgetListValueType); // CoreAllocatorFixed is a hypothetical implementation of the ICoreAllocator interface.
 		///     WidgetList widgetList(Adapter("UI/WidgetList", &widgetCoreAllocator));                                // Note that the widgetCoreAllocator is declared before and thus destroyed after the widget list.
 		///
@@ -128,7 +128,7 @@ namespace EA
 		/// Provides a standardized typedef for ICoreAllocator;
 		/// 
 		/// Example usage:
-		///     eastl::list<Widget, EASTLICoreAllocator> widgetList("UI/WidgetList", pSomeCoreAllocator);
+		///     std::list<Widget, EASTLICoreAllocator> widgetList("UI/WidgetList", pSomeCoreAllocator);
 		///     widgetList.push_back(Widget());
 		///
 		class ICoreAllocator;
@@ -195,7 +195,7 @@ namespace EA
 		/// Provides a standardized typedef for ICoreAllocator implementations.
 		///
 		/// Example usage: 
-		///     eastl::shared_ptr<A> foo(pA, EASTLCoreDeleter());
+		///     std::shared_ptr<A> foo(pA, EASTLCoreDeleter());
 		///
 		typedef CoreDeleterAdapter<ICoreAllocator> EASTLICoreDeleterAdapter;
 		typedef CoreDeleterAdapter<EASTLCoreAllocatorImpl> EASTLCoreDeleterAdapter;

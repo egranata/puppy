@@ -27,10 +27,10 @@ Commands::Commands() {
     });
 }
 
-void Commands::addCommand(const eastl::string& name, CmdHandler f) {
+void Commands::addCommand(const std::string& name, CmdHandler f) {
     mCommands.emplace(name, f);
 }
-bool Commands::handleCommand(const eastl::string& command, Document& doc) {
+bool Commands::handleCommand(const std::string& command, Document& doc) {
     auto iter = mCommands.find(command);
     if (iter == mCommands.end()) {
         return false;

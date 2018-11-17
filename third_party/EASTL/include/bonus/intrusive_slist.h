@@ -23,7 +23,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// intrusive_slist_node
@@ -258,7 +258,7 @@ namespace eastl
 	template <typename T>
 	bool operator<(const intrusive_slist<T>& a, const intrusive_slist<T>& b)
 	{
-		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+		return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 	}
 
 	template <typename T>
@@ -291,7 +291,7 @@ namespace eastl
 		a.swap(b);
 	}
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

@@ -9,7 +9,7 @@
 #include <string.h>
 
 
-namespace eastl
+namespace std
 {
 	///////////////////////////////////////////////////////////////////////////////
 	// Converters for DecodePart
@@ -447,7 +447,7 @@ namespace eastl
 
 
 
-} // namespace eastl
+} // namespace std
 
 
 

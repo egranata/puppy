@@ -24,7 +24,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_STACK_DEFAULT_NAME
@@ -53,7 +53,7 @@ namespace eastl
 	///
 	/// In practice this means vector, deque, string, list, intrusive_list. 
 	///
-	template <typename T, typename Container = eastl::vector<T> >
+	template <typename T, typename Container = std::vector<T> >
 	class stack
 	{
 	public:
@@ -75,21 +75,21 @@ namespace eastl
 		// have allocators. For containers that don't have allocator types, you could use void or char as the Allocator template type.
 
 		template <class Allocator>                      
-		explicit stack(const Allocator& allocator, typename eastl::enable_if<eastl::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+		explicit stack(const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
 		  : c(allocator)
 		{
 		}    
 
 		template <class Allocator>
-		stack(const this_type& x, const Allocator& allocator, typename eastl::enable_if<eastl::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+		stack(const this_type& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
 		  : c(x.c, allocator)
 		{
 		}
 
 		#if EASTL_MOVE_SEMANTICS_ENABLED
 			template <class Allocator>
-			stack(this_type&& x, const Allocator& allocator, typename eastl::enable_if<eastl::uses_allocator<container_type, Allocator>::value>::type* = NULL)
-			  : c(eastl::move(x.c), allocator)
+			stack(this_type&& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+			  : c(std::move(x.c), allocator)
 			{
 			}
 		#endif
@@ -138,7 +138,7 @@ namespace eastl
 		container_type&       get_container();
 		const container_type& get_container() const;
 
-		void swap(this_type& x) EA_NOEXCEPT_IF(eastl::is_nothrow_swappable<this_type::container_type>::value);
+		void swap(this_type& x) EA_NOEXCEPT_IF(std::is_nothrow_swappable<this_type::container_type>::value);
 
 		bool validate() const;
 
@@ -171,7 +171,7 @@ namespace eastl
 	#if EASTL_MOVE_SEMANTICS_ENABLED
 		template <typename T, typename Container>
 		inline stack<T, Container>::stack(Container&& x)
-			: c(eastl::move(x))
+			: c(std::move(x))
 		{
 			// Empty
 		}
@@ -235,7 +235,7 @@ namespace eastl
 		template <typename T, typename Container>
 		inline void stack<T, Container>::push(value_type&& x) 
 		{
-			c.push_back(eastl::move(x));
+			c.push_back(std::move(x));
 		}
 	#endif
 
@@ -245,14 +245,14 @@ namespace eastl
 		template <class... Args> 
 		inline void stack<T, Container>::emplace_back(Args&&... args)
 		{
-			c.emplace_back(eastl::forward<Args>(args)...);
+			c.emplace_back(std::forward<Args>(args)...);
 		}
 	#else
 		#if EASTL_MOVE_SEMANTICS_ENABLED
 			template <typename T, typename Container>
 			inline void stack<T, Container>::emplace_back(value_type&& x)
 			{
-				c.emplace_back(eastl::move(x));
+				c.emplace_back(std::move(x));
 			}
 		#endif
 
@@ -289,9 +289,9 @@ namespace eastl
 
 
 	template <typename T, typename Container>
-	void stack<T, Container>::swap(this_type& x) EA_NOEXCEPT_IF(eastl::is_nothrow_swappable<this_type::container_type>::value)
+	void stack<T, Container>::swap(this_type& x) EA_NOEXCEPT_IF(std::is_nothrow_swappable<this_type::container_type>::value)
 	{
-		using eastl::swap;
+		using std::swap;
 		swap(c, x.c);
 	}
 
@@ -351,13 +351,13 @@ namespace eastl
 
 
 	template <typename T, typename Container>
-	inline void swap(stack<T, Container>& a, stack<T, Container>& b) EA_NOEXCEPT_IF((eastl::is_nothrow_swappable<typename stack<T, Container>::container_type>::value))
+	inline void swap(stack<T, Container>& a, stack<T, Container>& b) EA_NOEXCEPT_IF((std::is_nothrow_swappable<typename stack<T, Container>::container_type>::value))
 	{
 		a.swap(b);
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

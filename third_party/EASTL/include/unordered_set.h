@@ -12,7 +12,7 @@
 	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
 #endif
 
-namespace eastl
+namespace std
 {
 
 	/// unordered_set 
@@ -22,12 +22,12 @@ namespace eastl
 	/// the container was added to the C++11 standard the committee chose the
 	/// name "unordered_set" to clarify that internally the elements are NOT
 	/// sorted in any particular order.  We provide a template alias here to
-	/// ensure feature parity with the original eastl::hash_set.
+	/// ensure feature parity with the original std::hash_set.
 	///
 	#if !defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
 		template <typename Value,
-				  typename Hash = eastl::hash<Value>,
-				  typename Predicate = eastl::equal_to<Value>,
+				  typename Hash = std::hash<Value>,
+				  typename Predicate = std::equal_to<Value>,
 				  typename Allocator = EASTLAllocatorType,
 				  bool bCacheHashCode = false>
 		using unordered_set = hash_set<Value, Hash, Predicate, Allocator, bCacheHashCode>;
@@ -40,14 +40,14 @@ namespace eastl
 	///
 	#if !defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
 		template <typename Value,
-				  typename Hash = eastl::hash<Value>,
-				  typename Predicate = eastl::equal_to<Value>,
+				  typename Hash = std::hash<Value>,
+				  typename Predicate = std::equal_to<Value>,
 				  typename Allocator = EASTLAllocatorType,
 				  bool bCacheHashCode = false>
 		using unordered_multiset = hash_multiset<Value, Hash, Predicate, Allocator, bCacheHashCode>;
 	#endif
 
-} // namespace eastl
+} // namespace std
 
 #endif // Header include guard
 

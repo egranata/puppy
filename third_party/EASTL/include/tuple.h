@@ -18,7 +18,7 @@ EA_DISABLE_VC_WARNING(4510) // warning C4510: default constructor could not be g
 
 #if EASTL_TUPLE_ENABLED
 
-namespace eastl
+namespace std
 {
 // non-recursive tuple implementation based on libc++ tuple implementation and description at
 // http://mitchnull.blogspot.ca/2012/06/c11-tuple-implementation-details-part-1.html
@@ -177,7 +177,7 @@ class TupleLeaf;
 template <size_t I, typename ValueType, bool IsEmpty>
 inline void swap(TupleLeaf<I, ValueType, IsEmpty>& a, TupleLeaf<I, ValueType, IsEmpty>& b)
 {
-	eastl::swap(a.getInternal(), b.getInternal());
+	std::swap(a.getInternal(), b.getInternal());
 }
 
 template <size_t I, typename ValueType, bool IsEmpty>
@@ -213,7 +213,7 @@ public:
 
 	int swap(TupleLeaf& t)
 	{
-		eastl::Internal::swap(*this, t);
+		std::Internal::swap(*this, t);
 		return 0;
 	}
 
@@ -257,7 +257,7 @@ public:
 
 	int swap(TupleLeaf& t)
 	{
-		eastl::Internal::swap(*this, t);
+		std::Internal::swap(*this, t);
 		return 0;
 	}
 
@@ -298,7 +298,7 @@ public:
 
 	int swap(TupleLeaf& t)
 	{
-		eastl::Internal::swap(*this, t);
+		std::Internal::swap(*this, t);
 		return 0;
 	}
 
@@ -469,7 +469,7 @@ struct TupleLike<tuple<Ts...>> : public true_type
 };
 
 template <typename First, typename Second>
-struct TupleLike<eastl::pair<First, Second>> : public true_type
+struct TupleLike<std::pair<First, Second>> : public true_type
 {
 };
 
@@ -889,7 +889,7 @@ EA_CONSTEXPR decltype(auto) apply(F&& f, Tuple&& t)
 }
 
 
-}  // namespace eastl
+}  // namespace std
 
 #endif  // EASTL_TUPLE_ENABLED
 EA_RESTORE_VC_WARNING()

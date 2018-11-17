@@ -29,14 +29,14 @@ int pyexec_system_exit;
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <EASTL/string.h>
 #include <linenoise/linenoise.h>
 
+#include <string>
 
 extern "C" int puppy_repl() {
     printf("MicroPython " MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE "; " MICROPY_PY_SYS_PLATFORM " version\n");
 
-    eastl::string input;
+    std::string input;
     bool eof = false;
     int ecode = 0;
 

@@ -15,9 +15,9 @@
 #ifndef SHELL_STR
 #define SHELL_STR
 
-#include <EASTL/string.h>
+#include <string>
 
-void trim(eastl::string& s);
-eastl::string getline(const char* prompt, bool& eof);
+void trim(std::string& s);
+std::string getline(const char* prompt, bool& eof);
 
 #endif

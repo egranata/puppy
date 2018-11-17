@@ -4,8 +4,8 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// This file implements the eastl::chrono specification which is part of the
-// standard STL date and time library.  eastl::chrono implements all the
+// This file implements the std::chrono specification which is part of the
+// standard STL date and time library.  std::chrono implements all the
 // mechanisms required to capture and manipulate times retrieved from the
 // provided clocks.  It implements the all of the features to allow type safe
 // durations to be used in code.
@@ -67,7 +67,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 namespace chrono
 {
@@ -86,8 +86,8 @@ namespace chrono
 	{
 	public:
 		EASTL_FORCE_INLINE static EA_CONSTEXPR Rep zero() { return Rep(0); }
-		EASTL_FORCE_INLINE static EA_CONSTEXPR Rep max()  { return eastl::numeric_limits<Rep>::max(); }
-		EASTL_FORCE_INLINE static EA_CONSTEXPR Rep min()  { return eastl::numeric_limits<Rep>::lowest(); }
+		EASTL_FORCE_INLINE static EA_CONSTEXPR Rep max()  { return std::numeric_limits<Rep>::max(); }
+		EASTL_FORCE_INLINE static EA_CONSTEXPR Rep min()  { return std::numeric_limits<Rep>::lowest(); }
 	};
 
 
@@ -103,21 +103,21 @@ namespace chrono
 		///////////////////////////////////////////////////////////////////////////////
 		// IsRatio 
 		///////////////////////////////////////////////////////////////////////////////
-		template <typename> struct IsRatio                                           : eastl::false_type {};
-		template <intmax_t N, intmax_t D> struct IsRatio<ratio<N, D>>                : eastl::true_type {};
-		template <intmax_t N, intmax_t D> struct IsRatio<const ratio<N, D>>          : eastl::true_type {};
-		template <intmax_t N, intmax_t D> struct IsRatio<volatile ratio<N, D>>       : eastl::true_type {};
-		template <intmax_t N, intmax_t D> struct IsRatio<const volatile ratio<N, D>> : eastl::true_type {};
+		template <typename> struct IsRatio                                           : std::false_type {};
+		template <intmax_t N, intmax_t D> struct IsRatio<ratio<N, D>>                : std::true_type {};
+		template <intmax_t N, intmax_t D> struct IsRatio<const ratio<N, D>>          : std::true_type {};
+		template <intmax_t N, intmax_t D> struct IsRatio<volatile ratio<N, D>>       : std::true_type {};
+		template <intmax_t N, intmax_t D> struct IsRatio<const volatile ratio<N, D>> : std::true_type {};
 
 
 		///////////////////////////////////////////////////////////////////////////////
 		// IsDuration 
 		///////////////////////////////////////////////////////////////////////////////
-		template<typename> struct IsDuration                                                            : eastl::false_type{};
-		template<typename Rep, typename Period> struct IsDuration<duration<Rep, Period>>                : eastl::true_type{};
-		template<typename Rep, typename Period> struct IsDuration<const duration<Rep, Period>>          : eastl::true_type{};
-		template<typename Rep, typename Period> struct IsDuration<volatile duration<Rep, Period>>       : eastl::true_type{};
-		template<typename Rep, typename Period> struct IsDuration<const volatile duration<Rep, Period>> : eastl::true_type{};
+		template<typename> struct IsDuration                                                            : std::false_type{};
+		template<typename Rep, typename Period> struct IsDuration<duration<Rep, Period>>                : std::true_type{};
+		template<typename Rep, typename Period> struct IsDuration<const duration<Rep, Period>>          : std::true_type{};
+		template<typename Rep, typename Period> struct IsDuration<volatile duration<Rep, Period>>       : std::true_type{};
+		template<typename Rep, typename Period> struct IsDuration<const volatile duration<Rep, Period>> : std::true_type{};
 
 
 		///////////////////////////////////////////////////////////////////////////////
@@ -126,11 +126,11 @@ namespace chrono
 		template <class Period1, class Period2>
 		struct RatioGCD
 		{
-			static_assert(IsRatio<Period1>::value, "Period1 is not a eastl::ratio type");
-			static_assert(IsRatio<Period2>::value, "Period2 is not a eastl::ratio type");
+			static_assert(IsRatio<Period1>::value, "Period1 is not a std::ratio type");
+			static_assert(IsRatio<Period2>::value, "Period2 is not a std::ratio type");
 
-			typedef ratio<eastl::Internal::gcd<Period1::num, Period2::num>::value,
-			              eastl::Internal::lcm<Period1::den, Period2::den>::value> type;
+			typedef ratio<std::Internal::gcd<Period1::num, Period2::num>::value,
+			              std::Internal::lcm<Period1::den, Period2::den>::value> type;
 		};
 	};
 
@@ -144,7 +144,7 @@ namespace chrono
 		          typename ToDuration,
 		          typename CommonPeriod =
 		              typename ratio_divide<typename FromDuration::period, typename ToDuration::period>::type,
-		          typename CommonRep = typename eastl::decay<typename eastl::common_type<typename ToDuration::rep,
+		          typename CommonRep = typename std::decay<typename std::common_type<typename ToDuration::rep,
 		                                                                                 typename FromDuration::rep,
 		                                                                                 intmax_t>::type>::type,
 		          bool = CommonPeriod::num == 1,
@@ -197,7 +197,7 @@ namespace chrono
 	// duration_cast 
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ToDuration, typename Rep, typename Period>
-	inline typename eastl::enable_if<Internal::IsDuration<ToDuration>::value, ToDuration>::type 
+	inline typename std::enable_if<Internal::IsDuration<ToDuration>::value, ToDuration>::type 
 	duration_cast(const duration<Rep, Period>& d)
 	{
 		typedef typename duration<Rep, Period>::this_type FromDuration;
@@ -240,7 +240,7 @@ namespace chrono
 		template <class Rep2>
 		inline EA_CONSTEXPR explicit duration(
 		    const Rep2& rep2,
-		    typename eastl::enable_if<eastl::is_convertible<Rep2, Rep>::value &&
+		    typename std::enable_if<std::is_convertible<Rep2, Rep>::value &&
 		                              (treat_as_floating_point<Rep>::value ||
 		                               !treat_as_floating_point<Rep2>::value)>::type** = 0)
 		    : mRep(static_cast<Rep>(rep2)) {}
@@ -248,8 +248,8 @@ namespace chrono
 
 		template <class Rep2, class Period2>
 		EA_CONSTEXPR duration(const duration<Rep2, Period2>& d2,
-		                      typename eastl::enable_if<treat_as_floating_point<Rep>::value ||
-		                                                    (eastl::ratio_divide<Period2, Period>::type::den == 1 &&
+		                      typename std::enable_if<treat_as_floating_point<Rep>::value ||
+		                                                    (std::ratio_divide<Period2, Period>::type::den == 1 &&
 		                                                     !treat_as_floating_point<Rep2>::value),
 		                                                void>::type** = 0)
 		    : mRep(duration_cast<duration>(d2).count()) {}
@@ -292,66 +292,66 @@ namespace chrono
 	// 20.12.5.5, arithmetic operations with durations as arguments
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename Rep1, typename Period1, typename Rep2, typename Period2>
-	typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
+	typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
 	operator+(const duration<Rep1, Period1>& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
+		typedef typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() + common_duration_t(rhs).count());
 	}
 
 	template <typename Rep1, typename Period1, typename Rep2, typename Period2>
-	typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
+	typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
 	operator-(const duration<Rep1, Period1>& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
+		typedef typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() - common_duration_t(rhs).count());
 	}
 
 	template <typename Rep1, typename Period1, typename Rep2>
-	duration<typename eastl::common_type<Rep1, Rep2>::type, Period1> EASTL_FORCE_INLINE
+	duration<typename std::common_type<Rep1, Rep2>::type, Period1> EASTL_FORCE_INLINE
 	operator*(const duration<Rep1, Period1>& lhs, const Rep2& rhs)
 	{
-		typedef typename duration<eastl::common_type<Rep1, Rep2>, Period1>::type common_duration_t;
+		typedef typename duration<std::common_type<Rep1, Rep2>, Period1>::type common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() * rhs);
 	}
 
 	template <typename Rep1, typename Rep2, typename Period2>
-	duration<typename eastl::common_type<Rep1, Rep2>::type, Period2> EASTL_FORCE_INLINE
+	duration<typename std::common_type<Rep1, Rep2>::type, Period2> EASTL_FORCE_INLINE
 	operator*(const Rep1& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef duration<typename eastl::common_type<Rep1, Rep2>::type, Period2> common_duration_t;
+		typedef duration<typename std::common_type<Rep1, Rep2>::type, Period2> common_duration_t;
 		return common_duration_t(lhs * common_duration_t(rhs).count());
 	}
 
 	template <typename Rep1, typename Period1, typename Rep2>
-	duration<typename eastl::common_type<Rep1, Rep2>::type, Period1> EASTL_FORCE_INLINE
+	duration<typename std::common_type<Rep1, Rep2>::type, Period1> EASTL_FORCE_INLINE
 	operator/(const duration<Rep1, Period1>& lhs, const Rep2& rhs)
 	{
-		typedef duration<typename eastl::common_type<Rep1, Rep2>::type, Period1> common_duration_t;
+		typedef duration<typename std::common_type<Rep1, Rep2>::type, Period1> common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() / rhs);
 	}
 
 	template <typename Rep1, typename Period1, typename Rep2, typename Period2>
-	typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
+	typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
 	operator/(const duration<Rep1, Period1>& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
+		typedef typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() / common_duration_t(rhs).count());
 	}
 
 	template <typename Rep1, typename Period1, typename Rep2>
-	duration<typename eastl::common_type<Rep1, Rep2>::type, Period1> EASTL_FORCE_INLINE
+	duration<typename std::common_type<Rep1, Rep2>::type, Period1> EASTL_FORCE_INLINE
 	operator%(const duration<Rep1, Period1>& lhs, const Rep2& rhs)
 	{
-		typedef duration<typename eastl::common_type<Rep1, Rep2>::type, Period1> common_duration_t;
+		typedef duration<typename std::common_type<Rep1, Rep2>::type, Period1> common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() % rhs);
 	}
 
 	template <typename Rep1, typename Period1, typename Rep2, typename Period2>
-	typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
+	typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type EASTL_FORCE_INLINE
 	operator%(const duration<Rep1, Period1>& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
+		typedef typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
 		return common_duration_t(common_duration_t(lhs).count() % common_duration_t(rhs).count());
 	}
 
@@ -363,7 +363,7 @@ namespace chrono
 	EASTL_FORCE_INLINE bool operator==(const duration<Rep1, Period1>& lhs,
 	                                                const duration<Rep2, Period2>& rhs)
 	{
-		typedef typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
+		typedef typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
 		return common_duration_t(lhs).count() == common_duration_t(rhs).count();
 	}
 
@@ -371,7 +371,7 @@ namespace chrono
 	EASTL_FORCE_INLINE bool operator<(const duration<Rep1, Period1>& lhs,
 	                                               const duration<Rep2, Period2>& rhs)
 	{
-		typedef typename eastl::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
+		typedef typename std::common_type<duration<Rep1, Period1>, duration<Rep2, Period2>>::type common_duration_t;
 		return common_duration_t(lhs).count() < common_duration_t(rhs).count();
 	}
 
@@ -435,7 +435,7 @@ namespace chrono
 		template <typename Duration2>
 		inline EA_CONSTEXPR time_point(
 		    const time_point<Clock, Duration2>& t,
-		    typename eastl::enable_if<eastl::is_convertible<Duration2, Duration>::value>::type** = 0)
+		    typename std::enable_if<std::is_convertible<Duration2, Duration>::value>::type** = 0)
 		    : mDuration(t.time_since_epoch()) {}
 
 		EA_CONSTEXPR Duration time_since_epoch() const { return mDuration; }
@@ -452,31 +452,31 @@ namespace chrono
 	// 20.12.6.5, time_point arithmetic
 	///////////////////////////////////////////////////////////////////////////////
 	template <class Clock, class Duration1, class Rep2, class Period2>
-	inline EA_CONSTEXPR time_point<Clock, typename eastl::common_type<Duration1, duration<Rep2, Period2>>::type>
+	inline EA_CONSTEXPR time_point<Clock, typename std::common_type<Duration1, duration<Rep2, Period2>>::type>
 	operator+(const time_point<Clock, Duration1>& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef time_point<Clock, typename eastl::common_type<Duration1, duration<Rep2, Period2>>::type> common_timepoint_t;
+		typedef time_point<Clock, typename std::common_type<Duration1, duration<Rep2, Period2>>::type> common_timepoint_t;
 		return common_timepoint_t(lhs.time_since_epoch() + rhs);
 	}
 
 	template <class Rep1, class Period1, class Clock, class Duration2>
-	inline EA_CONSTEXPR time_point<Clock, typename eastl::common_type<Duration2, duration<Rep1, Period1>>::type>
+	inline EA_CONSTEXPR time_point<Clock, typename std::common_type<Duration2, duration<Rep1, Period1>>::type>
 	operator+(const duration<Rep1, Period1>& lhs, const time_point<Clock, Duration2>& rhs)
 	{
-		typedef time_point<Clock, typename eastl::common_type<Duration2, duration<Rep1, Period1>>::type> common_timepoint_t;
+		typedef time_point<Clock, typename std::common_type<Duration2, duration<Rep1, Period1>>::type> common_timepoint_t;
 		return common_timepoint_t(lhs + rhs.time_since_epoch());
 	}
 
 	template <class Clock, class Duration1, class Rep2, class Period2>
-	inline EA_CONSTEXPR time_point<Clock, typename eastl::common_type<Duration1, duration<Rep2, Period2>>::type>
+	inline EA_CONSTEXPR time_point<Clock, typename std::common_type<Duration1, duration<Rep2, Period2>>::type>
 	operator-(const time_point<Clock, Duration1>& lhs, const duration<Rep2, Period2>& rhs)
 	{
-		typedef time_point<Clock, typename eastl::common_type<Duration1, duration<Rep2, Period2>>::type> common_timepoint_t;
+		typedef time_point<Clock, typename std::common_type<Duration1, duration<Rep2, Period2>>::type> common_timepoint_t;
 		return common_timepoint_t(lhs.time_since_epoch() - rhs);
 	}
 
 	template <class Clock, class Duration1, class Duration2>
-	inline EA_CONSTEXPR typename eastl::common_type<Duration1, Duration2>::type operator-(
+	inline EA_CONSTEXPR typename std::common_type<Duration1, Duration2>::type operator-(
 	    const time_point<Clock, Duration1>& lhs,
 	    const time_point<Clock, Duration2>& rhs)
 	{
@@ -530,7 +530,7 @@ namespace chrono
 	template <typename ToDuration, typename Clock, typename Duration>
 	EA_CONSTEXPR time_point<Clock, ToDuration> time_point_cast(
 	    const time_point<Clock, Duration>& t,
-	    typename eastl::enable_if<Internal::IsDuration<ToDuration>::value>::type** = 0)
+	    typename std::enable_if<Internal::IsDuration<ToDuration>::value>::type** = 0)
 	{
 		return time_point<Clock, ToDuration>(duration_cast<ToDuration>(t.time_since_epoch()));
 	}
@@ -556,8 +556,8 @@ namespace chrono
 			typedef chrono::nanoseconds::period SystemClock_Period;
 			typedef chrono::nanoseconds::period SteadyClock_Period;
 		#else
-			typedef eastl::ratio_multiply<eastl::ratio<EASTL_NS_PER_TICK, 1>, nano>::type SystemClock_Period; 
-			typedef eastl::ratio_multiply<eastl::ratio<EASTL_NS_PER_TICK, 1>, nano>::type SteadyClock_Period; 
+			typedef std::ratio_multiply<std::ratio<EASTL_NS_PER_TICK, 1>, nano>::type SystemClock_Period; 
+			typedef std::ratio_multiply<std::ratio<EASTL_NS_PER_TICK, 1>, nano>::type SteadyClock_Period; 
 		#endif
 
 
@@ -672,7 +672,7 @@ namespace chrono
 	template <typename Rep1, typename Period1, typename Rep2, typename Period2>
 	struct common_type<chrono::duration<Rep1, Period1>, chrono::duration<Rep2, Period2>>
 	{
-	    typedef chrono::duration<typename eastl::decay<typename eastl::common_type<Rep1, Rep2>::type>::type,
+	    typedef chrono::duration<typename std::decay<typename std::common_type<Rep1, Rep2>::type>::type,
 	                             typename chrono::Internal::RatioGCD<Period1, Period2>::type> type;
     };
 
@@ -683,7 +683,7 @@ namespace chrono
 	template <typename Clock, typename Duration1, typename Duration2>
 	struct common_type<chrono::time_point<Clock, Duration1>, chrono::time_point<Clock, Duration2>>
 	{
-		typedef chrono::time_point<Clock, typename eastl::common_type<Duration1, Duration2>::type> type;
+		typedef chrono::time_point<Clock, typename std::common_type<Duration1, Duration2>::type> type;
 	};
 
 
@@ -727,13 +727,13 @@ namespace chrono
 		EA_RESTORE_VC_WARNING() // warning: 4455
 	#endif
 
-} // namespace eastl
+} // namespace std
 
 
 #if EASTL_USER_LITERALS_ENABLED && EASTL_INLINE_NAMESPACES_ENABLED
 namespace chrono
 {
-	using namespace eastl::literals::chrono_literals;
+	using namespace std::literals::chrono_literals;
 } // namespace chrono
 #endif
 

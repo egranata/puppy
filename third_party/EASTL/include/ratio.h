@@ -4,7 +4,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implements the class template eastl::ratio that provides compile-time
+// Implements the class template std::ratio that provides compile-time
 // rational arithmetic support. Each instantiation of this template exactly
 // represents any finite rational number as long as its numerator Num and
 // denominator Denom are representable as compile-time constants of type
@@ -25,7 +25,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// namespace eastl 
+// namespace std 
 // {
 // 	template <intmax_t N, intmax_t D = 1>
 // 	class ratio
@@ -79,7 +79,7 @@
 #include <EASTL/type_traits.h>
 
 
-namespace eastl 
+namespace std 
 { 
 	///////////////////////////////////////////////////////////////////////
 	// compile-time overflow helpers

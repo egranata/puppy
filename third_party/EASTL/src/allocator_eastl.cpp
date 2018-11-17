@@ -19,7 +19,7 @@
 
 #ifndef EASTL_USER_DEFINED_ALLOCATOR // If the user hasn't declared that he has defined an allocator implementation elsewhere...
 
-	namespace eastl
+	namespace std
 	{
 
 		/// gDefaultAllocator
@@ -39,7 +39,7 @@
 			return pPrevAllocator;
 		}
 
-	} // namespace eastl
+	} // namespace std
 
 
 #endif // EASTL_USER_DEFINED_ALLOCATOR

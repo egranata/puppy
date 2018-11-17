@@ -15,12 +15,12 @@
 #include <EASTL/internal/config.h>
 #include <EASTL/numeric_limits.h>
 
-namespace eastl
+namespace std
 {
 	template <class Alloc>
 	struct allocator_traits;
 
-} // namespace eastl
+} // namespace std
 
 #endif // Header include guard
 

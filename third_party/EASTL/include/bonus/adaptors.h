@@ -23,7 +23,7 @@ EA_DISABLE_VC_WARNING(4512 4626)
 #endif
 
 
-namespace eastl
+namespace std
 {
 	/// reverse
 	///
@@ -48,9 +48,9 @@ namespace eastl
 
 	template <typename Container>
 	reverse_wrapper<Container> reverse(Container&& c)
-		{ return reverse_wrapper<Container>(eastl::forward<Container>(c)); }
+		{ return reverse_wrapper<Container>(std::forward<Container>(c)); }
 
-} // namespace eastl
+} // namespace std
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) // VS2015+
 	EA_RESTORE_VC_WARNING()

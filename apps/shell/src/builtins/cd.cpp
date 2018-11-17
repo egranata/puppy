@@ -23,12 +23,12 @@
 #include <syscalls.h>
 #include <unistd.h>
 
-#include <EASTL/vector.h>
-#include <EASTL/stack.h>
-#include <EASTL/string.h>
+#include <vector>
+#include <stack>
+#include <string>
 
 namespace {
-    typedef eastl::stack<eastl::string> dir_stack_t;
+    typedef std::stack<std::string> dir_stack_t;
     dir_stack_t& dirStack() {
         static dir_stack_t gStack;
         return gStack;

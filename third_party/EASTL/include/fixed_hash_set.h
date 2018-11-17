@@ -23,7 +23,7 @@ EA_DISABLE_VC_WARNING(4127) // Conditional expression is constant
 
 
 
-namespace eastl
+namespace std
 {
 	/// EASTL_FIXED_HASH_SET_DEFAULT_NAME
 	///
@@ -67,7 +67,7 @@ namespace eastl
 	///     Predicate              hash_set equality testing function. See hash_set.
 	///
 	template <typename Value, size_t nodeCount, size_t bucketCount = nodeCount + 1, bool bEnableOverflow = true,
-			  typename Hash = eastl::hash<Value>, typename Predicate = eastl::equal_to<Value>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
+			  typename Hash = std::hash<Value>, typename Predicate = std::equal_to<Value>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
 	class fixed_hash_set : public hash_set<Value,
 										   Hash,
 										   Predicate,
@@ -158,7 +158,7 @@ namespace eastl
 	///     Predicate              hash_set equality testing function. See hash_set.
 	///
 	template <typename Value, size_t nodeCount, size_t bucketCount = nodeCount + 1, bool bEnableOverflow = true,
-			  typename Hash = eastl::hash<Value>, typename Predicate = eastl::equal_to<Value>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
+			  typename Hash = std::hash<Value>, typename Predicate = std::equal_to<Value>, bool bCacheHashCode = false, typename OverflowAllocator = EASTLAllocatorType>
 	class fixed_hash_multiset : public hash_multiset<Value,
 													 Hash,
 													 Predicate,
@@ -451,7 +451,7 @@ namespace eastl
 		// size of the container is too large for the stack.
 		EASTL_ASSERT(sizeof(x) < EASTL_MAX_STACK_USAGE); // It is dangerous to try to create objects that are too big for the stack.
 
-		const this_type temp(*this); // Can't call eastl::swap because that would
+		const this_type temp(*this); // Can't call std::swap because that would
 		*this = x;                   // itself call this member swap function.
 		x     = temp;
 	}
@@ -721,7 +721,7 @@ namespace eastl
 	swap(this_type& x)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(*this, x);
+		std::fixed_swap(*this, x);
 	}
 
 
@@ -775,11 +775,11 @@ namespace eastl
 					 fixed_hash_multiset<Value, nodeCount, bucketCount, bEnableOverflow, Hash, Predicate, bCacheHashCode>& b)
 	{
 		// Fixed containers use a special swap that can deal with excessively large buffers.
-		eastl::fixed_swap(a, b);
+		std::fixed_swap(a, b);
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 EA_RESTORE_VC_WARNING()
 

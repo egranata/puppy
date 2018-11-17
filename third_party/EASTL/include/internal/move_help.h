@@ -19,38 +19,38 @@
 // C++11's rvalue references aren't supported by earlier versions of C++.
 // It turns out that in a number of cases under earlier C++ versions we can 
 // write code that uses rvalues similar to lvalues. We have macros below for
-// such cases. For example, eastl::move (same as std::move) can be treated
+// such cases. For example, std::move (same as std::move) can be treated
 // as a no-op under C++03, though with the consequence that move functionality
 // isn't taken advantage of.
 
 
 /// EASTL_MOVE
-/// Acts like eastl::move when possible. Same as C++11 std::move.
+/// Acts like std::move when possible. Same as C++11 std::move.
 ///
 /// EASTL_MOVE_INLINE
-/// Acts like eastl::move but is implemented inline instead of a function call.
+/// Acts like std::move but is implemented inline instead of a function call.
 /// This allows code to be faster in debug builds in particular.
 /// Depends on C++ compiler decltype support or a similar extension.
 ///
 /// EASTL_FORWARD
-/// Acts like eastl::forward when possible. Same as C++11 std::forward.
+/// Acts like std::forward when possible. Same as C++11 std::forward.
 ///
 /// EASTL_FORWARD_INLINE
-/// Acts like eastl::forward but is implemented inline instead of a function call.
+/// Acts like std::forward but is implemented inline instead of a function call.
 /// This allows code to be faster in debug builds in particular.
 ///
 #if EASTL_MOVE_SEMANTICS_ENABLED
-	#define EASTL_MOVE(x)              eastl::move(x)
+	#define EASTL_MOVE(x)              std::move(x)
 	#if !defined(EA_COMPILER_NO_DECLTYPE)
-		#define EASTL_MOVE_INLINE(x)   static_cast<typename eastl::remove_reference<decltype(x)>::type&&>(x)
+		#define EASTL_MOVE_INLINE(x)   static_cast<typename std::remove_reference<decltype(x)>::type&&>(x)
 	#elif defined(__GNUC__)
-		#define EASTL_MOVE_INLINE(x)   static_cast<typename eastl::remove_reference<__typeof__(x)>::type&&>(x)
+		#define EASTL_MOVE_INLINE(x)   static_cast<typename std::remove_reference<__typeof__(x)>::type&&>(x)
 	#else
-		#define EASTL_MOVE_INLINE(x)   eastl::move(x)
+		#define EASTL_MOVE_INLINE(x)   std::move(x)
 	#endif
 
-	#define EASTL_FORWARD(T, x)        eastl::forward<T>(x)
-	#define EASTL_FORWARD_INLINE(T, x) eastl::forward<T>(x)  // Need to investigate how to properly make a macro for this. (eastl::is_reference<T>::value ? static_cast<T&&>(static_cast<T&>(x)) : static_cast<T&&>(x))
+	#define EASTL_FORWARD(T, x)        std::forward<T>(x)
+	#define EASTL_FORWARD_INLINE(T, x) std::forward<T>(x)  // Need to investigate how to properly make a macro for this. (std::is_reference<T>::value ? static_cast<T&&>(static_cast<T&>(x)) : static_cast<T&&>(x))
 #else
 	#define EASTL_MOVE(x)              (x)
 	#define EASTL_MOVE_INLINE(x)       (x)
@@ -63,21 +63,21 @@
 
 
 /// EASTL_MOVE_RANGE
-/// Acts like the eastl::move algorithm when possible. Same as C++11 std::move.
+/// Acts like the std::move algorithm when possible. Same as C++11 std::move.
 /// Note to be confused with the single argument move: (typename remove_reference<T>::type&& move(T&& x))
 /// http://en.cppreference.com/w/cpp/algorithm/move
 /// http://en.cppreference.com/w/cpp/algorithm/move_backward
 ///
 #if EASTL_MOVE_SEMANTICS_ENABLED
-	#define EASTL_MOVE_RANGE(first, last, result)             eastl::move(first, last, result)
-	#define EASTL_MOVE_BACKWARD_RANGE(first, last, resultEnd) eastl::move_backward(first, last, resultEnd)
+	#define EASTL_MOVE_RANGE(first, last, result)             std::move(first, last, result)
+	#define EASTL_MOVE_BACKWARD_RANGE(first, last, resultEnd) std::move_backward(first, last, resultEnd)
 #else
-	#define EASTL_MOVE_RANGE(first, last, result)             eastl::copy(first, last, result)
-	#define EASTL_MOVE_BACKWARD_RANGE(first, last, result)    eastl::copy_backward(first, last, result)
+	#define EASTL_MOVE_RANGE(first, last, result)             std::copy(first, last, result)
+	#define EASTL_MOVE_BACKWARD_RANGE(first, last, result)    std::copy_backward(first, last, result)
 #endif
 
 
-namespace eastl
+namespace std
 {
 	#if EASTL_MOVE_SEMANTICS_ENABLED
 		// forward
@@ -89,24 +89,24 @@ namespace eastl
 		// Example usage:
 		//     template <class T>
 		//     void WrapperFunction(T&& arg)
-		//         { foo(eastl::forward<T>(arg)); } 
+		//         { foo(std::forward<T>(arg)); } 
 		//
 		//     template <class... Args>
 		//     void WrapperFunction(Args&&... args)
-		//         { foo(eastl::forward<Args>(args)...); } 
+		//         { foo(std::forward<Args>(args)...); } 
 		//
 		// See the C++ Standard, section 20.2.3
 		// http://en.cppreference.com/w/cpp/utility/forward
 		//
 		template <typename T>
-		EA_CPP14_CONSTEXPR T&& forward(typename eastl::remove_reference<T>::type& x) EA_NOEXCEPT
+		EA_CPP14_CONSTEXPR T&& forward(typename std::remove_reference<T>::type& x) EA_NOEXCEPT
 		{
 			return static_cast<T&&>(x);
 		}
 
 
 		template <typename T>
-		EA_CPP14_CONSTEXPR T&& forward(typename eastl::remove_reference<T>::type&& x) EA_NOEXCEPT
+		EA_CPP14_CONSTEXPR T&& forward(typename std::remove_reference<T>::type&& x) EA_NOEXCEPT
 		{
 			//static_assert(!is_lvalue_reference<T>::value, "forward T isn't lvalue reference");
 			return static_cast<T&&>(x);
@@ -123,10 +123,10 @@ namespace eastl
 		// http://en.cppreference.com/w/cpp/utility/move
 		//
 		template <typename T>
-		EA_CPP14_CONSTEXPR typename eastl::remove_reference<T>::type&&
+		EA_CPP14_CONSTEXPR typename std::remove_reference<T>::type&&
 		move(T&& x) EA_NOEXCEPT
 		{
-			return ((typename eastl::remove_reference<T>::type&&)x);
+			return ((typename std::remove_reference<T>::type&&)x);
 		}
 
 
@@ -141,18 +141,18 @@ namespace eastl
 		//
 		#if EASTL_EXCEPTIONS_ENABLED
 			template <typename T> 
-			EA_CPP14_CONSTEXPR typename eastl::conditional<!eastl::is_nothrow_move_constructible<T>::value && 
-															eastl::is_copy_constructible<T>::value, const T&, T&&>::type 
+			EA_CPP14_CONSTEXPR typename std::conditional<!std::is_nothrow_move_constructible<T>::value && 
+															std::is_copy_constructible<T>::value, const T&, T&&>::type 
 			move_if_noexcept(T& x) EA_NOEXCEPT
 			{
-				return eastl::move(x);
+				return std::move(x);
 			}
 		#else
 			template <typename T> 
 			EA_CPP14_CONSTEXPR T&&
 			move_if_noexcept(T& x) EA_NOEXCEPT
 			{
-				return eastl::move(x);
+				return std::move(x);
 			}
 		#endif
 	#else
@@ -176,7 +176,7 @@ namespace eastl
 		
 	#endif // EASTL_MOVE_SEMANTICS_ENABLED
 
-} // namespace eastl
+} // namespace std
 
 #endif // Header include guard
 

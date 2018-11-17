@@ -49,7 +49,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ namespace eastl
 	};
 
 
-} // namespace eastl
+} // namespace std
 
 
 

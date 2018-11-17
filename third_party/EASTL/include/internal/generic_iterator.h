@@ -31,7 +31,7 @@
 #endif
 
 
-namespace eastl
+namespace std
 {
 
 	/// generic_iterator
@@ -53,11 +53,11 @@ namespace eastl
 		Iterator mIterator;
 
 	public:
-		typedef typename eastl::iterator_traits<Iterator>::iterator_category iterator_category;
-		typedef typename eastl::iterator_traits<Iterator>::value_type        value_type;
-		typedef typename eastl::iterator_traits<Iterator>::difference_type   difference_type;
-		typedef typename eastl::iterator_traits<Iterator>::reference         reference;
-		typedef typename eastl::iterator_traits<Iterator>::pointer           pointer;
+		typedef typename std::iterator_traits<Iterator>::iterator_category iterator_category;
+		typedef typename std::iterator_traits<Iterator>::value_type        value_type;
+		typedef typename std::iterator_traits<Iterator>::difference_type   difference_type;
+		typedef typename std::iterator_traits<Iterator>::reference         reference;
+		typedef typename std::iterator_traits<Iterator>::pointer           pointer;
 		typedef Iterator                                                     iterator_type;
 		typedef iterator_type                                                wrapped_iterator_type;   // This is not in the C++ Standard; it's used by use to identify it as a wrapping iterator type.
 		typedef Container                                                    container_type;
@@ -194,15 +194,15 @@ namespace eastl
 	///
 	/// Example usage:
 	///      vector<int> intVector;
-	///      eastl::generic_iterator<vector<int>::iterator> genericIterator(intVector.begin());
+	///      std::generic_iterator<vector<int>::iterator> genericIterator(intVector.begin());
 	///      vector<int>::iterator it = unwrap_generic_iterator(genericIterator);
 	///
 	template <typename Iterator>
-	inline typename eastl::is_iterator_wrapper_helper<Iterator, eastl::is_generic_iterator<Iterator>::value>::iterator_type unwrap_generic_iterator(Iterator it)
-		{ return eastl::is_iterator_wrapper_helper<Iterator, eastl::is_generic_iterator<Iterator>::value>::get_base(it); }
+	inline typename std::is_iterator_wrapper_helper<Iterator, std::is_generic_iterator<Iterator>::value>::iterator_type unwrap_generic_iterator(Iterator it)
+		{ return std::is_iterator_wrapper_helper<Iterator, std::is_generic_iterator<Iterator>::value>::get_base(it); }
 
 
-} // namespace eastl
+} // namespace std
 
 
 #ifdef _MSC_VER

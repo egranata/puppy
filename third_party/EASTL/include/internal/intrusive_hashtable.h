@@ -43,7 +43,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// intrusive_hash_node
@@ -279,8 +279,8 @@ namespace eastl
 		typedef intrusive_hashtable_iterator<value_type, bConstIterators>                 iterator;
 		typedef intrusive_hashtable_iterator<value_type, true>                            const_iterator;
 		typedef typename type_select<bUniqueKeys, pair<iterator, bool>, iterator>::type   insert_return_type;
-		typedef typename type_select<bConstIterators, eastl::use_self<Value>, 
-												 eastl::use_intrusive_key<Value, key_type> >::type  extract_key;
+		typedef typename type_select<bConstIterators, std::use_self<Value>, 
+												 std::use_intrusive_key<Value, key_type> >::type  extract_key;
 
 		enum
 		{
@@ -356,7 +356,7 @@ namespace eastl
 			{ return kBucketCount; }                // intrusive_hashtable::kBucketCount as a constant.
 
 		size_type bucket_size(size_type n) const EA_NOEXCEPT
-			{ return (size_type)eastl::distance(begin(n), end(n)); }
+			{ return (size_type)std::distance(begin(n), end(n)); }
 
 		size_type bucket(const key_type& k) const EA_NOEXCEPT
 			{ return (size_type)(mHash(k) % kBucketCount); }
@@ -418,8 +418,8 @@ namespace eastl
 
 		// The use for equal_range in a hash_table seems somewhat questionable.
 		// The primary reason for its existence is to replicate the interface of set/map.
-		eastl::pair<iterator, iterator>             equal_range(const key_type& k);
-		eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
+		std::pair<iterator, iterator>             equal_range(const key_type& k);
+		std::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
 
 	public:
 		bool validate() const;
@@ -439,7 +439,7 @@ namespace eastl
 			{ return mEqual; }
 
 	protected:
-		eastl::pair<iterator, bool> DoInsertValue(value_type&, true_type);  // true_type means bUniqueKeys is true.
+		std::pair<iterator, bool> DoInsertValue(value_type&, true_type);  // true_type means bUniqueKeys is true.
 		iterator                    DoInsertValue(value_type&, false_type); // false_type means bUniqueKeys is false.
 
 		node_type* DoFindNode(node_type* pNode, const key_type& k) const;
@@ -507,11 +507,11 @@ namespace eastl
 	void intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::swap(this_type& x)
 	{
 		for(size_t i = 0; i < kBucketCount; i++)
-			eastl::swap(mBucketArray[i], x.mBucketArray[i]);
+			std::swap(mBucketArray[i], x.mBucketArray[i]);
 
-		eastl::swap(mnElementCount, x.mnElementCount);
-		eastl::swap(mHash,          x.mHash);
-		eastl::swap(mEqual,         x.mEqual);
+		std::swap(mnElementCount, x.mnElementCount);
+		std::swap(mHash,          x.mHash);
+		std::swap(mEqual,         x.mEqual);
 	}
 
 
@@ -573,11 +573,11 @@ namespace eastl
 	///
 	template <typename H, typename U>
 	inline typename H::iterator intrusive_hashtable_find(H& hashTable, const U& u)
-		{ return hashTable.find_as(u, eastl::hash<U>(), eastl::equal_to_2<const typename H::key_type, U>()); }
+		{ return hashTable.find_as(u, std::hash<U>(), std::equal_to_2<const typename H::key_type, U>()); }
 
 	template <typename H, typename U>
 	inline typename H::const_iterator intrusive_hashtable_find(const H& hashTable, const U& u)
-		{ return hashTable.find_as(u, eastl::hash<U>(), eastl::equal_to_2<const typename H::key_type, U>()); }
+		{ return hashTable.find_as(u, std::hash<U>(), std::equal_to_2<const typename H::key_type, U>()); }
 
 
 
@@ -585,20 +585,20 @@ namespace eastl
 	template <typename U>
 	inline typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::iterator
 	intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::find_as(const U& other)
-		{ return eastl::intrusive_hashtable_find(*this, other); }
+		{ return std::intrusive_hashtable_find(*this, other); }
 		// VC++ doesn't appear to like the following, though it seems correct to me.
 		// So we implement the workaround above until we can straighten this out.
-		//{ return find_as(other, eastl::hash<U>(), eastl::equal_to_2<const key_type, U>()); }
+		//{ return find_as(other, std::hash<U>(), std::equal_to_2<const key_type, U>()); }
 
 
 	template <typename K, typename V, typename H, typename Eq, size_t bC, bool bM, bool bU>
 	template <typename U>
 	inline typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::const_iterator
 	intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::find_as(const U& other) const
-		{ return eastl::intrusive_hashtable_find(*this, other); }
+		{ return std::intrusive_hashtable_find(*this, other); }
 		// VC++ doesn't appear to like the following, though it seems correct to me.
 		// So we implement the workaround above until we can straighten this out.
-		//{ return find_as(other, eastl::hash<U>(), eastl::equal_to_2<const key_type, U>()); }
+		//{ return find_as(other, std::hash<U>(), std::equal_to_2<const key_type, U>()); }
 
 
 	template <typename K, typename V, typename H, typename Eq, size_t bC, bool bM, bool bU>
@@ -621,7 +621,7 @@ namespace eastl
 
 
 	template <typename K, typename V, typename H, typename Eq, size_t bC, bool bM, bool bU>
-	eastl::pair<typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::iterator,
+	std::pair<typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::iterator,
 				typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::iterator>
 	intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::equal_range(const key_type& k)
 	{
@@ -646,10 +646,10 @@ namespace eastl
 			if(!p1)
 				last.increment_bucket();
 
-			return eastl::pair<iterator, iterator>(first, last);
+			return std::pair<iterator, iterator>(first, last);
 		}
 
-		return eastl::pair<iterator, iterator>(iterator(mBucketArray + kBucketCount),
+		return std::pair<iterator, iterator>(iterator(mBucketArray + kBucketCount),
 											   iterator(mBucketArray + kBucketCount));
 	}
 
@@ -657,7 +657,7 @@ namespace eastl
 
 
 	template <typename K, typename V, typename H, typename Eq, size_t bC, bool bM, bool bU>
-	eastl::pair<typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::const_iterator,
+	std::pair<typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::const_iterator,
 				typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::const_iterator>
 	intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::equal_range(const key_type& k) const
 	{
@@ -682,10 +682,10 @@ namespace eastl
 			if(!p1)
 				last.increment_bucket();
 
-			return eastl::pair<const_iterator, const_iterator>(first, last);
+			return std::pair<const_iterator, const_iterator>(first, last);
 		}
 
-		return eastl::pair<const_iterator, const_iterator>(const_iterator(const_cast<node_type**>(mBucketArray) + kBucketCount),
+		return std::pair<const_iterator, const_iterator>(const_iterator(const_cast<node_type**>(mBucketArray) + kBucketCount),
 														   const_iterator(const_cast<node_type**>(mBucketArray) + kBucketCount));
 	}
 
@@ -722,7 +722,7 @@ namespace eastl
 
 
 	template <typename K, typename V, typename H, typename Eq, size_t bC, bool bM, bool bU>
-	eastl::pair<typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::iterator, bool>
+	std::pair<typename intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::iterator, bool>
 	intrusive_hashtable<K, V, H, Eq, bC, bM, bU>::DoInsertValue(value_type& value, true_type) // true_type means bUniqueKeys is true.
 	{
 		// For sets (as opposed to maps), one could argue that all insertions are successful,
@@ -737,10 +737,10 @@ namespace eastl
 			mBucketArray[n] = &value;
 			++mnElementCount;
 
-			return eastl::pair<iterator, bool>(iterator(&value, mBucketArray + n), true);
+			return std::pair<iterator, bool>(iterator(&value, mBucketArray + n), true);
 		}
 
-		return eastl::pair<iterator, bool>(iterator(pNode, mBucketArray + n), false);
+		return std::pair<iterator, bool>(iterator(pNode, mBucketArray + n), false);
 	}
 
 
@@ -932,7 +932,7 @@ namespace eastl
 	inline bool operator==(const intrusive_hashtable<K, V, H, Eq, bC, bM, bU>& a, 
 						   const intrusive_hashtable<K, V, H, Eq, bC, bM, bU>& b)
 	{
-		return (a.size() == b.size()) && eastl::equal(a.begin(), a.end(), b.begin());
+		return (a.size() == b.size()) && std::equal(a.begin(), a.end(), b.begin());
 	}
 
 
@@ -953,7 +953,7 @@ namespace eastl
 		// This requires hash table elements to support operator<. Since the hash table
 		// doesn't compare elements via less (it does so via equals), we must use the 
 		// globally defined operator less for the elements.
-		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+		return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 	}
 
 
@@ -989,7 +989,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 

@@ -12,7 +12,7 @@
 	#pragma once
 #endif
 
-namespace eastl
+namespace std
 {
 	///////////////////////////////////////////////////////////////////////////////
 	/// piecewise_construct_t
@@ -32,9 +32,9 @@ namespace eastl
 	///
 	/// http://en.cppreference.com/w/cpp/utility/piecewise_construct
 	///
-	EA_CONSTEXPR piecewise_construct_t piecewise_construct = eastl::piecewise_construct_t();
+	EA_CONSTEXPR piecewise_construct_t piecewise_construct = std::piecewise_construct_t();
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

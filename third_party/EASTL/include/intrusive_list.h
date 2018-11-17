@@ -53,7 +53,7 @@
 //   because list<> doesn't have it either, but there's no reason it couldn't. intrusive_list
 //   uses the name 'find' because:
 //      - So as not to confuse the member function with the well-defined free function from algorithm.h.
-//      - Because it is not API-compatible with eastl::find().
+//      - Because it is not API-compatible with std::find().
 //      - Because it simply locates an object within the list based on its node entry and doesn't perform before any value-based searches or comparisons.
 //
 // Differences between intrusive_list and std::list:
@@ -91,7 +91,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// intrusive_list_node
@@ -191,7 +191,7 @@ namespace eastl
 	/// intrusive_list
 	///
 	/// Example usage:
-	///    struct IntNode : public eastl::intrusive_list_node {
+	///    struct IntNode : public std::intrusive_list_node {
 	///        int mX;
 	///        IntNode(int x) : mX(x) { }
 	///    };
@@ -220,8 +220,8 @@ namespace eastl
 		typedef const T*                                        const_pointer;
 		typedef intrusive_list_iterator<T, T*, T&>              iterator;
 		typedef intrusive_list_iterator<T, const T*, const T&>  const_iterator;
-		typedef eastl::reverse_iterator<iterator>               reverse_iterator;
-		typedef eastl::reverse_iterator<const_iterator>         const_reverse_iterator;
+		typedef std::reverse_iterator<iterator>               reverse_iterator;
+		typedef std::reverse_iterator<const_iterator>         const_reverse_iterator;
 
 	public:
 		intrusive_list();                                ///< Creates an empty list.
@@ -1145,7 +1145,7 @@ namespace eastl
 			// is not O(1) but is instead O(n), at least when EASTL_LIST_SIZE_CACHE is disabled.
 			#if EASTL_LIST_SIZE_CACHE
 				iterator mid(begin());
-				eastl::advance(mid, size() / 2);
+				std::advance(mid, size() / 2);
 			#else
 				iterator mid(begin()), tail(end());
 
@@ -1194,7 +1194,7 @@ namespace eastl
 			// is not O(1) but is instead O(n), at least when EASTL_LIST_SIZE_CACHE is disabled.
 			#if EASTL_LIST_SIZE_CACHE
 				iterator mid(begin());
-				eastl::advance(mid, size() / 2);
+				std::advance(mid, size() / 2);
 			#else
 				iterator mid(begin()), tail(end());
 
@@ -1266,7 +1266,7 @@ namespace eastl
 	template <typename T>
 	bool operator<(const intrusive_list<T>& a, const intrusive_list<T>& b)
 	{
-		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+		return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 	}
 
 	template <typename T>
@@ -1294,7 +1294,7 @@ namespace eastl
 	}
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

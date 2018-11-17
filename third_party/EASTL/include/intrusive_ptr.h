@@ -16,7 +16,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	// We provide default implementations of AddRef and Release in the eastl namespace.
 	// The user can override these on a per-class basis by defining their own specialized
@@ -103,7 +103,7 @@ namespace eastl
 			: mpObject(p) 
 		{
 			if(mpObject && bAddRef)
-				intrusive_ptr_add_ref(mpObject);  // Intentionally do not prefix the call with eastl:: but instead allow namespace lookup to resolve the namespace.
+				intrusive_ptr_add_ref(mpObject);  // Intentionally do not prefix the call with std:: but instead allow namespace lookup to resolve the namespace.
 		} 
 
 		/// intrusive_ptr
@@ -395,7 +395,7 @@ namespace eastl
 	#endif
 
 
-} // namespace eastl
+} // namespace std
 
 
 #endif // Header include guard

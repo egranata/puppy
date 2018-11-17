@@ -18,8 +18,8 @@
 #define PUPPED_GETLINE
 
 #include <stdint.h>
-#include <EASTL/string.h>
+#include <string>
 
-eastl::string getline(bool history, const char* prompt = nullptr);
+std::string getline(bool history, const char* prompt = nullptr);
 
 #endif

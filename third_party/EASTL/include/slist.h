@@ -56,7 +56,7 @@ EA_DISABLE_SN_WARNING(828); // The EDG SN compiler has a bug in its handling of 
 
 
 
-namespace eastl
+namespace std
 {
 
 	/// EASTL_SLIST_DEFAULT_NAME
@@ -971,14 +971,14 @@ namespace eastl
 		template <class... Args>
 		void slist<T, Allocator>::emplace_front(Args&&... args)
 		{
-			DoInsertValueAfter((SListNodeBase*)&mNode, eastl::forward<Args>(args)...);
+			DoInsertValueAfter((SListNodeBase*)&mNode, std::forward<Args>(args)...);
 		}
 	#else
 		#if EASTL_MOVE_SEMANTICS_ENABLED
 			template <typename T, typename Allocator>
 			void slist<T, Allocator>::emplace_front(value_type&& value)
 			{
-				DoInsertValueAfter((SListNodeBase*)&mNode, eastl::move(value));
+				DoInsertValueAfter((SListNodeBase*)&mNode, std::move(value));
 			}
 		#endif
 
@@ -1015,7 +1015,7 @@ namespace eastl
 		template <typename T, typename Allocator>
 		void slist<T, Allocator>::push_front(value_type&& value)
 		{
-			emplace_after(before_begin(), eastl::move(value));
+			emplace_after(before_begin(), std::move(value));
 		}
 	#endif
 
@@ -1066,7 +1066,7 @@ namespace eastl
 				#endif
 			}
 
-			DoAssign(x.begin(), x.end(), eastl::false_type());
+			DoAssign(x.begin(), x.end(), std::false_type());
 		}
 
 		return *this;
@@ -1125,7 +1125,7 @@ namespace eastl
 			DoSwap(x);
 		else // else swap the contents.
 		{
-			const this_type temp(*this); // Can't call eastl::swap because that would
+			const this_type temp(*this); // Can't call std::swap because that would
 			*this = x;                   // itself call this member swap function.
 			x     = temp;
 		}
@@ -1268,7 +1268,7 @@ namespace eastl
 		inline typename slist<T, Allocator>::iterator
 		slist<T, Allocator>::insert_after(const_iterator position, value_type&& value)
 		{
-			return emplace_after(position, eastl::move(value));
+			return emplace_after(position, std::move(value));
 		}
 	#endif
 
@@ -1279,7 +1279,7 @@ namespace eastl
 		inline typename slist<T, Allocator>::iterator
 		slist<T, Allocator>::emplace_after(const_iterator position, Args&&... args)
 		{
-			return iterator((SListNodeBase*)DoInsertValueAfter(position.mpNode, eastl::forward<Args>(args)...));
+			return iterator((SListNodeBase*)DoInsertValueAfter(position.mpNode, std::forward<Args>(args)...));
 		}
 	#else
 		#if EASTL_MOVE_SEMANTICS_ENABLED
@@ -1287,7 +1287,7 @@ namespace eastl
 			inline typename slist<T, Allocator>::iterator
 			slist<T, Allocator>::emplace_after(const_iterator position, value_type&& value)
 			{
-				return iterator((SListNodeBase*)DoInsertValueAfter(position.mpNode, eastl::move(value)));
+				return iterator((SListNodeBase*)DoInsertValueAfter(position.mpNode, std::move(value)));
 			}
 		#endif
 
@@ -1425,7 +1425,7 @@ namespace eastl
 			if(mAllocator == x.mAllocator)
 			{
 				#if EASTL_SLIST_SIZE_CACHE
-					const size_type n = (size_type)eastl::distance(first, last);
+					const size_type n = (size_type)std::distance(first, last);
 					mSize += n;
 					x.mSize -= n;
 				#endif
@@ -1516,7 +1516,7 @@ namespace eastl
 			if(mAllocator == x.mAllocator)
 			{
 				#if EASTL_SLIST_SIZE_CACHE
-					const size_type n = (size_type)eastl::distance(first, last);
+					const size_type n = (size_type)std::distance(first, last);
 					mSize += n;
 					x.mSize -= n;
 				#endif
@@ -1576,7 +1576,7 @@ namespace eastl
 				}
 	 
 				if(i == iEnd) // If the input came from an external range...
-					mSize += (size_type)eastl::distance(before_first, before_last); // Note that we have no way of knowing how to decrementing the size from the external container, assuming it came from one.
+					mSize += (size_type)std::distance(before_first, before_last); // Note that we have no way of knowing how to decrementing the size from the external container, assuming it came from one.
 				else
 					{ EASTL_FAIL_MSG("slist::splice_after: Impossible to decrement source mSize. Use the other splice_after function instead."); }
 			#endif
@@ -1622,7 +1622,7 @@ namespace eastl
 	inline void slist<T, Allocator>::sort()
 	{
 		// To do: look at using a merge sort, which may well be faster. 
-		eastl::comb_sort(begin(), end());
+		std::comb_sort(begin(), end());
 	}
 
 
@@ -1631,7 +1631,7 @@ namespace eastl
 	inline void slist<T, Allocator>::sort(Compare compare)
 	{
 		// To do: look at using a merge sort, which may well be faster. 
-		eastl::comb_sort(begin(), end(), compare);
+		std::comb_sort(begin(), end(), compare);
 	}
 
 
@@ -1655,7 +1655,7 @@ namespace eastl
 			#if EASTL_EXCEPTIONS_ENABLED
 				try
 				{
-					::new((void*)&pNode->mValue) value_type(eastl::forward<Args>(args)...);
+					::new((void*)&pNode->mValue) value_type(std::forward<Args>(args)...);
 				}
 				catch(...)
 				{
@@ -1663,7 +1663,7 @@ namespace eastl
 					throw;
 				}
 			#else
-				::new((void*)&pNode->mValue) value_type(eastl::forward<Args>(args)...);
+				::new((void*)&pNode->mValue) value_type(std::forward<Args>(args)...);
 			#endif
 
 			return pNode;
@@ -1679,7 +1679,7 @@ namespace eastl
 				#if EASTL_EXCEPTIONS_ENABLED
 					try
 					{
-						::new((void*)&pNode->mValue) value_type(eastl::move(value));
+						::new((void*)&pNode->mValue) value_type(std::move(value));
 					}
 					catch(...)
 					{
@@ -1687,7 +1687,7 @@ namespace eastl
 						throw;
 					}
 				#else
-					::new((void*)&pNode->mValue) value_type(eastl::move(value));
+					::new((void*)&pNode->mValue) value_type(std::move(value));
 				#endif
 
 				return pNode;
@@ -1847,7 +1847,7 @@ namespace eastl
 		inline typename slist<T, Allocator>::node_type*
 		slist<T, Allocator>::DoInsertValueAfter(SListNodeBase* pNode, Args&&... args)
 		{
-			SListNodeBase* pNodeNew = (SListNodeBase*)DoCreateNode(eastl::forward<Args>(args)...);
+			SListNodeBase* pNodeNew = (SListNodeBase*)DoCreateNode(std::forward<Args>(args)...);
 			pNode = SListNodeInsertAfter(pNode, pNodeNew);
 			#if EASTL_LIST_SIZE_CACHE
 				++mSize; // Increment the size after the node creation because we need to assume an exception can occur in the creation.
@@ -1860,7 +1860,7 @@ namespace eastl
 			inline typename slist<T, Allocator>::node_type*
 			slist<T, Allocator>::DoInsertValueAfter(SListNodeBase* pNode, value_type&& value)
 			{
-				SListNodeBase* pNodeNew = (SListNodeBase*)DoCreateNode(eastl::move(value));
+				SListNodeBase* pNodeNew = (SListNodeBase*)DoCreateNode(std::move(value));
 				pNode = SListNodeInsertAfter(pNode, pNodeNew);
 				#if EASTL_LIST_SIZE_CACHE
 					++mSize; // Increment the size after the node creation because we need to assume an exception can occur in the creation.
@@ -1903,10 +1903,10 @@ namespace eastl
 	template <typename T, typename Allocator>
 	inline void slist<T, Allocator>::DoSwap(this_type& x)
 	{
-		eastl::swap(mNode.mpNext, x.mNode.mpNext);
-		eastl::swap(mAllocator, x.mAllocator); // We do this even if EASTL_ALLOCATOR_COPY_ENABLED is 0.
+		std::swap(mNode.mpNext, x.mNode.mpNext);
+		std::swap(mAllocator, x.mAllocator); // We do this even if EASTL_ALLOCATOR_COPY_ENABLED is 0.
 		#if EASTL_LIST_SIZE_CACHE
-			eastl::swap(mSize, x.mSize);
+			std::swap(mSize, x.mSize);
 		#endif
 	}
 
@@ -1985,7 +1985,7 @@ namespace eastl
 	template <typename T, typename Allocator>
 	inline bool operator<(const slist<T, Allocator>& a, const slist<T, Allocator>& b)
 	{
-		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+		return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 	}
 
 
@@ -2072,7 +2072,7 @@ namespace eastl
 	}; // insert_iterator<slist>
 
 
-} // namespace eastl
+} // namespace std
 
 EA_RESTORE_SN_WARNING()
 

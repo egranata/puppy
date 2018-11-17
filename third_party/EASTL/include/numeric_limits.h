@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// We support eastl::numeric_limits for the following types. Sized types such
+// We support std::numeric_limits for the following types. Sized types such
 // as int32_t are covered by these basic types, with the exception of int128_t.
 //
 //     bool
@@ -128,7 +128,7 @@ EA_DISABLE_VC_WARNING(4310 4296)
 
 
 
-namespace eastl
+namespace std
 {
 	// See C++11 18.3.2.5
 	enum float_round_style
@@ -1685,7 +1685,7 @@ namespace eastl
 		#endif
 	};
 
-} // namespace eastl
+} // namespace std
 
 
 EA_RESTORE_VC_WARNING()

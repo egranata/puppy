@@ -17,23 +17,23 @@
 #ifndef PUPPED_COMMANDS
 #define PUPPED_COMMANDS
 
-#include <EASTL/unordered_map.h>
-#include <EASTL/functional.h>
-#include <EASTL/string.h>
+#include <unordered_map>
+#include <functional>
+#include <string>
 
 class Document;
 
 class Commands {
     public:
-        using CmdHandler = eastl::function<bool(Document&)>;
+        using CmdHandler = std::function<bool(Document&)>;
 
         Commands();
 
-        void addCommand(const eastl::string& name, CmdHandler f);
-        bool handleCommand(const eastl::string& command, Document& doc);
+        void addCommand(const std::string& name, CmdHandler f);
+        bool handleCommand(const std::string& command, Document& doc);
 
     private:
-        eastl::unordered_map<eastl::string, CmdHandler> mCommands;
+        std::unordered_map<std::string, CmdHandler> mCommands;
 };
 
 #endif

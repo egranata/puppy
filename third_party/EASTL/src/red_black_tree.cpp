@@ -30,7 +30,7 @@
 
 
 
-namespace eastl
+namespace std
 {
 	// Forward declarations
 	rbtree_node_base* RBTreeRotateLeft(rbtree_node_base* pNode, rbtree_node_base* pNodeRoot);
@@ -390,7 +390,7 @@ namespace eastl
 			// Now pNode is disconnected from the tree.
 
 			pNodeSuccessor->mpNodeParent = pNode->mpNodeParent;
-			eastl::swap(pNodeSuccessor->mColor, pNode->mColor);
+			std::swap(pNodeSuccessor->mColor, pNode->mColor);
 		}
 
 		// Here we do tree balancing as per the conventional red-black tree algorithm.
@@ -489,7 +489,7 @@ namespace eastl
 
 
 
-} // namespace eastl
+} // namespace std
 
 
 

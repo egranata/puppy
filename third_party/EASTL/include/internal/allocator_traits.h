@@ -18,7 +18,7 @@
 #include <EASTL/EABase/eabase.h>
 #include <EASTL/internal/config.h>
 
-namespace eastl
+namespace std
 {
 	namespace Internal
 	{
@@ -27,10 +27,10 @@ namespace eastl
 		struct has_value_type
 		{
 		private:
-			template <class U> static eastl::no_type test(...);
-			template <class U> static eastl::yes_type test(typename U::value_type* = 0);
+			template <class U> static std::no_type test(...);
+			template <class U> static std::yes_type test(typename U::value_type* = 0);
 		public:
-			static const bool value = sizeof(test<T>(0)) == sizeof(eastl::yes_type);
+			static const bool value = sizeof(test<T>(0)) == sizeof(std::yes_type);
 		};
 
 		template <class Alloc, bool = has_value_type<Alloc>::value>
@@ -49,13 +49,13 @@ namespace eastl
 		// has_pointer_type
 		namespace has_pointer_type_imp
 		{
-			template <class U> static eastl::no_type test(...);
-			template <class U> static eastl::yes_type test(typename U::pointer* = 0);
+			template <class U> static std::no_type test(...);
+			template <class U> static std::yes_type test(typename U::pointer* = 0);
 		}
 
 		template <class T>
 		struct has_pointer_type
-			: public integral_constant<bool, sizeof(has_pointer_type_imp::test<T>(0)) == sizeof(eastl::yes_type)>
+			: public integral_constant<bool, sizeof(has_pointer_type_imp::test<T>(0)) == sizeof(std::yes_type)>
 		{
 		};
 
@@ -86,10 +86,10 @@ namespace eastl
 		struct has_const_pointer
 		{
 		private:
-			template <class U> static eastl::no_type test(...);
-			template <class U> static eastl::yes_type test(typename U::const_pointer* = 0);
+			template <class U> static std::no_type test(...);
+			template <class U> static std::yes_type test(typename U::const_pointer* = 0);
 		public:
-			static const bool value = sizeof(test<Pointer>(0)) == sizeof(eastl::yes_type);
+			static const bool value = sizeof(test<Pointer>(0)) == sizeof(std::yes_type);
 		};
 
 		template <class T, class Pointer, class Alloc, bool = has_const_pointer<Alloc>::value>
@@ -114,10 +114,10 @@ namespace eastl
 		struct has_void_pointer
 		{
 		private:
-			template <class U> static eastl::no_type test(...);
-			template <class U> static eastl::yes_type test(typename U::void_pointer* = 0);
+			template <class U> static std::no_type test(...);
+			template <class U> static std::yes_type test(typename U::void_pointer* = 0);
 		public:
-			static const bool value = sizeof(test<Pointer>(0)) == sizeof(eastl::yes_type);
+			static const bool value = sizeof(test<Pointer>(0)) == sizeof(std::yes_type);
 		};
 
 		template <class Pointer, class Alloc, bool = has_void_pointer<Alloc>::value>
@@ -142,10 +142,10 @@ namespace eastl
 		struct has_const_void_pointer
 		{
 		private:
-			template <class U> static eastl::no_type test(...);
-			template <class U> static eastl::yes_type test(typename U::const_void_pointer* = 0);
+			template <class U> static std::no_type test(...);
+			template <class U> static std::yes_type test(typename U::const_void_pointer* = 0);
 		public:
-			static const bool value = sizeof(test<Pointer>(0)) == sizeof(eastl::yes_type);
+			static const bool value = sizeof(test<Pointer>(0)) == sizeof(std::yes_type);
 		};
 
 		template <class Pointer, class Alloc, bool = has_const_void_pointer<Alloc>::value>
@@ -184,10 +184,10 @@ namespace eastl
 		struct has_size_type
 		{
 		private:
-			template <class U> static eastl::no_type test(...);
+			template <class U> static std::no_type test(...);
 			template <class U> static char test(typename U::size_type* = 0);
 		public:
-			static const bool value = sizeof(test<T>(0)) == sizeof(eastl::yes_type);
+			static const bool value = sizeof(test<T>(0)) == sizeof(std::yes_type);
 		};
 
 		template <class Alloc, class DiffType, bool = has_size_type<Alloc>::value>
@@ -206,35 +206,35 @@ namespace eastl
 #if EASTL_VARIADIC_TEMPLATES_ENABLED
 		// has_construct
         template <class Alloc, class T, class... Args>
-        decltype(eastl::declval<Alloc>().construct(eastl::declval<T*>(), eastl::declval<Args>()...), eastl::true_type())
+        decltype(std::declval<Alloc>().construct(std::declval<T*>(), std::declval<Args>()...), std::true_type())
         has_construct_test(Alloc&& a, T* p, Args&&... args);
 
         template <class Alloc, class Pointer, class... Args>
-        eastl::false_type has_construct_test(const Alloc& a, Pointer&& p, Args&&... args);
+        std::false_type has_construct_test(const Alloc& a, Pointer&& p, Args&&... args);
 
         template <class Alloc, class Pointer, class... Args>
         struct has_construct
-            : public eastl::integral_constant< bool,
-                  eastl::is_same<decltype(has_construct_test(eastl::declval<Alloc>(), eastl::declval<Pointer>(),
-				  eastl::declval<Args>()...)),
-                          eastl::true_type>::value>
+            : public std::integral_constant< bool,
+                  std::is_same<decltype(has_construct_test(std::declval<Alloc>(), std::declval<Pointer>(),
+				  std::declval<Args>()...)),
+                          std::true_type>::value>
         {
         };
 #else
 		// has_construct (single argument case)
         template <class Alloc, class T, class Arg0>
-        decltype(eastl::declval<Alloc>().construct(eastl::declval<T*>(), eastl::declval<Arg0>()), eastl::true_type())
+        decltype(std::declval<Alloc>().construct(std::declval<T*>(), std::declval<Arg0>()), std::true_type())
         has_construct_test(Alloc&& a, T* p, Arg0&& args);
 
         template <class Alloc, class Pointer, class Arg0>
-        eastl::false_type has_construct_test(const Alloc& a, Pointer&& p, Arg0&& args);
+        std::false_type has_construct_test(const Alloc& a, Pointer&& p, Arg0&& args);
 
         template <class Alloc, class Pointer, class Arg0>
         struct has_construct
-            : public eastl::integral_constant< bool,
-                  eastl::is_same<decltype(has_construct_test(eastl::declval<Alloc>(), eastl::declval<Pointer>(),
-				  eastl::declval<Arg0>())),
-                          eastl::true_type>::value>
+            : public std::integral_constant< bool,
+                  std::is_same<decltype(has_construct_test(std::declval<Alloc>(), std::declval<Pointer>(),
+				  std::declval<Arg0>())),
+                          std::true_type>::value>
         {
         };
 #endif
@@ -242,30 +242,30 @@ namespace eastl
 
 		// has_destroy
         template <class Alloc, class Pointer>
-        auto has_destroy_test(Alloc&& a, Pointer&& p) -> decltype(a.destroy(p), eastl::true_type());
+        auto has_destroy_test(Alloc&& a, Pointer&& p) -> decltype(a.destroy(p), std::true_type());
 
         template <class Alloc, class Pointer>
-        auto has_destroy_test(const Alloc& a, Pointer&& p) -> eastl::false_type;
+        auto has_destroy_test(const Alloc& a, Pointer&& p) -> std::false_type;
 
         template <class Alloc, class Pointer>
         struct has_destroy
-            : public eastl::integral_constant< bool,
-                  is_same<decltype(has_destroy_test(eastl::declval<Alloc>(), eastl::declval<Pointer>())), eastl::true_type>::value>
+            : public std::integral_constant< bool,
+                  is_same<decltype(has_destroy_test(std::declval<Alloc>(), std::declval<Pointer>())), std::true_type>::value>
         {
         };
 
 
 		// has_max_size
         template <class Alloc>
-        auto has_max_size_test(Alloc&& a) -> decltype(a.max_size(), eastl::true_type());
+        auto has_max_size_test(Alloc&& a) -> decltype(a.max_size(), std::true_type());
 
         template <class Alloc>
-        auto has_max_size_test(const volatile Alloc& a) -> eastl::false_type;
+        auto has_max_size_test(const volatile Alloc& a) -> std::false_type;
 
         template <class Alloc>
         struct has_max_size
-            : public eastl::integral_constant<bool,
-                                is_same<decltype(has_max_size_test(eastl::declval<Alloc&>())), eastl::true_type>::value>
+            : public std::integral_constant<bool,
+                                is_same<decltype(has_max_size_test(std::declval<Alloc&>())), std::true_type>::value>
         {
         };
 
@@ -282,16 +282,16 @@ namespace eastl
 	//
 	// Reference: http://en.cppreference.com/w/cpp/memory/allocator_traits
 	//
-	// eastl::allocator_traits supplies a uniform interface to all allocator types.
+	// std::allocator_traits supplies a uniform interface to all allocator types.
 	//
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // eastl::allocator_traits is not a standards conforming implementation. Enough of the standard was implemented to
-    // make the eastl::function implementation possible.  We must revisit this implementation before rolling out its
-    // usage fully in eastl::containers.
+    // std::allocator_traits is not a standards conforming implementation. Enough of the standard was implemented to
+    // make the std::function implementation possible.  We must revisit this implementation before rolling out its
+    // usage fully in std::containers.
 	//
-	// NOTE: We do not recommend users directly code against eastl::allocator_traits until we have completed a full standards comforming implementation.
+	// NOTE: We do not recommend users directly code against std::allocator_traits until we have completed a full standards comforming implementation.
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     template <class Alloc>
 	struct allocator_traits
@@ -317,7 +317,7 @@ namespace eastl
 		// static allocator_type select_on_container_copy_construction(const allocator_type& a);
 
 	    static size_type internal_max_size(true_type, const allocator_type& a) { return a.max_size(); }
-	    static size_type internal_max_size(false_type, const allocator_type&) { return (eastl::numeric_limits<size_type>::max)(); }  // additional parenthesis disables the windows max macro from expanding.
+	    static size_type internal_max_size(false_type, const allocator_type&) { return (std::numeric_limits<size_type>::max)(); }  // additional parenthesis disables the windows max macro from expanding.
 	    static size_type max_size(const allocator_type& a) EA_NOEXCEPT
 	    {
 		    return internal_max_size(Internal::has_max_size<const allocator_type>(), a);
@@ -335,21 +335,21 @@ namespace eastl
 
 	#ifndef EA_COMPILER_NO_VARIADIC_TEMPLATES
 	    template <class T, class... Args>
-	    static void internal_construct(eastl::true_type, allocator_type& a, T* p, Args&&... args)
+	    static void internal_construct(std::true_type, allocator_type& a, T* p, Args&&... args)
 	    {
-		    a.construct(p, eastl::forward<Args>(args)...);
+		    a.construct(p, std::forward<Args>(args)...);
 	    }
 
 	    template <class T, class... Args>
 	    static void internal_construct(false_type, allocator_type&, T* p, Args&&... args)
 	    {
-		    ::new ((void*)p) T(eastl::forward<Args>(args)...);
+		    ::new ((void*)p) T(std::forward<Args>(args)...);
 	    }
 
 	    template <class T, class... Args>
 		static void construct(allocator_type& a, T* p, Args&&... args)
 		{
-			internal_construct(Internal::has_construct<allocator_type, T*, Args...>(), a, p, eastl::forward<Args>(args)...);
+			internal_construct(Internal::has_construct<allocator_type, T*, Args...>(), a, p, std::forward<Args>(args)...);
 		}
 	#else  // EA_COMPILER_NO_VARIADIC_TEMPLATES
 		template <class T>
@@ -375,10 +375,10 @@ namespace eastl
 	#endif // EA_COMPILER_NO_VARIADIC_TEMPLATES
 
 	    template <class T>
-	    static void internal_destroy(eastl::true_type, allocator_type& a, T* p) { a.destroy(p); }
+	    static void internal_destroy(std::true_type, allocator_type& a, T* p) { a.destroy(p); }
 
 	    template <class T>
-	    static void internal_destroy(eastl::false_type, allocator_type&, T* p) { p->~T(); }
+	    static void internal_destroy(std::false_type, allocator_type&, T* p) { p->~T(); }
 
 	    template <class T>
 	    static void destroy(allocator_type& a, T* p)
@@ -386,4 +386,4 @@ namespace eastl
 			internal_destroy(Internal::has_destroy<allocator_type, T*>(), a, p);
 	    }
     };
-} // namespace eastl
+} // namespace std
