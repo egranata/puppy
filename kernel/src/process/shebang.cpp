@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <kernel/log/log.h>
+
 #include <kernel/process/shebang.h>
 #include <kernel/process/elf.h>
 #include <kernel/syscalls/types.h>
@@ -19,7 +21,6 @@
 #include <kernel/libc/string.h>
 #include <kernel/process/process.h>
 #include <kernel/process/manager.h>
-#include <kernel/log/log.h>
 
 extern "C" bool shebang_can_load(uintptr_t load0) {
     const char* txt = (const char*)load0;
@@ -37,31 +38,59 @@ static size_t numStringsInArray(char** array) {
 
 extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
     const char* txt = (const char*)load0;
-    const char* path_begin = &txt[2]; // skip #!
-    const char* path_end = nullptr;
-    for (path_end = path_begin; *path_end != '\n'; ++path_end); // find \n
+    const char* bangspec = &txt[2];
+    const char* space = strchr(bangspec, ' ');
+    const char* nl = strchr(bangspec, '\n');
 
-    path_name_t path = {0};
-    memcpy(&path[0], path_begin, path_end-path_begin);
+    path_name_t interp = {0};
+    path_name_t arg = {0};
 
-    LOG_DEBUG("process %u main binary %s has shebang that points to %s", gCurrentProcess->pid, gCurrentProcess->path, path);
+    LOG_DEBUG("shebang: bangspec=0x%p, space=0x%p, nl=0x%p",
+        bangspec, space, nl);
+
+    if (nl == nullptr) {
+        LOG_ERROR("cannot find newline; won't process shebang");
+        return process_loadinfo_t{
+            eip : 0,
+            stack : 0,
+        };
+    }
+
+    if (space < nl) {
+        memcpy(&interp[0], bangspec, space-bangspec);
+        memcpy(&arg[0], space+1, nl-(space+1));
+    } else {
+        memcpy(&interp[0], bangspec, nl-bangspec);
+    }
+
+    LOG_DEBUG("process %u binary %s is shebang; interpreter='%s' arg='%s'",
+        gCurrentProcess->pid,
+        gCurrentProcess->path,
+        interp,
+        arg);
 
     size_t originalArgsSize = numStringsInArray(gCurrentProcess->args);
-    // the path to the ELF file + argv + the final nullptr
-    char **newArgs = (char**)calloc( (originalArgsSize + 2), sizeof(char*) );
+    // the path to the ELF file + arg + argv + the final nullptr
+    char **newArgs = (char**)calloc( (originalArgsSize + 3), sizeof(char*) );
 
-    LOG_DEBUG("shebang expansion; original argc = %u, new argc = %u", originalArgsSize, originalArgsSize + 1);
+    LOG_DEBUG("shebang expansion; original argc = %u, new argc = %u", originalArgsSize, originalArgsSize + 2);
 
-    newArgs[0] = path;
+    newArgs[0] = interp;
     LOG_DEBUG("newArgs[0] = %s", newArgs[0]);
+    size_t arg_offset = 1;
+    if (arg[0]) {
+        newArgs[1] = arg;
+        LOG_DEBUG("newArgs[1] = %s", newArgs[1]);
+        arg_offset = 2;
+    }
     for (size_t i = 0; i < originalArgsSize; ++i) {
-        newArgs[i+1] = gCurrentProcess->args[i];
-        LOG_DEBUG("newArgs[%d] = %s", i+1, newArgs[i+1]);
+        newArgs[i+arg_offset] = gCurrentProcess->args[i];
+        LOG_DEBUG("newArgs[%d] = %s", i+arg_offset, newArgs[i+arg_offset]);
     }
 
     // do not free the old arguments; we are reusing the pointers to them
     gCurrentProcess->copyArguments((const char**)newArgs, false);
 
-    process_loadinfo_t pli = load_binary(path);
+    process_loadinfo_t pli = load_binary(interp);
     return pli;
 }

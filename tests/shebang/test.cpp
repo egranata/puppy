@@ -40,9 +40,9 @@ class SimpleShebangTest : public Test {
             fprintf(f, "sys.exit(22)\n");
             fclose(f);
 
-            const char* argv[] = {MICROPYTHON_APP, "/tmp/script.py", nullptr};
+            const char* argv[] = {"/tmp/script.py", nullptr};
 
-            auto cpid = execve(MICROPYTHON_APP, (char* const*)argv, nullptr);
+            auto cpid = execve("/tmp/script.py", (char* const*)argv, nullptr);
             CHECK_NOT_EQ(cpid, 0);
 
             auto s = collect(cpid);
@@ -70,9 +70,9 @@ class ShebangArgsTest : public Test {
             fprintf(f, "sys.exit(44)\n");
             fclose(f);
 
-            const char* argv[] = {MICROPYTHON_APP, "/tmp/script.py", "hello", "world", "from Puppy", nullptr};
+            const char* argv[] = {"/tmp/script.py", "hello", "world", "from Puppy", nullptr};
 
-            auto cpid = execve(MICROPYTHON_APP, (char* const*)argv, nullptr);
+            auto cpid = execve("/tmp/script.py", (char* const*)argv, nullptr);
             CHECK_NOT_EQ(cpid, 0);
 
             auto s = collect(cpid);
@@ -81,12 +81,42 @@ class ShebangArgsTest : public Test {
         }
 };
 
-int main() {
-    auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
+class ShebangWithArgTest : public Test {
+    public:
+        ShebangWithArgTest() : Test("shebang.ShebangWithArgTest") {}
+    
+    protected:
+        void run() override {
+            FILE *f = fopen("/tmp/shebang.sh", "w");
+            fprintf(f, "#!/system/tests/shebang arg\n");
+            fclose(f);
 
-    testPlan.add<SimpleShebangTest>()
-            .add<ShebangArgsTest>();
+            const char* argv[] = {"/tmp/shebang.sh", "args", nullptr};
 
-    testPlan.test();
-    return 0;
+            auto cpid = execve("/tmp/shebang.sh", (char* const*)argv, nullptr);
+            CHECK_NOT_EQ(cpid, 0);
+
+            auto s = collect(cpid);
+            CHECK_EQ(s.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(s.status, 22);
+        }
+};
+
+int main(int argc, char** argv) {
+    if (argc == 1) {
+        auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
+
+        testPlan.add<SimpleShebangTest>()
+                .add<ShebangArgsTest>()
+                .add<ShebangWithArgTest>();
+
+        testPlan.test();
+        return 0;
+    } else if (argc == 4) {
+        if ((0 == strcmp(argv[1], "arg")) && (0 == strcmp(argv[3], "args")) &&
+            (nullptr != strstr(argv[2], "shebang.sh")))
+            return 22;
+        else
+            return 0;
+    } else return 0;
 }

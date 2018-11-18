@@ -94,6 +94,7 @@ namespace {
         FILE* f = fopen(where.c_str(), "w");
         if (f == nullptr) return false;
         fwrite(text.c_str(), 1, text.size(), f);
+        fwrite("\n", 1, 1, f);
         fclose(f);
 
         return true;
