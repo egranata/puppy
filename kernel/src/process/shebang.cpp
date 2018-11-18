@@ -56,7 +56,7 @@ extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
         };
     }
 
-    if (space < nl) {
+    if ((space != nullptr) && (space < nl)) {
         memcpy(&interp[0], bangspec, space-bangspec);
         memcpy(&arg[0], space+1, nl-(space+1));
     } else {
