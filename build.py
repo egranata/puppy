@@ -500,6 +500,8 @@ IMG_FILE = "out/os.img"
 ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
 print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
 
+LIBGCC_FILE = shell("i686-elf-gcc -print-libgcc-file-name").rstrip()
+
 makeDir("out/mnt/apps")
 makeDir("out/mnt/libs")
 makeDir("out/mnt/tests")
@@ -517,6 +519,7 @@ xcopy("third_party/pcre2-10.32/libs/lib*.a", "out/mnt/libs")
 xcopy("out/lib*.a", "out/mnt/libs")
 xcopy("newlib/lib/lib*.a", "out/mnt/libs")
 xcopy("python/*.py", "out/mnt/libs/python")
+copy(LIBGCC_FILE, "out/mnt/libs")
 copy(NEWLIB_CRT0, "out/mnt/libs/crt0.o")
 NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 copy("build/app.ld", "out/mnt/libs")
@@ -543,14 +546,8 @@ APPS_CONFIG = {
     "out/apps/klog"  : {"initrd": True, "mainfs":True},
 }
 
-APPS = []
-DYLIBS = []
-TESTS = []
-
 INITRD_REFS = [] # apps for initrd
-APP_REFS = [] # apps for main filesystem
 DYLIB_REFS = []
-TEST_REFS = []
 APP_PROJECTS = []
 DYLIB_PROJECTS = []
 TEST_PROJECTS = []
@@ -570,9 +567,8 @@ for lib in DYLIB_DIRS:
     print(' ' * len(DYLIBS_PRINT_PREFIX), end='', flush=True)
     print(dylib_p.name, end='', flush=True)
     lib_o = dylib_p.build()
-    DYLIBS.append(lib_o)
     DYLIB_REFS.append(lib_o)
-    print("(%d bytes) " % os.stat(lib_o).st_size)
+    print('')
 
 print('')
 
@@ -587,16 +583,13 @@ for app in APP_DIRS:
     print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
     print(app_p.name, end='', flush=True)
     app_o = app_p.build()
-    APPS.append(app_o)
     config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
-    if config["mainfs"]: APP_REFS.append(app_o)
     if config["initrd"]: INITRD_REFS.append(app_o)
-    print("(%d bytes) " % os.stat(app_o).st_size)
+    print('')
 
 print('')
 
 TEST_PLAN = []
-KNOWN_FAIL_TESTS = ["tests_mutexkill"]
 
 TEST_PRINT_PREFIX="Building tests: "
 print(TEST_PRINT_PREFIX)
@@ -615,16 +608,13 @@ for test in TEST_DIRS:
     print(' ' * len(TEST_PRINT_PREFIX), end='', flush=True)
     print(test_p.name, end='', flush=True)
     test_o = test_p.build()
-    TESTS.append(test_o)
-    TEST_REFS.append(test_o)
-    print("(%d bytes) " % os.stat(test_o).st_size)
-    test_ref = "/system/%s" % (test_o.replace("out/", "")) # this is a bit hacky..
-    if test_name not in KNOWN_FAIL_TESTS:
-        TEST_PLAN.append({
-            "path" : test_ref,
-            "id" : test_name,
-            "wait" : "15" # allow tests to wait for more or less than 15 seconds
-        })
+    test_ref = "/system/%s" % (test_o.replace("out/", ""))
+    TEST_PLAN.append({
+        "path" : test_ref,
+        "id" : test_name,
+        "wait" : "15" # allow tests to wait for more or less than 15 seconds
+    })
+    print('')
 
 # provide a consistent sort order for test execution regardless of underlying FS
 TEST_PLAN.sort(key=lambda test: test["id"])
@@ -667,15 +657,11 @@ write("out/mnt/boot/grub/grub.cfg", menulst)
 
 copy("out/kernel", "out/mnt/boot/puppy")
 
-for app in APP_REFS:
-    copy(app, "out/mnt/apps/%s" % os.path.basename(app))
+xcopy("out/apps/*", "out/mnt/apps")
+xcopy("out/tests/*", "out/mnt/tests")
 
 for lib in DYLIB_REFS:
     copy(lib, "out/mnt/libs/%s" % os.path.basename(lib))
-
-for test in TEST_REFS:
-    test_name = os.path.basename(test)
-    copy(test, "out/mnt/tests/%s" % test_name)
 
 with open("out/mnt/tests/runall.sh", "w") as testScript:
     print("#!/system/apps/shell", file=testScript)
