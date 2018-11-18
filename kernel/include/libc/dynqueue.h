@@ -51,6 +51,10 @@ class dynqueue {
             return mElements.front();
         }
 
+        void remove(const T& t) {
+            mElements.eraseAll(t);
+        }
+
     private:
         vector<T> mElements;
 };

@@ -75,3 +75,7 @@ process_t* WaitQueue::peek() {
 bool WaitQueue::empty() {
     return mProcesses.empty();
 }
+
+void WaitQueue::drop(process_t *process) {
+    mProcesses.remove(process);
+}

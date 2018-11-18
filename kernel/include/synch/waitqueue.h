@@ -31,6 +31,7 @@ class WaitQueue : NOCOPY {
         void wakeall();
         process_t *peek();
         bool empty();
+        void drop(process_t*);
     private:
         bool wake(process_t*);
 
