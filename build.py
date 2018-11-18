@@ -191,9 +191,6 @@ def makeDir(path):
     return path
 
 clearDir("out")
-clearDir("out/apps")
-clearDir("out/libs")
-clearDir("out/tests")
 clearDir("out/mnt")
 
 class _BuildC(object):
@@ -492,17 +489,12 @@ with Chronometer("Generating GCC specs"):
 # this table allows one to configure which apps land where (the default
 # being /apps in the main filesystem and not /initrd)
 APPS_CONFIG = {
-    "out/apps/init"  : {"initrd": True, "mainfs":False},
-    "out/apps/mount" : {"initrd": True, "mainfs":False},
-    "out/apps/ls"    : {"initrd": True, "mainfs":True},
-    "out/apps/klog"  : {"initrd": True, "mainfs":True},
+    "init"  : {"initrd": True},
+    "mount" : {"initrd": True},
+    "ls"    : {"initrd": True},
 }
 
 INITRD_REFS = [] # apps for initrd
-DYLIB_REFS = []
-APP_PROJECTS = []
-DYLIB_PROJECTS = []
-TEST_PROJECTS = []
 
 with Chronometer("Building apps and tests"):
     DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
@@ -512,13 +504,11 @@ with Chronometer("Building apps and tests"):
     for lib in DYLIB_DIRS:
         dylib_p = UserspaceTool(name = os.path.basename(lib),
                                 srcdir = lib,
-                                outwhere="out/libs")
+                                outwhere="out/mnt/libs")
         dylib_p.link = dylib_p.linkDylib
-        DYLIB_PROJECTS.append(dylib_p.name)
         print(' ' * len(DYLIBS_PRINT_PREFIX), end='', flush=True)
         print(dylib_p.name, end='', flush=True)
         lib_o = dylib_p.build()
-        DYLIB_REFS.append(lib_o)
         print('')
 
     print('')
@@ -529,12 +519,12 @@ with Chronometer("Building apps and tests"):
     APP_DIRS = findSubdirectories("apps", self=False)
     for app in APP_DIRS:
         app_p = UserspaceTool(name = os.path.basename(app),
-                            srcdir = app)
-        APP_PROJECTS.append(app_p.name)
+                              srcdir = app,
+                              outwhere="out/mnt/apps")
         print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
         print(app_p.name, end='', flush=True)
         app_o = app_p.build()
-        config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
+        config = APPS_CONFIG.get(app_p.name, {"initrd": False})
         if config["initrd"]: INITRD_REFS.append(app_o)
         print('')
 
@@ -553,13 +543,12 @@ with Chronometer("Building apps and tests"):
                             srcdir = test,
                             cflags = [test_name_define],
                             cppflags = [test_name_define],
-                            outwhere="out/tests",
+                            outwhere="out/mnt/tests",
                             linkerdeps = ["out/mnt/libs/libcheckup.a"])
-        TEST_PROJECTS.append(test_p.name)
         print(' ' * len(TEST_PRINT_PREFIX), end='', flush=True)
         print(test_p.name, end='', flush=True)
         test_o = test_p.build()
-        test_ref = "/system/%s" % (test_o.replace("out/", ""))
+        test_ref = "/system/%s" % (test_o.replace("out/mnt/", ""))
         TEST_PLAN.append({
             "path" : test_ref,
             "id" : test_name,
@@ -598,12 +587,6 @@ menulst = menulst.replace("${MODULES}", '\n'.join(MENU_MODULE_REFS))
 write("out/mnt/boot/grub/grub.cfg", menulst)
 
 copy("out/kernel", "out/mnt/boot/puppy")
-
-xcopy("out/apps/*", "out/mnt/apps")
-xcopy("out/tests/*", "out/mnt/tests")
-
-for lib in DYLIB_REFS:
-    copy(lib, "out/mnt/libs/%s" % os.path.basename(lib))
 
 with open("out/mnt/tests/runall.sh", "w") as testScript:
     print("#!/system/apps/shell", file=testScript)
