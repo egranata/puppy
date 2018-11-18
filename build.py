@@ -24,6 +24,7 @@ import shutil
 import subprocess
 import sys
 import time
+from build.chronometer import Chronometer
 
 VERBOSE = "-v" in sys.argv
 
@@ -285,15 +286,9 @@ class Project(object):
         pass
 
     def build(self):
-        if self.announce: print("Building %s" % self.name)
-        BEGIN = time.time()
-        DEST = self.link(self.compile())
-        END = time.time()
-        DURATION = int(END - BEGIN)
-        if DURATION > 0:
-            if self.announce: print("Duration: %s seconds" % DURATION)
-        if self.announce: print("Output size: %s bytes" % (os.stat(DEST).st_size))
-        return DEST
+        chrono = Chronometer("Compiling %s" % self.name if self.announce else None)
+        with chrono:
+            return self.link(self.compile())
 
 NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
@@ -463,30 +458,8 @@ for core_project in json.loads(open("build/core.json", "r").read()):
 
     CORE_PROJECTS.append(project)
 
-Parson = Project(name="Parson",
-    srcdir="third_party/parson",
-    ipaths=["include", "include/newlib", "include/stl"],
-    linkerdeps=NEWLIB_DEPS)
-Parson.link = Parson.linkAr
-
-ShellSupport = Project(name="shellsupport",
-    srcdir="libshell/src",
-    ipaths=["include", "include/newlib", "include/stl"],
-    linkerdeps=NEWLIB_DEPS)
-ShellSupport.link = ShellSupport.linkAr
-
-Linenoise = Project(name="linenoise",
-    srcdir="third_party/linenoise",
-    ipaths=["include", "include/newlib", "include/stl"],
-    linkerdeps=NEWLIB_DEPS)
-Linenoise.link = Linenoise.linkAr
-
 for project in CORE_PROJECTS:
     project.build()
-
-Parson.build()
-ShellSupport.build()
-Linenoise.build()
 
 IMG_FILE = "out/os.img"
 ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
@@ -500,32 +473,20 @@ makeDir("out/mnt/tests")
 makeDir("out/mnt/include")
 makeDir("out/mnt/libs/python")
 
-HDR_COPY_BEGIN = time.time()
-rcopy("include", "out/mnt")
-HDR_COPY_END = time.time()
-HDR_COPY_DURATION = int(HDR_COPY_END - HDR_COPY_BEGIN)
-if HDR_COPY_DURATION > 0: print("Header files copied in %s seconds" % HDR_COPY_DURATION)
-
-LIB_COPY_BEGIN = time.time()
-xcopy("third_party/pcre2-10.32/libs/lib*.a", "out/mnt/libs")
-xcopy("out/lib*.a", "out/mnt/libs")
-xcopy("newlib/lib/lib*.a", "out/mnt/libs")
-xcopy("python/*.py", "out/mnt/libs/python")
-copy(LIBGCC_FILE, "out/mnt/libs")
-copy("out/newlibcrt0", NEWLIB_CRT0)
-copy("build/app.ld", "out/mnt/libs")
-LIB_COPY_END = time.time()
-LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
-if LIB_COPY_DURATION > 0: print("System libraries copied in %s seconds" % LIB_COPY_DURATION)
+with Chronometer("Copyings headers and core libraries"):
+    rcopy("include", "out/mnt")
+    xcopy("third_party/pcre2-10.32/libs/lib*.a", "out/mnt/libs")
+    xcopy("out/lib*.a", "out/mnt/libs")
+    xcopy("newlib/lib/lib*.a", "out/mnt/libs")
+    xcopy("python/*.py", "out/mnt/libs/python")
+    copy(LIBGCC_FILE, "out/mnt/libs")
+    copy("out/newlibcrt0", NEWLIB_CRT0)
+    copy("build/app.ld", "out/mnt/libs")
 
 print("newlib dependency list: %s" % ', '.join(NEWLIB_DEPS))
 
-print("Generating GCC specs")
-SPECS_BEGIN = time.time()
-writeSpecsFile(GCC_SPECS_PATH)
-SPECS_END = time.time()
-SPECS_DURATION = int(SPECS_END - SPECS_BEGIN)
-if SPECS_DURATION > 0: print("GCC specs written in %s seconds" % SPECS_DURATION)
+with Chronometer("Generating GCC specs"):
+    writeSpecsFile(GCC_SPECS_PATH)
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
@@ -543,86 +504,76 @@ APP_PROJECTS = []
 DYLIB_PROJECTS = []
 TEST_PROJECTS = []
 
-USER_CONTENT_BEGIN = time.time()
+with Chronometer("Building apps and tests"):
+    DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
+    print(DYLIBS_PRINT_PREFIX)
 
-DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
-print(DYLIBS_PRINT_PREFIX)
+    DYLIB_DIRS = findSubdirectories("dylibs", self=False)
+    for lib in DYLIB_DIRS:
+        dylib_p = UserspaceTool(name = os.path.basename(lib),
+                                srcdir = lib,
+                                outwhere="out/libs")
+        dylib_p.link = dylib_p.linkDylib
+        DYLIB_PROJECTS.append(dylib_p.name)
+        print(' ' * len(DYLIBS_PRINT_PREFIX), end='', flush=True)
+        print(dylib_p.name, end='', flush=True)
+        lib_o = dylib_p.build()
+        DYLIB_REFS.append(lib_o)
+        print('')
 
-DYLIB_DIRS = findSubdirectories("dylibs", self=False)
-for lib in DYLIB_DIRS:
-    dylib_p = UserspaceTool(name = os.path.basename(lib),
-                            srcdir = lib,
-                            outwhere="out/libs")
-    dylib_p.link = dylib_p.linkDylib
-    DYLIB_PROJECTS.append(dylib_p.name)
-    print(' ' * len(DYLIBS_PRINT_PREFIX), end='', flush=True)
-    print(dylib_p.name, end='', flush=True)
-    lib_o = dylib_p.build()
-    DYLIB_REFS.append(lib_o)
     print('')
 
-print('')
+    USERSPACE_PRINT_PREFIX="Building userspace tools: "
+    print(USERSPACE_PRINT_PREFIX)
 
-USERSPACE_PRINT_PREFIX="Building userspace tools: "
-print(USERSPACE_PRINT_PREFIX)
+    APP_DIRS = findSubdirectories("apps", self=False)
+    for app in APP_DIRS:
+        app_p = UserspaceTool(name = os.path.basename(app),
+                            srcdir = app)
+        APP_PROJECTS.append(app_p.name)
+        print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
+        print(app_p.name, end='', flush=True)
+        app_o = app_p.build()
+        config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
+        if config["initrd"]: INITRD_REFS.append(app_o)
+        print('')
 
-APP_DIRS = findSubdirectories("apps", self=False)
-for app in APP_DIRS:
-    app_p = UserspaceTool(name = os.path.basename(app),
-                          srcdir = app)
-    APP_PROJECTS.append(app_p.name)
-    print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
-    print(app_p.name, end='', flush=True)
-    app_o = app_p.build()
-    config = APPS_CONFIG.get(app_o, {"initrd": False, "mainfs": True})
-    if config["initrd"]: INITRD_REFS.append(app_o)
     print('')
 
-print('')
+    TEST_PLAN = []
 
-TEST_PLAN = []
+    TEST_PRINT_PREFIX="Building tests: "
+    print(TEST_PRINT_PREFIX)
 
-TEST_PRINT_PREFIX="Building tests: "
-print(TEST_PRINT_PREFIX)
+    TEST_DIRS = findSubdirectories("tests", self=False)
+    for test in TEST_DIRS:
+        test_name = test.replace('/','_')
+        test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
+        test_p = UserspaceTool(name = os.path.basename(test),
+                            srcdir = test,
+                            cflags = [test_name_define],
+                            cppflags = [test_name_define],
+                            outwhere="out/tests",
+                            linkerdeps = ["out/mnt/libs/libcheckup.a"])
+        TEST_PROJECTS.append(test_p.name)
+        print(' ' * len(TEST_PRINT_PREFIX), end='', flush=True)
+        print(test_p.name, end='', flush=True)
+        test_o = test_p.build()
+        test_ref = "/system/%s" % (test_o.replace("out/", ""))
+        TEST_PLAN.append({
+            "path" : test_ref,
+            "id" : test_name,
+            "wait" : "15" # allow tests to wait for more or less than 15 seconds
+        })
+        print('')
 
-TEST_DIRS = findSubdirectories("tests", self=False)
-for test in TEST_DIRS:
-    test_name = test.replace('/','_')
-    test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
-    test_p = UserspaceTool(name = os.path.basename(test),
-                           srcdir = test,
-                           cflags = [test_name_define],
-                           cppflags = [test_name_define],
-                           outwhere="out/tests",
-                           linkerdeps = ["out/mnt/libs/libcheckup.a"])
-    TEST_PROJECTS.append(test_p.name)
-    print(' ' * len(TEST_PRINT_PREFIX), end='', flush=True)
-    print(test_p.name, end='', flush=True)
-    test_o = test_p.build()
-    test_ref = "/system/%s" % (test_o.replace("out/", ""))
-    TEST_PLAN.append({
-        "path" : test_ref,
-        "id" : test_name,
-        "wait" : "15" # allow tests to wait for more or less than 15 seconds
-    })
+    # provide a consistent sort order for test execution regardless of underlying FS
+    TEST_PLAN.sort(key=lambda test: test["id"])
+
+    with open("out/testplan.json", "w") as f:
+        json.dump(TEST_PLAN, f)
+
     print('')
-
-# provide a consistent sort order for test execution regardless of underlying FS
-TEST_PLAN.sort(key=lambda test: test["id"])
-
-with open("out/testplan.json", "w") as f:
-    json.dump(TEST_PLAN, f)
-
-print('')
-
-USER_CONTENT_END = time.time()
-USER_CONTENT_DURATION = int(USER_CONTENT_END - USER_CONTENT_BEGIN)
-
-print("Built %d dylibs %d apps and %d tests in %s seconds" %
-    (len(DYLIB_PROJECTS),
-     len(APP_PROJECTS),
-     len(TEST_PROJECTS),
-     USER_CONTENT_DURATION))
 
 print("Generating kernel symbol table")
 
