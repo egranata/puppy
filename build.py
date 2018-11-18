@@ -392,6 +392,18 @@ def createDiskImage(file, megsOfSize=64):
     CMDLINE="dd if=%s of=%s bs=%s count=%s" % (tempFile, headerFile, 1024, 1024)
     shell(CMDLINE)
 
+    CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=1 count=446 of=%s" % (headerFile)
+    shell(CMDLINE)
+
+    CMDLINE="dd if=build/bootsect.0 conv=notrunc ibs=1 obs=1 seek=510 skip=510 count=2 of=%s" % (headerFile)
+    shell(CMDLINE)
+
+    CMDLINE="grub-mkimage -c build/earlygrub.cfg -O i386-pc -o out/boot.ldr -p /boot/grub part_msdos biosdisk fat multiboot configfile"
+    shell(CMDLINE)
+
+    CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (headerFile)
+    shell(CMDLINE)
+
     os.unlink(tempFile)
 
     return (rootFile, headerFile, fatFile)
@@ -457,6 +469,7 @@ for project in CORE_PROJECTS:
 
 IMG_FILE = "out/os.img"
 ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
+
 print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
 
 LIBGCC_FILE = shell("i686-elf-gcc -print-libgcc-file-name").rstrip()
@@ -466,6 +479,8 @@ makeDir("out/mnt/libs")
 makeDir("out/mnt/tests")
 makeDir("out/mnt/include")
 makeDir("out/mnt/libs/python")
+makeDir("out/mnt/boot")
+makeDir("out/mnt/config")
 
 with Chronometer("Copyings headers and core libraries"):
     rcopy("include", "out/mnt")
@@ -482,6 +497,23 @@ print("newlib dependency list: %s" % ', '.join(NEWLIB_DEPS))
 
 with Chronometer("Generating GCC specs"):
     writeSpecsFile(GCC_SPECS_PATH)
+
+with Chronometer("Generating kernel symbol table"):
+    CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
+    shell(CMDLINE)
+
+with Chronometer("Copying configuration data"):
+    rcopy("config", "out/mnt")
+    copy("LICENSE", "out/mnt/config/LICENSE")
+
+    anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
+    sysinfo = read('config/sysinfo')
+    sysinfo = sysinfo.replace("${NOW}", datetime.now().__str__())
+    sysinfo = sysinfo.replace("${GIT-HASH}", shell("git rev-parse HEAD").replace('\n', ''))
+    sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "No diff applied")
+    sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").replace('\n', ''))
+    sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm -v").replace('\n', ''))
+    write("out/mnt/config/sysinfo", sysinfo)
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
@@ -569,70 +601,37 @@ with Chronometer("Building apps and tests"):
     with open("out/testplan.json", "w") as f:
         json.dump(TEST_PLAN, f)
 
+    with open("out/mnt/tests/runall.sh", "w") as testScript:
+        print("#!/system/apps/shell", file=testScript)
+        for test in TEST_PLAN:
+                print("%s" % test['path'], file=testScript)
+
     print('')
 
-print("Generating kernel symbol table")
+with Chronometer("Configuring bootloader"):
+    INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
+    shell("initrd/gen.py --dest out/mnt/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
+    MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
 
-CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
-shell(CMDLINE)
+    print("Size of initrd image: %d bytes" % os.stat("out/mnt/boot/initrd.img").st_size)
 
-print("Generating final OS image")
+    rcopy("build/grub", "out/mnt/boot")
+    copy("out/kernel", "out/mnt/boot/puppy")
 
-makeDir("out/mnt/boot")
-makeDir("out/mnt/config")
+    menulst = read('build/grub.cfg')
+    menulst = menulst.replace("${MODULES}", '\n'.join(MENU_MODULE_REFS))
+    write("out/mnt/boot/grub/grub.cfg", menulst)
 
-rcopy("build/grub", "out/mnt/boot")
+with Chronometer("Building final disk image"):
+    CMDLINE="mcopy -s -i %s out/mnt/* ::/" % (FAT_DISK)
+    shell(CMDLINE)
 
-INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
-shell("initrd/gen.py --dest out/mnt/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
-MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
+    PART_USAGE = calculateSize("out/mnt")
 
-print("Size of initrd image: %d bytes" % os.stat("out/mnt/boot/initrd.img").st_size)
+    CMDLINE="build/concatimg.sh %s %s %s" % (ROOT_DISK, BOOT_DISK, FAT_DISK)
+    shell(CMDLINE)
 
-menulst = read('build/grub.cfg')
-menulst = menulst.replace("${MODULES}", '\n'.join(MENU_MODULE_REFS))
-write("out/mnt/boot/grub/grub.cfg", menulst)
-
-copy("out/kernel", "out/mnt/boot/puppy")
-
-with open("out/mnt/tests/runall.sh", "w") as testScript:
-    print("#!/system/apps/shell", file=testScript)
-    for test in TEST_PLAN:
-            print("%s" % test['path'], file=testScript)
-
-rcopy("config", "out/mnt")
-copy("LICENSE", "out/mnt/config/LICENSE")
-
-anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
-sysinfo = read('config/sysinfo')
-sysinfo = sysinfo.replace("${NOW}", datetime.now().__str__())
-sysinfo = sysinfo.replace("${GIT-HASH}", shell("git rev-parse HEAD").replace('\n', ''))
-sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "No diff applied")
-sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").replace('\n', ''))
-sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm -v").replace('\n', ''))
-write("out/mnt/config/sysinfo", sysinfo)
-
-CMDLINE="mcopy -s -i %s out/mnt/* ::/" % (FAT_DISK)
-shell(CMDLINE)
-
-PART_USAGE = calculateSize("out/mnt")
-
-CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=1 count=446 of=%s" % (BOOT_DISK)
-shell(CMDLINE)
-
-CMDLINE="dd if=build/bootsect.0 conv=notrunc ibs=1 obs=1 seek=510 skip=510 count=2 of=%s" % (BOOT_DISK)
-shell(CMDLINE)
-
-CMDLINE="grub-mkimage -c build/earlygrub.cfg -O i386-pc -o out/boot.ldr -p /boot/grub part_msdos biosdisk fat multiboot configfile"
-shell(CMDLINE)
-
-CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (BOOT_DISK)
-shell(CMDLINE)
-
-CMDLINE="build/concatimg.sh %s %s %s" % (ROOT_DISK, BOOT_DISK, FAT_DISK)
-shell(CMDLINE)
-
-print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat(ROOT_DISK).st_size, PART_USAGE))
+    print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat(ROOT_DISK).st_size, PART_USAGE))
 
 BUILD_END = time.time()
 print("Build took %s seconds" % int(BUILD_END - BUILD_START))
