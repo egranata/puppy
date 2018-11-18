@@ -493,38 +493,48 @@ APPS_CONFIG = {
 
 INITRD_REFS = [] # apps for initrd
 
+def buildUserlandComponent(name, sourceDir, outWhere, prefixString, beforeBuild=None, afterBuild=None, cflags=None, cppflags=None, linkerdeps=[]):
+    component = UserspaceTool(name = name,
+                              srcdir = sourceDir,
+                              outwhere = outWhere,
+                              cflags=cflags,
+                              cppflags=cppflags,
+                              linkerdeps=linkerdeps)
+    if beforeBuild: beforeBuild(component)
+    print(' ' * len(prefixString), end='', flush=True)
+    print(component.name, end='', flush=True)
+    cout = component.build()
+    if afterBuild: afterBuild(component, cout)
+    print('')
+
 with Chronometer("Building apps and tests"):
     DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
     print(DYLIBS_PRINT_PREFIX)
 
     DYLIB_DIRS = findSubdirectories("dylibs", self=False)
+    def markAsDynamic(lib):
+        lib.link = lib.linkDylib
     for lib in DYLIB_DIRS:
-        dylib_p = UserspaceTool(name = os.path.basename(lib),
-                                srcdir = lib,
-                                outwhere="out/mnt/libs")
-        dylib_p.link = dylib_p.linkDylib
-        print(' ' * len(DYLIBS_PRINT_PREFIX), end='', flush=True)
-        print(dylib_p.name, end='', flush=True)
-        lib_o = dylib_p.build()
-        print('')
-
+        buildUserlandComponent(os.path.basename(lib),
+                               lib,
+                               "out/mnt/libs",
+                               DYLIBS_PRINT_PREFIX,
+                               beforeBuild = markAsDynamic)
     print('')
 
-    USERSPACE_PRINT_PREFIX="Building userspace tools: "
-    print(USERSPACE_PRINT_PREFIX)
+    APPS_PRINT_PREFIX="Building apps: "
+    print(APPS_PRINT_PREFIX)
 
     APP_DIRS = findSubdirectories("apps", self=False)
+    def needsInitrd(app, app_out):
+        config = APPS_CONFIG.get(app.name, {"initrd": False})
+        if config["initrd"]: INITRD_REFS.append(app_out)
     for app in APP_DIRS:
-        app_p = UserspaceTool(name = os.path.basename(app),
-                              srcdir = app,
-                              outwhere="out/mnt/apps")
-        print(' ' * len(USERSPACE_PRINT_PREFIX), end='', flush=True)
-        print(app_p.name, end='', flush=True)
-        app_o = app_p.build()
-        config = APPS_CONFIG.get(app_p.name, {"initrd": False})
-        if config["initrd"]: INITRD_REFS.append(app_o)
-        print('')
-
+        buildUserlandComponent(os.path.basename(app),
+                               app,
+                               "out/mnt/apps",
+                               APPS_PRINT_PREFIX,
+                               afterBuild=needsInitrd)
     print('')
 
     TEST_PLAN = []
@@ -533,25 +543,24 @@ with Chronometer("Building apps and tests"):
     print(TEST_PRINT_PREFIX)
 
     TEST_DIRS = findSubdirectories("tests", self=False)
-    for test in TEST_DIRS:
-        test_name = test.replace('/','_')
-        test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
-        test_p = UserspaceTool(name = os.path.basename(test),
-                            srcdir = test,
-                            cflags = [test_name_define],
-                            cppflags = [test_name_define],
-                            outwhere="out/mnt/tests",
-                            linkerdeps = ["out/mnt/libs/libcheckup.a"])
-        print(' ' * len(TEST_PRINT_PREFIX), end='', flush=True)
-        print(test_p.name, end='', flush=True)
-        test_o = test_p.build()
-        test_ref = "/system/%s" % (test_o.replace("out/mnt/", ""))
+    def pushToTestPlan(test, test_out):
+        test_ref = "/system/%s" % (test_out.replace("out/mnt/", ""))
         TEST_PLAN.append({
             "path" : test_ref,
-            "id" : test_name,
+            "id" : test.name,
             "wait" : "15" # allow tests to wait for more or less than 15 seconds
         })
-        print('')
+    for test in TEST_DIRS:
+        test_name = os.path.basename(test)
+        test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
+        buildUserlandComponent(test_name,
+                               test,
+                               "out/mnt/tests",
+                               TEST_PRINT_PREFIX,
+                               afterBuild=pushToTestPlan,
+                               cflags = [test_name_define],
+                               cppflags = [test_name_define],
+                               linkerdeps = ["out/mnt/libs/libcheckup.a"])
 
     # provide a consistent sort order for test execution regardless of underlying FS
     TEST_PLAN.sort(key=lambda test: test["id"])
