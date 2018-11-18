@@ -23,7 +23,7 @@ extern int main (int, char**);
 
 extern void  __sinit (struct _reent *);
 
-char** environ;
+extern char** environ;
 
 typedef void(*cdfunc)();
 
