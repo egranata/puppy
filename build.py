@@ -407,63 +407,61 @@ def createDiskImage(file, megsOfSize=64):
 
     return (rootFile, headerFile, fatFile)
 
-ACPICA = Project(name="ACPICA",
-    srcdir="third_party/acpica/src",
-    assembler="nasm",
-    cflags=BASIC_CFLAGS + ['-Wno-error=unused-parameter'])
-ACPICA.link = ACPICA.linkAr
+def expandNewlibDeps(deps):
+    out = []
+    for dep in deps:
+        if dep == "${NEWLIB}":
+            out += NEWLIB_DEPS
+        else:
+            out += [dep]
+    return out
+def expandNewlibIncludes(ipaths):
+    out = []
+    for ipath in ipaths:
+        if ipath == "${NEWLIB}":
+            out += ["include", "include/newlib", "include/stl"]
+        else:
+            out += [ipath]
+    return out
 
-FatFS = Project(name="FatFS",
-    srcdir="third_party/fatfs",
-    assembler="nasm")
-FatFS.link = FatFS.linkAr
+CORE_PROJECTS = []
+for core_project in json.loads(open("build/core.json", "r").read()):
+    assembler = core_project.get('assembler', 'nasm')
 
-Muzzle = Project(name="Muzzle",
-    srcdir="third_party/muzzle/src",
-    asmflags=["-nostartfiles", "-nodefaultlibs", "-Wall", "-Wextra", "-fdiagnostics-color=always", "-nostdlib", "-c"],
-    assembler="i686-elf-gcc")
-Muzzle.link = Muzzle.linkAr
+    cflags = core_project.get('cflags', BASIC_CFLAGS)
+    cflags = cflags + core_project.get('cflagsAgument', [])
 
-Kernel = Project(name="Kernel",
-    srcdir="kernel/src",
-    cflags=BASIC_CFLAGS,
-    cppflags=BASIC_CFLAGS + BASIC_CPPFLAGS,
-    ldflags=BASIC_LDFLAGS + ["-T build/kernel.ld"],
-    assembler="nasm",
-    linkerdeps=["out/libmuzzle.a", "out/libfatfs.a", "out/libacpica.a"])
-Kernel.link = Kernel.linkGcc
+    cppflags = core_project.get('cppflags', BASIC_CFLAGS + BASIC_CPPFLAGS)
+    cppflags = cppflags + core_project.get('cppflagsAgument', [])
 
-NewlibInterface = Project(name="NewlibInterface",
-    srcdir="newlib/syscalls",
-    assembler="nasm",
-    ipaths=["include", "include/newlib"])
-NewlibInterface.link = NewlibInterface.linkAr
+    asmflags = core_project.get('asmflags', BASIC_ASFLAGS)
+    asmflags = asmflags + core_project.get('asmflagsAugment', [])
 
-NewlibCrt0 = Project(name="NewlibCrt0",
-    srcdir="newlib/crt0",
-    assembler="nasm",
-    ipaths=["include", "include/newlib"])
-NewlibCrt0.link = NewlibCrt0.linkCopy
+    ldflags = core_project.get('ldflags', BASIC_LDFLAGS)
+    ldflags = ldflags + core_project.get('ldflagsAugment', [])
 
-CxxSupport = Project(name="CxxSupport",
-    srcdir="libcxxsup/src",
-    assembler="nasm",
-    ipaths=["include", "include/newlib"],
-    linkerdeps=NEWLIB_DEPS)
-CxxSupport.link = CxxSupport.linkAr
+    ipaths = core_project.get('includePaths', ["include"])
+    ipaths = expandNewlibIncludes(ipaths)
 
-EASTL = Project(name="EASTL",
-    srcdir="third_party/EASTL/src",
-    ipaths=["include", "include/newlib", "include/EASTL"],
-    linkerdeps=NEWLIB_DEPS)
-EASTL.link = EASTL.linkAr
+    linkerdeps = core_project.get('linkerDependencies', [])
+    linkerdeps = expandNewlibDeps(linkerdeps)
 
-Checkup = Project(name="Checkup",
-    srcdir="checkup/src",
-    assembler="nasm",
-    ipaths=["include", "include/newlib", "include/stl"],
-    linkerdeps=NEWLIB_DEPS)
-Checkup.link = Checkup.linkAr
+    project = Project(name = core_project.get('name'),
+        srcdir = core_project.get('src'),
+        assembler = assembler,
+        cflags = cflags,
+        cppflags = cppflags,
+        asmflags = asmflags,
+        ldflags = ldflags,
+        ipaths = ipaths,
+        linkerdeps = linkerdeps)
+
+    linklogic = core_project.get('linkLogic', 'ar')
+    if linklogic == 'ar':   project.link = project.linkAr
+    if linklogic == 'copy': project.link = project.linkCopy
+    if linklogic == 'gcc':  project.link = project.linkGcc
+
+    CORE_PROJECTS.append(project)
 
 Parson = Project(name="Parson",
     srcdir="third_party/parson",
@@ -483,15 +481,9 @@ Linenoise = Project(name="linenoise",
     linkerdeps=NEWLIB_DEPS)
 Linenoise.link = Linenoise.linkAr
 
-ACPICA.build()
-FatFS.build()
-Muzzle.build()
-Kernel.build()
-NewlibInterface.build()
-NEWLIB_CRT0 = NewlibCrt0.build()
-CxxSupport.build()
-EASTL.build()
-Checkup.build()
+for project in CORE_PROJECTS:
+    project.build()
+
 Parson.build()
 ShellSupport.build()
 Linenoise.build()
@@ -520,8 +512,7 @@ xcopy("out/lib*.a", "out/mnt/libs")
 xcopy("newlib/lib/lib*.a", "out/mnt/libs")
 xcopy("python/*.py", "out/mnt/libs/python")
 copy(LIBGCC_FILE, "out/mnt/libs")
-copy(NEWLIB_CRT0, "out/mnt/libs/crt0.o")
-NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
+copy("out/newlibcrt0", NEWLIB_CRT0)
 copy("build/app.ld", "out/mnt/libs")
 LIB_COPY_END = time.time()
 LIB_COPY_DURATION = int(LIB_COPY_END - LIB_COPY_BEGIN)
@@ -668,14 +659,8 @@ with open("out/mnt/tests/runall.sh", "w") as testScript:
     for test in TEST_PLAN:
             print("%s" % test['path'], file=testScript)
 
-copy("config/init.cfg", "out/mnt/config/init.cfg")
-copy("config/init.svc", "out/mnt/config/init.svc")
-copy("config/shell.sh", "out/mnt/config/shell.sh")
-copy("config/motd", "out/mnt/config/motd")
-copy("config/colors", "out/mnt/config/colors")
+rcopy("config", "out/mnt")
 copy("LICENSE", "out/mnt/config/LICENSE")
-
-rcopy("config/timezones", "out/mnt/config")
 
 anydiff = "0" != shell('git diff HEAD | wc -c | sed "s/ //g"').replace('\n', '')
 sysinfo = read('config/sysinfo')
