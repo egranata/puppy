@@ -21,11 +21,19 @@
 #include <libshell/expand.h>
 #include <sys/collect.h>
 
+#include <parson/parson.h>
+
 #include <vector>
 #include <string>
 #include <unique_ptr>
 #include <unordered_map>
 
+struct init_service_t {
+    std::string name;
+    std::string path;
+    std::string args;
+    bool foreground;
+};
 
 static const char* gConfigScript = "/system/config/init.cfg";
 static const char* gServicesList = "/system/config/init.svc";
@@ -59,7 +67,7 @@ InitScriptResult readInitScript(const char* path, std::string* dest) {
         return InitScriptResult::FILE_NOT_FOUND;
     }
 
-    stat(gConfigScript, &fs);
+    stat(path, &fs);
     if (fs.st_size == 0) return InitScriptResult::FILE_EMPTY;
 
     std::unique_ptr<uint8_t> content((uint8_t*)calloc(fs.st_size, 1));
@@ -118,25 +126,26 @@ int runCommand(const std::string& line) {
     return result;
 }
 
-kpid_t spawnService(std::string& line) {
+kpid_t spawnService(const init_service_t &svc) {
     kpid_t pid;
 
     int flags = PROCESS_IS_FOREGROUND;
-    if (line.back() == '&') {
-        flags = 0;
-        line.pop_back();
-    }
+    if (svc.foreground == false) flags = 0;
 
-    auto space = line.find(' ');
-    if (space == std::string::npos) {
-        pid = exec_syscall(line.c_str(), nullptr, environ, flags, nullptr);
-    } else {
+    if (svc.args.empty()) {
+        printf("[init] spawning %s\n", svc.path.c_str());
+        pid = exec_syscall(svc.path.c_str(), nullptr, environ, flags, nullptr);
+    }
+    else {
+        std::string line = svc.path + " " + svc.args;
+        printf("[init] spawning %s\n", line.c_str());
         size_t argc;
         auto argv = libShellSupport::parseCommandLine(line.c_str(), &argc);
         auto program = argv[0];
         pid = exec_syscall(program, argv, environ, flags, nullptr);
         libShellSupport::freeCommandLine(argv);
     }
+
     if (pid == 0) return pid;
     if (pid & 1) return 0;
     return pid >>= 1;
@@ -166,21 +175,61 @@ bool runInitScript(bool allow_missing_or_empty = true, bool allow_spawn_error = 
     return true;
 }
 
-typedef std::unordered_map<kpid_t, std::string> ServicesMap;
+typedef std::unordered_map<kpid_t, init_service_t> ServicesMap;
 ServicesMap& getServicesMap() {
     static ServicesMap gMap;
     return gMap;
 }
 
-bool spawnInitService(std::string& command) {
-    auto pid = spawnService(command);
+bool spawnInitService(const init_service_t& svc) {
+    auto pid = spawnService(svc);
     if (pid == 0) {
         printf("[init] process did not start\n");
         return false;
     } else {
-        getServicesMap().emplace(pid, command);
+        getServicesMap().emplace(pid, svc);
         return true;
     }
+}
+
+static bool parseInitServices(const std::string& content, std::vector<init_service_t>& dest) {
+    dest.clear();
+
+    JSON_Value *root = json_parse_string(content.c_str());
+    if (root == nullptr) {
+        printf("[init] init.svc is not valid JSON\n");
+        return false;
+    }
+    JSON_Array *services = json_value_get_array(root);
+    if (services == nullptr) {
+        printf("[init] init.svc is not a valid JSON array\n");
+        return false;
+    }
+
+    size_t numServices = json_array_get_count(services);
+
+    for (size_t i = 0; i < numServices; ++i) {
+        JSON_Value* svc = json_array_get_value(services, i);
+        if (svc == nullptr) continue;
+        JSON_Object *service = json_value_get_object(svc);
+        if (service == nullptr) continue;
+
+        const char* name = json_object_get_string(service, "name");
+        const char* path = json_object_get_string(service, "path");
+        const char* args = json_object_get_string(service, "args");
+        int fg = json_object_get_boolean(service, "foreground");
+        if (name == nullptr || path == nullptr || args == nullptr || fg < 0) continue;
+
+        init_service_t new_svc_info {
+            .name = std::string(name),
+            .path = std::string(path),
+            .args = std::string(args),
+            .foreground = (fg == 1)
+        };
+        dest.push_back(new_svc_info);
+    }
+
+    return true;
 }
 
 bool loadInitServices(bool allow_missing_or_empty = true, bool allow_spawn_fail = false) {
@@ -195,10 +244,10 @@ bool loadInitServices(bool allow_missing_or_empty = true, bool allow_spawn_fail 
             return false;
     }
 
-    auto commands = tokenize(content);
-    for(auto& command : commands) {
-        printf("[init] %s\n", command.c_str());
-        bool ok = spawnInitService(command);
+    std::vector<init_service_t> serviceData;
+    if (!parseInitServices(content, serviceData)) return false;
+    for (const auto& svc : serviceData) {
+        bool ok = spawnInitService(svc);
         if (!ok && !allow_spawn_fail) return false;
     }
 
@@ -211,7 +260,7 @@ void watchForServicesDie() {
     if (collectany(true, &pid, &status)) {
         auto iter = getServicesMap().find(pid), end = getServicesMap().end();
         if (iter != end) {
-            printf("[init] service %u (%s) exited - respawning\n", pid, iter->second.c_str());
+            printf("[init] service %u (%s) exited - respawning\n", pid, iter->second.path.c_str());
             spawnInitService(iter->second);
             getServicesMap().erase(iter);
         }

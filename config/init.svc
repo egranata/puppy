@@ -1,1 +1,7 @@
-/system/apps/shell --init
+[
+    {"name" : "shell",
+     "path" : "/system/apps/shell",
+     "args" : "--init",
+     "foreground" : true
+    }
+]
