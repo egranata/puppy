@@ -110,13 +110,17 @@ class ProcessManager : NOCOPY {
         PM_GLOBAL(slist<process_t*>, gCollectedProcessList);
         PM_GLOBAL(vector<process_t*>, gReadyQueue);
 
-        class processcomparator {
+        class sleep_queue_helper {
             public:
-                static int compare(process_t* p1, process_t* p2);
+                struct qentry {
+                    uint64_t token;
+                    process_t *process;
+                };
+                static int compare(const qentry& p1, const qentry& p2);
         };
 
         // cannot be defined via PM_GLOBAL because of macro expansion limitations (hint: would look like a 3-arg macro)
-        static pqueue<process_t*, processcomparator>& gSleepQueue();
+        static pqueue<sleep_queue_helper::qentry, sleep_queue_helper>& gSleepQueue();
 
         process_t* cloneProcess(uintptr_t eip, exec_fileop_t* fileops);
 

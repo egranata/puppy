@@ -21,25 +21,34 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
-void WaitQueue::wait(process_t* task) {
+void WaitQueue::pushToQueue(process_t* task) {
     auto&& pm(ProcessManager::get());
 
-    LOG_DEBUG("task %u entering wait queue 0x%p", task->pid, this);
-
-    mProcesses.push(task);
+    mProcesses.push({task->waitToken, task});
     pm.deschedule(task, process_t::State::WAITING);
     pm.yield();
 }
 
-bool WaitQueue::wake(process_t* task) {
+void WaitQueue::wait(process_t* task) {
+    LOG_DEBUG("task %u entering wait queue 0x%p at token %llu", task->pid, this, task->waitToken);
+
+    pushToQueue(task);
+}
+
+bool WaitQueue::wake(const queue_entry_t& q) {
     auto&& pm(ProcessManager::get());
 
-    if (task) {
-        LOG_DEBUG("wait queue 0x%p trying to wake task %u (state == %u)", this, task->pid, (uint8_t)task->state);
-        if (task->state == process_t::State::WAITING) {
-            LOG_DEBUG("task wake happening");
-            pm.ready(task);
-            return true;
+    if (q.process) {
+        LOG_DEBUG("wait queue 0x%p trying to wake task %u (state == %u)", this, q.process->pid, (uint8_t)q.process->state);
+        if (q.process->state == process_t::State::WAITING) {
+            if (q.process->waitToken == q.token) {
+                LOG_DEBUG("task wake happening");
+                pm.ready(q.process);
+                return true;
+            } else {
+                LOG_WARNING("wait queue's token %llu mismatches; ignoring wake", q.token);
+                return false;
+            }
         }
     }
 
@@ -50,8 +59,8 @@ process_t* WaitQueue::wakeone() {
     while (!mProcesses.empty()) {
         auto next = mProcesses.pop();
         if (wake(next)) {
-            LOG_DEBUG("wait queue 0x%p woke up the one next %u", this, next->pid);
-            return next;
+            LOG_DEBUG("wait queue 0x%p woke up the one next %u", this, next.process->pid);
+            return next.process;
         }
     }
 
@@ -61,21 +70,18 @@ process_t* WaitQueue::wakeone() {
 void WaitQueue::wakeall() {
     while (!mProcesses.empty()) {
         auto next = mProcesses.pop();
-        wake(next);
-        LOG_DEBUG("wait queue 0x%p woke up %u", this, next->pid);
+        if (wake(next)) {
+            LOG_DEBUG("wait queue 0x%p woke up %u", this, next.process->pid);
+        }
     }
 }
 
 process_t* WaitQueue::peek() {
     if (mProcesses.empty()) return nullptr;
 
-    return mProcesses.peek();
+    return mProcesses.peek().process;
 }
 
 bool WaitQueue::empty() {
     return mProcesses.empty();
-}
-
-void WaitQueue::drop(process_t *process) {
-    mProcesses.remove(process);
 }

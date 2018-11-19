@@ -18,7 +18,7 @@
 
 process_t::process_t() : tss(), args(nullptr), environ(nullptr), mmap(this), ttyinfo(), exitstatus(0), children() {
     pid = ppid = 0;
-    state = State::AVAILABLE;
+    state = State::NEW;
     sleeptill = 0;
     priority = {usedticks = 0,0};
     args = nullptr;

@@ -118,12 +118,12 @@ static process_t *gDeleterTask;
 static process_t *gKeybQTask;
 static process_t *gInitTask;
 
-int ProcessManager::processcomparator::compare(process_t* p1, process_t* p2) {
-    return p1->sleeptill >= p2->sleeptill ? -1 : +1;
+int ProcessManager::sleep_queue_helper::compare(const sleep_queue_helper::qentry& p1, const sleep_queue_helper::qentry& p2) {
+    return p1.process->sleeptill >= p2.process->sleeptill ? -1 : +1;
 }
 
-pqueue<process_t*, ProcessManager::processcomparator>& ProcessManager::gSleepQueue() {
-    static pqueue<process_t*, processcomparator> gRet;
+pqueue<ProcessManager::sleep_queue_helper::qentry, ProcessManager::sleep_queue_helper>& ProcessManager::gSleepQueue() {
+    static pqueue<ProcessManager::sleep_queue_helper::qentry, sleep_queue_helper> gRet;
 
     return gRet;
 }
@@ -484,7 +484,6 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
         ready(process);
     } else {
         LOG_DEBUG("process %u is not schedulable", process->pid);
-        process->state = process_t::State::NEW;
     }
 
     forwardTTY(process);
@@ -552,7 +551,7 @@ void ProcessManager::sleep(uint32_t durationMs) {
     gCurrentProcess->sleeptill = TimeManager::get().millisUptime() + durationMs;
     LOG_DEBUG("task %u scheduled to sleep till %llu", gCurrentProcess->pid, gCurrentProcess->sleeptill);
     deschedule(gCurrentProcess, process_t::State::SLEEPING);
-    gSleepQueue().insert(gCurrentProcess);
+    gSleepQueue().insert({gCurrentProcess->waitToken, gCurrentProcess});
     tasks::awaker::queue().wakeall();
     yield();
 }
@@ -682,8 +681,13 @@ kpid_t schedulerpid() {
 }
 
 void ProcessManager::ready(process_t* task) {
-    task->state = process_t::State::AVAILABLE;
-    gReadyQueue().push_back(task);
+    if (task->state == process_t::State::AVAILABLE) {
+        LOG_INFO("waking up task %u which is already awake", task->pid);
+    } else {
+        task->waitToken += 1;
+        task->state = process_t::State::AVAILABLE;
+        gReadyQueue().push_back(task);
+    }
 }
 
 void ProcessManager::deschedule(process_t* task, process_t::State newstate) {

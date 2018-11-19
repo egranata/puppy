@@ -31,11 +31,17 @@ class WaitQueue : NOCOPY {
         void wakeall();
         process_t *peek();
         bool empty();
-        void drop(process_t*);
     private:
-        bool wake(process_t*);
+        struct queue_entry_t {
+            uint64_t token;
+            process_t *process;
+        };
 
-        dynqueue<process_t*> mProcesses;
+        void pushToQueue(process_t*);
+
+        bool wake(const queue_entry_t&);
+
+        dynqueue<queue_entry_t> mProcesses;
 };
 
 #endif

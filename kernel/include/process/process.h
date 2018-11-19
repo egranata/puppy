@@ -107,6 +107,12 @@ struct process_t {
         uint64_t runtime; /** time that this process has been running */
     } runtimestats;
 
+    /* each time a process sleeps or waits on something, this counter's value
+     * gets associated to the wait event; when the wait ends, this counter is
+     * increased. if someone tries to wake a process but the wait token they
+     * have is != process's current value, the wake is ignored */
+    uint64_t waitToken = 0;
+
     static_assert(sizeof(flags_t) == sizeof(uint16_t), "process_t::flags_t must fit in 2 bytes");
 
     process_t();

@@ -41,14 +41,19 @@ KERNEL_TASK_NAMESPACE_OPEN(awaker) {
             while(!sq.empty()) {
                 auto now = TimeManager::get().millisUptime();
                 auto top = sq.top();
-                if (top->state == process_t::State::EXITED) {
-                    pmm.enqueueForDeath(sq.pop());
+                if (top.process->state == process_t::State::EXITED) {
+                    pmm.enqueueForDeath(sq.pop().process);
                     continue;
                 }
-                if (top->sleeptill <= now) {
-                    LOG_DEBUG("awakening process %u - it asked to sleep till %u", top->pid, top->sleeptill);
-                    top = sq.pop();
-                    pmm.ready(top);
+                if (top.process->sleeptill <= now) {
+                    if (top.process->waitToken == top.token) {
+                        LOG_DEBUG("awakening process %u - it asked to sleep till %u", top.process->pid, top.process->sleeptill);
+                        top = sq.pop();
+                        pmm.ready(top.process);
+                    } else {
+                        LOG_ERROR("process %u in sleep queue; queue token is %llu, but process has token %llu; ignoring wake",
+                            top.process->pid, top.token, top.process->waitToken);
+                    }
                 } else {
                     pmm.yield();
                 }
