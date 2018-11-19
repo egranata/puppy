@@ -42,10 +42,14 @@ struct pci_device_match_data_t {
 #define PCI_KIND_MATCH(c, s, i, handler_f) \
 __attribute__((unused)) \
 pci_device_match_data_t pci_match_ ## c ## s ## i __attribute__((section(".pci_ddriv"))) = { \
-    .kind = \ { \
+    .kind = { \
         .clazz = c, \
         .subclazz = s, \
         .interface = i \
+    }, \
+    .ident = {\
+        .vendor = 0xFFFF, \
+        .device = 0xFFFF, \
     }, \
     .flags = pci_device_match_data_t::FLAG_MATCH_BY_KIND, \
     .handler = handler_f, \
@@ -54,6 +58,11 @@ pci_device_match_data_t pci_match_ ## c ## s ## i __attribute__((section(".pci_d
 #define PCI_IDENT_MATCH(v, d, handler_f) \
 __attribute__((unused)) \
 pci_device_match_data_t pci_match_ ## v ## d __attribute__((section(".pci_ddriv"))) = { \
+    .kind = { \
+        .clazz = 0xFF, \
+        .subclazz = 0xFF, \
+        .interface = 0xFF, \
+    }, \
     .ident = \ { \
         .vendor = v, \
         .device = d, \

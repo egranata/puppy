@@ -21,6 +21,8 @@
 #include <kernel/libc/slist.h>
 #include <kernel/libc/vec.h>
 
+struct pci_device_match_data_t;
+
 class PCIBus {
     public:
         static constexpr uint16_t gConfigAddress = 0xCF8;
@@ -94,6 +96,8 @@ class PCIBus {
                 endpoint_t getEndpointData() const;
                 ident_t getIdentData() const;
                 bool getHeader0Data(pci_hdr_0*) const;
+
+                bool isMatch(const pci_device_match_data_t&) const;
 
             private:
                 friend class PCIBus;

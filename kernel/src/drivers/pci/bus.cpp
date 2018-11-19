@@ -14,11 +14,13 @@
 
 #include <kernel/drivers/pci/bus.h>
 #include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/match.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/log/log.h>
 #include <kernel/drivers/framebuffer/fb.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/boot/phase.h>
+#include <kernel/sys/globals.h>
 
 namespace boot::pci {
     uint32_t init() {
@@ -57,6 +59,24 @@ bool PCIBus::PCIDeviceData::getHeader0Data(PCIBus::pci_hdr_0* h) const {
     return false;
 }
 
+bool PCIBus::PCIDeviceData::isMatch(const pci_device_match_data_t& data) const {
+    if (data.flags & pci_device_match_data_t::FLAG_MATCH_BY_KIND) {
+        const bool isClazzOK =     (mIdent.clazz == 0xFF ||    data.kind.clazz == 0xFF ||     mIdent.clazz == data.kind.clazz);
+        const bool isSubClazzOK =  (mIdent.subclazz == 0xFF || data.kind.subclazz == 0xFF ||  mIdent.subclazz == data.kind.subclazz);
+        const bool isInterfaceOK = (mIdent.progif == 0xFF ||   data.kind.interface == 0xFF || mIdent.progif == data.kind.interface);
+
+        return isClazzOK && isSubClazzOK && isInterfaceOK;
+    }
+
+    if (data.flags & pci_device_match_data_t::FLAG_MATCH_BY_IDENT) {
+        const bool isVendorOK = (mIdent.vendor == 0xFFFF || data.ident.vendor == 0xFFFF || mIdent.vendor == data.ident.vendor);
+        const bool isDeviceOK = (mIdent.device == 0xFFFF || data.ident.device == 0xFFFF || mIdent.device == data.ident.device);
+        return isVendorOK && isDeviceOK;
+    }
+
+    return false;
+}
+
 PCIBus& PCIBus::get() {
     static PCIBus gBus;
 
@@ -90,47 +110,18 @@ static PCIBus::PCIDevice* addIDEController(const PCIBus::pci_hdr_0& hdr) {
     return new IDEController(hdr);
 }
 
-static PCIBus::PCIDevice* printVGAController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("VGA Adapter", hdr);
-    return nullptr;
-}
-
-static PCIBus::PCIDevice* printEthernetController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("Ethernet Controller", hdr);
-    return nullptr;
-}
-
-static PCIBus::PCIDevice* printXHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("xHCI (USB 3.0) Controller", hdr);
-    return nullptr;
-}
-
-static PCIBus::PCIDevice* printEHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("EHCI (USB 2.0) Controller", hdr);
-    return nullptr;
-}
-
-static PCIBus::PCIDevice* printOHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("OHCI (USB 1.0) Controller", hdr);
-    return nullptr;
-}
-
-static PCIBus::PCIDevice* printUHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("UCHI (USB 1.0) Controller", hdr);
-    return nullptr;
-}
-
 void PCIBus::tryDiscoverDevices() {
+    auto end = addr_pci_devices_end<pci_device_match_data_t*>();
+
     for (const PCIDeviceData& data : mDeviceData) {
         pci_hdr_0 hdr;
         if (data.getHeader0Data(&hdr)) {
             ON_KIND(hdr, 1, 1, 0xFF, addIDEController);
-            ON_KIND(hdr, 3, 0, 0, printVGAController);
-            ON_KIND(hdr, 2, 0, 0xFF, printEthernetController);
-            ON_KIND(hdr, 0xC, 0x3, 0x30, printXHCIUSBController);
-            ON_KIND(hdr, 0xC, 0x3, 0x20, printEHCIUSBController);
-            ON_KIND(hdr, 0xC, 0x3, 0x10, printOHCIUSBController);
-            ON_KIND(hdr, 0xC, 0x3, 0x00, printUHCIUSBController);
+        }
+
+        auto begin = addr_pci_devices_start<pci_device_match_data_t*>();
+        for(; begin != end; ++begin) {
+            if (data.isMatch(*begin)) begin->handler(data);
         }
     }
 }
