@@ -54,3 +54,6 @@ PCI_KIND_MATCH(0xC, 0x3, 0x10, printOCHI);
 
 PCI_PRINTER(printUCHI, "UHCI USB Controller");
 PCI_KIND_MATCH(0xC, 0x3, 0x00, printUCHI);
+
+PCI_PRINTER(printIDE, "IDE Disk Controller");
+PCI_KIND_MATCH(1, 1, 0xFF, printIDE);

@@ -19,6 +19,7 @@
 #include <kernel/log/log.h>
 #include <kernel/libc/memory.h>
 #include <kernel/sys/unions.h>
+#include <kernel/drivers/pci/match.h>
 
 LOG_TAG(DISKACCESS, 2);
 
@@ -517,3 +518,14 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
         }
     }
 }
+
+static bool addIDEController(const PCIBus::PCIDeviceData &dev) {
+    PCIBus::pci_hdr_0 hdr;
+    if (dev.getHeader0Data(&hdr)) {
+        auto ide = new IDEController(hdr);
+        PCIBus::get().newDeviceDetected(ide);
+        return true;
+    }
+    return false;
+}
+PCI_KIND_MATCH(1, 1, 0xFF, addIDEController);

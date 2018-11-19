@@ -94,31 +94,14 @@ PCIBus& PCIBus::get() {
     } \
 }
 
-namespace {
-    void printPCIDevice(const char* kind, const PCIBus::pci_hdr_0& hdr) {
-        bootphase_t::printf("PCI Bus %u Slot %u Function %u:\n", hdr.endpoint.bus, hdr.endpoint.slot, hdr.endpoint.func);
-        bootphase_t::printf("                              Device kind: %s\n", kind);
-        bootphase_t::printf("                              Vendor: 0x%x Device: 0x%x Class: %u Subclass: %u ProgIF: %u\n",
-            hdr.ident.vendor, hdr.ident.device, hdr.ident.clazz, hdr.ident.subclazz, hdr.ident.progif);
-        bootphase_t::printf("                              BAR: [0]=0x%x [1]=0x%x [2]=0x%x [3]=0x%x [4]=0x%x [5]=0x%x\n",
-            hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5);
-    }
-}
-
-static PCIBus::PCIDevice* addIDEController(const PCIBus::pci_hdr_0& hdr) {
-    printPCIDevice("IDE Disk Controller", hdr);
-    return new IDEController(hdr);
+void PCIBus::newDeviceDetected(PCIDevice* device) {
+    mDevices.push_back(device);
 }
 
 void PCIBus::tryDiscoverDevices() {
     auto end = addr_pci_devices_end<pci_device_match_data_t*>();
 
     for (const PCIDeviceData& data : mDeviceData) {
-        pci_hdr_0 hdr;
-        if (data.getHeader0Data(&hdr)) {
-            ON_KIND(hdr, 1, 1, 0xFF, addIDEController);
-        }
-
         auto begin = addr_pci_devices_start<pci_device_match_data_t*>();
         for(; begin != end; ++begin) {
             if (data.isMatch(*begin)) begin->handler(data);
@@ -224,9 +207,9 @@ PCIBus::pci_hdr_0 PCIBus::fill(const endpoint_t& ep, const ident_t& id) {
     };
 }
 
-slist<PCIBus::PCIDevice*>::iterator PCIBus::begin() {
+vector<PCIBus::PCIDevice*>::iterator PCIBus::begin() {
     return mDevices.begin();
 }
-slist<PCIBus::PCIDevice*>::iterator PCIBus::end() {
+vector<PCIBus::PCIDevice*>::iterator PCIBus::end() {
     return mDevices.end();
 }

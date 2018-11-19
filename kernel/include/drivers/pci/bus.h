@@ -18,7 +18,6 @@
 #define DRIVERS_PCI_BUS
 
 #include <kernel/sys/stdint.h>
-#include <kernel/libc/slist.h>
 #include <kernel/libc/vec.h>
 
 struct pci_device_match_data_t;
@@ -109,12 +108,14 @@ class PCIBus {
                 pci_hdr_0 *mHeader0;
         };
 
-        slist<PCIDevice*>::iterator begin();
-        slist<PCIDevice*>::iterator end();
+        void newDeviceDetected(PCIDevice*);
+
+        vector<PCIDevice*>::iterator begin();
+        vector<PCIDevice*>::iterator end();
     private:
         PCIBus();
 
-        slist<PCIDevice*> mDevices;
+        vector<PCIDevice*> mDevices;
         vector<PCIDeviceData> mDeviceData;
 
         static ident_t identify(const endpoint_t&);
