@@ -28,9 +28,22 @@ from build.chronometer import Chronometer
 
 VERBOSE = "-v" in sys.argv
 
+CLEAN_SLATE = "-keep-out" not in sys.argv
+BUILD_CORE = "-keep-kernel" not in sys.argv
+
+APPS_TO_REBUILD = []
+for arg in sys.argv:
+    if arg.startswith("-rebuild-app="):
+        APPS_TO_REBUILD.append(arg.replace("-rebuild-app=", ""))
+
+if not BUILD_CORE: CLEAN_SLATE = False
+
 MYPATH = os.path.abspath(os.getcwd())
 
-print("Building OS image from %s" % MYPATH)
+if BUILD_CORE:
+    print("Build type: Full; OS path: %s" % MYPATH)
+else:
+    print("Build type: Userland; OS path: %s" % MYPATH)
 
 BUILD_START = time.time()
 
@@ -187,9 +200,6 @@ def makeDir(path):
         shell(cmdline)
     return path
 
-clearDir("out")
-clearDir("out/mnt")
-
 class _BuildC(object):
     def __init__(self, gcc, flags):
         self.gcc = gcc
@@ -283,29 +293,6 @@ class Project(object):
         chrono = Chronometer("Compiling %s" % self.name if self.announce else None)
         with chrono:
             return self.link(self.compile())
-
-NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
-NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
-              "out/mnt/libs/libeastl.a",
-              "out/mnt/libs/libcxxsupport.a",
-              "out/mnt/libs/liblinenoise.a",
-              "out/mnt/libs/libparson.a",
-              "out/mnt/libs/libpcre2-posix.a",
-              "out/mnt/libs/libpcre2-8.a",
-              "out/mnt/libs/libm.a",
-              "out/mnt/libs/libc.a",
-              "out/mnt/libs/libnewlibinterface.a",
-              "out/mnt/libs/libc.a"]
-NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
-
-SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib", "out/mnt/include/stl"]
-
-USERSPACE_LD_SCRIPT = "out/mnt/libs/app.ld"
-
-GCC_SPECS_PATH = "out/mnt/libs/gcc.specs"
-
-MY_CC_PATH = os.path.join(MYPATH, "build", "gcc.sh")
-MY_CXX_PATH = os.path.join(MYPATH, "build", "g++.sh")
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
@@ -408,6 +395,20 @@ def createDiskImage(file, megsOfSize=64):
 
     return (rootFile, headerFile, fatFile)
 
+def buildUserlandComponent(name, sourceDir, outWhere, prefixString, beforeBuild=None, afterBuild=None, cflags=None, cppflags=None, linkerdeps=[]):
+    component = UserspaceTool(name = name,
+                              srcdir = sourceDir,
+                              outwhere = outWhere,
+                              cflags=cflags,
+                              cppflags=cppflags,
+                              linkerdeps=linkerdeps)
+    if beforeBuild: beforeBuild(component)
+    print(' ' * len(prefixString), end='', flush=True)
+    print(component.name, end='', flush=True)
+    cout = component.build()
+    if afterBuild: afterBuild(component, cout)
+    print('')
+
 def expandNewlibDeps(deps):
     out = []
     for dep in deps:
@@ -425,62 +426,95 @@ def expandNewlibIncludes(ipaths):
             out += [ipath]
     return out
 
-CORE_PROJECTS = []
-for core_project in json.loads(open("build/core.json", "r").read()):
-    assembler = core_project.get('assembler', 'nasm')
+NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
+NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
+              "out/mnt/libs/libeastl.a",
+              "out/mnt/libs/libcxxsupport.a",
+              "out/mnt/libs/liblinenoise.a",
+              "out/mnt/libs/libparson.a",
+              "out/mnt/libs/libpcre2-posix.a",
+              "out/mnt/libs/libpcre2-8.a",
+              "out/mnt/libs/libm.a",
+              "out/mnt/libs/libc.a",
+              "out/mnt/libs/libnewlibinterface.a",
+              "out/mnt/libs/libc.a"]
+NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
 
-    cflags = core_project.get('cflags', BASIC_CFLAGS)
-    cflags = cflags + core_project.get('cflagsAgument', [])
+SPECS_INCLUDE_PATHS = ["out/mnt/include", "out/mnt/include/newlib", "out/mnt/include/stl"]
 
-    cppflags = core_project.get('cppflags', BASIC_CFLAGS + BASIC_CPPFLAGS)
-    cppflags = cppflags + core_project.get('cppflagsAgument', [])
+USERSPACE_LD_SCRIPT = "out/mnt/libs/app.ld"
 
-    asmflags = core_project.get('asmflags', BASIC_ASFLAGS)
-    asmflags = asmflags + core_project.get('asmflagsAugment', [])
+GCC_SPECS_PATH = "out/mnt/libs/gcc.specs"
 
-    ldflags = core_project.get('ldflags', BASIC_LDFLAGS)
-    ldflags = ldflags + core_project.get('ldflagsAugment', [])
-
-    ipaths = core_project.get('includePaths', ["include"])
-    ipaths = expandNewlibIncludes(ipaths)
-
-    linkerdeps = core_project.get('linkerDependencies', [])
-    linkerdeps = expandNewlibDeps(linkerdeps)
-
-    project = Project(name = core_project.get('name'),
-        srcdir = core_project.get('src'),
-        assembler = assembler,
-        cflags = cflags,
-        cppflags = cppflags,
-        asmflags = asmflags,
-        ldflags = ldflags,
-        ipaths = ipaths,
-        linkerdeps = linkerdeps)
-
-    linklogic = core_project.get('linkLogic', 'ar')
-    if linklogic == 'ar':   project.link = project.linkAr
-    if linklogic == 'copy': project.link = project.linkCopy
-    if linklogic == 'gcc':  project.link = project.linkGcc
-
-    CORE_PROJECTS.append(project)
-
-for project in CORE_PROJECTS:
-    project.build()
-
-IMG_FILE = "out/os.img"
-ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
-
-print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
+MY_CC_PATH = os.path.join(MYPATH, "build", "gcc.sh")
+MY_CXX_PATH = os.path.join(MYPATH, "build", "g++.sh")
 
 LIBGCC_FILE = shell("i686-elf-gcc -print-libgcc-file-name").rstrip()
 
-makeDir("out/mnt/apps")
-makeDir("out/mnt/libs")
-makeDir("out/mnt/tests")
-makeDir("out/mnt/include")
-makeDir("out/mnt/libs/python")
-makeDir("out/mnt/boot")
-makeDir("out/mnt/config")
+IMG_FILE = "out/os.img"
+
+if CLEAN_SLATE:
+    clearDir("out")
+    clearDir("out/mnt")
+
+if BUILD_CORE:
+    ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
+    print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
+else:
+    ROOT_DISK = IMG_FILE
+    BOOT_DISK = "%s.boot" % IMG_FILE
+    FAT_DISK = "%s.fat" % IMG_FILE
+
+if BUILD_CORE:
+    makeDir("out/mnt/apps")
+    makeDir("out/mnt/libs")
+    makeDir("out/mnt/tests")
+    makeDir("out/mnt/include")
+    makeDir("out/mnt/libs/python")
+    makeDir("out/mnt/boot")
+    makeDir("out/mnt/config")
+
+    CORE_PROJECTS = []
+    for core_project in json.loads(open("build/core.json", "r").read()):
+        assembler = core_project.get('assembler', 'nasm')
+
+        cflags = core_project.get('cflags', BASIC_CFLAGS)
+        cflags = cflags + core_project.get('cflagsAgument', [])
+
+        cppflags = core_project.get('cppflags', BASIC_CFLAGS + BASIC_CPPFLAGS)
+        cppflags = cppflags + core_project.get('cppflagsAgument', [])
+
+        asmflags = core_project.get('asmflags', BASIC_ASFLAGS)
+        asmflags = asmflags + core_project.get('asmflagsAugment', [])
+
+        ldflags = core_project.get('ldflags', BASIC_LDFLAGS)
+        ldflags = ldflags + core_project.get('ldflagsAugment', [])
+
+        ipaths = core_project.get('includePaths', ["include"])
+        ipaths = expandNewlibIncludes(ipaths)
+
+        linkerdeps = core_project.get('linkerDependencies', [])
+        linkerdeps = expandNewlibDeps(linkerdeps)
+
+        project = Project(name = core_project.get('name'),
+            srcdir = core_project.get('src'),
+            assembler = assembler,
+            cflags = cflags,
+            cppflags = cppflags,
+            asmflags = asmflags,
+            ldflags = ldflags,
+            ipaths = ipaths,
+            linkerdeps = linkerdeps)
+
+        linklogic = core_project.get('linkLogic', 'ar')
+        if linklogic == 'ar':   project.link = project.linkAr
+        if linklogic == 'copy': project.link = project.linkCopy
+        if linklogic == 'gcc':  project.link = project.linkGcc
+
+        CORE_PROJECTS.append(project)
+
+    for project in CORE_PROJECTS:
+        project.build()
 
 with Chronometer("Copyings headers and core libraries"):
     rcopy("include", "out/mnt")
@@ -526,20 +560,6 @@ APPS_CONFIG = {
 
 INITRD_REFS = [] # apps for initrd
 
-def buildUserlandComponent(name, sourceDir, outWhere, prefixString, beforeBuild=None, afterBuild=None, cflags=None, cppflags=None, linkerdeps=[]):
-    component = UserspaceTool(name = name,
-                              srcdir = sourceDir,
-                              outwhere = outWhere,
-                              cflags=cflags,
-                              cppflags=cppflags,
-                              linkerdeps=linkerdeps)
-    if beforeBuild: beforeBuild(component)
-    print(' ' * len(prefixString), end='', flush=True)
-    print(component.name, end='', flush=True)
-    cout = component.build()
-    if afterBuild: afterBuild(component, cout)
-    print('')
-
 with Chronometer("Building apps and tests"):
     DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
     print(DYLIBS_PRINT_PREFIX)
@@ -563,11 +583,13 @@ with Chronometer("Building apps and tests"):
         config = APPS_CONFIG.get(app.name, {"initrd": False})
         if config["initrd"]: INITRD_REFS.append(app_out)
     for app in APP_DIRS:
-        buildUserlandComponent(os.path.basename(app),
-                               app,
-                               "out/mnt/apps",
-                               APPS_PRINT_PREFIX,
-                               afterBuild=needsInitrd)
+        bn = os.path.basename(app)
+        if len(APPS_TO_REBUILD) == 0 or bn in APPS_TO_REBUILD or bn in APPS_CONFIG:
+            buildUserlandComponent(bn,
+                                   app,
+                                   "out/mnt/apps",
+                                   APPS_PRINT_PREFIX,
+                                   afterBuild=needsInitrd)
     print('')
 
     TEST_PLAN = []
@@ -586,14 +608,15 @@ with Chronometer("Building apps and tests"):
     for test in TEST_DIRS:
         test_name = os.path.basename(test)
         test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
-        buildUserlandComponent(test_name,
-                               test,
-                               "out/mnt/tests",
-                               TEST_PRINT_PREFIX,
-                               afterBuild=pushToTestPlan,
-                               cflags = [test_name_define],
-                               cppflags = [test_name_define],
-                               linkerdeps = ["out/mnt/libs/libcheckup.a"])
+        if len(APPS_TO_REBUILD) == 0 or test_name in APPS_TO_REBUILD:
+            buildUserlandComponent(test_name,
+                                test,
+                                "out/mnt/tests",
+                                TEST_PRINT_PREFIX,
+                                afterBuild=pushToTestPlan,
+                                cflags = [test_name_define],
+                                cppflags = [test_name_define],
+                                linkerdeps = ["out/mnt/libs/libcheckup.a"])
 
     # provide a consistent sort order for test execution regardless of underlying FS
     TEST_PLAN.sort(key=lambda test: test["id"])
@@ -623,7 +646,7 @@ with Chronometer("Configuring bootloader"):
     write("out/mnt/boot/grub/grub.cfg", menulst)
 
 with Chronometer("Building final disk image"):
-    CMDLINE="mcopy -s -i %s out/mnt/* ::/" % (FAT_DISK)
+    CMDLINE="mcopy -D overwrite -s -i %s out/mnt/* ::/" % (FAT_DISK)
     shell(CMDLINE)
 
     PART_USAGE = calculateSize("out/mnt")
