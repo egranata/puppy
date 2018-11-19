@@ -19,19 +19,10 @@
 
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/slist.h>
+#include <kernel/libc/vec.h>
 
 class PCIBus {
     public:
-        class PCIDevice {
-            public:
-                enum class kind : uint8_t {
-                    IDEDiskController = 0
-                };
-
-                virtual kind getkind() = 0;
-            private:
-                friend class PCIBus;
-        };
         static constexpr uint16_t gConfigAddress = 0xCF8;
         static constexpr uint16_t gConfigData = 0xCFC;
 
@@ -85,12 +76,40 @@ class PCIBus {
             uint8_t maxlatency;
         };
 
+        class PCIDevice {
+            public:
+                enum class kind : uint8_t {
+                    IDEDiskController = 0
+                };
+
+                virtual kind getkind() = 0;
+            private:
+                friend class PCIBus;
+        };
+
+        class PCIDeviceData {
+            public:
+                endpoint_t getEndpointData() const;
+                ident_t getIdentData() const;
+                bool getHeader0Data(pci_hdr_0*) const;
+
+            private:
+                friend class PCIBus;
+                PCIDeviceData(const pci_hdr_0&);
+                PCIDeviceData(const endpoint_t&, const ident_t&);
+
+                endpoint_t mEndpoint;
+                ident_t mIdent;
+                pci_hdr_0 *mHeader0;
+        };
+
         slist<PCIDevice*>::iterator begin();
         slist<PCIDevice*>::iterator end();
     private:
         PCIBus();
 
         slist<PCIDevice*> mDevices;
+        vector<PCIDeviceData> mDeviceData;
 
         static ident_t identify(const endpoint_t&);
 

@@ -29,6 +29,34 @@ namespace boot::pci {
     }
 }
 
+PCIBus::PCIDeviceData::PCIDeviceData(const PCIBus::pci_hdr_0& h) {
+    mHeader0 = (pci_hdr_0*)calloc(1, sizeof(pci_hdr_0));
+    *mHeader0 = h;
+    mEndpoint = mHeader0->endpoint;
+    mIdent = mHeader0->ident;
+}
+PCIBus::PCIDeviceData::PCIDeviceData(const PCIBus::endpoint_t& ep, const PCIBus::ident_t& id) {
+    mEndpoint = ep;
+    mIdent = id;
+    mHeader0 = nullptr;
+}
+
+PCIBus::endpoint_t PCIBus::PCIDeviceData::getEndpointData() const {
+    return mEndpoint;
+}
+
+PCIBus::ident_t PCIBus::PCIDeviceData::getIdentData() const {
+    return mIdent;
+}
+
+bool PCIBus::PCIDeviceData::getHeader0Data(PCIBus::pci_hdr_0* h) const {
+    if (mHeader0) {
+        if (h) *h = *mHeader0;
+        return true;
+    }
+    return false;
+}
+
 PCIBus& PCIBus::get() {
     static PCIBus gBus;
 
@@ -117,6 +145,10 @@ PCIBus::PCIBus() : mDevices() {
                     ON_KIND(hdr, 0xC, 0x3, 0x20, printEHCIUSBController);
                     ON_KIND(hdr, 0xC, 0x3, 0x10, printOHCIUSBController);
                     ON_KIND(hdr, 0xC, 0x3, 0x00, printUHCIUSBController);
+
+                    mDeviceData.push_back(PCIDeviceData(hdr));
+                } else {
+                    mDeviceData.push_back(PCIDeviceData(ep, ident));
                 }
             }
         }
