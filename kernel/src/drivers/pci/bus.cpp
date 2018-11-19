@@ -22,11 +22,62 @@
 #include <kernel/boot/phase.h>
 #include <kernel/sys/globals.h>
 
+#include <kernel/fs/devfs/devfs.h>
+
+namespace {
+    class DeviceDataFile : public MemFS::File {
+        private:
+            pci_device_info_t *mData;
+            size_t mDeviceCount;
+        public:
+            DeviceDataFile() : MemFS::File("devices") {
+                PCIBus& pciBus(PCIBus::get());
+                auto b = pciBus.dataBegin();
+                auto e = pciBus.dataEnd();
+                mDeviceCount = pciBus.numDeviceDataEntries();
+                mData = (pci_device_info_t*)calloc(mDeviceCount, sizeof(pci_device_info_t));
+                size_t i = 0;
+                for(; b != e; ++b, ++i) {
+                    const auto& dev = *b;
+
+                    mData[i].bus = dev.getEndpointData().bus;
+                    mData[i].slot = dev.getEndpointData().slot;
+                    mData[i].func = dev.getEndpointData().func;
+
+                    mData[i].vendor = dev.getIdentData().vendor;
+                    mData[i].device = dev.getIdentData().device;
+
+                    mData[i].clazz = dev.getIdentData().clazz;
+                    mData[i].subclazz = dev.getIdentData().subclazz;
+                    mData[i].interface = dev.getIdentData().progif;
+
+                    PCIBus::pci_hdr_0 h0;
+                    if (dev.getHeader0Data(&h0)) {
+                        mData[i].bar[0] = h0.bar0;
+                        mData[i].bar[1] = h0.bar1;
+                        mData[i].bar[2] = h0.bar2;
+                        mData[i].bar[3] = h0.bar3;
+                        mData[i].bar[4] = h0.bar4;
+                        mData[i].bar[5] = h0.bar5;
+                    }
+                }
+            }
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mDeviceCount * sizeof(pci_device_info_t));
+            }
+    };
+}
+
 namespace boot::pci {
     uint32_t init() {
-        LOG_DEBUG("starting PCI bus scan");
-        PCIBus::get().tryDiscoverDevices();
-        LOG_DEBUG("completed PCI bus scan");
+        PCIBus& pciBus(PCIBus::get());
+
+        pciBus.tryDiscoverDevices();
+
+        DevFS& devfs(DevFS::get());
+        auto pciDir = devfs.getDeviceDirectory("pci");
+        pciDir->add(new DeviceDataFile());
+
         return 0;
     }
 }
@@ -83,17 +134,6 @@ PCIBus& PCIBus::get() {
     return gBus;
 }
 
-#define ON_KIND(dev, claz, subclaz, ifce, func) { \
-    if ((claz == 0xFF) || (claz == dev.ident.clazz)) { \
-        if ((subclaz == 0xFF) || (subclaz == dev.ident.subclazz)) { \
-            if ((ifce == 0xFF) || (ifce == dev.ident.progif)) { \
-                PCIDevice* newdevice = func(dev); \
-                if (newdevice) { mDevices.add(newdevice); } \
-            } \
-        } \
-    } \
-}
-
 void PCIBus::newDeviceDetected(PCIDevice* device) {
     mDevices.push_back(device);
 }
@@ -136,8 +176,6 @@ PCIBus::PCIBus() : mDevices() {
         ++ep.bus;
     } while(ep.bus != 0);
 }
-
-#undef ON_KIND
 
 uint32_t PCIBus::endpoint_t::address() const {
     return 0x80000000 | (bus << 16) | (slot << 11) | (func << 8);
@@ -212,4 +250,15 @@ vector<PCIBus::PCIDevice*>::iterator PCIBus::begin() {
 }
 vector<PCIBus::PCIDevice*>::iterator PCIBus::end() {
     return mDevices.end();
+}
+
+size_t PCIBus::numDeviceDataEntries() const {
+    return mDeviceData.size();
+}
+
+vector<PCIBus::PCIDeviceData>::iterator PCIBus::dataBegin() {
+    return mDeviceData.begin();
+}
+vector<PCIBus::PCIDeviceData>::iterator PCIBus::dataEnd() {
+    return mDeviceData.end();
 }

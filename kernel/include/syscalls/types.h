@@ -247,4 +247,19 @@ struct message_t {
 
 static_assert(sizeof(message_t) == message_t::gTotalSize);
 
+struct pci_device_info_t {
+    uint8_t bus;
+    uint8_t slot;
+    uint8_t func;
+
+    uint16_t vendor;
+    uint16_t device;
+
+    uint8_t clazz;
+    uint8_t subclazz;
+    uint8_t interface;
+
+    uint32_t bar[6];
+};
+
 #endif

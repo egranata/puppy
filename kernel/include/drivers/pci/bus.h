@@ -112,6 +112,10 @@ class PCIBus {
 
         vector<PCIDevice*>::iterator begin();
         vector<PCIDevice*>::iterator end();
+
+        size_t numDeviceDataEntries() const;
+        vector<PCIDeviceData>::iterator dataBegin();
+        vector<PCIDeviceData>::iterator dataEnd();
     private:
         PCIBus();
 
