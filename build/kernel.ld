@@ -42,5 +42,12 @@ SECTIONS {
 		__acpi_ddriv_end = .;
 	}
 
+	.pci_ddriv ALIGN (0x1000) : AT(ADDR(.pci_ddriv)-0xC0000000) {
+		__pci_ddriv_start = .;
+		KEEP(*(.pci_ddriv))
+		*(.pci_ddriv)
+		__pci_ddriv_end = .;
+	}
+
 	__kernel_end = .;
 }
