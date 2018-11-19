@@ -23,7 +23,7 @@
 namespace boot::pci {
     uint32_t init() {
         LOG_DEBUG("starting PCI bus scan");
-        PCIBus::get();
+        PCIBus::get().tryDiscoverDevices();
         LOG_DEBUG("completed PCI bus scan");
         return 0;
     }
@@ -120,6 +120,21 @@ static PCIBus::PCIDevice* printUHCIUSBController(const PCIBus::pci_hdr_0& hdr) {
     return nullptr;
 }
 
+void PCIBus::tryDiscoverDevices() {
+    for (const PCIDeviceData& data : mDeviceData) {
+        pci_hdr_0 hdr;
+        if (data.getHeader0Data(&hdr)) {
+            ON_KIND(hdr, 1, 1, 0xFF, addIDEController);
+            ON_KIND(hdr, 3, 0, 0, printVGAController);
+            ON_KIND(hdr, 2, 0, 0xFF, printEthernetController);
+            ON_KIND(hdr, 0xC, 0x3, 0x30, printXHCIUSBController);
+            ON_KIND(hdr, 0xC, 0x3, 0x20, printEHCIUSBController);
+            ON_KIND(hdr, 0xC, 0x3, 0x10, printOHCIUSBController);
+            ON_KIND(hdr, 0xC, 0x3, 0x00, printUHCIUSBController);
+        }
+    }
+}
+
 PCIBus::PCIBus() : mDevices() {
     endpoint_t ep{
         bus : 0,
@@ -138,14 +153,6 @@ PCIBus::PCIBus() : mDevices() {
                     auto hdr = fill(ep, ident);
                     LOG_DEBUG("bar0: 0x%p, bar1: 0x%p, bar2: 0x%p, bar3: 0x%p, bar4: 0x%p, bar5: 0x%p IRQ line: %u, IRQ PIN: %u",
                         hdr.bar0, hdr.bar1, hdr.bar2, hdr.bar3, hdr.bar4, hdr.bar5, hdr.irql, hdr.irqp);
-                    ON_KIND(hdr, 1, 1, 0xFF, addIDEController);
-                    ON_KIND(hdr, 3, 0, 0, printVGAController);
-                    ON_KIND(hdr, 2, 0, 0xFF, printEthernetController);
-                    ON_KIND(hdr, 0xC, 0x3, 0x30, printXHCIUSBController);
-                    ON_KIND(hdr, 0xC, 0x3, 0x20, printEHCIUSBController);
-                    ON_KIND(hdr, 0xC, 0x3, 0x10, printOHCIUSBController);
-                    ON_KIND(hdr, 0xC, 0x3, 0x00, printUHCIUSBController);
-
                     mDeviceData.push_back(PCIDeviceData(hdr));
                 } else {
                     mDeviceData.push_back(PCIDeviceData(ep, ident));

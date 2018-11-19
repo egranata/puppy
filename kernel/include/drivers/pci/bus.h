@@ -28,6 +28,8 @@ class PCIBus {
 
         static PCIBus& get();
 
+        void tryDiscoverDevices();
+
         struct endpoint_t {
             uint8_t bus;
             uint8_t slot;
