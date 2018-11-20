@@ -41,8 +41,15 @@ class Framebuffer : NOCOPY {
             explicit operator uint32_t() const;
         };
 
-        static color_t defaultBackgroundColor;
-        static color_t defaultForegroundColor;
+        struct color_set_t {
+            color_t foreground;
+            color_t background;
+        };
+
+        static constexpr uint8_t DEFAULT_COLOR_SET    = 0; /* the default fail-safe color set */
+        static constexpr uint8_t CONFIGURED_COLOR_SET = 1; /* the current baseline color set */
+        static constexpr uint8_t CURRENT_COLOR_SET    = 2; /* the colors currently being shown on screen */
+        static constexpr uint8_t NUM_COLOR_SETS       = 3;
 
         static Framebuffer& get();
 
@@ -70,11 +77,11 @@ class Framebuffer : NOCOPY {
         void setRow(uint16_t);
         void setCol(uint16_t);
 
-        color_t getfg();
-        color_t getbg();
+        color_t getBackgroundColor(uint8_t set) const;
+        color_t getForegroundColor(uint8_t set) const;
 
-        void setfg(const color_t&);
-        void setbg(const color_t&, bool recolor);
+        void setBackgroundColor(uint8_t set, const color_t&);
+        void setForegroundColor(uint8_t set, const color_t&);
 
         uintptr_t map(uintptr_t base);
         bool enableWriteCombining(MTRR*);
@@ -116,8 +123,7 @@ class Framebuffer : NOCOPY {
         uint8_t mBytesPerPixel;
         uintptr_t mPhysicalAddress;
         uintptr_t mAddress;
-        color_t mBackground;
-        color_t mForeground;
+        color_set_t mColorSets[NUM_COLOR_SETS];
 
         uint16_t mX;
         uint16_t mY;

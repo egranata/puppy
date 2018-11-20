@@ -45,11 +45,17 @@ class TTY {
 
         void getSize(uint16_t *rows, uint16_t* cols);
 
-        void getForegroundColor(uint32_t *color);
-        void getBackgroundColor(uint32_t *color);
+        void getCurrentForegroundColor(uint32_t *color);
+        void getCurrentBackgroundColor(uint32_t *color);
 
-        void setForegroundColor(uint32_t color);
-        void setBackgroundColor(uint32_t color);
+        void setCurrentForegroundColor(uint32_t color);
+        void setCurrentBackgroundColor(uint32_t color);
+
+        void getConfiguredForegroundColor(uint32_t *color);
+        void getConfiguredBackgroundColor(uint32_t *color);
+
+        void setConfiguredForegroundColor(uint32_t color);
+        void setConfiguredBackgroundColor(uint32_t color);
 
         void clearLine(bool from_cursor, bool to_cursor);
         void clearScreen();

@@ -40,6 +40,9 @@ LOG_TAG(POSITION, 2);
 	#endif
 #endif
 
+#define CURRENT_BACKGROUND_COLOR (mColorSets[Framebuffer::CURRENT_COLOR_SET].background)
+#define CURRENT_FOREGROUND_COLOR (mColorSets[Framebuffer::CURRENT_COLOR_SET].foreground)
+
 static Framebuffer *gFramebuffer = nullptr;
 static uint8_t gFramebufferAlloc[sizeof(Framebuffer)];
 
@@ -73,14 +76,18 @@ Framebuffer* Framebuffer::init(uint16_t width, uint16_t height, uint16_t pitch, 
     return gFramebuffer;
 }
 
-Framebuffer::color_t Framebuffer::defaultBackgroundColor = Framebuffer::color_t::black();
-Framebuffer::color_t Framebuffer::defaultForegroundColor = Framebuffer::color_t::green();
-
 Framebuffer::Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys) :
     mWidth(width), mHeight(height), mPitch(pitch), mBytesPerPixel(bpp / 8), mPhysicalAddress(phys), mAddress(0), mX(0), mY(0) {
-    
-    mBackground = Framebuffer::defaultBackgroundColor = Framebuffer::color_t::black();
-    mForeground = Framebuffer::defaultForegroundColor= Framebuffer::color_t::green();
+
+	mColorSets[Framebuffer::DEFAULT_COLOR_SET].foreground = 
+		mColorSets[Framebuffer::CONFIGURED_COLOR_SET].foreground = 
+			mColorSets[Framebuffer::CURRENT_COLOR_SET].foreground = 
+				color_t::green();
+
+	mColorSets[Framebuffer::DEFAULT_COLOR_SET].background = 
+		mColorSets[Framebuffer::CONFIGURED_COLOR_SET].background = 
+			mColorSets[Framebuffer::CURRENT_COLOR_SET].background = 
+				color_t::black();
 
     LOG_DEBUG("initialized a framebuffer of %u x %u pixels - pitch = %u, bpp = %u, base = 0x%p; rows by cols = %u x %u",
         mWidth, mHeight, mPitch, mBytesPerPixel, mPhysicalAddress,
@@ -112,13 +119,6 @@ Framebuffer::pixel_data_t Framebuffer::getpixel(uint16_t x, uint16_t y) {
 	return pdata;
 }
 
-Framebuffer::color_t Framebuffer::getfg() {
-	return mForeground;
-}
-Framebuffer::color_t Framebuffer::getbg() {
-	return mBackground;
-}
-
 uint16_t Framebuffer::width() const {
 	return mWidth;
 }
@@ -140,15 +140,6 @@ uint16_t Framebuffer::column() const {
 	return mY / FONT_WIDTH;
 }
 
-void Framebuffer::setfg(const color_t& c) {
-	mForeground = c;
-}
-void Framebuffer::setbg(const color_t& c, bool recolor) {
-	auto oldBackground = mBackground;
-	mBackground = c;
-	if (recolor) this->recolor(oldBackground, mBackground);
-}
-
 void Framebuffer::setRow(uint16_t r) {	
 	auto x = r * FONT_HEIGHT;
 	if (x > mHeight) x = mHeight;
@@ -162,9 +153,51 @@ void Framebuffer::setCol(uint16_t c) {
 	mY = y;
 }
 
+void Framebuffer::setForegroundColor(uint8_t set, const color_t& c) {
+	switch (set) {
+		case Framebuffer::DEFAULT_COLOR_SET:
+			mColorSets[Framebuffer::DEFAULT_COLOR_SET].foreground = c;
+			__attribute__((fallthrough));
+		case Framebuffer::CONFIGURED_COLOR_SET:
+			mColorSets[Framebuffer::CONFIGURED_COLOR_SET].foreground = c;
+			__attribute__((fallthrough));
+		case Framebuffer::CURRENT_COLOR_SET:
+			mColorSets[Framebuffer::CURRENT_COLOR_SET].foreground = c;
+			__attribute__((fallthrough));
+		default: break;
+	}
+}
+
+void Framebuffer::setBackgroundColor(uint8_t set, const color_t& c) {
+	switch (set) {
+		case Framebuffer::DEFAULT_COLOR_SET:
+			mColorSets[Framebuffer::DEFAULT_COLOR_SET].background = c;
+			__attribute__((fallthrough));
+		case Framebuffer::CONFIGURED_COLOR_SET:
+			mColorSets[Framebuffer::CONFIGURED_COLOR_SET].background = c;
+			__attribute__((fallthrough));
+		case Framebuffer::CURRENT_COLOR_SET: {
+			auto oldBackground = mColorSets[Framebuffer::CURRENT_COLOR_SET].background;
+			mColorSets[Framebuffer::CURRENT_COLOR_SET].background = c;
+			recolor(oldBackground, c);
+		}
+			__attribute__((fallthrough));
+		default: break;
+	}
+}
+
+Framebuffer::color_t Framebuffer::getBackgroundColor(uint8_t set) const {
+	if (set <= Framebuffer::NUM_COLOR_SETS) return mColorSets[set].background;
+	return color_t();
+}
+Framebuffer::color_t Framebuffer::getForegroundColor(uint8_t set) const {
+	if (set <= Framebuffer::NUM_COLOR_SETS) return mColorSets[set].foreground;
+	return color_t();
+}
+
 void Framebuffer::cls() {
-	memset_pattern4((void*)base(), (uint32_t)mBackground, size());
-	memset_pattern4((void*)backBase(), (uint32_t)mBackground, size());
+	memset_pattern4((void*)base(), (uint32_t)CURRENT_BACKGROUND_COLOR, size());
+	memset_pattern4((void*)backBase(), (uint32_t)CURRENT_BACKGROUND_COLOR, size());
 	setRow(0);
 	setCol(0);
 }
@@ -233,7 +266,7 @@ void Framebuffer::clearAtCursor() {
 	};
 	static_assert(sizeof(gFiller) >= FONT_HEIGHT);
 
-	putdata(gFiller, mX, mY, mBackground);
+	putdata(gFiller, mX, mY, CURRENT_BACKGROUND_COLOR);
 }
 
 void Framebuffer::clearLine(bool to_cursor, bool from_cursor) {
@@ -287,8 +320,8 @@ void Framebuffer::nl() {
 		auto sz = size() - (FONT_HEIGHT * mPitch);
 		memcpy(row0, backRow1, sz);
 		memcpy(backRow0, backRow1, sz);
-		memset_pattern4((void*)rowlast, (uint32_t)mBackground, FONT_HEIGHT * mPitch);
-		memset_pattern4((void*)backRowlast, (uint32_t)mBackground, FONT_HEIGHT * mPitch);
+		memset_pattern4((void*)rowlast, (uint32_t)CURRENT_BACKGROUND_COLOR, FONT_HEIGHT * mPitch);
+		memset_pattern4((void*)backRowlast, (uint32_t)CURRENT_BACKGROUND_COLOR, FONT_HEIGHT * mPitch);
 		mX = FONT_HEIGHT*((mHeight / FONT_HEIGHT) -1);
 	}
 }
@@ -326,7 +359,7 @@ bool Framebuffer::enableWriteCombining(__attribute__((unused)) MTRR* mtrr) {
 }
 
 Framebuffer& Framebuffer::putc(char c) {
-	return putc(c, mForeground);
+	return putc(c, CURRENT_FOREGROUND_COLOR);
 }
 
 Framebuffer& Framebuffer::putc(char c, const color_t& color) {
@@ -350,7 +383,7 @@ Framebuffer& Framebuffer::putc(char c, const color_t& color) {
 }
 
 Framebuffer& Framebuffer::write(const char* s) {
-    return write(s, mForeground);
+    return write(s, CURRENT_FOREGROUND_COLOR);
 }
 
 Framebuffer& Framebuffer::write(const char* s, const color_t& color) {

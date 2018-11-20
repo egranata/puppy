@@ -106,21 +106,36 @@ void TTY::getSize(uint16_t *rows, uint16_t* cols) {
     *cols = mFramebuffer.columns();
 }
 
-void TTY::getForegroundColor(uint32_t *color) {
-    *color = (uint32_t)mFramebuffer.getfg();
+void TTY::getCurrentForegroundColor(uint32_t *color) {
+    *color = (uint32_t)mFramebuffer.getForegroundColor(Framebuffer::CURRENT_COLOR_SET);
 }
 
-void TTY::getBackgroundColor(uint32_t *color) {
-    *color = (uint32_t)mFramebuffer.getbg();
+void TTY::getCurrentBackgroundColor(uint32_t *color) {
+    *color = (uint32_t)mFramebuffer.getBackgroundColor(Framebuffer::CURRENT_COLOR_SET);
 }
 
-void TTY::setForegroundColor(uint32_t color) {
-    mFramebuffer.setfg(Framebuffer::color_t(color));
+void TTY::setCurrentForegroundColor(uint32_t color) {
+    mFramebuffer.setForegroundColor(Framebuffer::CURRENT_COLOR_SET, Framebuffer::color_t(color));
 }
 
-void TTY::setBackgroundColor(uint32_t color) {
-    const bool recolor = true;
-    mFramebuffer.setbg(Framebuffer::color_t(color), recolor);
+void TTY::setCurrentBackgroundColor(uint32_t color) {
+    mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET, Framebuffer::color_t(color));
+}
+
+void TTY::getConfiguredForegroundColor(uint32_t *color) {
+    *color = (uint32_t)mFramebuffer.getForegroundColor(Framebuffer::CONFIGURED_COLOR_SET);
+}
+
+void TTY::getConfiguredBackgroundColor(uint32_t *color) {
+    *color = (uint32_t)mFramebuffer.getBackgroundColor(Framebuffer::CONFIGURED_COLOR_SET);
+}
+
+void TTY::setConfiguredForegroundColor(uint32_t color) {
+    mFramebuffer.setForegroundColor(Framebuffer::CONFIGURED_COLOR_SET, Framebuffer::color_t(color));
+}
+
+void TTY::setConfiguredBackgroundColor(uint32_t color) {
+    mFramebuffer.setBackgroundColor(Framebuffer::CONFIGURED_COLOR_SET, Framebuffer::color_t(color));
 }
 
 void TTY::clearLine(bool from_cursor, bool to_cursor) {
@@ -139,16 +154,19 @@ void TTY::killForegroundProcess() {
 }
 
 void TTY::resetGraphics() {
-    mFramebuffer.setbg(Framebuffer::defaultBackgroundColor, true);
-    mFramebuffer.setfg(Framebuffer::defaultForegroundColor);
+    mFramebuffer.setForegroundColor(Framebuffer::CURRENT_COLOR_SET,
+        mFramebuffer.getForegroundColor(Framebuffer::CONFIGURED_COLOR_SET));
+    mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET,
+        mFramebuffer.getBackgroundColor(Framebuffer::CONFIGURED_COLOR_SET));
 }
 
 void TTY::swapColors() {
-    auto bg = mFramebuffer.getbg();
-    auto fg = mFramebuffer.getfg();
+    uint32_t bg, fg;
+    getCurrentBackgroundColor(&bg);
+    getCurrentForegroundColor(&fg);
 
-    mFramebuffer.setbg(fg, true);
-    mFramebuffer.setfg(bg);
+    setCurrentForegroundColor(bg);
+    setCurrentBackgroundColor(fg);
 }
 
 static Framebuffer::color_t gANSIColors[] = {
@@ -169,10 +187,11 @@ void TTY::setANSIBackgroundColor(int code) {
     if (code == 38) return;
 
     if (code == 39) {
-        mFramebuffer.setbg(Framebuffer::defaultBackgroundColor, true);
+        mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET,
+            mFramebuffer.getBackgroundColor(Framebuffer::DEFAULT_COLOR_SET));
     } else {
         code -= 30;
-        mFramebuffer.setbg(gANSIColors[code], true);
+        mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET, gANSIColors[code]);
     }
 }
 
@@ -183,16 +202,19 @@ void TTY::setANSIForegroundColor(int code) {
     if (code == 38) return;
 
     if (code == 39) {
-        mFramebuffer.setfg(Framebuffer::defaultForegroundColor);
+        mFramebuffer.setForegroundColor(Framebuffer::CURRENT_COLOR_SET,
+            mFramebuffer.getForegroundColor(Framebuffer::DEFAULT_COLOR_SET));
     } else {
         code -= 30;
-        mFramebuffer.setfg(gANSIColors[code]);
+        mFramebuffer.setForegroundColor(Framebuffer::CURRENT_COLOR_SET, gANSIColors[code]);
     }
 }
 
 void TTY::setANSIBackgroundColor(int r, int g, int b) {
-    mFramebuffer.setbg(Framebuffer::color_t(r, g, b), true);
+    mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET,
+        Framebuffer::color_t(r, g, b));
 }
 void TTY::setANSIForegroundColor(int r, int g, int b) {
-    mFramebuffer.setfg(Framebuffer::color_t(r, g, b));
+    mFramebuffer.setForegroundColor(Framebuffer::CURRENT_COLOR_SET,
+        Framebuffer::color_t(r, g, b));
 }
