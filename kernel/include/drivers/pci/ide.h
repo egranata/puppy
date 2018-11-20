@@ -100,8 +100,6 @@ class IDEController : public PCIBus::PCIDevice, NOCOPY {
         void wait400(channelid_t);
 
         PCIBus::pci_hdr_0 mInfo;
-
-        friend class PCIBus;
 };
 
 #endif

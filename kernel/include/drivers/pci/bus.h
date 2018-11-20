@@ -86,8 +86,6 @@ class PCIBus {
                 };
 
                 virtual kind getkind() = 0;
-            private:
-                friend class PCIBus;
         };
 
         class PCIDeviceData {
