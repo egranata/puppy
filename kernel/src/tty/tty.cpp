@@ -39,6 +39,7 @@ void TTY::pushfg(kpid_t pid) {
 }
 
 kpid_t TTY::popfg(kpid_t pid) {
+    kpid_t newfg = 0;
     class WakeOnExit {
         public:
             WakeOnExit(WaitQueue* wq) : mWQ(wq) {}
@@ -51,10 +52,13 @@ kpid_t TTY::popfg(kpid_t pid) {
 
     auto&& pmm(ProcessManager::get());
 
+    LOG_DEBUG("pid %u out of tty foreground", pid);
     if (mForeground.empty()) goto init_failsafe;
     mForeground.eraseAll(pid);
     if (mForeground.empty()) goto init_failsafe;
-    return mForeground.back();
+    newfg = mForeground.back();
+    LOG_DEBUG("tty foreground goes to %u", newfg);
+    return newfg;
 
 init_failsafe:
     LOG_DEBUG("no live process in chain, tty goes back to init");
