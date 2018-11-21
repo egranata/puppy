@@ -70,13 +70,18 @@ class DeviceBuffer : public MemFS::FileBuffer {
 
 class DeviceFile : public MemFS::File {
     public:
-        DeviceFile() : MemFS::File("value"), mRng(readtsc()) {}
+        DeviceFile() : MemFS::File("value"), mRng(nullptr) {}
 
         delete_ptr<MemFS::FileBuffer> content() override {
-            return new DeviceBuffer(mRng);
+            if (mRng == nullptr) {
+                mRng = new Rng(readtsc());
+                mRng->next(), mRng->next();
+            }
+
+            return new DeviceBuffer(*mRng);
         }
     private:
-        Rng mRng;
+        Rng *mRng;
 };
 }
 
