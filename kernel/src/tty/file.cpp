@@ -18,6 +18,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/panic/panic.h>
 #include <kernel/drivers/ps2/keyboard.h>
+#include <kernel/process/current.h>
 
 LOG_TAG(RAWTTY, 0);
 LOG_TAG(TTYFILE, 2);
@@ -486,7 +487,7 @@ uintptr_t TTYFile::ioctl(uintptr_t a1, uintptr_t a2) {
             mTTY->pushfg((kpid_t)a2);
             return 1;
         case IOCTL_BACKGROUND:
-            mTTY->popfg();
+            mTTY->popfg(gCurrentProcess->pid);
             return 1;
         case IOCTL_MOVECURSOR: {
             uint16_t col = a2 & 0xFFFF;

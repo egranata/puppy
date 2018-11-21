@@ -628,7 +628,7 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
     LOG_DEBUG("done releasing file handles");
 
     task->state = process_t::State::EXITED;
-    task->ttyinfo.tty->popfg();
+    task->ttyinfo.tty->popfg(task->pid);
     task->exitstatus = es;
 
     auto parent = getprocess(task->ppid);

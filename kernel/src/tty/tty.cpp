@@ -38,7 +38,7 @@ void TTY::pushfg(kpid_t pid) {
     mForegroundWQ.wakeall();
 }
 
-kpid_t TTY::popfg() {
+kpid_t TTY::popfg(kpid_t pid) {
     class WakeOnExit {
         public:
             WakeOnExit(WaitQueue* wq) : mWQ(wq) {}
@@ -51,22 +51,12 @@ kpid_t TTY::popfg() {
 
     auto&& pmm(ProcessManager::get());
 
-    if (mForeground.empty()) return 0;
-    if (mForeground.back() != gCurrentProcess->pid) return mForeground.back();
+    if (mForeground.empty()) goto init_failsafe;
+    mForeground.eraseAll(pid);
+    if (mForeground.empty()) goto init_failsafe;
+    return mForeground.back();
 
-    while (!mForeground.empty()) {
-        mForeground.pop_back();
-        if (mForeground.empty()) break;
-        auto n = mForeground.back();
-        auto p = pmm.getprocess(n);
-        if (p == nullptr || p->state == process_t::State::EXITED)
-            continue;
-        else {
-            LOG_DEBUG("tty foreground given to %u", n);
-            return n;
-        }
-    }
-    
+init_failsafe:
     LOG_DEBUG("no live process in chain, tty goes back to init");
     return mForeground.push_back(pmm.initpid()), mForeground.back();
 }

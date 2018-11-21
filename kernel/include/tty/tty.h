@@ -38,7 +38,7 @@ class TTY {
         key_event_t readKeyEvent();
 
         void pushfg(kpid_t);
-        kpid_t popfg();
+        kpid_t popfg(kpid_t);
 
         void setPosition(uint16_t row, uint16_t col);
         void getPosition(uint16_t *row, uint16_t* col);
