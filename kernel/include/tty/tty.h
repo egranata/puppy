@@ -22,7 +22,7 @@
 #include <kernel/synch/waitqueue.h>
 #include <kernel/libc/queue.h>
 #include <kernel/libc/atomic.h>
-#include <kernel/libc/fixstack.h>
+#include <kernel/libc/vec.h>
 #include <kernel/drivers/framebuffer/fb.h>
 #include <kernel/drivers/ps2/keyboard.h>
 #include <kernel/syscalls/types.h>
@@ -74,7 +74,7 @@ class TTY {
         static constexpr size_t gQueueSize = 1024;
 
         Semaphore mWriteSemaphore;
-        FixSizeStack<uint16_t, 32> mForeground;
+        vector<kpid_t> mForeground;
         queue<char, gQueueSize> mOutQueue;
         queue<char, gQueueSize> mInQueue;
         Framebuffer& mFramebuffer;

@@ -22,6 +22,8 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/function.h>
 
+#include <muzzle/string.h>
+
 template<typename T>
 class vector : NOCOPY {
     public:

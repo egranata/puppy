@@ -34,7 +34,7 @@ void TTY::write(size_t sz, const char* buffer) {
 
 void TTY::pushfg(kpid_t pid) {
     LOG_DEBUG("tty foreground given to %u", pid);
-    mForeground.push(pid);
+    mForeground.push_back(pid);
     mForegroundWQ.wakeall();
 }
 
@@ -52,11 +52,12 @@ kpid_t TTY::popfg() {
     auto&& pmm(ProcessManager::get());
 
     if (mForeground.empty()) return 0;
-    if (mForeground.peek() != gCurrentProcess->pid) return mForeground.peek();
+    if (mForeground.back() != gCurrentProcess->pid) return mForeground.back();
 
     while (!mForeground.empty()) {
-        mForeground.pop();
-        auto n = mForeground.peek();
+        mForeground.pop_back();
+        if (mForeground.empty()) break;
+        auto n = mForeground.back();
         auto p = pmm.getprocess(n);
         if (p == nullptr || p->state == process_t::State::EXITED)
             continue;
@@ -67,7 +68,7 @@ kpid_t TTY::popfg() {
     }
     
     LOG_DEBUG("no live process in chain, tty goes back to init");
-    return mForeground.push(pmm.initpid()), mForeground.peek();
+    return mForeground.push_back(pmm.initpid()), mForeground.back();
 }
 
 key_event_t TTY::readKeyEvent() {
@@ -77,7 +78,7 @@ key_event_t TTY::readKeyEvent() {
         if (mForeground.empty()) {
             allow = true;
         } else {
-            allow = (mForeground.peek() == gCurrentProcess->pid);
+            allow = (mForeground.back() == gCurrentProcess->pid);
         }
 
         if (false == allow) {
@@ -148,7 +149,7 @@ void TTY::clearScreen() {
 
 void TTY::killForegroundProcess() {
     if (!mForeground.empty()) {
-        auto pid = mForeground.peek();
+        auto pid = mForeground.back();
         ProcessManager::get().kill(pid);
     }
 }
