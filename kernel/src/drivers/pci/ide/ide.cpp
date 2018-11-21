@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/drivers/pci/bus.h>
 #include <kernel/panic/panic.h>
 #include <kernel/i386/primitives.h>

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include <kernel/drivers/pci/bus.h>
-#include <kernel/drivers/pci/ide.h>
 #include <kernel/drivers/pci/match.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/log/log.h>

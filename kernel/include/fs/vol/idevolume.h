@@ -18,7 +18,7 @@
 #define FS_VOL_IDEVOLUME
 
 #include <kernel/sys/stdint.h>
-#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/vol/volume.h>

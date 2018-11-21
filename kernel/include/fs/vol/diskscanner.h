@@ -18,7 +18,7 @@
 #define FS_VOL_DISKSCANNER
 
 #include <kernel/sys/stdint.h>
-#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/slist.h>
 #include <kernel/fs/vol/idevolume.h>

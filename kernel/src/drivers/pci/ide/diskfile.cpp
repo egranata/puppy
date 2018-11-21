@@ -12,36 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/drivers/pci/volumefile.h>
+#include <kernel/drivers/pci/ide/diskfile.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/libc/move.h>
+#include <muzzle/stdlib.h>
 
-IDEVolumeFile::IDEVolumeFile(IDEVolume* vol, uint32_t ctrlid) : MemFS::File(""), mVolume(vol) {
-    auto& dsk(vol->disk());
-    auto& part(vol->partition());
+IDEDiskFile::IDEDiskFile(IDEController* ctrl, const IDEController::disk_t& d, uint32_t ctrlid) : MemFS::File(""), mController(ctrl), mDisk(d) {
     char buf[64] = {0};
-    sprint(buf, 63, "disk%u%upart%u", ctrlid, 2 * (uint32_t)dsk.chan + (uint32_t)dsk.bus, part.sector);
-    name(&buf[0]);
+    sprint(buf, 63, "disk%u%u", ctrlid, 2 * (uint32_t)mDisk.chan + (uint32_t)mDisk.bus);
+    name(((const char*)&buf[0]));
 }
 
-delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
+delete_ptr<MemFS::FileBuffer> IDEDiskFile::content() {
     class Buffer : public MemFS::FileBuffer {
         public:
-            Buffer(IDEVolume* vol) : mVolume(vol) {}
+            Buffer(IDEController* ide, IDEController::disk_t dsk) : mController(ide), mDisk(dsk) {}
             ~Buffer() {
                 free(mBuffer);
             }
             size_t len() override {
-                return 512 * mVolume->numsectors();
+                return mDisk.present ? 512 *  mDisk.sectors : 0;
             }
             bool at(size_t idx, uint8_t *val) override {
+                if (!mDisk.present) return false;
+
                 size_t sec = idx / 512;
                 size_t pos = idx % 512;
 
-                if (sec >= mVolume->numsectors()) return false;
-                sec += mVolume->partition().sector;
+                if (sec >= mDisk.sectors) return false;
 
                 if (mBuffer) {
                     if (mBufferSector == sec) {
@@ -54,7 +55,7 @@ delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
                 }
 
                 mBuffer = (uint8_t*)calloc(512, 0);
-                if (mVolume->controller()->read(mVolume->disk(), sec, 1, &mBuffer[0])) {
+                if (mController->read(mDisk, sec, 1, &mBuffer[0])) {
                     *val = mBuffer[pos];
                     mBufferSector = sec;
                     return true;
@@ -65,22 +66,22 @@ delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
                 }
             }
         private:
-            IDEVolume *mVolume;
+            IDEController *mController;
+            IDEController::disk_t mDisk;
             uint8_t *mBuffer;
             size_t mBufferSector;
     };
-    return delete_ptr<MemFS::FileBuffer>(new Buffer(mVolume));
+    return delete_ptr<MemFS::FileBuffer>(new Buffer(mController, mDisk));
 }
 
 #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
-uintptr_t IDEVolumeFile::ioctl(uintptr_t a, uintptr_t b)  {
+uintptr_t IDEDiskFile::ioctl(uintptr_t a, uintptr_t)  {
     switch (a) {
         IS(IOCTL_GET_SECTOR_SIZE): return 512;
-        IS(IOCTL_GET_NUM_SECTORS): return mVolume->partition().size;
-        IS(IOCTL_GET_CONTROLLER): return (uint32_t)mVolume->controller();
-        IS(IOCTL_GET_ROUTING): return ((uint32_t)mVolume->disk().chan << 8) | (uint32_t)mVolume->disk().bus;
-        IS(IOCTL_GET_VOLUME): return (uintptr_t)mVolume;
-        default: return mVolume->ioctl(a,b);
+        IS(IOCTL_GET_NUM_SECTORS): return mDisk.sectors;
+        IS(IOCTL_GET_CONTROLLER): return (uint32_t)mController;
+        IS(IOCTL_GET_ROUTING): return ((uint32_t)mDisk.chan << 8) | (uint32_t)mDisk.bus;
+        IS(IOCTL_GET_VOLUME): return 0;
     }
     return 0;
 }

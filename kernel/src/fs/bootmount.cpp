@@ -15,11 +15,11 @@
 #include <kernel/boot/phase.h>
 #include <kernel/log/log.h>
 #include <kernel/drivers/pci/bus.h>
-#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/vol/diskscanner.h>
-#include <kernel/drivers/pci/diskfile.h>
-#include <kernel/drivers/pci/volumefile.h>
+#include <kernel/drivers/pci/ide/diskfile.h>
+#include <kernel/drivers/pci/ide/volumefile.h>
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/fs/memfs/memfs.h>
 #include <kernel/panic/panic.h>

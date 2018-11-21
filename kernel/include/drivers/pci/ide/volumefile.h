@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef DRIVERS_PCI_VOLUMEFILE
-#define DRIVERS_PCI_VOLUMEFILE
+#ifndef DRIVERS_PCI_IDE_VOLUMEFILE
+#define DRIVERS_PCI_IDE_VOLUMEFILE
 
-#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/fs/memfs/memfs.h>
 #include <kernel/fs/vol/idevolume.h>
 #include <kernel/libc/deleteptr.h>

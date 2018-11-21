@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef DRIVERS_PCI_DISKFILE
-#define DRIVERS_PCI_DISKFILE
+#ifndef DRIVERS_PCI_IDE_DISKFILE
+#define DRIVERS_PCI_IDE_DISKFILE
 
-#include <kernel/drivers/pci/ide.h>
+#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/fs/memfs/memfs.h>
 #include <kernel/libc/deleteptr.h>
 
