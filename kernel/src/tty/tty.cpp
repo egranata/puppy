@@ -170,27 +170,27 @@ void TTY::swapColors() {
 }
 
 static Framebuffer::color_t gANSIColors[] = {
-/* 30 */    Framebuffer::color_t(0,   0,   0),
-/* 31 */    Framebuffer::color_t(255, 0,   0),
-/* 32 */    Framebuffer::color_t(0,   170, 0),
-/* 33 */    Framebuffer::color_t(187, 187, 0),
-/* 34 */    Framebuffer::color_t(0,   0,   187),
-/* 35 */    Framebuffer::color_t(170, 0,   170),
-/* 36 */    Framebuffer::color_t(0,   170, 170),
-/* 37 */    Framebuffer::color_t(255, 255, 255),
+/* 30-40 */    Framebuffer::color_t(0,   0,   0),
+/* 31-41 */    Framebuffer::color_t(255, 0,   0),
+/* 32-42 */    Framebuffer::color_t(0,   170, 0),
+/* 33-43 */    Framebuffer::color_t(187, 187, 0),
+/* 34-44 */    Framebuffer::color_t(0,   0,   187),
+/* 35-45 */    Framebuffer::color_t(170, 0,   170),
+/* 36-46 */    Framebuffer::color_t(0,   170, 170),
+/* 37-47 */    Framebuffer::color_t(255, 255, 255),
 };
 
 void TTY::setANSIBackgroundColor(int code) {
-    if (code < 30 || code > 39) return;
+    if (code < 40 || code > 49) return;
 
     // TODO: support custom color code
-    if (code == 38) return;
+    if (code == 48) return;
 
-    if (code == 39) {
+    if (code == 49) {
         mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET,
             mFramebuffer.getBackgroundColor(Framebuffer::DEFAULT_COLOR_SET));
     } else {
-        code -= 30;
+        code -= 40;
         mFramebuffer.setBackgroundColor(Framebuffer::CURRENT_COLOR_SET, gANSIColors[code]);
     }
 }
