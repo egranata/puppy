@@ -119,8 +119,6 @@ class MessageQueueFS : public Filesystem {
         bool mkdir(const char*) override { return false; }
         void doClose(FilesystemObject* object) override;
 
-        MessageQueueReadFile* msgqueue(const char* path);
-
     private:
         MessageQueueFS();
         class Store : public KeyedStore<MessageQueueBuffer> {

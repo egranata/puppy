@@ -224,11 +224,18 @@ Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
     FORBIDDEN_MODE(FILE_OPEN_READ | FILE_OPEN_WRITE);
     FORBIDDEN_MODE(FILE_OPEN_APPEND);
 
+    MessageQueueBuffer* buffer = mQueues.getIfExisting(name);
+    if (buffer == nullptr) buffer = mQueues.makeNew(name);
+    if (buffer == nullptr) return nullptr;
+
     if (mode & FILE_OPEN_READ) {
-        return msgqueue(name);
+        auto readfile = new MessageQueueReadFile(buffer);
+
+        TAG_INFO(MQ, "for msgqueue 0x%p (path %s) returning new readfile 0x%p",
+            buffer, name, readfile);
+
+        return readfile;
     } else if (mode & FILE_OPEN_WRITE) {
-        MessageQueueBuffer *buffer = mQueues.getIfExisting(name);
-        if (buffer == nullptr) return nullptr;
         auto writefile = new MessageQueueWriteFile(buffer);
 
         TAG_INFO(MQ, "for msgqueue 0x%p (path %s) returning new writefile 0x%p",
@@ -238,19 +245,6 @@ Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
     } else return nullptr;
 }
 #undef FORBIDDEN_MODE
-
-MessageQueueReadFile* MessageQueueFS::msgqueue(const char* path) {
-    MessageQueueBuffer* buffer = mQueues.makeNew(path);
-
-    if (buffer == nullptr) return nullptr;
-    if (buffer->numReaders() > 0) return nullptr;
-    auto readfile = new MessageQueueReadFile(buffer);
-
-    TAG_INFO(MQ, "created new msgqueue 0x%p for path %s - returning readfile 0x%p",
-        buffer, path, readfile);
-
-    return readfile;
-}
 
 void MessageQueueFS::doClose(FilesystemObject* file) {
     if (file->kind() != file_kind_t::msgqueue) {
