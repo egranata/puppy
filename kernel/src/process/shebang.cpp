@@ -22,6 +22,8 @@
 #include <kernel/process/process.h>
 #include <kernel/process/manager.h>
 
+LOG_TAG(SHEBANG, 0);
+
 extern "C" bool shebang_can_load(uintptr_t load0) {
     const char* txt = (const char*)load0;
 
@@ -45,11 +47,11 @@ extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
     path_name_t interp = {0};
     path_name_t arg = {0};
 
-    LOG_DEBUG("shebang: bangspec=0x%p, space=0x%p, nl=0x%p",
+    TAG_DEBUG(SHEBANG, "shebang: bangspec=0x%p, space=0x%p, nl=0x%p",
         bangspec, space, nl);
 
     if (nl == nullptr) {
-        LOG_ERROR("cannot find newline; won't process shebang");
+        TAG_ERROR(SHEBANG, "cannot find newline; won't process shebang");
         return process_loadinfo_t{
             eip : 0,
             stack : 0,
@@ -63,7 +65,7 @@ extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
         memcpy(&interp[0], bangspec, nl-bangspec);
     }
 
-    LOG_DEBUG("process %u binary %s is shebang; interpreter='%s' arg='%s'",
+    TAG_DEBUG(SHEBANG, "process %u binary %s is shebang; interpreter='%s' arg='%s'",
         gCurrentProcess->pid,
         gCurrentProcess->path,
         interp,
@@ -73,19 +75,21 @@ extern "C" process_loadinfo_t shebang_do_load(uintptr_t load0, size_t) {
     // the path to the ELF file + arg + argv + the final nullptr
     char **newArgs = (char**)calloc( (originalArgsSize + 3), sizeof(char*) );
 
-    LOG_DEBUG("shebang expansion; original argc = %u, new argc = %u", originalArgsSize, originalArgsSize + 2);
+    TAG_DEBUG(SHEBANG, "shebang expansion; original argc = %u, new argc = %u", originalArgsSize, originalArgsSize + 2);
 
     newArgs[0] = interp;
-    LOG_DEBUG("newArgs[0] = %s", newArgs[0]);
+    TAG_DEBUG(SHEBANG, "newArgs[0] = %s", newArgs[0]);
     size_t arg_offset = 1;
     if (arg[0]) {
         newArgs[1] = arg;
-        LOG_DEBUG("newArgs[1] = %s", newArgs[1]);
+        TAG_DEBUG(SHEBANG, "newArgs[1] = %s", newArgs[1]);
         arg_offset = 2;
     }
-    for (size_t i = 0; i < originalArgsSize; ++i) {
+    newArgs[arg_offset] = (char*)gCurrentProcess->path;
+    TAG_DEBUG(SHEBANG, "newArgs[%d] = %s", arg_offset, newArgs[arg_offset]);
+    for (size_t i = 1; i < originalArgsSize; ++i) {
         newArgs[i+arg_offset] = gCurrentProcess->args[i];
-        LOG_DEBUG("newArgs[%d] = %s", i+arg_offset, newArgs[i+arg_offset]);
+        TAG_DEBUG(SHEBANG, "newArgs[%d] = %s", i+arg_offset, newArgs[i+arg_offset]);
     }
 
     // do not free the old arguments; we are reusing the pointers to them

@@ -22,6 +22,7 @@
 #include <sys/collect.h>
 #include <unistd.h>
 #include <syscalls.h>
+#include <libshell/system.h>
 
 // use MicroPython to test shebang expansion
 #define MICROPYTHON_APP "/system/apps/micropython"
@@ -102,13 +103,39 @@ class ShebangWithArgTest : public Test {
         }
 };
 
+class ShebangRealpathTest : public Test {
+    public:
+        ShebangRealpathTest() : Test("shebang.ShebangRealpathTest") {}
+    
+    protected:
+        void run() override {
+            FILE *f = fopen("/tmp/shebangrp.sh", "w");
+            fprintf(f, "#!/system/apps/micropython\n");
+            fprintf(f, "with open('/tmp/sentinel', 'w') as f:");
+            fprintf(f, "    print('hello world',file=f)");
+            fclose(f);
+            f = nullptr;
+
+            setenv("PATH", "/tmp", 1);
+            libShellSupport::system("shebangrp.sh");
+            f = fopen("/tmp/sentinel", "r");
+            CHECK_NOT_EQ(f, nullptr);
+            CHECK_EQ(fgetc(f), 'h');
+            CHECK_EQ(fgetc(f), 'e');
+            CHECK_EQ(fgetc(f), 'l');
+            CHECK_EQ(fgetc(f), 'l');
+            CHECK_EQ(fgetc(f), 'o');
+        }
+};
+
 int main(int argc, char** argv) {
     if (argc == 1) {
         auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
 
         testPlan.add<SimpleShebangTest>()
                 .add<ShebangArgsTest>()
-                .add<ShebangWithArgTest>();
+                .add<ShebangWithArgTest>()
+                .add<ShebangRealpathTest>();
 
         testPlan.test();
         return 0;

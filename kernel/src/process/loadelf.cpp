@@ -21,9 +21,9 @@
 
 extern "C" char *stpcpy(char *__restrict, const char *__restrict);
 
-LOG_TAG(LOADELF, 0);
-LOG_TAG(COPYENV, 0);
-LOG_TAG(ARGV, 0);
+LOG_TAG(LOADELF, 1);
+LOG_TAG(COPYENV, 1);
+LOG_TAG(ARGV, 1);
 
 #define UNHAPPY(cause) { \
     TAG_ERROR(LOADELF, "failed to load ELF image: " #cause); \
