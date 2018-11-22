@@ -34,6 +34,10 @@ class Semaphore {
 
         const char* key();
 
+        uint32_t value() const;
+        uint32_t max() const;
+        void max(uint32_t);
+
     private:
         char* mKey;
         uint32_t mValue;

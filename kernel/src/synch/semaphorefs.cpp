@@ -69,13 +69,22 @@ public:
         return 0;
     }
 
-    uintptr_t ioctl(uintptr_t a, uintptr_t) override {
+    uintptr_t ioctl(uintptr_t a, uintptr_t b) override {
         switch (a) {
             case semaphore_ioctl_t::IOCTL_SEMAPHORE_SIGNAL:
                 mSemaphore->signal();
                 return 1;
             case semaphore_ioctl_t::IOCTL_SEMAPHORE_WAIT:
                 mSemaphore->wait();
+                return 1;
+            case semaphore_ioctl_t::IOCTL_SEMAPHORE_GET_INFO: {
+                semaphore_info_t *seminfo = (semaphore_info_t*)b;
+                seminfo->value = mSemaphore->value();
+                seminfo->max = mSemaphore->max();
+                return 1;
+            }
+            case semaphore_ioctl_t::IOCTL_SEMAPHORE_SET_MAX:
+                mSemaphore->max(b);
                 return 1;
         }
         return 0;

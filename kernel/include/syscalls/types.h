@@ -122,8 +122,15 @@ enum msgqueue_ioctl_t {
 
 // IOCTL operations that can run on a semaphore
 enum semaphore_ioctl_t {
-    IOCTL_SEMAPHORE_WAIT   = 0x5EA01111,
-    IOCTL_SEMAPHORE_SIGNAL = 0x5EA02222,
+    IOCTL_SEMAPHORE_WAIT     = 0x5EA01111,
+    IOCTL_SEMAPHORE_SIGNAL   = 0x5EA02222,
+    IOCTL_SEMAPHORE_GET_INFO = 0x5EA03333, // a2 = pointer to semaphore_info_t
+    IOCTL_SEMAPHORE_SET_MAX  = 0x5EA03334, // a2 = max value for this semaphore
+};
+
+struct semaphore_info_t {
+    uint32_t value; // should only be used for informational purposes
+    uint32_t max;
 };
 
 // IOCTL operations that can run on a mutex

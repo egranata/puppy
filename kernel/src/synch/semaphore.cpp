@@ -53,3 +53,14 @@ void Semaphore::signal() {
     }
     __sync_synchronize();
 }
+
+uint32_t Semaphore::value() const {
+    return __atomic_load_n(&mValue, __ATOMIC_SEQ_CST);
+}
+uint32_t Semaphore::max() const {
+    return __atomic_load_n(&mMaxValue, __ATOMIC_SEQ_CST);
+}
+void Semaphore::max(uint32_t mv) {
+    // TODO: should we cap mValue at mMaxValue? wake clients?
+    __atomic_store_n(&mMaxValue, mv, __ATOMIC_SEQ_CST);
+}
