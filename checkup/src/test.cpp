@@ -42,4 +42,22 @@ void Test::test() {
     __success(name());
 }
 
-Test::~Test() = default;
+int Test::getSemaphore(const char* sn) {
+    std::string sema_path;
+    sema_path.append_sprintf("/semaphores/checkup/%s/%s", name(), sn);
+    auto i = mSemaphores.find(sema_path), e = mSemaphores.end();
+    if (i == e) {
+        FILE *f = fopen(sema_path.c_str(), "r");
+        if (f) {
+            int fd = fileno(f);
+            mSemaphores.emplace(sema_path, f);
+            return fd;
+        } else return -1;
+    }
+    return fileno(i->second);
+}
+
+Test::~Test() {
+    for(auto i = mSemaphores.begin(); i != mSemaphores.end(); ++i)
+        fclose(i->second);
+}

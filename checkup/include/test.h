@@ -18,6 +18,8 @@
 #define CHECKUP_TEST
 
 #include <string>
+#include <unordered_map>
+#include <stdio.h>
 
 class Test {
     public:
@@ -34,8 +36,13 @@ class Test {
         virtual void teardown();
         ~Test();
 
+        // return a semaphore fd in a path safe for this test case to use
+        // the file descriptor will not be released until the test has finished
+        int getSemaphore(const char* name);
+
     private:
         std::string mName;
+        std::unordered_map<std::string, FILE*> mSemaphores;
 };
 
 #endif
