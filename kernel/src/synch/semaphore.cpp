@@ -48,7 +48,7 @@ void Semaphore::wait() {
 
 void Semaphore::signal() {
     mWQ.wakeall();
-    if (mMaxValue > __sync_add_and_fetch(&mValue, 1)) {
+    if (__sync_add_and_fetch(&mValue, 1) > mMaxValue) {
         __atomic_store_n(&mValue, mMaxValue, __ATOMIC_SEQ_CST);
     }
     __sync_synchronize();
