@@ -352,7 +352,8 @@ def writeSpecsFile(outfile):
         print("    %s" % libs, file=f)
         print("", file=f)
         print("*link:", file=f)
-        print("    -T %s -e_start" % os.path.abspath(USERSPACE_LD_SCRIPT), file=f)
+        print("    -T %s -e_start -L %s" % (os.path.abspath(USERSPACE_LD_SCRIPT),
+                                            os.path.join(MYPATH, "out", "mnt", "libs")), file=f)
 
 def createDiskImage(file, megsOfSize=64):
     rootFile = file
@@ -523,7 +524,6 @@ with Chronometer("Copyings headers and core libraries"):
     xcopy("newlib/lib/lib*.a", "out/mnt/libs")
     xcopy("python/*.py", "out/mnt/libs/python")
     copy(LIBGCC_FILE, "out/mnt/libs")
-    shell("strip -R .group -K __udivmoddi4 out/mnt/libs/libgcc.a")
     copy("out/newlibcrt0", NEWLIB_CRT0)
     copy("build/app.ld", "out/mnt/libs")
 
