@@ -18,11 +18,18 @@
 #include <kernel/sys/config.h>
 #include <kernel/libc/bytesizes.h>
 #include <kernel/time/manager.h>
+#include <kernel/boot/phase.h>
+
+namespace boot::logging {
+    uint32_t init() {
+        realloc_log_buffer(1024 * (uint32_t)gKernelConfiguration()->logsize.value);
+        return 0;
+    }
+}
 
 namespace {
     LogBuffer* gInitialRingBuffer() {
-        // TODO: larger? smaller? configurable?
-        static constexpr size_t gBufferSize = 64_KB;
+        static constexpr size_t gBufferSize = 32_KB;
 
         static char gMemory[gBufferSize] = {0};
         static LogBuffer gLogBuffer(&gMemory[0], gBufferSize);
@@ -34,6 +41,15 @@ namespace {
 
         return stats;
     }
+}
+
+LogBuffer *realloc_log_buffer(size_t size) {
+    LOG_INFO("allocating a new kernel log - size = %u", size);
+    LogBuffer *old_buffer = get_log_buffer();
+    LogBuffer *new_buffer = new LogBuffer(size, *old_buffer);
+    new_buffer = get_log_buffer(new_buffer);
+    LOG_INFO("old kernel buffer at 0x%p; new buffer at 0x%p", old_buffer, new_buffer);
+    return new_buffer;
 }
 
 LogBuffer* get_log_buffer(LogBuffer* buffer) {
@@ -58,7 +74,7 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     LogBuffer* the_log_buffer = get_log_buffer();
     log_stats_t& the_log_stats(gLogStats());
 
-    static constexpr size_t gBufferSize = 1024;    
+    static constexpr size_t gBufferSize = 1024;
     static char gBuffer[gBufferSize];
     size_t n = 0;
     const auto uptime = TimeManager::get().millisUptime();

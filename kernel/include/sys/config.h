@@ -45,6 +45,15 @@ struct kernel_config_t : NOCOPY {
         const char* value;
     } mainfs;
 
+    /**
+     * The size of the log buffer in 1KB blocks
+     * e.g. logsize=32 for 32KB
+     * The default value is 64KB
+     */
+    struct config_logsize {
+        uint16_t value;
+    } logsize;
+
     kernel_config_t();
 };
 

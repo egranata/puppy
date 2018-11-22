@@ -18,6 +18,9 @@ namespace boot {
     namespace config {
         uint32_t init();
     }
+    namespace logging {
+        uint32_t init();
+    }
     namespace info {
         uint32_t init();
     }
@@ -118,6 +121,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "Parse Kernel Commandline",
         visible : false,
         operation : boot::config::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Configure logging",
+        visible : false,
+        operation : boot::logging::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });

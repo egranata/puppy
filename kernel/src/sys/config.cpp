@@ -30,6 +30,7 @@ kernel_config_t* gKernelConfiguration() {
 kernel_config_t::kernel_config_t() {
     logging.value = config_logging::gFullLogging;
     mainfs.value = nullptr;
+    logsize.value = 64;
 }
 
 namespace {
@@ -62,6 +63,9 @@ static void parseOption(kernel_config_t* kcfg, char* option) {
     }
     else if (matches(key, "mainfs")) {
         kcfg->mainfs.value = strdup(value);
+    } else if (matches(key, "logsize")) {
+        kcfg->logsize.value = atoi(value);
+        if (kcfg->logsize.value == 0) kcfg->logsize.value = 64;
     }
 }
 

@@ -30,6 +30,7 @@
 using LogBuffer = RingBuffer<char>;
 
 LogBuffer* get_log_buffer(LogBuffer* buffer = nullptr);
+LogBuffer *realloc_log_buffer(size_t size);
 
 struct log_stats_t {
     uint64_t num_log_entries;

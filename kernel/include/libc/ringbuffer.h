@@ -32,6 +32,13 @@ public:
         mFirstIndex = 0;
         mWrapped = false;
     }
+    RingBuffer(size_t sz, const RingBuffer<T>& src) : RingBuffer(sz) {
+        auto old_sz = src.size();
+        T *item = (T*)calloc(sizeof(T), old_sz);
+        src.read(item, old_sz);
+        write(item, old_sz);
+        free(item);
+    }
     RingBuffer(T* buf, size_t sz) {
         mBuffer = buf;
         mSize = sz;
@@ -40,7 +47,14 @@ public:
         mFirstIndex = 0;
         mWrapped = false;
     }
-    
+    RingBuffer(T* buf, size_t sz, const RingBuffer<T>& src) : RingBuffer(buf, sz) {
+        auto old_sz = src.size();
+        T *item = (T*)calloc(sizeof(T), old_sz);
+        src.read(item, old_sz);
+        write(item, old_sz);
+        free(item);
+    }
+
     void write(const T* s, size_t n = 0) {
         if (n == 0) n = strlen((const char*)s);
         for (auto i = 0u; i < n; ++i) {
@@ -48,7 +62,7 @@ public:
         }
     }
     
-    void read(T *s, size_t n) {
+    void read(T *s, size_t n) const {
         if (n >= mCurrentSize) n = mCurrentSize;
         for (auto i = 0u; i < n; ++i) {
             if (false == getchar(i, &s[i])) break;
@@ -73,8 +87,8 @@ private:
             ++mCurrentSize;
         }
     }
-    
-    bool getchar(size_t idx, T *c) {
+
+    bool getchar(size_t idx, T *c) const {
         if (idx >= mCurrentSize) {
             return false;
         }
@@ -83,6 +97,7 @@ private:
         *c = mBuffer[idx];
         return true;
     }
+
     T *mBuffer;
     size_t mSize;
     size_t mPosition;
