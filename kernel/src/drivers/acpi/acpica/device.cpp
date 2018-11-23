@@ -73,13 +73,27 @@ AcpiDeviceManager& AcpiDeviceManager::get() {
 
 AcpiDeviceManager::AcpiDeviceManager() = default;
 
+void AcpiDeviceManager::prepareUserspaceInfo() {
+    for (const auto& acpi_dev : mDevices) {
+        acpi_device_info_t info;
+        bzero(&info, sizeof(info));
+        info.type = acpi_dev.type;
+        strncpy(info.pathname, acpi_dev.pathname, sizeof(info.pathname)-1);
+        if (acpi_dev.devinfo->Valid & ACPI_VALID_HID)
+            strncpy(info.hid, acpi_dev.devinfo->HardwareId.String, sizeof(info.pathname)-1);
+        mUserspaceData.push_back(info);
+    }
+}
+
 ACPI_STATUS AcpiDeviceManager::discoverDevices( AcpiDeviceManager::discover_callback_f callback, void* context ) {
     scanner_ctx_t scan_context {
         .callback = callback,
         .context = context,
         .destination = &mDevices,
     };
-    return AcpiGetDevices(nullptr, acpi_device_scanner, &scan_context, nullptr);
+    ACPI_STATUS get = AcpiGetDevices(nullptr, acpi_device_scanner, &scan_context, nullptr);
+    if (get == AE_OK) prepareUserspaceInfo();
+    return get;
 }
 
 namespace {

@@ -269,4 +269,10 @@ struct pci_device_info_t {
     uint32_t bar[6];
 };
 
+struct acpi_device_info_t {
+    uint32_t type;
+    char pathname[128] = {0};
+    char hid[128] = {0};
+};
+
 #endif

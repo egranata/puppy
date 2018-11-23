@@ -20,6 +20,7 @@
 #include <kernel/drivers/acpi/acpica/acpica.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/vec.h>
+#include <kernel/syscalls/types.h>
 
 class AcpiDeviceManager : NOCOPY {
     public:
@@ -49,6 +50,9 @@ class AcpiDeviceManager : NOCOPY {
 
     private:
         vector<acpica_device_t> mDevices;
+        vector<acpi_device_info_t> mUserspaceData;
+
+        void prepareUserspaceInfo();
         AcpiDeviceManager();
 };
 
