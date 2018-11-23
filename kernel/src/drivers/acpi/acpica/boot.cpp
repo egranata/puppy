@@ -92,13 +92,18 @@ namespace boot::acpica {
         acpi_init = AcpiEnableEvent(ACPI_EVENT_POWER_BUTTON, 0);
         if (IS_ERR) return gFatalFailure;
 
+        AcpiDeviceManager& acpi_dev_mgr(AcpiDeviceManager::get());
         uint64_t num_acpi_devs = 0;
-        acpi_init = AcpiDeviceManager::get().discoverDevices(acpi_scan_callback, &num_acpi_devs);
+        acpi_init = acpi_dev_mgr.discoverDevices(acpi_scan_callback, &num_acpi_devs);
         if (IS_ERR) return gFatalFailure;
 
         bootphase_t::printf("%llu ACPI devices detected\n", num_acpi_devs);
 
-        AcpiDeviceManager::get().tryLoadDrivers();
+        acpi_dev_mgr.tryLoadDrivers();
+
+        DevFS& devfs(DevFS::get());
+        auto acpiDir = devfs.getDeviceDirectory("acpi");
+        acpi_dev_mgr.exportToDevFs(acpiDir);
 
         return bootphase_t::gSuccess;
     }

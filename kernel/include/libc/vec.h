@@ -38,6 +38,10 @@ class vector : NOCOPY {
             mData[mSize++] = item;
         }
 
+        T* data() {
+            return mData;
+        }
+
         size_t size() const {
             return mSize;
         }

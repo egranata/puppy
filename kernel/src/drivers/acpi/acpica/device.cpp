@@ -153,3 +153,19 @@ void AcpiDeviceManager::tryLoadDrivers() {
         ++begin;
     }
 }
+
+void AcpiDeviceManager::exportToDevFs(MemFS::Directory* dir) {
+    class DeviceDataFile : public MemFS::File {
+        private:
+            acpi_device_info_t *mData;
+            size_t mDeviceCount;
+        public:
+            DeviceDataFile(acpi_device_info_t *data, size_t count) : MemFS::File("devices"), mData(data), mDeviceCount(count) {}
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mDeviceCount * sizeof(acpi_device_info_t));
+            }
+    };
+
+    DeviceDataFile *dd = new DeviceDataFile(mUserspaceData.data(), mUserspaceData.size());
+    dir->add(dd);
+}
