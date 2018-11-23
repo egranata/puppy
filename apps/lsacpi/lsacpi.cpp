@@ -85,9 +85,9 @@ int main() {
     printf("%u ACPI devices discovered on this system.\n", devicesList.size());
     for (const auto& device : devicesList) {
 
-        printf("Type:     %s\n", typeToString(device.type));
-        printf("Pathname: %s\n", device.pathname);
-        printf("HID:      %s\n", device.hid);
+                                printf("Type:     %s\n", typeToString(device.type));
+        if (device.pathname[0]) printf("Pathname: %s\n", device.pathname);
+        if (device.hid[0])      printf("HID:      %s\n", device.hid);
         printf("\n");
     }
     return 0;
