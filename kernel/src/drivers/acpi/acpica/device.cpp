@@ -165,7 +165,26 @@ void AcpiDeviceManager::exportToDevFs(MemFS::Directory* dir) {
                 return new MemFS::ExternalDataBuffer((uint8_t*)mData, mDeviceCount * sizeof(acpi_device_info_t));
             }
     };
+    class DSDTDataFile : public MemFS::File {
+        private:
+            uint8_t *mData;
+            size_t mSize;
+        public:
+            DSDTDataFile() : MemFS::File("dsdt"), mData(nullptr), mSize(0) {
+                ACPI_TABLE_HEADER* tbl;
+                ACPI_STATUS ok = AcpiGetTable((char*)ACPI_SIG_DSDT, 0, &tbl);
+                if (ok != AE_OK) return;
+                mData = (uint8_t*)calloc(1, mSize = tbl->Length);
+                memcpy(mData, tbl, mSize);
+                AcpiPutTable(tbl);
+            }
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mSize);
+            }
+    };
 
     DeviceDataFile *dd = new DeviceDataFile(mUserspaceData.data(), mUserspaceData.size());
+    DSDTDataFile *dsdt = new DSDTDataFile();
     dir->add(dd);
+    dir->add(dsdt);
 }
