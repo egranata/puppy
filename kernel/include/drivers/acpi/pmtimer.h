@@ -17,18 +17,19 @@
 #ifndef DRIVERS_ACPI_PMTIMER
 #define DRIVERS_ACPI_PMTIMER
 
-#include <kernel/drivers/acpi/fadt.h>
+#include <kernel/sys/stdint.h>
+#include <kernel/drivers/acpi/acpica/acpica.h>
 
 class PMTimer {
     public:
-        static PMTimer* tryget();
+        static PMTimer& get();
 
         uint32_t read();
 
         bool isThirtyTwoBits() const;
         uint16_t port() const;
     private:
-        PMTimer(acpi_fadt_body_t*);
+        PMTimer();
 
         uint32_t doRead();
 
