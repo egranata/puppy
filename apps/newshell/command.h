@@ -32,21 +32,25 @@ class Command {
     public:
         Command();
         Command(const Command&);
+        void setBackground(bool = true);
         void addWord(const char* word);
         void setRedirect(const char* target);
         void setPipe(const Command& cmd);
         void clear();
 
+        bool background() const { return mBackground; }
         const auto& pipe() const { return mPipeTarget; }
         const auto begin() const { return mWords.begin(); }
         const auto end() const { return mWords.end(); }
         const auto& redirect() const { return mRedirect; }
 
+        void exec();
         void printf() const;
     private:
         std::vector<std::string> mWords;
         std::optional<Redirect> mRedirect;
         std::shared_ptr<Command> mPipeTarget;
+        bool mBackground = false;
 };
 
 

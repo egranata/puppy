@@ -36,9 +36,11 @@ int main()
 {
     Parser parser;
     while (parser.parse()) {
+        auto cmd(parser.command());
         printf("> parsed command: ");
-        parser.command().printf();
+        cmd.printf();
         printf("\n");
+        cmd.exec();
     }
     return 0;
 }

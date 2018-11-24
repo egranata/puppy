@@ -14,6 +14,14 @@
 
 #include "command.h"
 
+#include <stdio.h>
+#include <unistd.h>
+
+#include <libshell/expand.h>
+
+#include <sys/wait.h>
+#include <sys/process.h>
+
 Redirect::Redirect(const char* target) : mTarget(target ? target : "") {}
 const char* Redirect::target() const { return mTarget.c_str(); }
 
@@ -26,8 +34,12 @@ Command::Command(const Command& rhs) {
     }
     if (rhs.mRedirect && rhs.mRedirect->target()) setRedirect(rhs.mRedirect->target());
     if (rhs.mPipeTarget) mPipeTarget = rhs.mPipeTarget;
+    mBackground = rhs.mBackground;
 }
 
+void Command::setBackground(bool b) {
+    mBackground = b;
+}
 void Command::addWord(const char* word) {
     if (word && word[0]) mWords.push_back(word);
 }
@@ -48,10 +60,68 @@ void Command::printf() const {
         ::printf("%s ", word.c_str());
     }
     if (mRedirect) {
-        ::printf(" > %s", mRedirect->target());
+        ::printf("> %s ", mRedirect->target());
+    }
+    if (mBackground) {
+        ::printf("& ");
     }
     if (mPipeTarget) {
-        ::printf(" | ");
+        ::printf("| ");
         mPipeTarget->printf();
+    }
+}
+
+void Command::exec() {
+    if (mPipeTarget) {
+        fprintf(stderr, "pipe: unimplemented\n");
+    }
+
+    char** argv = (char**)calloc(mWords.size() + 1, sizeof(char*));
+    for (size_t i = 0; i < mWords.size(); ++i) argv[i] = (char*)mWords[i].c_str();
+
+    exec_fileop_t fops[] = {
+        exec_fileop_t{
+            .op = exec_fileop_t::operation::END_OF_LIST,
+            .param1 = 0,
+            .param2 = 0,
+            .param3 = nullptr
+        },
+        exec_fileop_t{
+            .op = exec_fileop_t::operation::END_OF_LIST,
+            .param1 = 0,
+            .param2 = 0,
+            .param3 = nullptr,
+        },
+        exec_fileop_t{
+            .op = exec_fileop_t::operation::END_OF_LIST,
+            .param1 = 0,
+            .param2 = 0,
+            .param3 = nullptr
+        },
+    };
+
+    FILE *rdest = nullptr;
+    if (mRedirect) {
+        rdest = fopen(mRedirect->target(), "w");
+        if (rdest) {
+            fops[0].op = exec_fileop_t::operation::CLOSE_CHILD_FD;
+            fops[0].param1 = STDOUT_FILENO;
+            fops[1].op = exec_fileop_t::operation::DUP_PARENT_FD;
+            fops[1].param1 = fileno(rdest);
+        } else {
+            fprintf(stderr, "redirect: failed\n");
+        }
+    }
+
+    auto chld = spawn(mWords[0].c_str(),
+        argv,
+        PROCESS_INHERITS_CWD | (mBackground ? SPAWN_BACKGROUND : SPAWN_FOREGROUND) | PROCESS_INHERITS_ENVIRONMENT,
+        fops);
+    if (rdest) fclose(rdest);
+    if (mBackground) {
+        ::printf("[child %u] spawned\n", chld);
+    } else {
+        int exitcode = 0;
+        waitpid(chld, &exitcode, 0);
     }
 }
