@@ -17,6 +17,8 @@
 #include <kernel/drivers/acpi/acpica/device.h>
 #include <kernel/drivers/acpi/match.h>
 #include <kernel/sys/globals.h>
+#include <kernel/libc/buffer.h>
+#include <kernel/libc/sprint.h>
 
 namespace {
 struct scanner_ctx_t {
@@ -183,8 +185,33 @@ void AcpiDeviceManager::exportToDevFs(MemFS::Directory* dir) {
             }
     };
 
+    class SSDTDataFile : public MemFS::File {
+        private:
+            uint8_t *mData;
+            size_t mSize;
+        public:
+            SSDTDataFile(size_t tblid, ACPI_TABLE_HEADER *tbl) : MemFS::File(""), mData(nullptr), mSize(0) {
+                mData = (uint8_t*)calloc(1, mSize = tbl->Length);
+                memcpy(mData, tbl, mSize);
+                AcpiPutTable(tbl);
+
+                buffer b(32);
+                sprint(b.data<char>(), b.size(), "ssdt%u", tblid);
+                name(b.data<char>());
+            }
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mSize);
+            }
+    };
+
     DeviceDataFile *dd = new DeviceDataFile(mUserspaceData.data(), mUserspaceData.size());
     DSDTDataFile *dsdt = new DSDTDataFile();
     dir->add(dd);
     dir->add(dsdt);
+    for(size_t i = 1;true;++i) {
+        ACPI_TABLE_HEADER* tbl;
+        ACPI_STATUS ok = AcpiGetTable((char*)ACPI_SIG_SSDT, i, &tbl);
+        if (ok != AE_OK) break;
+        dir->add(new SSDTDataFile(i, tbl));
+    }
 }
