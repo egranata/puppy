@@ -15,7 +15,6 @@
 #include <kernel/boot/phase.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/drivers/acpi/pmtimer.h>
-#include <kernel/drivers/acpi/rsdp.h>
 #include <kernel/log/log.h>
 
 LOG_TAG(PMTIMER, 0);

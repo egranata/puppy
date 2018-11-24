@@ -45,9 +45,6 @@ namespace boot {
     namespace smbios {
         uint32_t init();
     }
-    namespace acpi {
-        uint32_t init();
-    }
     namespace acpica {
         uint32_t init();
         bool fail(uint32_t);
@@ -197,14 +194,6 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "SMBIOS discovery",
         visible : false,
         operation : boot::smbios::init,
-        onSuccess : nullptr,
-        onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "ACPI discovery",
-        visible : false,
-        operation : boot::acpi::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
