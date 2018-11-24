@@ -88,6 +88,14 @@ bool Parser::parseCommand(Command& dest) {
             return true;
         }
 
+        if (accept(BACKGROUND)) {
+            dest.setBackground(true);
+            if (acceptNext(TERMINATOR)) return true; else {
+                error("cannot add more arguments after a background");
+                return false;
+            }
+        }
+
         if (!nextsym()) break;
     }
     return true;

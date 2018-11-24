@@ -30,6 +30,7 @@ enum symbol_kind_t {
     TERMINATOR = 4,
     ENVIRONMENT = 5,
     QUOTED = 6,
+    BACKGROUND = 7,
 };
 
 class Symbol {
