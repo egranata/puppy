@@ -16,7 +16,7 @@
 #include <kernel/drivers/acpi/acpica/acpica.h>
 #include <kernel/drivers/pic/pic.h>
 #include <kernel/drivers/acpi/acpica/osi.h>
-#include <kernel/drivers/acpi/acpica/device.h>
+#include <kernel/drivers/acpi/device.h>
 
 #define IS_ERR (acpi_init != AE_OK)
 

@@ -17,7 +17,7 @@
 #ifndef DRIVERS_ACPI_MATCH
 #define DRIVERS_ACPI_MATCH
 
-#include <kernel/drivers/acpi/acpica/device.h>
+#include <kernel/drivers/acpi/device.h>
 
 typedef bool(*acpi_device_match_handler_f)(const AcpiDeviceManager::acpica_device_t&);
 

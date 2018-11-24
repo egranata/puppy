@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <kernel/drivers/acpi/acpica/device.h>
+#include <kernel/drivers/acpi/device.h>
 #include <kernel/drivers/acpi/match.h>
 #include <kernel/sys/globals.h>
 #include <kernel/libc/buffer.h>
