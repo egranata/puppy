@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-all: lexer.l parser.cpp
+all: lexer.l symbol.h app.cpp parser.cpp command.cpp
 	lex -o$(PUPPY_ROOT)/out/newshell.lex.yy.cpp lexer.l
-	$(CC) -Wno-register -I$(PWD) $(PUPPY_ROOT)/out/newshell.lex.yy.cpp parser.cpp -o $(PUPPY_ROOT)/$(OUTWHERE)/newshell
-
+	$(CC) -Wno-register -I$(PWD) $(PUPPY_ROOT)/out/newshell.lex.yy.cpp app.cpp parser.cpp command.cpp -o $(PUPPY_ROOT)/$(OUTWHERE)/newshell

@@ -16,9 +16,12 @@
 #define NEWSHELL_SYMBOL
 
 #include <string>
+#include <optional>
 
+int yylex();
 extern std::string yylval;
 
+// leave it outside of Symbol because it makes the rest of the code more convenient
 enum symbol_kind_t {
     INVALID = 0,
     ARGUMENT = 1,
@@ -27,6 +30,25 @@ enum symbol_kind_t {
     TERMINATOR = 4,
     ENVIRONMENT = 5,
     QUOTED = 6,
+};
+
+class Symbol {
+    public:
+        Symbol() : Symbol(INVALID, nullptr) {}
+        Symbol(symbol_kind_t k, const char* v) : mKind(k), mValue(v ? v : "") {}
+
+        static std::optional<Symbol> fromLexer() {
+            auto k = yylex();
+            if (k == 0) return {};
+            return Symbol((symbol_kind_t)k, yylval.c_str());
+        }
+
+        symbol_kind_t kind() const { return mKind; }
+        bool accept(symbol_kind_t k) const { return mKind == k; }
+        const char* value() const { return mValue.c_str(); }
+    private:
+        symbol_kind_t mKind;
+        std::string mValue;
 };
 
 #endif
