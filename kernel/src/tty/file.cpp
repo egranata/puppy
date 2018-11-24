@@ -20,7 +20,7 @@
 #include <kernel/drivers/ps2/keyboard.h>
 #include <kernel/process/current.h>
 
-LOG_TAG(RAWTTY, 0);
+LOG_TAG(RAWTTY, 2);
 LOG_TAG(TTYFILE, 2);
 LOG_TAG(TTYEOF, 2);
 
