@@ -60,10 +60,6 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
-    namespace ioapic {
-        uint32_t init();
-        bool fail(uint32_t);
-    }
     namespace klog {
         uint32_t init();
         bool fail(uint32_t);
@@ -225,14 +221,6 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "PM Timer discovery",
         visible : false,
         operation : boot::pmtimer::init,
-        onSuccess : nullptr,
-        onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "IO APIC discovery",
-        visible : false,
-        operation : boot::ioapic::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });

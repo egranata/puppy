@@ -66,11 +66,6 @@ RSDT::RSDT(uintptr_t address) : mFADT(nullptr) {
             LOG_DEBUG("found FADT rev %u at 0x%p - DSDT at 0x%p, timer block at 0x%x", mFADT->hdr.rev, mFADT, mFADT->fadt->dsdtptr, mFADT->fadt->pmtmrblk);
         }
 
-        if (0 == strncmp(gMADTSignature, mTable[i].header.sig, 4)) {
-            mMADT = (acpi_madt_table_t*)&mTable[i];
-            LOG_DEBUG("found MADT rev %u at 0x%p", mMADT->hdr.rev, mMADT);
-        }
-
         LOG_DEBUG("ACPI table %u is of size %u and type %c%c%c%c", i, mTable[i].header.len,
             mTable[i].header.sig[0], mTable[i].header.sig[1], mTable[i].header.sig[2], mTable[i].header.sig[3]);
     }
@@ -86,10 +81,6 @@ size_t RSDT::numtables() const {
 
 acpi_fadt_table_t* RSDT::fadt() {
     return mFADT;
-}
-
-acpi_madt_table_t* RSDT::madt() {
-    return mMADT;
 }
 
 bool RSDT::table(size_t idx, acpi_table_t** table) const {
