@@ -16,5 +16,6 @@ INPUTS := $(wildcard src/*.cpp)
 INPUTS += $(wildcard src/builtins/*.cpp)
 INPUTS += main.cpp
 
-all: $(INPUTS)
-	$(CC) -I$(PWD)/include $(INPUTS) -o $(PUPPY_ROOT)/$(OUTWHERE)/shell
+all: $(INPUTS) src/lexer.l
+	lex -o$(PUPPY_ROOT)/out/shell.lex.yy.c src/lexer.l
+	$(CC) -I$(PWD)/include $(INPUTS) $(PUPPY_ROOT)/out/shell.lex.yy.c -o $(PUPPY_ROOT)/$(OUTWHERE)/shell

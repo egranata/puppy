@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/runline.h"
-#include "../include/builtin.h"
-#include "../include/exit.h"
-#include "../include/path.h"
-#include "../include/str.h"
+#include "runline.h"
+#include "builtin.h"
+#include "exit.h"
+#include "path.h"
+#include "str.h"
+#include "input.h"
+#include "parser.h"
+#include "command.h"
 
 #include <sys/wait.h>
 #include <sys/process.h>
@@ -45,13 +48,17 @@ static bool runInShell(const char* program, size_t argc, char** args, bool is_bg
 bool runline(std::string cmdline) {
     trim(cmdline);
     if(cmdline.empty()) return true;
+    if (cmdline.front() == '#') return true;
 
-    const bool is_bg = (cmdline.back() == '&');
-    if (is_bg) cmdline.pop_back();
+    setInputBuffer(cmdline.c_str());
+    Parser parser;
+    while (parser.parse()) {
+        auto cmd = parser.command();
+        if (cmd) {
+            cmd.exec();
+        }
+    }
 
-    size_t argc;
-    auto argv = libShellSupport::parseCommandLine(cmdline.c_str(), &argc);
-    bool ok = runInShell(argv[0], argc, argv, is_bg);
-    libShellSupport::freeCommandLine(argv);
-    return ok;
+    // TODO: error handling
+    return true;
 }
