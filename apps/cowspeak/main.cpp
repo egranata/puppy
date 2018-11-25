@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string>
 
 static const char* THE_COW =
 R"X(
@@ -26,17 +27,21 @@ R"X(
                ||----w |
                ||     ||)X";
 
+char* readFile(FILE* f) {
+    std::string str;
+    while(true) {
+        int c = fgetc(f);
+        if (c == EOF) break;
+        str.append_sprintf("%c", c);
+    }
+    fclose(f);
+    return strdup(str.c_str());
+}
+
 char* readFile(const char* path) {
-    struct stat st;
-    stat(path, &st);
     FILE* fd = fopen(path, "r");
     if (fd == nullptr) return nullptr;
-    
-    char* buf = (char*)calloc(1, st.st_size);
-    fread(buf, 1, st.st_size, fd);
-    fclose(fd);
-    
-    return buf;
+    return readFile(fd);
 }
 
 size_t maxLength(const char* data) {
@@ -160,9 +165,10 @@ void printBuffer(const char* buffer, size_t max) {
 }
 
 int main(int argc, const char * argv[]) {
-    if (argc != 2) return 1;
+    const char* content = (argc == 1 ?
+                           readFile(stdin) :
+                           readFile(argv[1]));
 
-    const char* content = readFile(argv[1]);
     size_t max = maxLength(content);
     printRepeated('_', max+2, true);
     printBuffer(content, max);
