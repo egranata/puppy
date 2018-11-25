@@ -39,6 +39,10 @@ void Command::exec() {
     const char* program = mWords[0].c_str();
     if (tryExecBuiltin(program, argc, argv)) return;
     auto real_program = getProgramPath(program);
+    if (real_program.empty()) {
+        fprintf(stderr, "%s: not found in PATH\n", program);
+        return;
+    }
     program = real_program.c_str();
 
     exec_fileop_t fops[] = {
