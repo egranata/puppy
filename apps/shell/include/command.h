@@ -34,7 +34,8 @@ class Command {
         Command(const Command&);
         void setBackground(bool = true);
         void addWord(const char* word);
-        void setRedirect(const char* target);
+        void redirectStdout(const char* target);
+        void redirectStdin(const char* target);
         void setPipe(const Command& cmd);
         void clear();
 
@@ -42,7 +43,8 @@ class Command {
         const auto& pipe() const { return mPipeTarget; }
         const auto begin() const { return mWords.begin(); }
         const auto end() const { return mWords.end(); }
-        const auto& redirect() const { return mRedirect; }
+        const auto& stdoutR() const { return mOutRedirect; }
+        const auto& stdinR() const { return mInRedirect; }
 
         explicit operator bool() const;
 
@@ -50,7 +52,8 @@ class Command {
         void printf() const;
     private:
         std::vector<std::string> mWords;
-        std::optional<Redirect> mRedirect;
+        std::optional<Redirect> mOutRedirect;
+        std::optional<Redirect> mInRedirect;
         std::shared_ptr<Command> mPipeTarget;
         bool mBackground = false;
 };

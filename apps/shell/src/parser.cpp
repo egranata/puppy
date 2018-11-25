@@ -53,6 +53,45 @@ bool Parser::acceptText(std::string& dest) {
     return false;
 }
 
+bool Parser::parseOutRedirect(Command& dest) {
+    std::string word;
+
+    if (!accept(OUTREDIR)) {
+        error("redirect not found");
+        return false;
+    }
+    if (!nextsym()) {
+        error("redirect requires a valid file path");
+        return false;
+    }
+    if (acceptText(word)) {
+        dest.redirectStdout(word.c_str());
+        return true;
+    } else {
+        error("redirect requires a path");
+        return false;
+    }
+}
+bool Parser::parseInRedirect(Command& dest) {
+    std::string word;
+
+    if (!accept(INREDIR)) {
+        error("redirect not found");
+        return false;
+    }
+    if (!nextsym()) {
+        error("redirect requires a valid file path");
+        return false;
+    }
+    if (acceptText(word)) {
+        dest.redirectStdin(word.c_str());
+        return true;
+    } else {
+        error("redirect requires a path");
+        return false;
+    }
+}
+
 bool Parser::parseCommand(Command& dest) {
     while(true) {
         std::string word;
@@ -60,21 +99,12 @@ bool Parser::parseCommand(Command& dest) {
 
         if (acceptText(word)) dest.addWord(word.c_str());
 
-        if (accept(REDIRECT)) {
-            if (!nextsym()) {
-                error("redirect requires a valid file path");
-                return false;
-            }
-            if (acceptText(word)) {
-                dest.setRedirect(word.c_str());
-            } else {
-                error("redirect needs a destination");
-                return false;
-            }
-            if (acceptNext(TERMINATOR)) return true; else {
-                error("cannot add more arguments after a redirect");
-                return false;
-            }
+        if (accept(OUTREDIR)) {
+            if (!parseOutRedirect(dest)) return false;
+        }
+
+        if (accept(INREDIR)) {
+            if (!parseInRedirect(dest)) return false;
         }
 
         if (accept(PIPE)) {

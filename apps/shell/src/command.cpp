@@ -32,7 +32,8 @@ Command::Command(const Command& rhs) {
     for (; wb != we; ++wb) {
         addWord(wb->c_str());
     }
-    if (rhs.mRedirect && rhs.mRedirect->target()) setRedirect(rhs.mRedirect->target());
+    if (rhs.mOutRedirect && rhs.mOutRedirect->target()) redirectStdout(rhs.mOutRedirect->target());
+    if (rhs.mInRedirect && rhs.mInRedirect->target()) redirectStdin(rhs.mInRedirect->target());
     if (rhs.mPipeTarget) mPipeTarget = rhs.mPipeTarget;
     mBackground = rhs.mBackground;
 }
@@ -43,15 +44,19 @@ void Command::setBackground(bool b) {
 void Command::addWord(const char* word) {
     if (word && word[0]) mWords.push_back(word);
 }
-void Command::setRedirect(const char* target) {
-    mRedirect = Redirect(target);
+void Command::redirectStdout(const char* target) {
+    mOutRedirect = Redirect(target);
+}
+void Command::redirectStdin(const char* target) {
+    mInRedirect = Redirect(target);
 }
 void Command::setPipe(const Command& cmd) {
     mPipeTarget.reset(new Command(cmd));
 }
 void Command::clear() {
     mWords.clear();
-    mRedirect.reset();
+    mOutRedirect.reset();
+    mInRedirect.reset();
     mPipeTarget.reset();
 }
 
@@ -63,8 +68,11 @@ void Command::printf() const {
     for (const auto& word : mWords) {
         ::printf("%s ", word.c_str());
     }
-    if (mRedirect) {
-        ::printf("> %s ", mRedirect->target());
+    if (mOutRedirect) {
+        ::printf("> %s ", mOutRedirect->target());
+    }
+    if (mInRedirect) {
+        ::printf("< %s ", mInRedirect->target());
     }
     if (mBackground) {
         ::printf("& ");

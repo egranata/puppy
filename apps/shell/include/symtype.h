@@ -19,12 +19,13 @@
 enum symbol_kind_t {
     INVALID = 0,
     ARGUMENT = 1,
-    REDIRECT = 2,
-    PIPE = 3,
-    TERMINATOR = 4,
-    ENVIRONMENT = 5,
-    QUOTED = 6,
-    BACKGROUND = 7,
+    OUTREDIR = 2,
+    INREDIR = 3,
+    PIPE = 4,
+    TERMINATOR = 5,
+    ENVIRONMENT = 6,
+    QUOTED = 7,
+    BACKGROUND = 8,
 };
 
 #endif

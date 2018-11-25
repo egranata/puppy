@@ -60,16 +60,49 @@ void Command::exec() {
             .param2 = 0,
             .param3 = nullptr
         },
+        exec_fileop_t{
+            .op = exec_fileop_t::operation::END_OF_LIST,
+            .param1 = 0,
+            .param2 = 0,
+            .param3 = nullptr
+        },
+        exec_fileop_t{
+            .op = exec_fileop_t::operation::END_OF_LIST,
+            .param1 = 0,
+            .param2 = 0,
+            .param3 = nullptr,
+        },
+        exec_fileop_t{
+            .op = exec_fileop_t::operation::END_OF_LIST,
+            .param1 = 0,
+            .param2 = 0,
+            .param3 = nullptr
+        },
     };
 
-    FILE *rdest = nullptr;
-    if (mRedirect) {
-        rdest = fopen(mRedirect->target(), "w");
-        if (rdest) {
-            fops[0].op = exec_fileop_t::operation::CLOSE_CHILD_FD;
-            fops[0].param1 = STDOUT_FILENO;
-            fops[1].op = exec_fileop_t::operation::DUP_PARENT_FD;
-            fops[1].param1 = fileno(rdest);
+    FILE *outRedir = nullptr;
+    FILE *inRedir = nullptr;
+    size_t redirIndex = 0;
+    if (stdoutR()) {
+        outRedir = fopen(stdoutR()->target(), "w");
+        if (outRedir) {
+            fops[redirIndex].op = exec_fileop_t::operation::CLOSE_CHILD_FD;
+            fops[redirIndex].param1 = STDOUT_FILENO;
+            fops[redirIndex + 1].op = exec_fileop_t::operation::DUP_PARENT_FD;
+            fops[redirIndex + 1].param1 = fileno(outRedir);
+            redirIndex += 2;
+        } else {
+            fprintf(stderr, "redirect: failed\n");
+        }
+    }
+    if (stdinR()) {
+        inRedir = fopen(stdinR()->target(), "r");
+        if (inRedir) {
+            fops[redirIndex].op = exec_fileop_t::operation::CLOSE_CHILD_FD;
+            fops[redirIndex].param1 = STDIN_FILENO;
+            fops[redirIndex + 1].op = exec_fileop_t::operation::DUP_PARENT_FD;
+            fops[redirIndex + 1].param1 = fileno(inRedir);
+            redirIndex += 2;
         } else {
             fprintf(stderr, "redirect: failed\n");
         }
@@ -79,7 +112,8 @@ void Command::exec() {
         argv,
         PROCESS_INHERITS_CWD | (mBackground ? SPAWN_BACKGROUND : SPAWN_FOREGROUND) | PROCESS_INHERITS_ENVIRONMENT,
         fops);
-    if (rdest) fclose(rdest);
+    if (outRedir) fclose(outRedir);
+    if (inRedir) fclose(inRedir);
     if (mBackground) {
         ::printf("[child %u] spawned\n", chld);
     } else {

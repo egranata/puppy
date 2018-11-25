@@ -30,6 +30,8 @@ class Parser {
         // into an argument
         bool acceptText(std::string& dest);
         bool parseCommand(Command& dest);
+        bool parseOutRedirect(Command& dest);
+        bool parseInRedirect(Command& dest);
 
         void error(const char* msg);
 
