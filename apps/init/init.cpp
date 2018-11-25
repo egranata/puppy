@@ -33,9 +33,9 @@ struct init_service_t {
     std::string path;
     std::string args;
     bool foreground;
+    bool wait;
 };
 
-static const char* gConfigScript = "/system/config/init.cfg";
 static const char* gServicesList = "/system/config/init.svc";
 
 namespace {
@@ -80,52 +80,6 @@ InitScriptResult readInitScript(const char* path, std::string* dest) {
     return InitScriptResult::OK;
 }
 
-std::vector<std::string> tokenize(std::string s) {
-    std::vector<std::string> result;
-
-    auto add_to_vec = [&result] (const std::string& line) {
-        if (line.empty()) return;
-        if (line[0] == '#') return;
-        result.push_back(line);
-    };
-
-    decltype(s)::size_type pos = 0;
-    auto end = std::string::npos;
-    while (true) {
-        auto nl = s.find('\n', pos);
-        if (nl == end) break;
-        std::string line = s.substr(pos, nl-pos);
-        pos = nl + 1;
-        add_to_vec(line);
-    }
-    if (pos != end) {
-        std::string line = s.substr(pos);
-        add_to_vec(line);
-    }
-    return result;
-}
-
-int runCommand(const std::string& line) {
-    uint16_t pid;
-    int result;
-
-    auto space = line.find(' ');
-    if (space == std::string::npos) {
-        pid = exec_syscall(line.c_str(), nullptr, environ, 0, nullptr);
-    } else {
-        size_t argc;
-        auto argv = libShellSupport::parseCommandLine(line.c_str(), &argc);
-        auto program = argv[0];
-        pid = exec_syscall(program, argv, environ, 0, nullptr);
-        libShellSupport::freeCommandLine(argv);
-    }
-    pid >>= 1;
-
-    while (pid != waitpid(pid, &result, 0));
-    if (WIFEXITED(result)) return WEXITSTATUS(result);
-    return result;
-}
-
 kpid_t spawnService(const init_service_t &svc) {
     kpid_t pid;
 
@@ -151,30 +105,6 @@ kpid_t spawnService(const init_service_t &svc) {
     return pid >>= 1;
 }
 
-bool runInitScript(bool allow_missing_or_empty = true, bool allow_spawn_error = false) {
-    std::string content;
-    switch (readInitScript(gConfigScript, &content)) {
-        case InitScriptResult::FILE_NOT_FOUND:
-        case InitScriptResult::FILE_EMPTY:
-            return allow_missing_or_empty;
-        case InitScriptResult::OK:
-            break;
-        case InitScriptResult::READ_ERROR:
-            return false;
-    }
-
-    auto commands = tokenize(content);
-    for(const auto& command : commands) {
-        printf("[init] %s\n", command.c_str());
-        int result = runCommand(command);
-        if (result == 0) continue;
-        printf("[init] command exited as %d\n", result);
-        if (!allow_spawn_error) return false;
-    }
-
-    return true;
-}
-
 typedef std::unordered_map<kpid_t, init_service_t> ServicesMap;
 ServicesMap& getServicesMap() {
     static ServicesMap gMap;
@@ -187,7 +117,18 @@ bool spawnInitService(const init_service_t& svc) {
         printf("[init] process did not start\n");
         return false;
     } else {
-        getServicesMap().emplace(pid, svc);
+        if (svc.wait) {
+            // services with wait cannot be respawned, and must be synchronously waited for
+            process_exit_status_t st = collect(pid);
+            if ((st.reason != process_exit_status_t::reason_t::cleanExit) || (st.status != 0)) {
+                printf("[init] process did not exit cleanly\n");
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            getServicesMap().emplace(pid, svc);
+        }
         return true;
     }
 }
@@ -218,13 +159,17 @@ static bool parseInitServices(const std::string& content, std::vector<init_servi
         const char* path = json_object_get_string(service, "path");
         const char* args = json_object_get_string(service, "args");
         int fg = json_object_get_boolean(service, "foreground");
-        if (name == nullptr || path == nullptr || args == nullptr || fg < 0) continue;
+        int wait = json_object_get_boolean(service, "wait");
+        if (fg == -1) fg = 0; // default to background
+        if (wait == -1) wait = 0; // default to non-waiting
+        if (name == nullptr || path == nullptr || args == nullptr) continue;
 
         init_service_t new_svc_info {
             .name = std::string(name),
             .path = std::string(path),
             .args = std::string(args),
-            .foreground = (fg == 1)
+            .foreground = (fg == 1),
+            .wait = (wait == 1),
         };
         dest.push_back(new_svc_info);
     }
@@ -283,10 +228,6 @@ static void __attribute__((constructor)) init_ctor() {
 }
 
 int main(int, const char**) {
-    if (!runInitScript()) {
-        writeToLog("init could not run config - will exit");
-        exit(1);
-    }
     if (!loadInitServices()) {
         writeToLog("init could not load system services - will exit");
         exit(1);

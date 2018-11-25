@@ -1,4 +1,22 @@
 [
+    {"name" : "mkramdisk",
+     "path" : "/system/apps/mkramdisk",
+     "args" : "4096",
+     "wait" : true
+    },
+
+    {"name" : "mount",
+     "path" : "/initrd/mount",
+     "args" : "/devices/ramdisk/vol0 /tmp",
+     "wait" : true
+    },
+
+    {"name" : "color",
+     "path" : "/system/apps/color",
+     "args" : "bg grey",
+     "wait" : true
+    },
+
     {"name" : "shell",
      "path" : "/system/apps/shell",
      "args" : "--init",
