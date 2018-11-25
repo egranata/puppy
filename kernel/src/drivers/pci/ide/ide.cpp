@@ -27,6 +27,7 @@ static constexpr IDEController::channelid_t channel0 = IDEController::channelid_
 static constexpr IDEController::channelid_t channel1 = IDEController::channelid_t::one;
 
 static constexpr uint8_t gDataRegister = 0x00;
+static constexpr uint8_t gFeatureRegister = 0x01;
 static constexpr uint8_t gSectorCountRegister = 0x02;
 static constexpr uint8_t gLBA0Register = 0x03;
 static constexpr uint8_t gLBA1Register = 0x04;
@@ -49,6 +50,8 @@ static constexpr uint8_t gIdentifyCommand = 0xEC;
 static constexpr uint8_t gIdentifyPacket = 0xA1;
 static constexpr uint8_t gFlushCommand = 0xE7;
 static constexpr uint8_t gFlush48Command = 0xEA;
+static constexpr uint8_t gSetFeaturesCommand = 0xEF;
+    static constexpr uint8_t gSetFeatures_TransferMode = 0x3;
 
 static constexpr uint8_t gStatusError = 0x01;
 static constexpr uint8_t gStatusRequestReady = 0x08;
@@ -65,6 +68,7 @@ static constexpr size_t gIdentityHeads = 0x06;
 static constexpr size_t gIdentitySectors = 0x0C;
 static constexpr size_t gIdentitySerial = 0x14;
 static constexpr size_t gIdentityModel = 0x36;
+static constexpr size_t gIdentityPIOModes = 0x40;
 static constexpr size_t gIdentityCapabilities = 0x62;
 static constexpr size_t gIdentityFieldValid = 0x6A;
 static constexpr size_t gIdentityMaxLBA = 0x78;
@@ -308,7 +312,7 @@ bool IDEController::dowrite(const disk_t& disk, uint32_t sector, uint8_t num, un
     return true;
 }
 
-bool IDEController::poll(channelid_t chan, bool check) {
+bool IDEController::poll(channelid_t chan, bool check, bool checkRQRDY, bool checkDRDY) {
     wait400(chan);
 
     while(read(chan, gStatusRegister) & gStatusBusy);
@@ -317,14 +321,57 @@ bool IDEController::poll(channelid_t chan, bool check) {
         auto status = read(chan, gStatusRegister);
         TAG_DEBUG(DISKACCESS, "status register: 0x%x", status);
         if ((status & gStatusError) || (status & gStatusDeviceFault)) {
+            auto err = read(chan, gStatusError);
+            LOG_ERROR("status register: 0x%x error register: 0x%x", status, err);
             return false;
         }
-        if (0 == (status & gStatusRequestReady)) {
-            return false;
+        if (checkRQRDY) {
+            if (0 == (status & gStatusRequestReady)) {
+                return false;
+            }
+        }
+        if (checkDRDY) {
+            if (0 == (status & gStatusDriveReady)) {
+                return false;
+            }
         }
     }
 
     return true;
+}
+
+size_t IDEController::configurepio() {
+    size_t count = 0;
+
+    for (size_t c = 0; c < 2; ++c) {
+        channelid_t ch = (channelid_t)c;
+        for (size_t d = 0; d < 2; ++d) {
+            auto& dev = mChannel[c].devices[d];
+            auto mode = 0;
+            if (dev.present && dev.modes & 1) mode = 6; // PIO3
+            if (dev.present && dev.modes & 2) mode = 12; // PIO4
+            if (mode) {
+                LOG_DEBUG("c=%u d=%u PIO%d supported", c, d, mode);
+                write(ch, gDiskSelectorRegister, 0xA0 | (d << 4));
+                wait400(ch);
+
+                write(ch, gFeatureRegister, gSetFeatures_TransferMode);
+                write(ch, gSectorCountRegister, mode);
+
+                write(ch, gCommandRegister, gSetFeaturesCommand);
+                wait400(ch);
+
+                if (poll(ch, true, false, true)) {
+                    ++count;
+                    LOG_DEBUG("PIO enabled");
+                } else {
+                    LOG_ERROR("failed to enable PIO - will use HW default; performance may suffer");
+                }
+            }
+        }
+    }
+
+    return count;
 }
 
 IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
@@ -367,6 +414,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             channel_t::device_t{
                 present : false,
                 kind : channel_t::device_t::kind_t::ata,
+                modes : 0,
                 serial : {0},
                 signature : 0,
                 features : 0,
@@ -377,6 +425,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             channel_t::device_t{
                 present : false,
                 kind : channel_t::device_t::kind_t::ata,
+                modes : 0,
                 serial : {0}, 
                 signature : 0,
                 features : 0,
@@ -396,6 +445,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             channel_t::device_t{
                 present : false,
                 kind : channel_t::device_t::kind_t::ata,
+                modes : 0,
                 serial : {0}, 
                 signature : 0,
                 features : 0,
@@ -406,6 +456,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             channel_t::device_t{
                 present : false,
                 kind : channel_t::device_t::kind_t::ata,
+                modes : 0,
                 serial : {0}, 
                 signature : 0,
                 features : 0,
@@ -488,6 +539,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
             device.signature = buf.word[gIdentityDeviceType / 2];
             device.features = buf.word[gIdentityCapabilities / 2];
             device.cmdsets = buf.dword[gIdentityCommandSets / 4];
+            device.modes = buf.word[gIdentityPIOModes];
 
             if (device.cmdsets & g48BitAddressing) {
                 device.sectors = buf.dword[gIdentityMaxLBAExt / 4];
@@ -503,6 +555,8 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
                 device.sectors = buf.dword[gIdentityMaxLBA / 4];
             }
 
+            LOG_DEBUG("device supports PIO modes 0x%x", device.modes);
+
             for (auto k = 0; k < 40; k+= 2) {
                 device.model[k] = buf.byte[gIdentityModel + k + 1];
                 device.model[k + 1] = buf.byte[gIdentityModel + k];
@@ -517,6 +571,8 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
                 device.signature, device.features, device.cmdsets, device.sectors, device.model, device.serial);
         }
     }
+
+    configurepio();
 }
 
 static bool addIDEController(const PCIBus::PCIDeviceData &dev) {

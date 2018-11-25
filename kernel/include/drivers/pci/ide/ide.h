@@ -76,6 +76,7 @@ class IDEController : public PCIBus::PCIDevice, NOCOPY {
                     atapi,
                     sata,
                 } kind;
+                uint8_t modes;
                 uint8_t serial[21];
                 uint16_t signature;
                 uint16_t features;
@@ -87,6 +88,8 @@ class IDEController : public PCIBus::PCIDevice, NOCOPY {
 
         channel_t mChannel[2];
 
+        size_t configurepio();
+
         bool preparepio(const disk_t&, const pio_op_params_t&);
 
         bool doread(const disk_t& disk, uint32_t sec0, uint8_t num, unsigned char *buffer);
@@ -95,7 +98,7 @@ class IDEController : public PCIBus::PCIDevice, NOCOPY {
         uint8_t read(channelid_t channel, uint8_t reg);
         void write(channelid_t channel, uint8_t reg, uint8_t data);
 
-        bool poll(channelid_t, bool = true);
+        bool poll(channelid_t, bool = true, bool = true, bool = false);
 
         void wait400(channelid_t);
 
