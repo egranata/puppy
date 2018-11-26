@@ -44,6 +44,9 @@ POSSIBILITY OF SUCH DAMAGE.
 -----------------------------------------------------------------------------
 */
 
+#define PCRE2GREP_BUFSIZE 20480
+#define PCRE2GREP_MAX_BUFSIZE 1048576
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -426,7 +429,7 @@ static option_item optionlist[] = {
 #ifdef SUPPORT_PCRE2GREP_JIT
   { OP_NODATA,     N_NOJIT,  NULL,              "no-jit",        "do not use just-in-time compiler optimization" },
 #else
-  { OP_NODATA,     N_NOJIT,  NULL,              "no-jit",        "ignored: this pcre2grep does not support JIT" },
+  { OP_NODATA,     N_NOJIT,  NULL,              "no-jit",        "ignored: this grep does not support JIT" },
 #endif
   { OP_STRING,     'O',      &output_text,       "output=text",   "show only this text (possibly expanded)" },
   { OP_OP_NUMBERS, 'o',      &only_matching_data, "only-matching=n", "show only the part of the line that matched" },
@@ -585,10 +588,10 @@ therein. */
 
 if (resource_error)
   {
-  fprintf(stderr, "pcre2grep: Error %d, %d, %d or %d means that a resource "
+  fprintf(stderr, "grep: Error %d, %d, %d or %d means that a resource "
     "limit was exceeded.\n", PCRE2_ERROR_JIT_STACKLIMIT, PCRE2_ERROR_MATCHLIMIT,
     PCRE2_ERROR_DEPTHLIMIT, PCRE2_ERROR_HEAPLIMIT);
-  fprintf(stderr, "pcre2grep: Check your regex for nested unlimited loops.\n");
+  fprintf(stderr, "grep: Check your regex for nested unlimited loops.\n");
   }
 exit(rc);
 }
@@ -615,12 +618,12 @@ add_pattern(char *s, PCRE2_SIZE patlen, patstr *after)
 patstr *p = (patstr *)malloc(sizeof(patstr));
 if (p == NULL)
   {
-  fprintf(stderr, "pcre2grep: malloc failed\n");
+  fprintf(stderr, "grep: malloc failed\n");
   pcre2grep_exit(2);
   }
 if (patlen > MAXPATLEN)
   {
-  fprintf(stderr, "pcre2grep: pattern is too long (limit is %d bytes)\n",
+  fprintf(stderr, "grep: pattern is too long (limit is %d bytes)\n",
     MAXPATLEN);
   free(p);
   return NULL;
@@ -926,7 +929,7 @@ pattern = (char *)malloc(len + 3);
 dir = (directory_type *)malloc(sizeof(*dir));
 if ((pattern == NULL) || (dir == NULL))
   {
-  fprintf(stderr, "pcre2grep: malloc failed\n");
+  fprintf(stderr, "grep: malloc failed\n");
   pcre2grep_exit(2);
   }
 memcpy(pattern, filename, len);
@@ -1075,7 +1078,7 @@ FWRITE_IGNORE(buf, 1, length, stdout);
 #endif  /* End of system-specific functions */
 
 
-
+#ifndef __puppy__
 #ifndef HAVE_STRERROR
 /*************************************************
 *     Provide strerror() for non-ANSI libraries  *
@@ -1095,7 +1098,7 @@ if (n < 0 || n >= sys_nerr) return "unknown error number";
 return sys_errlist[n];
 }
 #endif /* HAVE_STRERROR */
-
+#endif
 
 
 /*************************************************
@@ -1106,13 +1109,13 @@ static int
 usage(int rc)
 {
 option_item *op;
-fprintf(stderr, "Usage: pcre2grep [-");
+fprintf(stderr, "Usage: grep [-");
 for (op = optionlist; op->one_char != 0; op++)
   {
   if (op->one_char > 0) fprintf(stderr, "%c", op->one_char);
   }
 fprintf(stderr, "] [long options] [pattern] [files]\n");
-fprintf(stderr, "Type \"pcre2grep --help\" for more information and the long "
+fprintf(stderr, "Type \"grep --help\" for more information and the long "
   "options.\n");
 return rc;
 }
@@ -1128,14 +1131,14 @@ help(void)
 {
 option_item *op;
 
-printf("Usage: pcre2grep [OPTION]... [PATTERN] [FILE1 FILE2 ...]" STDOUT_NL);
+printf("Usage: grep [OPTION]... [PATTERN] [FILE1 FILE2 ...]" STDOUT_NL);
 printf("Search for PATTERN in each FILE or standard input." STDOUT_NL);
 printf("PATTERN must be present if neither -e nor -f is used." STDOUT_NL);
 
 #ifdef SUPPORT_PCRE2GREP_CALLOUT
 printf("Callout scripts in patterns are supported." STDOUT_NL);
 #else
-printf("Callout scripts are not supported in this pcre2grep." STDOUT_NL);
+printf("Callout scripts are not supported in this grep." STDOUT_NL);
 #endif
 
 printf("\"-\" can be used as a file name to mean STDIN." STDOUT_NL);
@@ -1154,7 +1157,7 @@ printf("Other files and the standard input are read as plain files." STDOUT_NL S
 printf("All files are read as plain files, without any interpretation." STDOUT_NL STDOUT_NL);
 #endif
 
-printf("Example: pcre2grep -i " QUOT "hello.*world" QUOT " menu.h main.c" STDOUT_NL STDOUT_NL);
+printf("Example: grep -i " QUOT "hello.*world" QUOT " menu.h main.c" STDOUT_NL STDOUT_NL);
 printf("Options:" STDOUT_NL);
 
 for (op = optionlist; op->one_char != 0; op++)
@@ -1269,11 +1272,11 @@ if (*endptr != 0)   /* Error */
     char *equals = strchr(op->long_name, '=');
     int nlen = (equals == NULL)? (int)strlen(op->long_name) :
       (int)(equals - op->long_name);
-    fprintf(stderr, "pcre2grep: Malformed number \"%s\" after --%.*s\n",
+    fprintf(stderr, "grep: Malformed number \"%s\" after --%.*s\n",
       option_data, nlen, op->long_name);
     }
   else
-    fprintf(stderr, "pcre2grep: Malformed number \"%s\" after -%c\n",
+    fprintf(stderr, "grep: Malformed number \"%s\" after -%c\n",
       option_data, op->one_char);
   pcre2grep_exit(usage(2));
   }
@@ -1304,7 +1307,7 @@ omstr *om = (omstr *)malloc(sizeof(omstr));
 
 if (om == NULL)
   {
-  fprintf(stderr, "pcre2grep: malloc failed\n");
+  fprintf(stderr, "grep: malloc failed\n");
   pcre2grep_exit(2);
   }
 om->next = NULL;
@@ -1720,7 +1723,7 @@ for (i = 1; p != NULL; p = p->next, i++)
     startoffset, options, match_data, match_context);
   if (*mrc >= 0) return TRUE;
   if (*mrc == PCRE2_ERROR_NOMATCH) continue;
-  fprintf(stderr, "pcre2grep: pcre2_match() gave error %d while matching ", *mrc);
+  fprintf(stderr, "grep: pcre2_match() gave error %d while matching ", *mrc);
   if (patterns->next != NULL) fprintf(stderr, "pattern number %d to ", i);
   fprintf(stderr, "%s", msg);
   FWRITE_IGNORE(matchptr, 1, slen, stderr);   /* In case binary zero included */
@@ -1730,7 +1733,7 @@ for (i = 1; p != NULL; p = p->next, i++)
     resource_error = TRUE;
   if (error_count++ > 20)
     {
-    fprintf(stderr, "pcre2grep: Too many errors - abandoned.\n");
+    fprintf(stderr, "grep: Too many errors - abandoned.\n");
     pcre2grep_exit(2);
     }
   return invert;    /* No more matching; don't show the line again */
@@ -1761,7 +1764,7 @@ for (; *string != 0; string++)
     if (*string == 0)
       {
       if (!callout)
-        fprintf(stderr, "pcre2grep: Error in output text at offset %d: %s\n",
+        fprintf(stderr, "grep: Error in output text at offset %d: %s\n",
           (int)(string - begin), "no character after $");
       return FALSE;
       }
@@ -1792,7 +1795,7 @@ for (; *string != 0; string++)
         if (*string != '}')
           {
           if (!callout)
-            fprintf(stderr, "pcre2grep: Error in output text at offset %d: %s\n",
+            fprintf(stderr, "grep: Error in output text at offset %d: %s\n",
               (int)(string - begin), "missing closing brace");
           return FALSE;
           }
@@ -1807,7 +1810,7 @@ for (; *string != 0; string++)
       {
       /* Syntax error: a decimal number required. */
       if (!callout)
-        fprintf(stderr, "pcre2grep: Error in output text at offset %d: %s\n",
+        fprintf(stderr, "grep: Error in output text at offset %d: %s\n",
           (int)(string - begin), "decimal number expected");
       return FALSE;
       }
@@ -1819,7 +1822,7 @@ for (; *string != 0; string++)
         {
         /* Syntax error: an octal number required. */
         if (!callout)
-          fprintf(stderr, "pcre2grep: Error in output text at offset %d: %s\n",
+          fprintf(stderr, "grep: Error in output text at offset %d: %s\n",
             (int)(string - begin), "octal number expected");
         return FALSE;
         }
@@ -1832,7 +1835,7 @@ for (; *string != 0; string++)
         {
         /* Syntax error: a hexdecimal number required. */
         if (!callout)
-          fprintf(stderr, "pcre2grep: Error in output text at offset %d: %s\n",
+          fprintf(stderr, "grep: Error in output text at offset %d: %s\n",
             (int)(string - begin), "hexadecimal number expected");
         return FALSE;
         }
@@ -2451,8 +2454,8 @@ while (ptr < endptr)
       if (new_buffer == NULL)
         {
         fprintf(stderr,
-          "pcre2grep: line %lu%s%s is too long for the internal buffer\n"
-          "pcre2grep: not enough memory to increase the buffer size to %d\n",
+          "grep: line %lu%s%s is too long for the internal buffer\n"
+          "grep: not enough memory to increase the buffer size to %d\n",
           linenumber,
           (filename == NULL)? "" : " of file ",
           (filename == NULL)? "" : filename,
@@ -2481,9 +2484,9 @@ while (ptr < endptr)
     else
       {
       fprintf(stderr,
-        "pcre2grep: line %lu%s%s is too long for the internal buffer\n"
-        "pcre2grep: the maximum buffer size is %d\n"
-        "pcre2grep: use the --max-buffer-size option to change it\n",
+        "grep: line %lu%s%s is too long for the internal buffer\n"
+        "grep: the maximum buffer size is %d\n"
+        "grep: use the --max-buffer-size option to change it\n",
         linenumber,
         (filename == NULL)? "" : " of file ",
         (filename == NULL)? "" : filename,
@@ -3093,7 +3096,7 @@ zos_test_file =  fopen(pathname,"rb");
 
 if (zos_test_file == NULL)
    {
-   if (!silent) fprintf(stderr, "pcre2grep: failed to test next file %s\n",
+   if (!silent) fprintf(stderr, "grep: failed to test next file %s\n",
      pathname, strerror(errno));
    return -1;
    }
@@ -3139,7 +3142,7 @@ if (isdirectory(pathname))
     if (dir == NULL)
       {
       if (!silent)
-        fprintf(stderr, "pcre2grep: Failed to open directory %s: %s\n", pathname,
+        fprintf(stderr, "grep: Failed to open directory %s: %s\n", pathname,
           strerror(errno));
       return 2;
       }
@@ -3150,7 +3153,7 @@ if (isdirectory(pathname))
       int fnlength = strlen(pathname) + strlen(nextfile) + 2;
       if (fnlength > FNBUFSIZ)
         {
-        fprintf(stderr, "pcre2grep: recursive filename is too long\n");
+        fprintf(stderr, "grep: recursive filename is too long\n");
         rc = 2;
         break;
         }
@@ -3231,7 +3234,7 @@ if (pathlen > 3 && strcmp(pathname + pathlen - 3, ".gz") == 0)
   if (ingz == NULL)
     {
     if (!silent)
-      fprintf(stderr, "pcre2grep: Failed to open %s: %s\n", pathname,
+      fprintf(stderr, "grep: Failed to open %s: %s\n", pathname,
         strerror(errno));
     return 2;
     }
@@ -3270,7 +3273,7 @@ PLAIN_FILE:
 if (handle == NULL)
   {
   if (!silent)
-    fprintf(stderr, "pcre2grep: Failed to open %s: %s\n", pathname,
+    fprintf(stderr, "grep: Failed to open %s: %s\n", pathname,
       strerror(errno));
   return 2;
   }
@@ -3305,7 +3308,7 @@ if (frtype == FR_LIBBZ2)
       goto PLAIN_FILE;
       }
     else if (!silent)
-      fprintf(stderr, "pcre2grep: Failed to read %s using bzlib: %s\n",
+      fprintf(stderr, "grep: Failed to read %s using bzlib: %s\n",
         pathname, err);
     rc = 2;    /* The normal "something went wrong" code */
     }
@@ -3369,13 +3372,13 @@ switch(letter)
     {
     unsigned char buffer[128];
     (void)pcre2_config(PCRE2_CONFIG_VERSION, buffer);
-    fprintf(stdout, "pcre2grep version %s" STDOUT_NL, buffer);
+    fprintf(stdout, "grep version %s" STDOUT_NL, buffer);
     }
   pcre2grep_exit(0);
   break;
 
   default:
-  fprintf(stderr, "pcre2grep: Unknown option -%c\n", letter);
+  fprintf(stderr, "grep: Unknown option -%c\n", letter);
   pcre2grep_exit(usage(2));
   }
 
@@ -3483,16 +3486,16 @@ pcre2_get_error_message(errcode, errmessbuffer, sizeof(errmessbuffer));
 
 if (fromfile)
   {
-  fprintf(stderr, "pcre2grep: Error in regex in line %d of %s "
+  fprintf(stderr, "grep: Error in regex in line %d of %s "
     "at offset %d: %s\n", count, fromtext, (int)erroffset, errmessbuffer);
   }
 else
   {
   if (count == 0)
-    fprintf(stderr, "pcre2grep: Error in %s regex at offset %d: %s\n",
+    fprintf(stderr, "grep: Error in %s regex at offset %d: %s\n",
       fromtext, (int)erroffset, errmessbuffer);
   else
-    fprintf(stderr, "pcre2grep: Error in %s %s regex at offset %d: %s\n",
+    fprintf(stderr, "grep: Error in %s %s regex at offset %d: %s\n",
       ordin(count), fromtext, (int)erroffset, errmessbuffer);
   }
 
@@ -3534,7 +3537,7 @@ else
   f = fopen(name, "r");
   if (f == NULL)
     {
-    fprintf(stderr, "pcre2grep: Failed to open %s: %s\n", name, strerror(errno));
+    fprintf(stderr, "grep: Failed to open %s: %s\n", name, strerror(errno));
     return FALSE;
     }
   filename = name;
@@ -3721,7 +3724,7 @@ for (i = 1; i < argc; i++)
                      fulllen - baselen - 2, opbra + 1),
              ret < 0 || ret > (int)sizeof(buff2)))
           {
-          fprintf(stderr, "pcre2grep: Buffer overflow when parsing %s option\n",
+          fprintf(stderr, "grep: Buffer overflow when parsing %s option\n",
             op->long_name);
           pcre2grep_exit(2);
           }
@@ -3745,7 +3748,7 @@ for (i = 1; i < argc; i++)
 
     if (op->one_char == 0)
       {
-      fprintf(stderr, "pcre2grep: Unknown option %s\n", argv[i]);
+      fprintf(stderr, "grep: Unknown option %s\n", argv[i]);
       pcre2grep_exit(usage(2));
       }
     }
@@ -3789,7 +3792,7 @@ for (i = 1; i < argc; i++)
         }
       if (op->one_char == 0)
         {
-        fprintf(stderr, "pcre2grep: Unknown option letter '%c' in \"%s\"\n",
+        fprintf(stderr, "grep: Unknown option letter '%c' in \"%s\"\n",
           *s, argv[i]);
         pcre2grep_exit(usage(2));
         }
@@ -3867,7 +3870,7 @@ for (i = 1; i < argc; i++)
     {
     if (i >= argc - 1 || longopwasequals)
       {
-      fprintf(stderr, "pcre2grep: Data missing after %s\n", argv[i]);
+      fprintf(stderr, "grep: Data missing after %s\n", argv[i]);
       pcre2grep_exit(usage(2));
       }
     option_data = argv[++i];
@@ -3906,7 +3909,7 @@ for (i = 1; i < argc; i++)
     fn = (fnstr *)malloc(sizeof(fnstr));
     if (fn == NULL)
       {
-      fprintf(stderr, "pcre2grep: malloc failed\n");
+      fprintf(stderr, "grep: malloc failed\n");
       goto EXIT2;
       }
     fn->next = NULL;
@@ -3930,7 +3933,7 @@ for (i = 1; i < argc; i++)
       binary_files = BIN_TEXT;
     else
       {
-      fprintf(stderr, "pcre2grep: unknown value \"%s\" for binary-files\n",
+      fprintf(stderr, "grep: unknown value \"%s\" for binary-files\n",
         option_data);
       pcre2grep_exit(usage(2));
       }
@@ -3970,7 +3973,7 @@ only_matching_count = (only_matching != NULL) + (output_text != NULL) +
 
 if (only_matching_count > 1)
   {
-  fprintf(stderr, "pcre2grep: Cannot mix --only-matching, --output, "
+  fprintf(stderr, "grep: Cannot mix --only-matching, --output, "
     "--file-offsets and/or --line-offsets\n");
   pcre2grep_exit(usage(2));
   }
@@ -4009,7 +4012,7 @@ if (locale != NULL)
   {
   if (setlocale(LC_CTYPE, locale) == NULL)
     {
-    fprintf(stderr, "pcre2grep: Failed to set locale %s (obtained from %s)\n",
+    fprintf(stderr, "grep: Failed to set locale %s (obtained from %s)\n",
       locale, locale_from);
     goto EXIT2;
     }
@@ -4029,14 +4032,14 @@ if (colour_option != NULL && strcmp(colour_option, "never") != 0)
   else if (strcmp(colour_option, "auto") == 0) do_colour = is_stdout_tty();
   else
     {
-    fprintf(stderr, "pcre2grep: Unknown colour setting \"%s\"\n",
+    fprintf(stderr, "grep: Unknown colour setting \"%s\"\n",
       colour_option);
     goto EXIT2;
     }
   if (do_colour)
     {
-    char *cs = getenv("PCRE2GREP_COLOUR");
-    if (cs == NULL) cs = getenv("PCRE2GREP_COLOR");
+    char *cs = getenv("grep_COLOUR");
+    if (cs == NULL) cs = getenv("grep_COLOR");
     if (cs == NULL) cs = getenv("PCREGREP_COLOUR");
     if (cs == NULL) cs = getenv("PCREGREP_COLOR");
     if (cs == NULL) cs = parse_grep_colors(getenv("GREP_COLORS"));
@@ -4064,7 +4067,7 @@ if (newline_arg != NULL)
     pcre2_set_newline(compile_context, endlinetype);
   else
     {
-    fprintf(stderr, "pcre2grep: Invalid newline specifier \"%s\"\n",
+    fprintf(stderr, "grep: Invalid newline specifier \"%s\"\n",
       newline_arg);
     goto EXIT2;
     }
@@ -4086,7 +4089,7 @@ if (dee_option != NULL)
   else if (strcmp(dee_option, "skip") == 0) dee_action = dee_SKIP;
   else
     {
-    fprintf(stderr, "pcre2grep: Invalid value \"%s\" for -d\n", dee_option);
+    fprintf(stderr, "grep: Invalid value \"%s\" for -d\n", dee_option);
     goto EXIT2;
     }
   }
@@ -4097,7 +4100,7 @@ if (DEE_option != NULL)
   else if (strcmp(DEE_option, "skip") == 0) DEE_action = DEE_SKIP;
   else
     {
-    fprintf(stderr, "pcre2grep: Invalid value \"%s\" for -D\n", DEE_option);
+    fprintf(stderr, "grep: Invalid value \"%s\" for -D\n", DEE_option);
     goto EXIT2;
     }
   }
@@ -4111,7 +4114,7 @@ if (DEE_option != NULL)
 #ifdef JFRIEDL_DEBUG
 if (S_arg > 9)
   {
-  fprintf(stderr, "pcre2grep: bad value for -S option\n");
+  fprintf(stderr, "grep: bad value for -S option\n");
   return 2;
   }
 if (jfriedl_XT != 0 || jfriedl_XR != 0)
@@ -4135,7 +4138,7 @@ if (use_jit)
 
 if (bufthird <= 0)
   {
-  fprintf(stderr, "pcre2grep: --buffer-size must be greater than zero\n");
+  fprintf(stderr, "grep: --buffer-size must be greater than zero\n");
   goto EXIT2;
   }
 
@@ -4144,7 +4147,7 @@ main_buffer = (char *)malloc(bufsize);
 
 if (main_buffer == NULL)
   {
-  fprintf(stderr, "pcre2grep: malloc failed\n");
+  fprintf(stderr, "grep: malloc failed\n");
   goto EXIT2;
   }
 
@@ -4247,7 +4250,7 @@ for (fn = file_lists; fn != NULL; fn = fn->next)
     fl = fopen(fn->name, "rb");
     if (fl == NULL)
       {
-      fprintf(stderr, "pcre2grep: Failed to open %s: %s\n", fn->name,
+      fprintf(stderr, "grep: Failed to open %s: %s\n", fn->name,
         strerror(errno));
       goto EXIT2;
       }
