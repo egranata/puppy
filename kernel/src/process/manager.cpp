@@ -71,9 +71,14 @@ namespace boot::task {
 
         TimeManager::get().registerTickHandler([] (InterruptStack& stack, const uint64_t&) -> bool {
             bool can_yield = ProcessManager::isinterruptible(stack.eip);
-            ProcessManager::get().tick(can_yield);
+            ProcessManager::get().tickForSchedule(can_yield);
             return true;
         }, 5);
+
+        TimeManager::get().registerTickHandler([] (InterruptStack&, const uint64_t&) -> bool {
+            ProcessManager::get().tickForMetrics();
+            return true;
+        }, 1);
 
         return 0;
     }
@@ -655,9 +660,11 @@ bool ProcessManager::isinterruptible(uintptr_t addr) {
     }
 }
 
-void ProcessManager::tick(bool can_yield) {
+void ProcessManager::tickForMetrics() {
     if (gCurrentProcess) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, TimeManager::get().millisPerTick());
+}
 
+void ProcessManager::tickForSchedule(bool can_yield) {
     auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.quantum.current, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
