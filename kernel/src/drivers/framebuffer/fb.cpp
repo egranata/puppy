@@ -173,14 +173,14 @@ void Framebuffer::setBackgroundColor(uint8_t set, const color_t& c) {
 		case Framebuffer::DEFAULT_COLOR_SET:
 			mColorSets[Framebuffer::DEFAULT_COLOR_SET].background = c;
 			__attribute__((fallthrough));
-		case Framebuffer::CONFIGURED_COLOR_SET:
+		case Framebuffer::CONFIGURED_COLOR_SET: {
+			auto oldBackground = mColorSets[Framebuffer::CONFIGURED_COLOR_SET].background;
 			mColorSets[Framebuffer::CONFIGURED_COLOR_SET].background = c;
-			__attribute__((fallthrough));
-		case Framebuffer::CURRENT_COLOR_SET: {
-			auto oldBackground = mColorSets[Framebuffer::CURRENT_COLOR_SET].background;
-			mColorSets[Framebuffer::CURRENT_COLOR_SET].background = c;
 			recolor(oldBackground, c);
 		}
+			__attribute__((fallthrough));
+		case Framebuffer::CURRENT_COLOR_SET:
+			mColorSets[Framebuffer::CURRENT_COLOR_SET].background = c;
 			__attribute__((fallthrough));
 		default: break;
 	}
