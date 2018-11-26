@@ -124,12 +124,46 @@ class TestSpawn : public EnvironTest {
         }
 };
 
+class TestShell : public EnvironTest {
+    public:
+        TestShell() : EnvironTest("environ.TestShell") {}
+    protected:
+        void run() override {
+            FILE *f = fopen("/tmp/env.check.sh", "w");
+            CHECK_NOT_EQ(f, nullptr);
+            fprintf(f, "env FOO=test\n");
+            fprintf(f, "echo $(FOO) > /tmp/env.check\n");
+            fclose(f);
+
+            char* argv[] = {
+                (char*)"/system/apps/shell",
+                (char*)"/tmp/env.check.sh",
+                nullptr
+            };
+
+            auto cpid = spawn(argv[0], argv, SPAWN_FOREGROUND, nullptr);
+            CHECK_NOT_EQ(cpid, 0);
+
+            auto status = collect(cpid);
+            CHECK_EQ(status.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(status.status, 0);
+
+            f = fopen("/tmp/env.check", "r");
+            CHECK_NOT_EQ(f, nullptr);
+            CHECK_EQ('t', fgetc(f));
+            CHECK_EQ('e', fgetc(f));
+            CHECK_EQ('s', fgetc(f));
+            CHECK_EQ('t', fgetc(f));
+        }
+};
+
 int main(int argc, char**) {
     if (argc == 1) {
         TestPlan& plan(TestPlan::defaultPlan(TEST_NAME));
         plan.add<TestSameProcess>()
             .add<TestClone>()
-            .add<TestSpawn>();
+            .add<TestSpawn>()
+            .add<TestShell>();
         plan.test();
         return 0;
     } else {
