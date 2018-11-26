@@ -57,7 +57,6 @@ static void runInitShellTasks() {
 static int interactiveLoop() {
     std::string prompt;
     History& history(History::defaultHistory());
-    int count = 0;
 
     while(true) {
         tryCollect();
@@ -68,10 +67,7 @@ static int interactiveLoop() {
         linenoiseFree(cmdline_cstr);
         if (runline(cmdline)) {
             history.add(cmdline);
-            if (++count == 10) {
-                history.save();
-                count = 0;
-            }
+            history.save();
         }
     }
 }
