@@ -69,8 +69,11 @@ struct process_exit_status_t {
     } reason;
     uint8_t status; /** exit code if clean-exit, error code if exception, reserved otherwise */
 
+    static constexpr uint8_t kernelError_noSuchFile = 1;
+    static constexpr uint8_t kernelError_malformedFile = 2;
+
     uint32_t toWord() {
-        return status | (((uint8_t)reason) << 24);
+        return (uint32_t)status | (((uint32_t)reason) << 24);
     }
 
     process_exit_status_t(reason_t r, uint8_t s) : reason(r), status(s) {}

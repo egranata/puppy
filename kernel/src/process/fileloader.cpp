@@ -27,7 +27,7 @@
 #include <kernel/libc/bytesizes.h>
 #include <kernel/libc/bytesizes.h>
 #include <kernel/syscalls/types.h>
-
+#include <kernel/panic/panic.h>
 #include <kernel/process/elf.h>
 #include <kernel/process/shebang.h>
 
@@ -69,21 +69,21 @@ process_loadinfo_t load_binary(const char* path) {
     auto fhandle = vfs.open(path, FILE_OPEN_READ | FILE_NO_CREATE);
 
     auto file = (Filesystem::File*)fhandle.second;
-    if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file", 1);
+    if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file", process_exit_status_t::kernelError_noSuchFile);
 
     Filesystem::File::stat_t fstat{
         kind : file_kind_t::file,
         size : 0,
     };
-    if (file->stat(fstat) == false) UNHAPPY("unable to discover file size", 2);
-    if (fstat.size == 0) UNHAPPY("file length == 0", 3);
+    if (file->stat(fstat) == false) UNHAPPY("unable to discover file size", process_exit_status_t::kernelError_noSuchFile);
+    if (fstat.size == 0) UNHAPPY("file length == 0", process_exit_status_t::kernelError_malformedFile);
 
     auto bufferopts = VirtualPageManager::map_options_t().clear(true).rw(true).user(false);
     auto file_rgn = memmgr->findAndZeroPageRegion(fstat.size, bufferopts);
 
     LOG_DEBUG("file size: %u - mapped region 0x%p-0x%p for read", fstat.size, file_rgn.from, file_rgn.to);
 
-    if (file->read(fstat.size, (char*)file_rgn.from) == false) UNHAPPY("unable to read file data", 4);
+    if (file->read(fstat.size, (char*)file_rgn.from) == false) UNHAPPY("unable to read file data", process_exit_status_t::kernelError_noSuchFile);
 
     fhandle.first->close(file);
     fhandle.first = nullptr;
@@ -101,7 +101,7 @@ process_loadinfo_t load_binary(const char* path) {
         }
     }
 
-    if (loader_f == nullptr) UNHAPPY("no loader for this format", 5);
+    if (loader_f == nullptr) UNHAPPY("no loader for this format", process_exit_status_t::kernelError_malformedFile);
 
     auto loadinfo = loader_f->load_f(file_rgn.from, process_t::gDefaultStackSize);
     memmgr->removeRegion(file_rgn);
@@ -114,8 +114,8 @@ void fileloader(uintptr_t) {
     LOG_DEBUG("launching process %u (%s)", gCurrentProcess->pid, gCurrentProcess->path);
     auto loadinfo = load_binary(gCurrentProcess->path);
 
-    if (loadinfo.eip == 0) NOFILE_UNHAPPY("invalid binary", 6);
-    if (loadinfo.stack == 0) NOFILE_UNHAPPY("malformed stack", 7);
+    if (loadinfo.eip == 0) NOFILE_UNHAPPY("invalid binary", process_exit_status_t::kernelError_malformedFile);
+    if (loadinfo.stack == 0) NOFILE_UNHAPPY("malformed stack", process_exit_status_t::kernelError_malformedFile);
 
     LOG_DEBUG("setting up FPU for process %u", gCurrentProcess->pid);
     // don't trigger FPU exception on setup - there's no valid state to restore anyway
@@ -127,6 +127,5 @@ void fileloader(uintptr_t) {
     toring3(loadinfo.eip, loadinfo.stack);
 
     // we should never ever ever get back here...
-    NOFILE_UNHAPPY("how did we get back to the loader?", 8);
-    while(true);
+    PANIC("process returned to kernel loader");
 }

@@ -240,7 +240,7 @@ NEWLIB_IMPL_REQUIREMENT int processexitstatus2wait(process_exit_status_t status)
             return status.status << 8;
         case process_exit_status_t::reason_t::exception:
         case process_exit_status_t::reason_t::kernelError:
-            return 0x80;
+            return (status.status & 0x7f);
         case process_exit_status_t::reason_t::killed:
             return 0x0909; // signal 9
         case process_exit_status_t::reason_t::alive:

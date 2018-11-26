@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
+#include <kernel/syscalls/types.h>
+
 void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {
         int status = WEXITSTATUS(exitcode);
@@ -28,7 +30,13 @@ void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
         }
     } else if(WIFSIGNALED(exitcode)) {
         int sig = WTERMSIG(exitcode);
-        printf("\x1b[31m[child %u] terminated - signal %d\x1b[0m\n", pid, sig);
+        if (sig == process_exit_status_t::kernelError_noSuchFile) {
+            printf("\x1b[31m[child %u] terminated - file not found\x1b[0m\n", pid);
+        } else if (sig == process_exit_status_t::kernelError_malformedFile) {
+            printf("\x1b[31m[child %u] terminated - file not executable\x1b[0m\n", pid);
+        } else {
+            printf("\x1b[31m[child %u] terminated - signal %d\x1b[0m\n", pid, sig);
+        }
     } else {
         printf("\x1b[31m[child %u] terminated - exit status %d\x1b[0m\n", pid, exitcode);
     }
