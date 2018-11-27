@@ -27,13 +27,13 @@ DiskManager::DiskManager() = default;
 void DiskManager::onNewDiskController(DiskController* ctrl) {
     if (ctrl) {
         mDiskControllers.push_back(ctrl);
-        LOG_INFO("added new DiskController 0x%p", ctrl);
+        LOG_INFO("added new DiskController 0x%p %s", ctrl, ctrl->id());
     }
 }
 
 void DiskManager::onNewDisk(Disk *dsk) {
     if (dsk) {
         mDisks.push_back(dsk);
-        LOG_INFO("added new Disk 0x%p, controller is 0x%p", dsk, dsk->controller());
+        LOG_INFO("added new Disk 0x%p %s, controller is 0x%p %s", dsk, dsk->id(), dsk->controller(), dsk->controller()->id());
     }
 }

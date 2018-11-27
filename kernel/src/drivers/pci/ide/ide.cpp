@@ -21,6 +21,7 @@
 #include <kernel/sys/unions.h>
 #include <kernel/drivers/pci/match.h>
 #include <kernel/fs/vol/diskmgr.h>
+#include <kernel/libc/sprint.h>
 
 LOG_TAG(DISKACCESS, 2);
 
@@ -375,7 +376,13 @@ size_t IDEController::configurepio() {
     return count;
 }
 
-IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
+IDEController::IDEController(const PCIBus::pci_hdr_0& info) : DiskController(nullptr), mInfo(info) {
+    static size_t gIdeControllerCount = 0;
+    char gIdeControllerBuffer[22] = {0};
+    sprint(gIdeControllerBuffer, 21, "ide%u", gIdeControllerCount);
+    id(gIdeControllerBuffer);
+    ++gIdeControllerCount;
+
     LOG_DEBUG("trying to construct an IDE controller device - info is 0x%p", &info);
     // adjust BAR
     #define ISIO(n) ((1 == (mInfo.bar ## n & 0x1)) || ((mInfo.bar ## n) == 0))
@@ -580,7 +587,12 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
 void IDEController::sendDisksToManager() {
     class IDEDisk : public Disk {
         public:
-            IDEDisk(IDEController* ctrl, IDEController::disk_t dsk) : mController(ctrl), mDisk(dsk) {}
+            IDEDisk(IDEController* ctrl, IDEController::disk_t dsk) : Disk(nullptr), mController(ctrl), mDisk(dsk) {
+                char diskName[] = {'d', 's', 'k', '0', '0', 0};
+                diskName[3] = (uint8_t)dsk.chan + diskName[3];
+                diskName[4] = (uint8_t)dsk.bus + diskName[4];
+                id(diskName);
+            }
 
             bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
                 return mController->read(mDisk, sec0, num, buffer);

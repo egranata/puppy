@@ -16,6 +16,18 @@
 
 #include <kernel/fs/vol/diskctrl.h>
 
-DiskController::DiskController() = default;
+DiskController::DiskController(const char* Id) : mId(Id ? Id : "") {}
+const char* DiskController::id() const {
+    return mId.c_str();
+}
+void DiskController::id(const char* Id) {
+    mId = Id;
+}
 
-Disk::Disk() = default;
+Disk::Disk(const char* Id) : mId(Id ? Id : "") {}
+const char* Disk::id() const {
+    return mId.c_str();
+}
+void Disk::id(const char* Id) {
+    mId = Id;
+}

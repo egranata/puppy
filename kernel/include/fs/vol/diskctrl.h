@@ -19,19 +19,29 @@
 
 #include <kernel/sys/nocopy.h>
 #include <kernel/sys/stdint.h>
+#include <kernel/libc/str.h>
 
 class DiskController : NOCOPY {
+    public:
+        const char* id() const;
     protected:
-        DiskController();
+        DiskController(const char* Id);
+        void id(const char* Id);
+    private:
+        string mId;
 };
 
 // TODO: read() is enough to support IDEDiskScanner, but by no means enough for a full API
 class Disk : NOCOPY {
     public:
+        const char* id() const;
         virtual bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;
         virtual DiskController *controller() = 0;
     protected:
-        Disk();
+        Disk(const char* Id);
+        void id(const char* Id);
+    private:
+        string mId;
 };
 
 #endif
