@@ -23,13 +23,13 @@
 #include <kernel/libc/slist.h>
 #include <kernel/fs/vol/idevolume.h>
 
-class DiskScanner : NOCOPY {
+class IDEDiskScanner : NOCOPY {
     private:
         typedef slist<IDEVolume*> Volumes;
         typedef Volumes::iterator VolumesIterator;
 
     public:
-        DiskScanner(IDEController* ide);
+        IDEDiskScanner(IDEController* ide);
 
         uint32_t parseAllDisks();
         uint32_t parseDisk(uint8_t ch, uint8_t bs);

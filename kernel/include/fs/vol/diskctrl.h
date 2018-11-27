@@ -25,7 +25,7 @@ class DiskController : NOCOPY {
         DiskController();
 };
 
-// TODO: read() is enough to support DiskScanner, but by no means enough for a full API
+// TODO: read() is enough to support IDEDiskScanner, but by no means enough for a full API
 class Disk : NOCOPY {
     public:
         virtual bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;

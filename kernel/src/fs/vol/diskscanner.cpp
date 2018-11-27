@@ -17,9 +17,9 @@
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/fsidents.h>
 
-DiskScanner::DiskScanner(IDEController* ide) : mDiskController(ide) {}
+IDEDiskScanner::IDEDiskScanner(IDEController* ide) : mDiskController(ide) {}
 
-uint32_t DiskScanner::parseDisk(uint8_t channel, uint8_t bus) {
+uint32_t IDEDiskScanner::parseDisk(uint8_t channel, uint8_t bus) {
     uint32_t cnt = 0;
 
     LOG_DEBUG("trying to find a disk on ch=%u bus=%u", channel, bus);
@@ -35,7 +35,7 @@ uint32_t DiskScanner::parseDisk(uint8_t channel, uint8_t bus) {
     return cnt;
 }
 
-uint32_t DiskScanner::parseAllDisks() {
+uint32_t IDEDiskScanner::parseAllDisks() {
     uint32_t cnt = 0;
     for (auto channel = 0; channel < 2; ++channel) {
         for (auto bus = 0; bus < 2; ++bus) {
@@ -46,7 +46,7 @@ uint32_t DiskScanner::parseAllDisks() {
     return cnt;
 }
 
-uint32_t DiskScanner::parse(const IDEController::disk_t& dsk, const x86_mbr_t& mbr) {
+uint32_t IDEDiskScanner::parse(const IDEController::disk_t& dsk, const x86_mbr_t& mbr) {
     uint32_t cnt = 0;
 
     // TODO: extended partitions
@@ -58,11 +58,11 @@ uint32_t DiskScanner::parse(const IDEController::disk_t& dsk, const x86_mbr_t& m
     return cnt;
 }
 
-IDEController* DiskScanner::controller() const {
+IDEController* IDEDiskScanner::controller() const {
     return mDiskController;
 }
 
-uint32_t DiskScanner::parse(const IDEController::disk_t& dsk, const diskpart_t& dp) {
+uint32_t IDEDiskScanner::parse(const IDEController::disk_t& dsk, const diskpart_t& dp) {
     if (dp.sysid == 0 || dp.size == 0) {
         LOG_DEBUG("empty partition found - ignoring");
         return 0;
@@ -85,13 +85,13 @@ uint32_t DiskScanner::parse(const IDEController::disk_t& dsk, const diskpart_t& 
     return mVolumes.add(vol), 1;
 }
 
-DiskScanner::VolumesIterator DiskScanner::begin() {
+IDEDiskScanner::VolumesIterator IDEDiskScanner::begin() {
     return mVolumes.begin();
 }
-DiskScanner::VolumesIterator DiskScanner::end() {
+IDEDiskScanner::VolumesIterator IDEDiskScanner::end() {
     return mVolumes.end();
 }
 
-void DiskScanner::clear() {
+void IDEDiskScanner::clear() {
     return mVolumes.clear();
 }
