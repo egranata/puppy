@@ -20,8 +20,9 @@
 #include <kernel/drivers/pci/bus.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/sys/stdint.h>
+#include <kernel/fs/vol/diskctrl.h>
 
-class IDEController : public PCIBus::PCIDevice, NOCOPY {
+class IDEController : public PCIBus::PCIDevice, public DiskController {
     public:
         IDEController(const PCIBus::pci_hdr_0&);
 
@@ -89,6 +90,7 @@ class IDEController : public PCIBus::PCIDevice, NOCOPY {
         channel_t mChannel[2];
 
         size_t configurepio();
+        void sendDisksToManager();
 
         bool preparepio(const disk_t&, const pio_op_params_t&);
 

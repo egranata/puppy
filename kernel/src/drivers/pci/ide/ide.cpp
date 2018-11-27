@@ -20,6 +20,7 @@
 #include <kernel/libc/memory.h>
 #include <kernel/sys/unions.h>
 #include <kernel/drivers/pci/match.h>
+#include <kernel/fs/vol/diskmgr.h>
 
 LOG_TAG(DISKACCESS, 2);
 
@@ -573,6 +574,37 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : mInfo(info) {
     }
 
     configurepio();
+    sendDisksToManager();
+}
+
+void IDEController::sendDisksToManager() {
+    class IDEDisk : public Disk {
+        public:
+            IDEDisk(IDEController* ctrl, IDEController::disk_t dsk) : mController(ctrl), mDisk(dsk) {}
+
+            bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
+                return mController->read(mDisk, sec0, num, buffer);
+            }
+            DiskController *controller() override {
+                return mController;
+            }
+        private:
+            IDEController *mController;
+            IDEController::disk_t mDisk;
+    };
+
+    DiskManager& dmgr(DiskManager::get());
+    dmgr.onNewDiskController(this);
+
+    for (uint8_t ch = 0; ch < 2; ++ch) {
+        for (uint8_t b = 0; b < 2; ++b) {
+            disk_t tryDisk( (channelid_t)ch, (bus_t)b );
+            if (fill(tryDisk)) {
+                IDEDisk *newDisk = new IDEDisk(this, tryDisk);
+                dmgr.onNewDisk(newDisk);
+            }
+        }
+    }
 }
 
 static bool addIDEController(const PCIBus::PCIDeviceData &dev) {
