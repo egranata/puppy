@@ -13,9 +13,14 @@
 // limitations under the License.
 
 #include <kernel/fs/vol/idevolume.h>
+#include <kernel/libc/sprint.h>
 
 IDEVolume::IDEVolume(IDEController* ctrl, IDEController::disk_t dsk, diskpart_t part) :
-    mController(ctrl), mDisk(dsk), mPartition(part) {}
+    Volume(nullptr), mController(ctrl), mDisk(dsk), mPartition(part) {
+    char buffer[22] = {0};
+    sprint(buffer, 21, "vol%u", mPartition.sector);
+    id(buffer);
+}
 
 IDEController* IDEVolume::controller() const {
     return mController;

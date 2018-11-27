@@ -18,9 +18,17 @@
 #include <kernel/libc/string.h>
 #include <kernel/libc/memory.h>
 
-Volume::Volume() : mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}
+Volume::Volume(const char* Id) :
+     mId(Id ? Id : ""), mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}
 
 Volume::~Volume() = default;
+
+const char* Volume::id() const {
+    return mId.c_str();
+}
+void Volume::id(const char* Id) {
+    mId = Id ? Id : "";
+}
 
 LOG_TAG(LRUCACHE, 2);
 

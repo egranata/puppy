@@ -20,6 +20,8 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/str.h>
+#include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/ptable.h>
 
 class DiskController : NOCOPY {
     public:
@@ -37,6 +39,7 @@ class Disk : NOCOPY {
         const char* id() const;
         virtual bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;
         virtual DiskController *controller() = 0;
+        virtual Volume* volume(const diskpart_t&) = 0;
     protected:
         Disk(const char* Id);
         void id(const char* Id);

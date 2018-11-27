@@ -20,10 +20,12 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/lru.h>
+#include <kernel/libc/str.h>
 
 class Volume : NOCOPY {
     protected:
-        Volume();
+        void id(const char*);
+        Volume(const char* Id = nullptr);
     public:
         virtual ~Volume();
 
@@ -39,7 +41,11 @@ class Volume : NOCOPY {
         virtual size_t sectorsize() const { return 512; }
 
         virtual uintptr_t ioctl(uintptr_t, uintptr_t);
+
+        const char* id() const;
     private:
+        string mId;
+
         // TODO: the sector size is not always a compile-time constant value of 512
         LRUCache<> mCache;
 

@@ -22,6 +22,7 @@
 #include <kernel/drivers/pci/match.h>
 #include <kernel/fs/vol/diskmgr.h>
 #include <kernel/libc/sprint.h>
+#include <kernel/fs/vol/idevolume.h>
 
 LOG_TAG(DISKACCESS, 2);
 
@@ -599,6 +600,9 @@ void IDEController::sendDisksToManager() {
             }
             DiskController *controller() override {
                 return mController;
+            }
+            Volume* volume(const diskpart_t& dp) override {
+                return new IDEVolume(mController, mDisk, dp);
             }
         private:
             IDEController *mController;
