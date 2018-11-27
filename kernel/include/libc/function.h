@@ -126,7 +126,7 @@ class function<Ret(Args...)> {
             return mCall && mData.buf;
         }
 
-        Ret operator()(Args&&... args) {
+        Ret operator()(Args&&... args) const {
             return mCall(mData.buf, forward<Args&&>(args)...);
         }
 };
