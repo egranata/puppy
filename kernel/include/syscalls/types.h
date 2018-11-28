@@ -95,7 +95,6 @@ enum class blockdevice_ioctl_t : uintptr_t {
     IOCTL_GET_SECTOR_SIZE = 0xB10C0001,   // (a=IOCTL_, b=0), returns sector size
     IOCTL_GET_NUM_SECTORS = 0xB10C0002,   // (a=IOCTL_, b=0), returns number of sectors
     IOCTL_GET_CONTROLLER  = 0xB10C0003,   // (a=IOCTL_, b=0), returns an opaque disk controller descriptor
-    IOCTL_GET_ROUTING     = 0xB10C0004,   // (a=IOCTL_, b=0), returns an opaque routing descriptor
     IOCTL_GET_VOLUME      = 0xB10C0005,   // (a=IOCTL_, b=0), returns a Volume* suitable for mounting
     IOCTL_GET_USAGE_STATS = 0xB10C0006,   // (a=IOCTL_, b=pointer to blockdevice_usage_stats_t*), returns 1 if success and data is filled in; 0 otherwise
 };

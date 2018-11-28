@@ -20,6 +20,7 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/diskctrl.h>
 #include <kernel/libc/vec.h>
+#include <kernel/fs/memfs/memfs.h>
 
 class DiskManager : NOCOPY {
     public:
@@ -27,11 +28,15 @@ class DiskManager : NOCOPY {
 
         void onNewDiskController(DiskController* ctrl);
         void onNewDisk(Disk *dsk);
+        void onNewVolume(Volume* vol);
     private:
         DiskManager();
 
+        MemFS::Directory *mDevFSDirectory;
+
         vector<DiskController*> mDiskControllers;
         vector<Disk*> mDisks;
+        vector<Volume*> mVolumes;
 };
 
 #endif

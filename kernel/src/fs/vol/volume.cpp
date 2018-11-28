@@ -17,6 +17,8 @@
 #include <kernel/log/log.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/memory.h>
+#include <kernel/fs/vol/diskctrl.h>
+#include <kernel/libc/sprint.h>
 
 Volume::Volume(const char* Id) :
      mId(Id ? Id : ""), mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}
@@ -122,4 +124,40 @@ uintptr_t Volume::ioctl(uintptr_t a, uintptr_t b) {
         return 1;
     }
     return 0;
+}
+
+MemFS::File* Volume::file(Disk *dsk) {
+    class VolumeFile : public MemFS::File {
+        public:
+            VolumeFile(Volume* vol, Disk *disk) : MemFS::File(""), mVolume(vol) {
+                char buf[64] = {0};
+                if (disk) {
+                    sprint(buf, 63, "%s%s%s", disk->controller()->id(), disk->id(), vol->id());
+                } else {
+                    sprint(buf, 63, "%s", vol->id());
+                }
+                name(buf);
+            }
+
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new MemFS::EmptyBuffer(); // TODO: allow reading
+            }
+
+            #define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
+            uintptr_t ioctl(uintptr_t a, uintptr_t b)  {
+                switch (a) {
+                    IS(IOCTL_GET_SECTOR_SIZE): return mVolume->sectorsize();
+                    IS(IOCTL_GET_NUM_SECTORS): return mVolume->numsectors();
+                    IS(IOCTL_GET_VOLUME): return (uintptr_t)mVolume;
+                    default: return mVolume->ioctl(a,b);
+                }
+                return 0;
+            }
+            #undef IS
+
+        private:
+            Volume *mVolume;
+    };
+
+    return new VolumeFile(this, dsk);
 }

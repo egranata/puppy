@@ -82,8 +82,6 @@ class VolumeFile : public MemFS::File {
             switch (a) {
                 IS(IOCTL_GET_SECTOR_SIZE): return mVolumeImpl.sectorsize();
                 IS(IOCTL_GET_NUM_SECTORS): return mVolumeImpl.numsectors();
-                IS(IOCTL_GET_CONTROLLER): return 0;
-                IS(IOCTL_GET_ROUTING): return 0;
                 IS(IOCTL_GET_VOLUME): return (uintptr_t)&mVolumeImpl;
                 default: return mVolumeImpl.ioctl(a, b);
             }
@@ -110,7 +108,7 @@ class VolumeFile : public MemFS::File {
 RamDiskDevice::DeviceFile::DeviceFile() : MemFS::File("new") {}
 
 delete_ptr<MemFS::FileBuffer> RamDiskDevice::DeviceFile::content() {
-    return new MemFS::EmptyBuffer();                    
+    return new MemFS::EmptyBuffer();
 }
 uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
     if (a == GIVE_ME_A_DISK_IOCTL) {

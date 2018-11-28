@@ -15,6 +15,7 @@
 #include <kernel/log/log.h>
 
 #include <kernel/fs/vol/diskmgr.h>
+#include <kernel/fs/devfs/devfs.h>
 
 DiskManager& DiskManager::get() {
     static DiskManager gManager;
@@ -22,7 +23,9 @@ DiskManager& DiskManager::get() {
     return gManager;
 }
 
-DiskManager::DiskManager() = default;
+DiskManager::DiskManager() {
+    mDevFSDirectory = DevFS::get().getDeviceDirectory("diskmgr");
+}
 
 void DiskManager::onNewDiskController(DiskController* ctrl) {
     if (ctrl) {
@@ -35,5 +38,13 @@ void DiskManager::onNewDisk(Disk *dsk) {
     if (dsk) {
         mDisks.push_back(dsk);
         LOG_INFO("added new Disk 0x%p %s, controller is 0x%p %s", dsk, dsk->id(), dsk->controller(), dsk->controller()->id());
+        mDevFSDirectory->add(dsk->file());
+    }
+}
+
+void DiskManager::onNewVolume(Volume *vol) {
+    if (vol) {
+        mVolumes.push_back(vol);
+        LOG_INFO("added new Volume 0x%p %s", vol, vol->id());
     }
 }

@@ -79,8 +79,6 @@ uintptr_t IDEDiskFile::ioctl(uintptr_t a, uintptr_t)  {
     switch (a) {
         IS(IOCTL_GET_SECTOR_SIZE): return 512;
         IS(IOCTL_GET_NUM_SECTORS): return mDisk.sectors;
-        IS(IOCTL_GET_CONTROLLER): return (uint32_t)mController;
-        IS(IOCTL_GET_ROUTING): return ((uint32_t)mDisk.chan << 8) | (uint32_t)mDisk.bus;
         IS(IOCTL_GET_VOLUME): return 0;
     }
     return 0;

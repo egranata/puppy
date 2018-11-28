@@ -15,6 +15,8 @@
  */
 
 #include <kernel/fs/vol/diskctrl.h>
+#include <kernel/fs/memfs/memfs.h>
+#include <kernel/libc/sprint.h>
 
 DiskController::DiskController(const char* Id) : mId(Id ? Id : "") {}
 const char* DiskController::id() const {
@@ -30,4 +32,35 @@ const char* Disk::id() const {
 }
 void Disk::id(const char* Id) {
     mId = Id;
+}
+
+MemFS::File* Disk::file() {
+    class DiskFile : public MemFS::File {
+        public:
+            DiskFile(Disk *dsk) : MemFS::File(""), mDisk(dsk) {
+                char buf[64] = {0};
+                sprint(buf, 63, "%s%s", mDisk->controller()->id(), mDisk->id());
+                name(buf);
+            }
+
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new MemFS::EmptyBuffer(); // TODO: allow reading from a disk directly
+            }
+
+#define IS(x) case (uintptr_t)(blockdevice_ioctl_t:: x)
+            uintptr_t ioctl(uintptr_t a, uintptr_t) override {
+                switch (a) {
+                    IS(IOCTL_GET_SECTOR_SIZE): return mDisk->sectorSize();
+                    IS(IOCTL_GET_NUM_SECTORS): return mDisk->numSectors();
+                    IS(IOCTL_GET_VOLUME): return 0;
+                }
+                return 0;
+            }
+#undef IS
+
+        private:
+            Disk *mDisk;
+    };
+
+    return new DiskFile(this);
 }

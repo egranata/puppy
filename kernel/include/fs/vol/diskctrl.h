@@ -22,6 +22,7 @@
 #include <kernel/libc/str.h>
 #include <kernel/fs/vol/volume.h>
 #include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/memfs/memfs.h>
 
 class DiskController : NOCOPY {
     public:
@@ -38,8 +39,13 @@ class Disk : NOCOPY {
     public:
         const char* id() const;
         virtual bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;
+
+        virtual size_t sectorSize() { return 512; }
+        virtual size_t numSectors() = 0;
+
         virtual DiskController *controller() = 0;
         virtual Volume* volume(const diskpart_t&) = 0;
+        virtual MemFS::File* file();
     protected:
         Disk(const char* Id);
         void id(const char* Id);

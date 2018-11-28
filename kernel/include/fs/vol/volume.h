@@ -21,6 +21,9 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/lru.h>
 #include <kernel/libc/str.h>
+#include <kernel/fs/memfs/memfs.h>
+
+class Disk;
 
 class Volume : NOCOPY {
     protected:
@@ -41,6 +44,9 @@ class Volume : NOCOPY {
         virtual size_t sectorsize() const { return 512; }
 
         virtual uintptr_t ioctl(uintptr_t, uintptr_t);
+
+        // TODO: the Volume should know which disk it comes from
+        virtual MemFS::File* file(Disk *dsk);
 
         const char* id() const;
     private:

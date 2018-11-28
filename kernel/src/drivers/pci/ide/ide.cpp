@@ -595,12 +595,18 @@ void IDEController::sendDisksToManager() {
                 id(diskName);
             }
 
+            size_t numSectors() override {
+                return mDisk.sectors;
+            }
+
             bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
                 return mController->read(mDisk, sec0, num, buffer);
             }
+
             DiskController *controller() override {
                 return mController;
             }
+
             Volume* volume(const diskpart_t& dp) override {
                 return new IDEVolume(mController, mDisk, dp);
             }
