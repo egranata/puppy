@@ -16,6 +16,9 @@
 #include <kernel/log/log.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/vol/diskmgr.h>
+#include <kernel/fs/vol/diskctrl.h>
+#include <kernel/fs/vol/disk.h>
+#include <kernel/fs/vol/volume.h>
 #include <kernel/fs/vol/scanner.h>
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/fs/memfs/memfs.h>

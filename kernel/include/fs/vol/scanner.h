@@ -18,11 +18,11 @@
 #define FS_VOL_SCANNER
 
 #include <kernel/sys/stdint.h>
-#include <kernel/fs/vol/diskmgr.h>
-#include <kernel/fs/vol/diskctrl.h>
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/vol/volume.h>
 #include <kernel/libc/function.h>
+
+class Disk;
 
 class DiskScanner {
     public:

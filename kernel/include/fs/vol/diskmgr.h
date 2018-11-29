@@ -18,9 +18,12 @@
 #define FS_VOL_DISKMGR
 
 #include <kernel/sys/nocopy.h>
-#include <kernel/fs/vol/diskctrl.h>
 #include <kernel/libc/vec.h>
 #include <kernel/fs/memfs/memfs.h>
+
+class DiskController;
+class Disk;
+class Volume;
 
 class DiskManager : NOCOPY {
     public:

@@ -27,6 +27,7 @@
 #include <kernel/log/log.h>
 #include <kernel/fs/vol/diskctrl.h>
 #include <kernel/fs/vol/diskmgr.h>
+#include <kernel/fs/vol/disk.h>
 
 LOG_TAG(RAMDISK, 0);
 

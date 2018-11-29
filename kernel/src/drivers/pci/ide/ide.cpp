@@ -21,6 +21,7 @@
 #include <kernel/sys/unions.h>
 #include <kernel/drivers/pci/match.h>
 #include <kernel/fs/vol/diskmgr.h>
+#include <kernel/fs/vol/disk.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/fs/vol/idevolume.h>
 

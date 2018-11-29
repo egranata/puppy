@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <kernel/fs/vol/scanner.h>
+#include <kernel/fs/vol/disk.h>
 #include <kernel/fs/fsidents.h>
 #include <kernel/libc/move.h>
 

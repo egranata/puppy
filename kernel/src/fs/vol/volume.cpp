@@ -17,8 +17,9 @@
 #include <kernel/log/log.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/memory.h>
-#include <kernel/fs/vol/diskctrl.h>
+#include <kernel/fs/vol/disk.h>
 #include <kernel/libc/sprint.h>
+#include <kernel/fs/vol/diskctrl.h>
 
 Volume::Volume(const char* Id) :
      mId(Id ? Id : ""), mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}

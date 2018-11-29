@@ -14,18 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef FS_VOL_DISKCTRL
-#define FS_VOL_DISKCTRL
+#ifndef FS_VOL_DISK
+#define FS_VOL_DISK
 
 #include <kernel/sys/nocopy.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/str.h>
+#include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/memfs/memfs.h>
 
-class DiskController : NOCOPY {
+class DiskController;
+class Volume;
+
+// TODO: read() is enough to support IDEDiskScanner, but by no means enough for a full API
+class Disk : NOCOPY {
     public:
         const char* id() const;
+        virtual bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;
+
+        virtual size_t sectorSize() { return 512; }
+        virtual size_t numSectors() = 0;
+
+        virtual DiskController *controller() = 0;
+        virtual Volume* volume(const diskpart_t&) = 0;
+        virtual MemFS::File* file();
     protected:
-        DiskController(const char* Id);
+        Disk(const char* Id);
         void id(const char* Id);
     private:
         string mId;
