@@ -16,6 +16,7 @@
 
 #include <kernel/drivers/ramdisk/device.h>
 #include <kernel/fs/devfs/devfs.h>
+#include <kernel/fs/vol/diskctrl.h>
 
 namespace boot::ramdisk {
     uint32_t init() {

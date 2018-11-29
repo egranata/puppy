@@ -34,7 +34,11 @@ LOG_TAG(RAMDISK, 0);
 namespace {
 class RamDisk_DiskImpl : public Disk {
     public:
-        RamDisk_DiskImpl(Volume *vol) : Disk("ramdisk"), mVolume(vol) {}
+        RamDisk_DiskImpl(DiskController *ctrl, uint32_t Id, Volume *vol) : Disk(""), mController(ctrl), mVolume(vol) {
+            buffer b(32);
+            sprint(b.data<char>(), b.size(), "dsk%u", Id);
+            id(b.data<char>());
+        }
 
         void volume(Volume *vol) {
             mVolume = vol;
@@ -44,19 +48,23 @@ class RamDisk_DiskImpl : public Disk {
             return mVolume->read(sec0, num, buffer);
         }
 
+        bool write(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
+            return mVolume->write(sec0, num, buffer);
+        }
+
         size_t numSectors() override {
             return mVolume->numsectors();
         }
 
         DiskController *controller() override {
-            // TODO: make a RamDisk_DiskControllerImpl
-            return nullptr;
+            return mController;
         }
 
         Volume* volume(const diskpart_t&) override {
             return mVolume;
         }
     private:
+        DiskController *mController;
         Volume *mVolume;
 };
 
@@ -97,8 +105,9 @@ class VolumeFile : public MemFS::File {
                 VolumeFile *mVolume;
         };
 
-        VolumeFile(uint32_t id, uint32_t size) : MemFS::File(""), mId(id), mByteSize(size), mData(allocate(size)),
-                                                 mDisk(nullptr), mVolumeImpl(&mDisk, this) {
+        VolumeFile(uint32_t id, DiskController *dctrl, uint32_t size) :
+                MemFS::File(""), mId(id), mByteSize(size), mData(allocate(size)),
+                mDisk(dctrl, id, nullptr), mVolumeImpl(&mDisk, this) {
             mDisk.volume(&mVolumeImpl);
             buffer b(32);
             sprint(b.data<char>(), b.size(), "vol%u", id);
@@ -133,6 +142,7 @@ class VolumeFile : public MemFS::File {
             return &mData[sector * 512];
         }
 
+        Disk* disk() { return &mDisk; }
         Volume* volume() { return &mVolumeImpl; }
 
     private:
@@ -144,7 +154,18 @@ class VolumeFile : public MemFS::File {
 };
 }
 
-RamDiskDevice::DeviceFile::DeviceFile() : MemFS::File("new") {}
+namespace {
+    class RamDisk_DiskController : public DiskController {
+        public:
+            RamDisk_DiskController() : DiskController("ramdisk") {}
+    };
+}
+
+RamDiskDevice::DeviceFile::DeviceFile() : MemFS::File("new"), mController(new RamDisk_DiskController()) {}
+
+DiskController* RamDiskDevice::DeviceFile::controller() const {
+    return mController;
+}
 
 delete_ptr<MemFS::FileBuffer> RamDiskDevice::DeviceFile::content() {
     return new MemFS::EmptyBuffer();
@@ -154,7 +175,7 @@ uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
         if (b % 512) {
             return -1;
         }
-        VolumeFile* volfile = new VolumeFile(RamDiskDevice::get().assignDiskId(), b);
+        VolumeFile* volfile = new VolumeFile(RamDiskDevice::get().assignDiskId(), controller(), b);
         TAG_DEBUG(RAMDISK, "creating FATFileSystem helper for volume file 0x%p", volfile);
         FATFileSystem* fsobj = new FATFileSystem(volfile->volume());
         FATFS* fat = fsobj->getFAT();
@@ -172,6 +193,7 @@ uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
                 auto dir = RamDiskDevice::get().deviceDirectory();
                 dir->add(volfile);
                 TAG_DEBUG(RAMDISK, "returning new volume with id %u", volfile->id());
+                DiskManager::get().onNewDisk(volfile->disk());
                 DiskManager::get().onNewVolume(volfile->volume());
                 return volfile->id();
             }

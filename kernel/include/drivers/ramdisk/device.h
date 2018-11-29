@@ -21,6 +21,8 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/memfs/memfs.h>
 
+class DiskController;
+
 class RamDiskDevice : NOCOPY {
     public:
         static constexpr uintptr_t GIVE_ME_A_DISK_IOCTL = 0x4449534B; // DISK
@@ -29,6 +31,9 @@ class RamDiskDevice : NOCOPY {
                 DeviceFile();
                 delete_ptr<MemFS::FileBuffer> content() override;
                 uintptr_t ioctl(uintptr_t, uintptr_t) override;
+                DiskController *controller() const;
+            private:
+                DiskController* mController;
         };
         static RamDiskDevice& get();
         uint32_t assignDiskId();

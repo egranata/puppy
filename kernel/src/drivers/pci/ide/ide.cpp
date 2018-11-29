@@ -604,6 +604,10 @@ void IDEController::sendDisksToManager() {
                 return mController->read(mDisk, sec0, num, buffer);
             }
 
+            bool write(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
+                return mController->read(mDisk, sec0, num, buffer);
+            }
+
             DiskController *controller() override {
                 return mController;
             }

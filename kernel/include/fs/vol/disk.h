@@ -26,11 +26,11 @@
 class DiskController;
 class Volume;
 
-// TODO: read() is enough to support IDEDiskScanner, but by no means enough for a full API
 class Disk : NOCOPY {
     public:
         const char* id() const;
         virtual bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;
+        virtual bool write(uint32_t sec0, uint16_t num, unsigned char *buffer) = 0;
 
         virtual size_t sectorSize() { return 512; }
         virtual size_t numSectors() = 0;
