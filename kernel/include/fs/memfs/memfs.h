@@ -32,6 +32,7 @@ protected:
         protected:
             Entity(Filesystem::FilesystemObject::kind_t k, const char* name);
             void name(const char* buf);
+            void kind(Filesystem::FilesystemObject::kind_t k);
         private:
             Filesystem::FilesystemObject::kind_t mKind;
             string mName;

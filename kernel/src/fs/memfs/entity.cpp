@@ -35,3 +35,7 @@ void MemFS::Entity::name(const char* buf) {
 uint64_t MemFS::Entity::time() {
     return mTime;
 }
+
+void MemFS::Entity::kind(Filesystem::FilesystemObject::kind_t k) {
+    mKind = k;
+}

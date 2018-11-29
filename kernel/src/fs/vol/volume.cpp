@@ -21,10 +21,17 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/fs/vol/diskctrl.h>
 
-Volume::Volume(const char* Id) :
-     mId(Id ? Id : ""), mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}
+Volume::Volume(Disk *disk, const char* Id) :
+     mDisk(disk), mId(Id ? Id : ""), mNumSectorsRead(0), mNumSectorsWritten(0), mNumSectorCacheHits(0) {}
 
 Volume::~Volume() = default;
+
+Disk* Volume::disk() {
+    return mDisk;
+}
+void Volume::disk(Disk* disk) {
+    mDisk = disk;
+}
 
 const char* Volume::id() const {
     return mId.c_str();
@@ -142,6 +149,7 @@ MemFS::File* Volume::file() {
                     sprint(buf, 63, "%s", vol->id());
                 }
                 name(buf);
+                kind(Filesystem::FilesystemObject::kind_t::blockdevice);
             }
 
             delete_ptr<MemFS::FileBuffer> content() override {

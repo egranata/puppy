@@ -37,11 +37,9 @@ class IDEVolume : public Volume {
         IDEController* controller() const;
         size_t numsectors() const override;
         IDEController::disk_t& ideDiskInfo();
-        Disk *disk();
         diskpart_t& partition();
     private:
         IDEController* mController;
-        Disk *mDisk;
         IDEController::disk_t mIdeDiskInfo;
         diskpart_t mPartition;
 };

@@ -33,6 +33,7 @@ MemFS::File* Disk::file() {
                 char buf[64] = {0};
                 sprint(buf, 63, "%s%s", mDisk->controller()->id(), mDisk->id());
                 name(buf);
+                kind(Filesystem::FilesystemObject::kind_t::blockdevice);
             }
 
             delete_ptr<MemFS::FileBuffer> content() override {

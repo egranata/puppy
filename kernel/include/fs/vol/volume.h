@@ -28,7 +28,8 @@ class Disk;
 class Volume : NOCOPY {
     protected:
         void id(const char*);
-        Volume(const char* Id);
+        void disk(Disk*);
+        Volume(Disk*, const char* Id);
     public:
         virtual ~Volume();
 
@@ -49,8 +50,9 @@ class Volume : NOCOPY {
 
         const char* id() const;
 
-        virtual Disk* disk() = 0;
+        virtual Disk* disk();
     private:
+        Disk *mDisk;
         string mId;
 
         // TODO: the sector size is not always a compile-time constant value of 512

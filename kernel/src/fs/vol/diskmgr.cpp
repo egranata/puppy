@@ -27,7 +27,7 @@ DiskManager& DiskManager::get() {
 }
 
 DiskManager::DiskManager() {
-    mDevFSDirectory = DevFS::get().getDeviceDirectory("diskmgr");
+    mDevFSDirectory = DevFS::get().getDeviceDirectory("disks");
 }
 
 void DiskManager::onNewDiskController(DiskController* ctrl) {

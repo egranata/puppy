@@ -72,7 +72,7 @@ class VolumeFile : public MemFS::File {
     public:
         class VolumeImpl : public Volume {
             public:
-                VolumeImpl(Disk* disk, VolumeFile* vol) : Volume("vol0"), mDisk(disk), mVolume(vol) {}
+                VolumeImpl(Disk* disk, VolumeFile* vol) : Volume(disk, "vol0"), mVolume(vol) {}
 
                 uint8_t sysid() override {
                     return 0x0C; // FAT32 LBA
@@ -95,13 +95,7 @@ class VolumeFile : public MemFS::File {
                     memcpy(dst, buffer, count * sectorsize());
                     return true;
                 }
-
-                Disk *disk() override {
-                    return mDisk;
-                }
-
             private:
-                Disk *mDisk;
                 VolumeFile *mVolume;
         };
 

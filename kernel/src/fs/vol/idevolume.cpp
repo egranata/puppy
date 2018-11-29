@@ -16,7 +16,7 @@
 #include <kernel/libc/sprint.h>
 
 IDEVolume::IDEVolume(IDEController* ctrl, Disk *disk, IDEController::disk_t dskinfo, diskpart_t part) :
-    Volume(nullptr), mController(ctrl), mDisk(disk), mIdeDiskInfo(dskinfo), mPartition(part) {
+    Volume(disk, nullptr), mController(ctrl), mIdeDiskInfo(dskinfo), mPartition(part) {
     char buffer[22] = {0};
     sprint(buffer, 21, "vol%u", mPartition.sector);
     id(buffer);
@@ -48,10 +48,6 @@ size_t IDEVolume::numsectors() const {
 
 IDEController::disk_t& IDEVolume::ideDiskInfo() {
     return mIdeDiskInfo;
-}
-
-Disk* IDEVolume::disk() {
-    return mDisk;
 }
 
 diskpart_t& IDEVolume::partition() {
