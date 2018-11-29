@@ -25,10 +25,36 @@
 #include <kernel/fs/fatfs/fs.h>
 #include <fatfs/ff.h>
 #include <kernel/log/log.h>
+#include <kernel/fs/vol/diskctrl.h>
+#include <kernel/fs/vol/diskmgr.h>
 
 LOG_TAG(RAMDISK, 0);
 
 namespace {
+class RamDisk_DiskImpl : public Disk {
+    public:
+        RamDisk_DiskImpl(Volume *vol) : Disk("ramdisk"), mVolume(vol) {}
+
+        bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
+            return mVolume->read(sec0, num, buffer);
+        }
+
+        size_t numSectors() override {
+            return mVolume->numsectors();
+        }
+
+        DiskController *controller() override {
+            // TODO: make a RamDisk_DiskControllerImpl
+            return nullptr;
+        }
+
+        Volume* volume(const diskpart_t&) override {
+            return mVolume;
+        }
+    private:
+        Volume *mVolume;
+};
+
 class VolumeFile : public MemFS::File {
     public:
         class VolumeImpl : public Volume {
@@ -133,6 +159,7 @@ uintptr_t RamDiskDevice::DeviceFile::ioctl(uintptr_t a, uintptr_t b) {
                 auto dir = RamDiskDevice::get().deviceDirectory();
                 dir->add(volfile);
                 TAG_DEBUG(RAMDISK, "returning new volume with id %u", volfile->id());
+                DiskManager::get().onNewVolume(volfile->volume());
                 return volfile->id();
             }
                 break;

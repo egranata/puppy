@@ -132,7 +132,11 @@ MemFS::File* Volume::file(Disk *dsk) {
             VolumeFile(Volume* vol, Disk *disk) : MemFS::File(""), mVolume(vol) {
                 char buf[64] = {0};
                 if (disk) {
-                    sprint(buf, 63, "%s%s%s", disk->controller()->id(), disk->id(), vol->id());
+                    if (disk->controller()) {
+                        sprint(buf, 63, "%s%s%s", disk->controller()->id(), disk->id(), vol->id());
+                    } else {
+                        sprint(buf, 63, "%s%s", disk->id(), vol->id());
+                    }
                 } else {
                     sprint(buf, 63, "%s", vol->id());
                 }
