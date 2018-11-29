@@ -14,12 +14,9 @@
 
 #include <kernel/boot/phase.h>
 #include <kernel/log/log.h>
-#include <kernel/drivers/pci/bus.h>
-#include <kernel/drivers/pci/ide/ide.h>
 #include <kernel/fs/vfs.h>
-#include <kernel/fs/vol/diskscanner.h>
-#include <kernel/drivers/pci/ide/diskfile.h>
-#include <kernel/drivers/pci/ide/volumefile.h>
+#include <kernel/fs/vol/diskmgr.h>
+#include <kernel/fs/vol/scanner.h>
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/fs/memfs/memfs.h>
 #include <kernel/panic/panic.h>
@@ -28,53 +25,30 @@
 
 namespace boot::mount {
     uint32_t init() {
-    	auto& pci(PCIBus::get());
-    	auto& vfs(VFS::get());
-
         auto path2mainfs = gKernelConfiguration()->mainfs.value;
 
-        DevFS& devfs(DevFS::get());
-        auto ide_disk_dir(devfs.getDeviceDirectory("idedisk"));
+    	auto& vfs(VFS::get());
+        auto& dmgr(DiskManager::get());
 
-        auto ctrlid = 0u;
+        for(auto disk : dmgr.disks()) {
+            DiskScanner scanner(disk);
+            LOG_DEBUG("running disk scanning on disk %s", disk->id());
+            scanner.scan([&dmgr] (Volume *vol) -> bool {
+                LOG_DEBUG("found volume %s", vol->id());
+                dmgr.onNewVolume(vol);
+                return true;
+            });
+        }
 
-        for (auto b = pci.begin(); b != pci.end(); ++b, ++ctrlid) {
-            auto&& pcidev(*b);
-            if (pcidev && pcidev->getkind() == PCIBus::PCIDevice::kind::IDEDiskController) {
-                IDEDiskScanner scanner((IDEController*)pcidev);
-                for (uint8_t ch = 0u; ch < 2; ++ch) {
-                    for (uint8_t bs = 0u; bs < 2; ++bs) {
-                        LOG_DEBUG("running disk scanning on controller 0x%p ch=%u bs=%u", scanner.controller(), ch, bs);
-                        auto num = scanner.parseDisk(ch, bs);
-                        if (num == 0) {
-                            LOG_DEBUG("no volumes found");
-                            continue;
-                        }
-                        bool addedDisk = false;
-                        for(auto&& vol : scanner) {
-                            if (!addedDisk) {
-                                auto diskFile = new IDEDiskFile(scanner.controller(), vol->ideDiskInfo(), ctrlid);
-                                LOG_DEBUG("adding disk block file %s", diskFile->name());
-                                ide_disk_dir->add(diskFile);
-                                addedDisk = true;
-                            }
-                            auto volumeFile = new IDEVolumeFile(vol, ctrlid);
-                            LOG_DEBUG("adding partition block file %s", volumeFile->name());
-                            bootphase_t::printf("Found new volume /devices/%s/%s\n", ide_disk_dir->name(), volumeFile->name());
-                            ide_disk_dir->add(volumeFile);
-
-                            if (path2mainfs && 0 == strcmp(volumeFile->name(), path2mainfs)) {
-                                auto ok = vfs.mount(vol, "system").first;
-                                if (false == ok) {
-                                    LOG_ERROR("could not mount %s as mainfs", volumeFile->name());
-                                } else {
-                                    bootphase_t::printf("mainfs mounted from /devices/%s/%s as /system\n", ide_disk_dir->name(), volumeFile->name());
-                                    LOG_DEBUG("%s was mounted as mainfs", volumeFile->name());
-                                }
-                            }
-                        }
-                        scanner.clear();
-                    }
+        for(auto vol : dmgr.volumes()) {
+            if (0 == strcmp(path2mainfs, vol->id())) {
+                auto ok = vfs.mount(vol, "system").first;
+                if (false == ok) {
+                    LOG_ERROR("%s could not be mounted as mainfs - trying to find another candidate", vol->id());
+                } else {
+                    LOG_INFO("%s is mainfs (/system)", vol->id());
+                    bootphase_t::printf("/system mounted from controller %s disk %s volume %s\n",
+                        vol->disk()->controller()->id(), vol->disk()->id(), vol->id());
                 }
             }
         }

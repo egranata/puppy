@@ -52,3 +52,13 @@ void DiskManager::onNewVolume(Volume *vol) {
         LOG_INFO("added new Volume 0x%p %s", vol, vol->id());
     }
 }
+
+iterable_vector_view<DiskController*> DiskManager::controllers() {
+    return iterable_vector_view<DiskController*>(mDiskControllers);
+}
+iterable_vector_view<Disk*> DiskManager::disks() {
+    return iterable_vector_view<Disk*>(mDisks);
+}
+iterable_vector_view<Volume*> DiskManager::volumes() {
+    return iterable_vector_view<Volume*>(mVolumes);
+}

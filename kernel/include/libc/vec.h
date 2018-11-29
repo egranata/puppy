@@ -152,4 +152,18 @@ class vector : NOCOPY {
         }
 };
 
+template<typename T>
+class iterable_vector_view {
+    public:
+        iterable_vector_view(vector<T> &vec) : mVector(vec) {}
+
+        auto begin() { return mVector.begin(); }
+        auto end() { return mVector.end(); }
+        const auto begin() const { return mVector.begin(); }
+        const auto end() const { return mVector.end(); }
+
+    private:
+        vector<T>& mVector;
+};
+
 #endif

@@ -29,6 +29,10 @@ class DiskManager : NOCOPY {
         void onNewDiskController(DiskController* ctrl);
         void onNewDisk(Disk *dsk);
         void onNewVolume(Volume* vol);
+
+        iterable_vector_view<DiskController*> controllers();
+        iterable_vector_view<Disk*> disks();
+        iterable_vector_view<Volume*> volumes();
     private:
         DiskManager();
 
