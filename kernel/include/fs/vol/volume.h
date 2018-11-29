@@ -28,7 +28,7 @@ class Disk;
 class Volume : NOCOPY {
     protected:
         void id(const char*);
-        Volume(const char* Id = nullptr);
+        Volume(const char* Id);
     public:
         virtual ~Volume();
 

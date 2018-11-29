@@ -35,8 +35,8 @@ namespace {
 class RamDisk_DiskImpl : public Disk {
     public:
         RamDisk_DiskImpl(DiskController *ctrl, uint32_t Id, Volume *vol) : Disk(""), mController(ctrl), mVolume(vol) {
-            buffer b(32);
-            sprint(b.data<char>(), b.size(), "dsk%u", Id);
+            buffer b(10);
+            sprint(b.data<char>(), b.size(), "%u", Id);
             id(b.data<char>());
         }
 
@@ -72,7 +72,7 @@ class VolumeFile : public MemFS::File {
     public:
         class VolumeImpl : public Volume {
             public:
-                VolumeImpl(Disk* disk, VolumeFile* vol) : mDisk(disk), mVolume(vol) {}
+                VolumeImpl(Disk* disk, VolumeFile* vol) : Volume("vol0"), mDisk(disk), mVolume(vol) {}
 
                 uint8_t sysid() override {
                     return 0x0C; // FAT32 LBA

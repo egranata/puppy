@@ -40,11 +40,7 @@ void DiskManager::onNewDiskController(DiskController* ctrl) {
 void DiskManager::onNewDisk(Disk *dsk) {
     if (dsk) {
         mDisks.push_back(dsk);
-        if (dsk->controller()) {
-            LOG_INFO("added new Disk 0x%p %s, controller is 0x%p %s", dsk, dsk->id(), dsk->controller(), dsk->controller()->id());
-        } else {
-            LOG_INFO("added new Disk 0x%p %s, controller is nullptr", dsk, dsk->id());
-        }
+        LOG_INFO("added new Disk 0x%p %s, controller is 0x%p %s", dsk, dsk->id(), dsk->controller(), dsk->controller()->id());
         mDevFSDirectory->add(dsk->file());
     }
 }
@@ -52,7 +48,9 @@ void DiskManager::onNewDisk(Disk *dsk) {
 void DiskManager::onNewVolume(Volume *vol) {
     if (vol) {
         mVolumes.push_back(vol);
-        LOG_INFO("added new Volume 0x%p %s", vol, vol->id());
+        LOG_INFO("added new Volume 0x%p %s disk 0x%p %s controller is 0x%p %s",
+            vol, vol->id(), vol->disk(), vol->disk()->id(), vol->disk()->controller(), vol->disk()->controller()->id());
+        mDevFSDirectory->add(vol->file());
     }
 }
 
