@@ -19,7 +19,7 @@
 #include <kernel/sys/nocopy.h>
 
 IDEVolumeFile::IDEVolumeFile(IDEVolume* vol, uint32_t ctrlid) : MemFS::File(""), mVolume(vol) {
-    auto& dsk(vol->disk());
+    auto& dsk(vol->ideDiskInfo());
     auto& part(vol->partition());
     char buf[64] = {0};
     sprint(buf, 63, "disk%u%upart%u", ctrlid, 2 * (uint32_t)dsk.chan + (uint32_t)dsk.bus, part.sector);
@@ -54,7 +54,7 @@ delete_ptr<MemFS::FileBuffer> IDEVolumeFile::content() {
                 }
 
                 mBuffer = (uint8_t*)calloc(512, 0);
-                if (mVolume->controller()->read(mVolume->disk(), sec, 1, &mBuffer[0])) {
+                if (mVolume->controller()->read(mVolume->ideDiskInfo(), sec, 1, &mBuffer[0])) {
                     *val = mBuffer[pos];
                     mBufferSector = sec;
                     return true;

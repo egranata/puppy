@@ -53,7 +53,7 @@ namespace boot::mount {
                         bool addedDisk = false;
                         for(auto&& vol : scanner) {
                             if (!addedDisk) {
-                                auto diskFile = new IDEDiskFile(scanner.controller(), vol->disk(), ctrlid);
+                                auto diskFile = new IDEDiskFile(scanner.controller(), vol->ideDiskInfo(), ctrlid);
                                 LOG_DEBUG("adding disk block file %s", diskFile->name());
                                 ide_disk_dir->add(diskFile);
                                 addedDisk = true;

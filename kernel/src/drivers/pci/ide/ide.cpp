@@ -608,7 +608,7 @@ void IDEController::sendDisksToManager() {
             }
 
             Volume* volume(const diskpart_t& dp) override {
-                return new IDEVolume(mController, mDisk, dp);
+                return new IDEVolume(mController, this, mDisk, dp);
             }
         private:
             IDEController *mController;

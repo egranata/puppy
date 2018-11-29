@@ -45,10 +45,11 @@ class Volume : NOCOPY {
 
         virtual uintptr_t ioctl(uintptr_t, uintptr_t);
 
-        // TODO: the Volume should know which disk it comes from
-        virtual MemFS::File* file(Disk *dsk);
+        virtual MemFS::File* file();
 
         const char* id() const;
+
+        virtual Disk* disk() = 0;
     private:
         string mId;
 

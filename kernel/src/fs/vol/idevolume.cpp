@@ -15,8 +15,8 @@
 #include <kernel/fs/vol/idevolume.h>
 #include <kernel/libc/sprint.h>
 
-IDEVolume::IDEVolume(IDEController* ctrl, IDEController::disk_t dsk, diskpart_t part) :
-    Volume(nullptr), mController(ctrl), mDisk(dsk), mPartition(part) {
+IDEVolume::IDEVolume(IDEController* ctrl, Disk *disk, IDEController::disk_t dskinfo, diskpart_t part) :
+    Volume(nullptr), mController(ctrl), mDisk(disk), mIdeDiskInfo(dskinfo), mPartition(part) {
     char buffer[22] = {0};
     sprint(buffer, 21, "vol%u", mPartition.sector);
     id(buffer);
@@ -33,20 +33,24 @@ uint8_t IDEVolume::sysid() {
 bool IDEVolume::doRead(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
-    return mController->read(mDisk, sector, count, buffer);
+    return mController->read(mIdeDiskInfo, sector, count, buffer);
 }
 
 bool IDEVolume::doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
-    return mController->write(mDisk, sector, count, buffer);
+    return mController->write(mIdeDiskInfo, sector, count, buffer);
 }
 
 size_t IDEVolume::numsectors() const {
     return mPartition.size;
 }
 
-IDEController::disk_t& IDEVolume::disk() {
+IDEController::disk_t& IDEVolume::ideDiskInfo() {
+    return mIdeDiskInfo;
+}
+
+Disk* IDEVolume::disk() {
     return mDisk;
 }
 

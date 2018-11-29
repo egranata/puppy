@@ -126,7 +126,7 @@ uintptr_t Volume::ioctl(uintptr_t a, uintptr_t b) {
     return 0;
 }
 
-MemFS::File* Volume::file(Disk *dsk) {
+MemFS::File* Volume::file() {
     class VolumeFile : public MemFS::File {
         public:
             VolumeFile(Volume* vol, Disk *disk) : MemFS::File(""), mVolume(vol) {
@@ -163,5 +163,5 @@ MemFS::File* Volume::file(Disk *dsk) {
             Volume *mVolume;
     };
 
-    return new VolumeFile(this, dsk);
+    return new VolumeFile(this, disk());
 }

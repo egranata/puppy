@@ -77,7 +77,7 @@ uint32_t IDEDiskScanner::parse(const IDEController::disk_t& dsk, const diskpart_
         }
     }
 
-    IDEVolume* vol = new IDEVolume(mDiskController, dsk, dp);
+    IDEVolume* vol = new IDEVolume(mDiskController, nullptr, dsk, dp);
 
     LOG_DEBUG("found partition of type %s (%u) - starts at sector %u and spans %u sectors - storing as 0x%p",
         parttype, dp.sysid, dp.sector, dp.size, vol);

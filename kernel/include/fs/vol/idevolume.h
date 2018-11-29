@@ -22,11 +22,12 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/vol/volume.h>
+#include <kernel/fs/vol/diskctrl.h>
 
 // TODO: move to IDE driver
 class IDEVolume : public Volume {
     public:
-        IDEVolume(IDEController*, IDEController::disk_t, diskpart_t);
+        IDEVolume(IDEController*, Disk*, IDEController::disk_t, diskpart_t);
 
         bool doRead(uint32_t sector, uint16_t count, unsigned char* buffer) override;
         bool doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) override;
@@ -35,11 +36,13 @@ class IDEVolume : public Volume {
 
         IDEController* controller() const;
         size_t numsectors() const override;
-        IDEController::disk_t& disk();
+        IDEController::disk_t& ideDiskInfo();
+        Disk *disk();
         diskpart_t& partition();
     private:
         IDEController* mController;
-        IDEController::disk_t mDisk;
+        Disk *mDisk;
+        IDEController::disk_t mIdeDiskInfo;
         diskpart_t mPartition;
 };
 

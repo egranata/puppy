@@ -35,6 +35,10 @@ class RamDisk_DiskImpl : public Disk {
     public:
         RamDisk_DiskImpl(Volume *vol) : Disk("ramdisk"), mVolume(vol) {}
 
+        void volume(Volume *vol) {
+            mVolume = vol;
+        }
+
         bool read(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
             return mVolume->read(sec0, num, buffer);
         }
@@ -59,7 +63,7 @@ class VolumeFile : public MemFS::File {
     public:
         class VolumeImpl : public Volume {
             public:
-                VolumeImpl(VolumeFile* vol) : mVolume(vol) {}
+                VolumeImpl(Disk* disk, VolumeFile* vol) : mDisk(disk), mVolume(vol) {}
 
                 uint8_t sysid() override {
                     return 0x0C; // FAT32 LBA
@@ -83,11 +87,18 @@ class VolumeFile : public MemFS::File {
                     return true;
                 }
 
+                Disk *disk() override {
+                    return mDisk;
+                }
+
             private:
+                Disk *mDisk;
                 VolumeFile *mVolume;
         };
 
-        VolumeFile(uint32_t id, uint32_t size) : MemFS::File(""), mId(id), mByteSize(size), mData(allocate(size)), mVolumeImpl(this) {
+        VolumeFile(uint32_t id, uint32_t size) : MemFS::File(""), mId(id), mByteSize(size), mData(allocate(size)),
+                                                 mDisk(nullptr), mVolumeImpl(&mDisk, this) {
+            mDisk.volume(&mVolumeImpl);
             buffer b(32);
             sprint(b.data<char>(), b.size(), "vol%u", id);
             name(b.data<char>());
@@ -127,6 +138,7 @@ class VolumeFile : public MemFS::File {
         uint32_t mId;
         uint32_t mByteSize;
         uint8_t *mData;
+        RamDisk_DiskImpl mDisk;
         VolumeImpl mVolumeImpl;
 };
 }
