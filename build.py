@@ -396,7 +396,7 @@ def createDiskImage(file, megsOfSize=64):
 
     return (rootFile, headerFile, fatFile)
 
-def buildUserlandComponent(name, sourceDir, outWhere, prefixString, beforeBuild=None, afterBuild=None, cflags=None, cppflags=None, linkerdeps=[]):
+def buildUserlandComponent(name, sourceDir, outWhere, beforeBuild=None, afterBuild=None, cflags=None, cppflags=None, linkerdeps=[]):
     component = UserspaceTool(name = name,
                               srcdir = sourceDir,
                               outwhere = outWhere,
@@ -404,11 +404,10 @@ def buildUserlandComponent(name, sourceDir, outWhere, prefixString, beforeBuild=
                               cppflags=cppflags,
                               linkerdeps=linkerdeps)
     if beforeBuild: beforeBuild(component)
-    print(' ' * len(prefixString), end='', flush=True)
     print(component.name, end='', flush=True)
     cout = component.build()
     if afterBuild: afterBuild(component, cout)
-    print('')
+    print(' ', end='', flush=True)
 
 def expandNewlibDeps(deps):
     out = []
@@ -562,7 +561,7 @@ INITRD_REFS = [] # apps for initrd
 
 with Chronometer("Building apps and tests"):
     DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
-    print(DYLIBS_PRINT_PREFIX)
+    print(DYLIBS_PRINT_PREFIX, end='', flush=True)
 
     DYLIB_DIRS = findSubdirectories("dylibs", self=False)
     def markAsDynamic(lib):
@@ -571,12 +570,11 @@ with Chronometer("Building apps and tests"):
         buildUserlandComponent(os.path.basename(lib),
                                lib,
                                "out/mnt/libs",
-                               DYLIBS_PRINT_PREFIX,
                                beforeBuild = markAsDynamic)
     print('')
 
     APPS_PRINT_PREFIX="Building apps: "
-    print(APPS_PRINT_PREFIX)
+    print(APPS_PRINT_PREFIX, end='', flush=True)
 
     APP_DIRS = findSubdirectories("apps", self=False)
     def needsInitrd(app, app_out):
@@ -588,14 +586,13 @@ with Chronometer("Building apps and tests"):
             buildUserlandComponent(bn,
                                    app,
                                    "out/mnt/apps",
-                                   APPS_PRINT_PREFIX,
                                    afterBuild=needsInitrd)
     print('')
 
     TEST_PLAN = []
 
     TEST_PRINT_PREFIX="Building tests: "
-    print(TEST_PRINT_PREFIX)
+    print(TEST_PRINT_PREFIX, end='', flush=True)
 
     TEST_DIRS = findSubdirectories("tests", self=False)
     def pushToTestPlan(test, test_out):
@@ -612,7 +609,6 @@ with Chronometer("Building apps and tests"):
             buildUserlandComponent(test_name,
                                 test,
                                 "out/mnt/tests",
-                                TEST_PRINT_PREFIX,
                                 afterBuild=pushToTestPlan,
                                 cflags = [test_name_define],
                                 cppflags = [test_name_define],
