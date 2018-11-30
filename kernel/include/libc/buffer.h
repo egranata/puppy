@@ -20,6 +20,8 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/memory.h>
 #include <kernel/libc/string.h>
+#include <stdarg.h>
+#include <kernel/libc/sprint.h>
 
 class buffer {
     public:
@@ -46,6 +48,19 @@ class buffer {
         size_t size() {
             return mSize;
         }
+
+        const char* c_str() {
+            return (const char*)data<char>();
+        }
+
+        size_t printf(const char* fmt, ...) {
+            va_list argptr;
+            va_start(argptr, fmt);
+            auto ret = vsprint((char*)mBuffer, mSize-1, fmt, argptr);
+            va_end(argptr);
+            return ret;
+        }
+
     private:
         buffer(const buffer&) = delete;
         buffer& operator =(const buffer&) = delete;

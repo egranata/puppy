@@ -18,7 +18,7 @@
 #include <kernel/libc/string.h>
 #include <kernel/libc/memory.h>
 #include <kernel/fs/vol/disk.h>
-#include <kernel/libc/sprint.h>
+#include <kernel/libc/buffer.h>
 #include <kernel/fs/vol/diskctrl.h>
 
 Volume::Volume(Disk *disk, const char* Id) :
@@ -138,17 +138,17 @@ MemFS::File* Volume::file() {
     class VolumeFile : public MemFS::File {
         public:
             VolumeFile(Volume* vol, Disk *disk) : MemFS::File(""), mVolume(vol) {
-                char buf[64] = {0};
+                buffer b(64);
                 if (disk) {
                     if (disk->controller()) {
-                        sprint(buf, 63, "%s%s%s", disk->controller()->id(), disk->id(), vol->id());
+                        b.printf("%s%s%s", disk->controller()->id(), disk->id(), vol->id());
                     } else {
-                        sprint(buf, 63, "%s%s", disk->id(), vol->id());
+                        b.printf("%s%s", disk->id(), vol->id());
                     }
                 } else {
-                    sprint(buf, 63, "%s", vol->id());
+                    b.printf("%s", vol->id());
                 }
-                name(buf);
+                name(b.c_str());
                 kind(Filesystem::FilesystemObject::kind_t::blockdevice);
             }
 

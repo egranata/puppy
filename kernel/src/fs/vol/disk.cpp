@@ -16,7 +16,7 @@
 
 #include <kernel/fs/vol/disk.h>
 #include <kernel/fs/vol/diskctrl.h>
-#include <kernel/libc/sprint.h>
+#include <kernel/libc/buffer.h>
 
 Disk::Disk(const char* Id) : mId(Id ? Id : "") {}
 const char* Disk::id() const {
@@ -30,9 +30,9 @@ MemFS::File* Disk::file() {
     class DiskFile : public MemFS::File {
         public:
             DiskFile(Disk *dsk) : MemFS::File(""), mDisk(dsk) {
-                char buf[64] = {0};
-                sprint(buf, 63, "%s%s", mDisk->controller()->id(), mDisk->id());
-                name(buf);
+                buffer buf(64);
+                buf.printf("%s%s", mDisk->controller()->id(), mDisk->id());
+                name(buf.c_str());
                 kind(Filesystem::FilesystemObject::kind_t::blockdevice);
             }
 

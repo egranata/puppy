@@ -13,12 +13,12 @@
 // limitations under the License.
 
 #include <kernel/fs/vol/partition.h>
-#include <kernel/libc/sprint.h>
+#include <kernel/libc/buffer.h>
 
 Partition::Partition(Disk* disk, diskpart_t part) : Volume(disk, nullptr), mDisk(disk), mPartition(part) {
-    char buffer[22] = {0};
-    sprint(buffer, 21, "vol%u", mPartition.sector);
-    id(buffer);
+    buffer b(22);
+    b.printf("vol%u", mPartition.sector);
+    id(b.c_str());
 }
 
 uint8_t Partition::sysid() {
