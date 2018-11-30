@@ -12,44 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <kernel/fs/vol/idevolume.h>
+#include <kernel/fs/vol/partition.h>
 #include <kernel/libc/sprint.h>
 
-IDEVolume::IDEVolume(IDEController* ctrl, Disk *disk, IDEController::disk_t dskinfo, diskpart_t part) :
-    Volume(disk, nullptr), mController(ctrl), mIdeDiskInfo(dskinfo), mPartition(part) {
+Partition::Partition(Disk* disk, diskpart_t part) : Volume(disk, nullptr), mDisk(disk), mPartition(part) {
     char buffer[22] = {0};
     sprint(buffer, 21, "vol%u", mPartition.sector);
     id(buffer);
 }
 
-IDEController* IDEVolume::controller() const {
-    return mController;
+uint8_t Partition::sysid() {
+    return mPartition.sysid;
 }
 
-uint8_t IDEVolume::sysid() {
-    return partition().sysid;
-}
-
-bool IDEVolume::doRead(uint32_t sector, uint16_t count, unsigned char* buffer) {
+bool Partition::doRead(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
-    return mController->read(mIdeDiskInfo, sector, count, buffer);
+    return mDisk->read(sector, count, buffer);
 }
 
-bool IDEVolume::doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) {
+bool Partition::doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) {
     if (sector >= mPartition.size) return false;
     sector += mPartition.sector;
-    return mController->write(mIdeDiskInfo, sector, count, buffer);
+    return mDisk->write(sector, count, buffer);
 }
 
-size_t IDEVolume::numsectors() const {
+size_t Partition::numsectors() const {
     return mPartition.size;
 }
 
-IDEController::disk_t& IDEVolume::ideDiskInfo() {
-    return mIdeDiskInfo;
-}
-
-diskpart_t& IDEVolume::partition() {
+diskpart_t& Partition::partition() {
     return mPartition;
 }

@@ -23,7 +23,7 @@
 #include <kernel/fs/vol/diskmgr.h>
 #include <kernel/fs/vol/disk.h>
 #include <kernel/libc/sprint.h>
-#include <kernel/fs/vol/idevolume.h>
+#include <kernel/fs/vol/partition.h>
 
 LOG_TAG(DISKACCESS, 2);
 
@@ -605,7 +605,7 @@ void IDEController::sendDisksToManager() {
             }
 
             bool write(uint32_t sec0, uint16_t num, unsigned char *buffer) override {
-                return mController->read(mDisk, sec0, num, buffer);
+                return mController->write(mDisk, sec0, num, buffer);
             }
 
             DiskController *controller() override {
@@ -613,7 +613,7 @@ void IDEController::sendDisksToManager() {
             }
 
             Volume* volume(const diskpart_t& dp) override {
-                return new IDEVolume(mController, this, mDisk, dp);
+                return new Partition(this, dp);
             }
         private:
             IDEController *mController;

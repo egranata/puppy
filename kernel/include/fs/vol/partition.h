@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-#ifndef FS_VOL_IDEVOLUME
-#define FS_VOL_IDEVOLUME
+#ifndef FS_VOL_PARTITION
+#define FS_VOL_PARTITION
 
-#include <kernel/sys/stdint.h>
-#include <kernel/drivers/pci/ide/ide.h>
-#include <kernel/sys/nocopy.h>
 #include <kernel/fs/vol/ptable.h>
+#include <kernel/fs/vol/disk.h>
 #include <kernel/fs/vol/volume.h>
-#include <kernel/fs/vol/diskctrl.h>
 
-// TODO: move to IDE driver
-class IDEVolume : public Volume {
+class Partition : public Volume {
     public:
-        IDEVolume(IDEController*, Disk*, IDEController::disk_t, diskpart_t);
+        Partition(Disk*, diskpart_t);
 
         bool doRead(uint32_t sector, uint16_t count, unsigned char* buffer) override;
         bool doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) override;
 
         uint8_t sysid() override;
 
-        IDEController* controller() const;
         size_t numsectors() const override;
-        IDEController::disk_t& ideDiskInfo();
+
         diskpart_t& partition();
     private:
-        IDEController* mController;
-        IDEController::disk_t mIdeDiskInfo;
+        Disk *mDisk;
         diskpart_t mPartition;
 };
 
