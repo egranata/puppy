@@ -17,6 +17,12 @@
      "wait" : true
     },
 
+    {"name" : "home",
+     "path" : "/initrd/mount",
+     "args" : "/devices/disks/ide0dsk00vol1 /home",
+     "wait" : true
+    },
+
     {"name" : "shell",
      "path" : "/system/apps/shell",
      "args" : "--init",
