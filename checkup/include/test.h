@@ -40,9 +40,17 @@ class Test {
         // the file descriptor will not be released until the test has finished
         int getSemaphore(const char* name);
 
+        // return a temporary file managed by this test case and that will be deleted
+        // at the end of the test case, regardless of test success (but not in case of
+        // a crash)
+        const char* getTempFile(const char* key);
+
     private:
+        void cleanupResources();
+
         std::string mName;
         std::unordered_map<std::string, FILE*> mSemaphores;
+        std::unordered_map<std::string, std::string> mTemporaryFiles;
 };
 
 #endif

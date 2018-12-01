@@ -31,12 +31,13 @@ class RunSimpleScriptTest : public Test {
     
     protected:
         void run() override {
-            FILE* f = fopen("/tmp/script.py", "w");
+            const char* script = getTempFile("script");
+            FILE* f = fopen(script, "w");
             CHECK_NOT_EQ(f, nullptr);
             fprintf(f, "import sys\nprint('Hello World')\nsys.exit(12)\n");
             fclose(f);
 
-            const char* argv[] = {MICROPYTHON_APP, "/tmp/script.py", nullptr};
+            const char* argv[] = {MICROPYTHON_APP, script, nullptr};
 
             auto cpid = execve(MICROPYTHON_APP, (char* const*)argv, nullptr);
             CHECK_NOT_EQ(cpid, 0);
@@ -65,12 +66,13 @@ class FileIOTest : public Test {
         }
 
         void run() override {
-            FILE* f = fopen("/tmp/script.py", "w");
+            const char* script = getTempFile("script");
+            FILE* f = fopen(script, "w");
             CHECK_NOT_EQ(f, nullptr);
             fprintf(f, "f = open('/tmp/test.txt', 'w')\nprint('hello world',file=f)\nf.close()\n");
             fclose(f);
 
-            const char* argv[] = {MICROPYTHON_APP, "/tmp/script.py", nullptr};
+            const char* argv[] = {MICROPYTHON_APP, script, nullptr};
 
             auto cpid = execve(MICROPYTHON_APP, (char* const*)argv, nullptr);
             CHECK_NOT_EQ(cpid, 0);

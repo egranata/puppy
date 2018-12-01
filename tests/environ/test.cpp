@@ -129,15 +129,17 @@ class TestShell : public EnvironTest {
         TestShell() : EnvironTest("environ.TestShell") {}
     protected:
         void run() override {
-            FILE *f = fopen("/tmp/env.check.sh", "w");
+            const char* envCheckSH = getTempFile("checksh");
+            const char* envCheck = getTempFile("check");
+            FILE *f = fopen(envCheckSH, "w");
             CHECK_NOT_EQ(f, nullptr);
             fprintf(f, "env FOO=test\n");
-            fprintf(f, "echo $(FOO) > /tmp/env.check\n");
+            fprintf(f, "echo $(FOO) > %s\n", envCheck);
             fclose(f);
 
             char* argv[] = {
                 (char*)"/system/apps/shell",
-                (char*)"/tmp/env.check.sh",
+                (char*)envCheckSH,
                 nullptr
             };
 
@@ -148,7 +150,7 @@ class TestShell : public EnvironTest {
             CHECK_EQ(status.reason, process_exit_status_t::reason_t::cleanExit);
             CHECK_EQ(status.status, 0);
 
-            f = fopen("/tmp/env.check", "r");
+            f = fopen(envCheck, "r");
             CHECK_NOT_EQ(f, nullptr);
             CHECK_EQ('t', fgetc(f));
             CHECK_EQ('e', fgetc(f));

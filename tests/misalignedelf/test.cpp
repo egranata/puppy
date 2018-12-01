@@ -90,10 +90,12 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            FILE *f = fopen("/tmp/a.out", "w");
+            const char* app = getTempFile("aout");
+
+            FILE *f = fopen(app, "w");
             fwrite(a_out, 1, a_out_len, f);
             fclose(f);
-            const char* argv[] = {"/tmp/a.out", ".", nullptr};
+            const char* argv[] = {app, ".", nullptr};
             const char* envp[] = {"PWD=/tmp", nullptr};
 
             auto cpid = execve(argv[0], (char* const*)argv, (char* const*)envp);

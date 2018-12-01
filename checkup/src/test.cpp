@@ -18,6 +18,8 @@
 #include <checkup/test.h>
 #include <checkup/success.h>
 
+#include <unistd.h>
+
 Test::Test(const char* name) : mName(name ? name : "TEST") {}
 
 const char* Test::name() const {
@@ -32,14 +34,14 @@ void Test::teardown() {}
 
 void Test::test() {
     if (false == setup()) {
+        cleanupResources();
         FAIL("setup failed");
+    } else {
+        run();
+        teardown();
+        cleanupResources();
+        __success(name());
     }
-
-    run();
-
-    teardown();
-
-    __success(name());
 }
 
 int Test::getSemaphore(const char* sn) {
@@ -57,7 +59,25 @@ int Test::getSemaphore(const char* sn) {
     return fileno(i->second);
 }
 
-Test::~Test() {
+const char* Test::getTempFile(const char* key) {
+    auto i = mTemporaryFiles.find(key), e = mTemporaryFiles.end();
+    if (i == e) {
+        std::string file_path;
+        file_path.append_sprintf("/tmp/test.%s.%s", name(), key);
+        mTemporaryFiles.emplace(key, file_path);
+        return getTempFile(key);
+    } else return i->second.c_str();
+}
+
+void Test::cleanupResources() {
     for(auto i = mSemaphores.begin(); i != mSemaphores.end(); ++i)
         fclose(i->second);
+    mSemaphores.clear();
+    for (auto i = mTemporaryFiles.begin(); i != mTemporaryFiles.end(); ++i)
+        unlink(i->second.c_str());
+    mTemporaryFiles.clear();
+}
+
+Test::~Test() {
+    cleanupResources();
 }

@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define TEST_FILE "/tmp/file.txt"
 #define TEST_CONTENT "just a string"
 
 class TheTest : public Test {
@@ -40,7 +39,7 @@ class TheTest : public Test {
 
     protected:
         bool setup() override {
-            auto fd = fopen(TEST_FILE, "w");
+            auto fd = fopen(getTempFile("data"), "w");
             if (fd == nullptr) return false;
             printf("file opened\n");
             auto c = writeString(fd, TEST_CONTENT);
@@ -52,17 +51,13 @@ class TheTest : public Test {
         void run() override {
             sleep(2); // remove the inherent race if the test proceeds quickly enough
             struct stat s;
-            CHECK_EQ(0, stat(TEST_FILE, &s));
+            CHECK_EQ(0, stat(getTempFile("data"), &s));
             auto now = time(nullptr);
             auto then = s.st_atime;
             CHECK_TRUE(now > then); // this file should have been created in the past...
             auto delta = now - then;
             CHECK_TRUE(delta < 60); // the whole thing should take less than a minute...
             printf("test took %llu seconds\n", delta);
-        }
-
-        void teardown() override {
-            unlink(TEST_FILE);
         }
 };
 
