@@ -225,10 +225,10 @@ syscall_response_t setcurdir_syscall_handler(const char* arg) {
     }
 
     auto&& isdir = vfs.opendir(arg);
-    if (isdir.first == nullptr || isdir.second == nullptr) {
+    if (isdir.filesystem == nullptr || isdir.object == nullptr) {
         return ERR(NO_SUCH_FILE);
     } else {
-        isdir.first->close(isdir.second);
+        isdir.close();
 
         if (gCurrentProcess->cwd) free((void*)gCurrentProcess->cwd);
         gCurrentProcess->cwd = strdup(arg);

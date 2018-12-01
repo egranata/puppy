@@ -39,8 +39,8 @@ syscall_response_t pipe_syscall_handler(size_t *read_fd, size_t *write_fd) {
 
     bool ok = read_ok && write_ok;
     if (!ok) {
-        pipeManager->close(pipe_reader.second);
-        pipeManager->close(pipe_writer.second);
+        pipeManager->close(pipe_reader.object);
+        pipeManager->close(pipe_writer.object);
         return ERR(NO_SUCH_FILE);
     } else {
         return OK;

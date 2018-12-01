@@ -49,6 +49,17 @@ namespace boot::vfs {
     }
 }
 
+VFS::filehandle_t::operator bool() {
+    return (filesystem != nullptr) && (object != nullptr);
+}
+void VFS::filehandle_t::close() {
+    if (filesystem && object) filesystem->close(object);
+}
+void VFS::filehandle_t::reset() {
+    filesystem = nullptr;
+    object = nullptr;
+}
+
 VFS& VFS::get() {
     static VFS gVFS;
 

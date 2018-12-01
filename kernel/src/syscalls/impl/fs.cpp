@@ -49,7 +49,7 @@ syscall_response_t fopen_syscall_handler(const char* path, uint32_t mode) {
     auto&& vfs(VFS::get());
 
     auto&& file = vfs.open(path, mode);
-    if (file.first == nullptr || file.second == nullptr) {
+    if (file.filesystem == nullptr || file.object == nullptr) {
         return ERR(NO_SUCH_FILE);
     } else {
         size_t idx = 0;
@@ -71,10 +71,10 @@ HANDLER1(fclose,fid) {
     LOG_DEBUG("closing file handle %u for process %u", fid, gCurrentProcess->pid);
     VFS::filehandle_t file = {nullptr, nullptr};
     if (gCurrentProcess->fds.is(fid,&file)) {
-        if (file.first && file.second) {
-            file.first->close(file.second);
+        if (file) {
+            file.close();
         } else {
-            LOG_DEBUG("file.first = 0x%p, file.second = 0x%p, will not close", file.first, file.second);
+            LOG_DEBUG("file.filesystem = 0x%p, file.object = 0x%p, will not close", file.filesystem, file.object);
             return ERR(NO_SUCH_FILE);
         }
     }
@@ -88,8 +88,8 @@ HANDLER3(fread,fid,len,buf) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            auto realFile = asFile(file.second);
+        if (file.object) {
+            auto realFile = asFile(file.object);
             if (realFile == nullptr) return ERR(NOT_A_FILE);
             auto sz = realFile->read(len, buffer);
             TAG_DEBUG(FILEIO, "read %u bytes to handle %u", sz, fid);
@@ -106,8 +106,8 @@ HANDLER3(fwrite,fid,len,buf) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            auto realFile = asFile(file.second);
+        if (file.object) {
+            auto realFile = asFile(file.object);
             if (realFile == nullptr) return ERR(NOT_A_FILE);
             auto sz = realFile->write(len, buffer);
             TAG_DEBUG(FILEIO, "written %u bytes to handle %u", sz, fid);
@@ -124,8 +124,8 @@ HANDLER2(fstat,fid,dst) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            return file.second->stat(*stat) ? OK : ERR(NO_SUCH_FILE);
+        if (file.object) {
+            return file.object->stat(*stat) ? OK : ERR(NO_SUCH_FILE);
         } else {
             return ERR(NO_SUCH_FILE);
         }
@@ -137,8 +137,8 @@ HANDLER2(fseek,fid,pos) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            auto realFile = asFile(file.second);
+        if (file.object) {
+            auto realFile = asFile(file.object);
             if (realFile == nullptr) return ERR(NOT_A_FILE);
             return realFile->seek(pos) ? OK : ERR(NO_SUCH_FILE);
         } else {
@@ -152,8 +152,8 @@ syscall_response_t ftell_syscall_handler(uint16_t fid, size_t* pos) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            auto realFile = asFile(file.second);
+        if (file.object) {
+            auto realFile = asFile(file.object);
             if (realFile == nullptr) return ERR(NOT_A_FILE);
             return realFile->tell(pos) ? OK : ERR(NO_SUCH_FILE);
         } else {
@@ -167,8 +167,8 @@ HANDLER3(fioctl,fid,a1,a2) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            auto realFile = asFile(file.second);
+        if (file.object) {
+            auto realFile = asFile(file.object);
             if (realFile == nullptr) return ERR(NOT_A_FILE);
             auto ret = realFile->ioctl(a1,a2);
             return OK | (ret << 1);
@@ -183,7 +183,7 @@ HANDLER1(fopendir,pth) {
     const char* path = (const char*)pth;
 
     auto&& file = vfs.opendir(path);
-    if (file.first == nullptr || file.second == nullptr) {
+    if (file.filesystem == nullptr || file.object == nullptr) {
         return ERR(NO_SUCH_FILE);
     } else {
         size_t idx = 0;
@@ -201,8 +201,8 @@ syscall_response_t freaddir_syscall_handler(uint16_t fid, file_info_t* info) {
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
     } else {
-        if (file.second) {
-            auto realDirectory = asDirectory(file.second);
+        if (file.object) {
+            auto realDirectory = asDirectory(file.object);
             if (realDirectory == nullptr) return ERR(NOT_A_FILE);
             auto ok = realDirectory->next(finfo);
             if (ok) {
@@ -231,10 +231,10 @@ syscall_response_t fdup_syscall_handler(uint32_t fid, uint32_t minNewFid) {
     VFS::filehandle_t file = {nullptr, nullptr};
     if (!gCurrentProcess->fds.is(fid,&file)) {
         return ERR(NO_SUCH_FILE);
-    } else if (file.second == nullptr) {
+    } else if (file.object == nullptr) {
         return ERR(NO_SUCH_FILE);
     } else {
-        file.second->incref();
+        file.object->incref();
         size_t newfid = 0;
         bool ok = gCurrentProcess->fds.set(file, newfid, minNewFid);
         if (ok) {

@@ -624,9 +624,9 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
     for(auto i = 0u; i < task->fds.size(); ++i) {
         decltype(task->fds)::entry_t fd;
         if (task->fds.is(i, &fd)) {
-            if (fd.first && fd.second) {
-                LOG_DEBUG("for process %u, closing file handle %u (fs = 0x%p, fh = 0x%p)", task->pid, i, fd.first, fd.second);
-                fd.first->close(fd.second);
+            if (fd) {
+                LOG_DEBUG("for process %u, closing file handle %u (fs = 0x%p, fh = 0x%p)", task->pid, i, fd.filesystem, fd.object);
+                fd.close();
             }
         }
     }
@@ -865,8 +865,8 @@ void ProcessManager::execFileops(process_t* parent, process_t* child, exec_fileo
                 VFS::filehandle_t child_handle = {nullptr, nullptr};
                 bool ok = child->fds.is(child_fd, &child_handle);
                 if (ok) {
-                    if (child_handle.first && child_handle.second) {
-                        child_handle.first->close(child_handle.second);
+                    if (child_handle) {
+                        child_handle.close();
                     }
                 }
                 child->fds.clear(child_fd);
@@ -880,13 +880,15 @@ void ProcessManager::execFileops(process_t* parent, process_t* child, exec_fileo
                 if (!ok) {
                     TAG_ERROR(FILEOPS, "file handle %u in parent process %u is not available; can't duplicate", parent_fd, parent->pid);
                 } else {
-                    if (parent_handle.second) {
-                        parent_handle.second->incref();
+                    if (parent_handle.object) {
+                        parent_handle.object->incref();
                         ok = child->fds.set(parent_handle, fops->param2);
                         if (!ok) {
-                            TAG_ERROR(FILEOPS, "failed to duplicate handle %u from process %u in child process %u", parent_fd, parent->pid, child->pid);
+                            TAG_ERROR(FILEOPS, "failed to duplicate handle %u from process %u in child process %u",
+                                parent_fd, parent->pid, child->pid);
                         } else {
-                            TAG_DEBUG(FILEOPS, "handle %u from parent %u will be handle %u in child %u", parent_fd, parent->pid, fops->param2, child->pid);
+                            TAG_DEBUG(FILEOPS, "handle %u from parent %u will be handle %u in child %u",
+                                parent_fd, parent->pid, fops->param2, child->pid);
                         }
                     }
                 }

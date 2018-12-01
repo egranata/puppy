@@ -33,9 +33,7 @@
 
 #define UNHAPPY(cause, N) { \
     process_exit_status_t es(process_exit_status_t::reason_t::kernelError, N); \
-    if (fhandle.first && file) { \
-        fhandle.first->close(file); \
-    } \
+    if (fhandle) fhandle.close(); \
     LOG_ERROR(cause " - exiting"); \
     reaper(es.toWord()); \
 }
@@ -68,8 +66,8 @@ process_loadinfo_t load_binary(const char* path) {
 
     auto fhandle = vfs.open(path, FILE_OPEN_READ | FILE_NO_CREATE);
 
-    auto file = (Filesystem::File*)fhandle.second;
-    if (fhandle.first == nullptr || fhandle.second == nullptr) UNHAPPY("unable to open file", process_exit_status_t::kernelError_noSuchFile);
+    auto file = (Filesystem::File*)fhandle.object;
+    if (fhandle.filesystem == nullptr || fhandle.object == nullptr) UNHAPPY("unable to open file", process_exit_status_t::kernelError_noSuchFile);
 
     Filesystem::File::stat_t fstat{
         kind : file_kind_t::file,
@@ -85,9 +83,9 @@ process_loadinfo_t load_binary(const char* path) {
 
     if (file->read(fstat.size, (char*)file_rgn.from) == false) UNHAPPY("unable to read file data", process_exit_status_t::kernelError_noSuchFile);
 
-    fhandle.first->close(file);
-    fhandle.first = nullptr;
-    fhandle.second = nullptr;
+    fhandle.close();
+    fhandle.filesystem = nullptr;
+    fhandle.object = nullptr;
 
     exec_format_loader_t *loader_f = nullptr;
 

@@ -27,7 +27,14 @@
 
 class VFS : NOCOPY {
     public:
-        using filehandle_t = pair<Filesystem*, Filesystem::FilesystemObject*>;
+        struct filehandle_t {
+            Filesystem* filesystem;
+            Filesystem::FilesystemObject* object;
+
+            explicit operator bool();
+            void close();
+            void reset();
+        };
         static VFS& get();
 
         bool mount(const char* path, Filesystem* fs);
