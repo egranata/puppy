@@ -483,7 +483,7 @@ else:
     ROOT_DISK = IMG_FILE
     BOOT_DISK = "%s.boot" % IMG_FILE
     SYS_DISK = "%s.sys" % IMG_FILE
-    USR_DISK = "%s.usr" % IMG_FILE
+    USER_DISK = "%s.usr" % IMG_FILE
 
 if BUILD_CORE:
     makeDir("out/mnt/apps")
