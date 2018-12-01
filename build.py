@@ -30,19 +30,23 @@ VERBOSE = "-v" in sys.argv
 
 CLEAN_SLATE = "-keep-out" not in sys.argv
 BUILD_CORE = "-keep-kernel" not in sys.argv
+BUILD_USERSPACE = "-keep-user" not in sys.argv
 
 APPS_TO_REBUILD = []
 for arg in sys.argv:
     if arg.startswith("-rebuild-app="):
         APPS_TO_REBUILD.append(arg.replace("-rebuild-app=", ""))
 
-if not BUILD_CORE: CLEAN_SLATE = False
+if (not BUILD_USERSPACE) or (not BUILD_CORE):
+    CLEAN_SLATE = False
 
 MYPATH = os.path.abspath(os.getcwd())
 
-if BUILD_CORE:
+if BUILD_CORE and BUILD_USERSPACE:
     print("Build type: Full; OS path: %s" % MYPATH)
-else:
+elif BUILD_CORE:
+    print("Build type: Core; OS path: %s" % MYPATH)
+elif BUILD_USERSPACE:
     print("Build type: Userland; OS path: %s" % MYPATH)
 
 BUILD_START = time.time()
@@ -559,80 +563,83 @@ APPS_CONFIG = {
 
 INITRD_REFS = [] # apps for initrd
 
-with Chronometer("Building apps and tests"):
-    DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
-    print(DYLIBS_PRINT_PREFIX, end='', flush=True)
+if BUILD_USERSPACE:
+    with Chronometer("Building apps and tests"):
+        DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
+        print(DYLIBS_PRINT_PREFIX, end='', flush=True)
 
-    DYLIB_DIRS = findSubdirectories("dylibs", self=False)
-    def markAsDynamic(lib):
-        lib.link = lib.linkDylib
-    for lib in DYLIB_DIRS:
-        buildUserlandComponent(os.path.basename(lib),
-                               lib,
-                               "out/mnt/libs",
-                               beforeBuild = markAsDynamic)
-    print('')
+        DYLIB_DIRS = findSubdirectories("dylibs", self=False)
+        def markAsDynamic(lib):
+            lib.link = lib.linkDylib
+        for lib in DYLIB_DIRS:
+            buildUserlandComponent(os.path.basename(lib),
+                                lib,
+                                "out/mnt/libs",
+                                beforeBuild = markAsDynamic)
+        print('')
 
-    APPS_PRINT_PREFIX="Building apps: "
-    print(APPS_PRINT_PREFIX, end='', flush=True)
+        APPS_PRINT_PREFIX="Building apps: "
+        print(APPS_PRINT_PREFIX, end='', flush=True)
 
-    APP_DIRS = findSubdirectories("apps", self=False)
-    def needsInitrd(app, app_out):
-        config = APPS_CONFIG.get(app.name, {"initrd": False})
-        if config["initrd"]: INITRD_REFS.append(app_out)
-    for app in APP_DIRS:
-        bn = os.path.basename(app)
-        if len(APPS_TO_REBUILD) == 0 or bn in APPS_TO_REBUILD or bn in APPS_CONFIG:
-            buildUserlandComponent(bn,
-                                   app,
-                                   "out/mnt/apps",
-                                   afterBuild=needsInitrd)
-    print('')
+        APP_DIRS = findSubdirectories("apps", self=False)
+        def needsInitrd(app, app_out):
+            config = APPS_CONFIG.get(app.name, {"initrd": False})
+            if config["initrd"]: INITRD_REFS.append(app_out)
+        for app in APP_DIRS:
+            bn = os.path.basename(app)
+            if len(APPS_TO_REBUILD) == 0 or bn in APPS_TO_REBUILD or bn in APPS_CONFIG:
+                buildUserlandComponent(bn,
+                                    app,
+                                    "out/mnt/apps",
+                                    afterBuild=needsInitrd)
+        print('')
 
-    TEST_PLAN = []
+        TEST_PLAN = []
 
-    TEST_PRINT_PREFIX="Building tests: "
-    print(TEST_PRINT_PREFIX, end='', flush=True)
+        TEST_PRINT_PREFIX="Building tests: "
+        print(TEST_PRINT_PREFIX, end='', flush=True)
 
-    TEST_DIRS = findSubdirectories("tests", self=False)
-    def pushToTestPlan(test, test_out):
-        test_ref = "/system/%s" % (test_out.replace("out/mnt/", ""))
-        TEST_PLAN.append({
-            "path" : test_ref,
-            "id" : test.name,
-            "wait" : "15" # allow tests to wait for more or less than 15 seconds
-        })
-    for test in TEST_DIRS:
-        test_name = os.path.basename(test)
-        test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
-        if len(APPS_TO_REBUILD) == 0 or test_name in APPS_TO_REBUILD:
-            buildUserlandComponent(test_name,
-                                test,
-                                "out/mnt/tests",
-                                afterBuild=pushToTestPlan,
-                                cflags = [test_name_define],
-                                cppflags = [test_name_define],
-                                linkerdeps = ["out/mnt/libs/libcheckup.a"])
+        TEST_DIRS = findSubdirectories("tests", self=False)
+        def pushToTestPlan(test, test_out):
+            test_ref = "/system/%s" % (test_out.replace("out/mnt/", ""))
+            TEST_PLAN.append({
+                "path" : test_ref,
+                "id" : test.name,
+                "wait" : "15" # allow tests to wait for more or less than 15 seconds
+            })
+        for test in TEST_DIRS:
+            test_name = os.path.basename(test)
+            test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
+            if len(APPS_TO_REBUILD) == 0 or test_name in APPS_TO_REBUILD:
+                buildUserlandComponent(test_name,
+                                    test,
+                                    "out/mnt/tests",
+                                    afterBuild=pushToTestPlan,
+                                    cflags = [test_name_define],
+                                    cppflags = [test_name_define],
+                                    linkerdeps = ["out/mnt/libs/libcheckup.a"])
 
-    # provide a consistent sort order for test execution regardless of underlying FS
-    TEST_PLAN.sort(key=lambda test: test["id"])
+        # provide a consistent sort order for test execution regardless of underlying FS
+        TEST_PLAN.sort(key=lambda test: test["id"])
 
-    with open("out/testplan.json", "w") as f:
-        json.dump(TEST_PLAN, f)
+        with open("out/testplan.json", "w") as f:
+            json.dump(TEST_PLAN, f)
 
-    with open("out/mnt/tests/runall.sh", "w") as testScript:
-        print("#!/system/apps/shell", file=testScript)
-        for test in TEST_PLAN:
-                print("%s" % test['path'], file=testScript)
+        with open("out/mnt/tests/runall.sh", "w") as testScript:
+            print("#!/system/apps/shell", file=testScript)
+            for test in TEST_PLAN:
+                    print("%s" % test['path'], file=testScript)
 
-    print('')
+        print('')
 
 with Chronometer("Configuring bootloader"):
-    INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
-    shell("initrd/gen.py --dest out/mnt/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
     MENU_MODULE_REFS = ["module /boot/initrd.img /initrd"] # add kernel modules here, should any exist
 
-    print("Size of initrd image: %d bytes" % os.stat("out/mnt/boot/initrd.img").st_size)
+    # won't have a new initrd without building userland
+    if BUILD_USERSPACE:
+        INITRD_ARGS = ["--file " + x for x in INITRD_REFS]
+        shell("initrd/gen.py --dest out/mnt/boot/initrd.img %s" % ' '.join(INITRD_ARGS))
+        print("Size of initrd image: %d bytes" % os.stat("out/mnt/boot/initrd.img").st_size)
 
     rcopy("build/grub", "out/mnt/boot")
     copy("out/kernel", "out/mnt/boot/puppy")
