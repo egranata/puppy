@@ -108,7 +108,7 @@ class BootRecord(object):
                 newPartition = Partition()
                 newPartition.setBootable(jsonEntry.get('bootable', 'no') == 'yes')
                 newPartition.setType(jsonEntry.get('type', 12))
-                newPartition.setLBA(jsonEntry.get('lba', previousLastSector + 1))
+                newPartition.setLBA(jsonEntry.get('lba', previousLastSector))
                 newPartition.setSize( int(jsonEntry.get('size', 1024*1024) / 512) )
                 lastSector = newPartition.lba + newPartition.size
                 previousLastSector = max(previousLastSector, lastSector)

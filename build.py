@@ -359,29 +359,46 @@ def writeSpecsFile(outfile):
         print("    -T %s -e_start -L %s" % (os.path.abspath(USERSPACE_LD_SCRIPT),
                                             os.path.join(MYPATH, "out", "mnt", "libs")), file=f)
 
-def createDiskImage(file, megsOfSize=64):
+def prepareDiskImages(file, sysPartitionMBs = 48,
+                            userPartitionMBs = 64,
+                            reservedSectors = 2047):
     rootFile = file
-    tempFile = "%s.tmp" % file
+    sysPartitionFile = "%s.sys" % file
+    userPartitionFile = "%s.usr" % file
     headerFile = "%s.boot" % file
-    fatFile = "%s.fat" % file
 
-    megsOfFATVolume = megsOfSize - 1
-
-    # in order for fdisk to be able to fill in the entire disk with our mainfs, it needs to know the actual
-    # size of the disk; so create a full size disk only to then truncate it to its first megabyte
-    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (tempFile, 1024*1024, megsOfSize)
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (headerFile, 1024*1024, 1)
     shell(CMDLINE)
 
-    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (fatFile, 1024*1024, megsOfFATVolume)
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (sysPartitionFile, 1024*1024, sysPartitionMBs)
     shell(CMDLINE)
 
-    CMDLINE="fdisk %s" % tempFile
-    shell(CMDLINE, stdin=open('build/fdisk.in'))
-
-    CMDLINE="mkfs.fat -F32 %s" % (fatFile)
+    CMDLINE="mkfs.fat -F32 %s" % (sysPartitionFile)
     shell(CMDLINE)
 
-    CMDLINE="dd if=%s of=%s bs=%s count=%s" % (tempFile, headerFile, 1024, 1024)
+    CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (userPartitionFile, 1024*1024, userPartitionMBs)
+    shell(CMDLINE)
+
+    CMDLINE="mkfs.fat -F32 %s" % (userPartitionFile)
+    shell(CMDLINE)
+
+    partitions = [
+        {'bootable' : 'yes',
+         'lba' : reservedSectors + 1,
+         'type' : 0xc,
+         'size' : sysPartitionMBs * 1024*1024},
+        {'type' : 0xc,
+         'size' : userPartitionMBs * 1024*1024}
+    ]
+
+    with open("out/systemdsk.json", "w") as f:
+        json.dump(partitions, f)
+    
+    CMDLINE="build/imgptable.py out/systemdsk.json out/bootsect.0"
+    shell(CMDLINE)
+
+    # copy the full boot sector from the partition table tool, but then overwrite the rest of it
+    CMDLINE="dd if=out/bootsect.0 conv=notrunc bs=1 count=512 of=%s" % (headerFile)
     shell(CMDLINE)
 
     CMDLINE="dd if=build/bootsect.0 conv=notrunc bs=1 count=446 of=%s" % (headerFile)
@@ -396,9 +413,7 @@ def createDiskImage(file, megsOfSize=64):
     CMDLINE="dd if=out/boot.ldr bs=512 seek=1 of=%s conv=notrunc" % (headerFile)
     shell(CMDLINE)
 
-    os.unlink(tempFile)
-
-    return (rootFile, headerFile, fatFile)
+    return (rootFile, headerFile, sysPartitionFile, userPartitionFile)
 
 def buildUserlandComponent(name, sourceDir, outWhere, beforeBuild=None, afterBuild=None, cflags=None, cppflags=None, linkerdeps=[]):
     component = UserspaceTool(name = name,
@@ -462,12 +477,13 @@ if CLEAN_SLATE:
     clearDir("out/mnt")
 
 if BUILD_CORE:
-    ROOT_DISK, BOOT_DISK, FAT_DISK = createDiskImage(IMG_FILE, megsOfSize=72)
-    print("OS disk image parts: %s and %s, which will be combined to produce %s" % (BOOT_DISK, FAT_DISK, ROOT_DISK))
+    ROOT_DISK, BOOT_DISK, SYS_DISK, USER_DISK = prepareDiskImages(IMG_FILE)
+    print("OS disk image parts: %s %s %s, which will be combined to produce %s" % (BOOT_DISK, SYS_DISK, USER_DISK, ROOT_DISK))
 else:
     ROOT_DISK = IMG_FILE
     BOOT_DISK = "%s.boot" % IMG_FILE
-    FAT_DISK = "%s.fat" % IMG_FILE
+    SYS_DISK = "%s.sys" % IMG_FILE
+    USR_DISK = "%s.usr" % IMG_FILE
 
 if BUILD_CORE:
     makeDir("out/mnt/apps")
@@ -649,12 +665,12 @@ with Chronometer("Configuring bootloader"):
     write("out/mnt/boot/grub/grub.cfg", menulst)
 
 with Chronometer("Building final disk image"):
-    CMDLINE="mcopy -D overwrite -s -i %s out/mnt/* ::/" % (FAT_DISK)
+    CMDLINE="mcopy -D overwrite -s -i %s out/mnt/* ::/" % (SYS_DISK)
     shell(CMDLINE)
 
     PART_USAGE = calculateSize("out/mnt")
 
-    CMDLINE="build/concatimg.sh %s %s %s" % (ROOT_DISK, BOOT_DISK, FAT_DISK)
+    CMDLINE="build/concatimg.sh %s %s %s %s" % (ROOT_DISK, BOOT_DISK, SYS_DISK, USER_DISK)
     shell(CMDLINE)
 
     print("Size of OS disk image: %10d bytes\n                       %10d bytes used" % (os.stat(ROOT_DISK).st_size, PART_USAGE))
