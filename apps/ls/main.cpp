@@ -50,6 +50,10 @@ bool doesPrintSize(int kind) {
     return kind == DT_REG;
 }
 
+bool isDirectory(int kind) {
+    return kind == DT_DIR;
+}
+
 void print(dirent* entry) {
     char time_info[64] = {0};
 
@@ -67,7 +71,12 @@ void print(dirent* entry) {
     } else {
         printf("             ");
     }
-    printf("%s\n", entry->d_name);
+
+    if (isDirectory(entry->d_type)) {
+        printf("\x1b[38;2;0;111;184m%s\x1b[0m\n", entry->d_name);
+    } else {
+        printf("%s\n", entry->d_name);
+    }
 }
 
 int ls(const char* path) {
