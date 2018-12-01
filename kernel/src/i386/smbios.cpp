@@ -15,11 +15,11 @@
 #include <kernel/i386/smbios.h>
 #include <kernel/mm/virt.h>
 #include <kernel/log/log.h>
-#include <kernel/sys/unions.h>
 #include <kernel/libc/memory.h>
 #include <kernel/libc/string.h>
 #include <kernel/libc/mapping.h>
 #include <kernel/boot/phase.h>
+#include <kernel/sys/unions.h>
 
 namespace boot::smbios {
     uint32_t init() {

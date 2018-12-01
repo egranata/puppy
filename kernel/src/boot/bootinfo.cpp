@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include <kernel/boot/bootinfo.h>
-#include <kernel/sys/unions.h>
 #include <kernel/libc/string.h>
 
 framebuf_info_t::framebuf_info_t(const multiboot_info& mbi) {

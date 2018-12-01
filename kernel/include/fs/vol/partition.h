@@ -23,7 +23,7 @@
 
 class Partition : public Volume {
     public:
-        Partition(Disk*, diskpart_t);
+        Partition(Disk*, diskpart_t, const char* Id = nullptr);
 
         bool doRead(uint32_t sector, uint16_t count, unsigned char* buffer) override;
         bool doWrite(uint32_t sector, uint16_t count, unsigned char* buffer) override;

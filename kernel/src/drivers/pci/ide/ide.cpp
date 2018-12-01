@@ -22,8 +22,8 @@
 #include <kernel/drivers/pci/match.h>
 #include <kernel/fs/vol/diskmgr.h>
 #include <kernel/fs/vol/disk.h>
-#include <kernel/libc/sprint.h>
 #include <kernel/fs/vol/partition.h>
+#include <kernel/libc/buffer.h>
 
 LOG_TAG(DISKACCESS, 2);
 
@@ -380,9 +380,9 @@ size_t IDEController::configurepio() {
 
 IDEController::IDEController(const PCIBus::pci_hdr_0& info) : DiskController(nullptr), mInfo(info) {
     static size_t gIdeControllerCount = 0;
-    char gIdeControllerBuffer[22] = {0};
-    sprint(gIdeControllerBuffer, 21, "ide%u", gIdeControllerCount);
-    id(gIdeControllerBuffer);
+    buffer nameBuf(22);
+    nameBuf.printf("ide%u", gIdeControllerCount);
+    id(nameBuf.c_str());
     ++gIdeControllerCount;
 
     LOG_DEBUG("trying to construct an IDE controller device - info is 0x%p", &info);
@@ -540,7 +540,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : DiskController(nul
             }
 
             // technically, undefined behavior...
-            buffer<512> buf;
+            bwdBuffer<512> buf;
             for (auto i = 0; i < 256; ++i) {
                 buf.word[i] = inw(channel.iobase + gDataRegister);
             }
@@ -589,7 +589,7 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : DiskController(nul
 void IDEController::sendDisksToManager() {
     class IDEDisk : public Disk {
         public:
-            IDEDisk(IDEController* ctrl, IDEController::disk_t dsk) : Disk(nullptr), mController(ctrl), mDisk(dsk) {
+            IDEDisk(IDEController* ctrl, IDEController::disk_t dsk) : Disk(nullptr), mNextPartitionId(0), mController(ctrl), mDisk(dsk) {
                 char diskName[] = {'d', 's', 'k', '0', '0', 0};
                 diskName[3] = (uint8_t)dsk.chan + diskName[3];
                 diskName[4] = (uint8_t)dsk.bus + diskName[4];
@@ -613,9 +613,13 @@ void IDEController::sendDisksToManager() {
             }
 
             Volume* volume(const diskpart_t& dp) override {
-                return new Partition(this, dp);
+                buffer b(22);
+                b.printf("vol%u", mNextPartitionId);
+                mNextPartitionId++;
+                return new Partition(this, dp, b.c_str());
             }
         private:
+            size_t mNextPartitionId;
             IDEController *mController;
             IDEController::disk_t mDisk;
     };

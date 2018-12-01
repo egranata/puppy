@@ -15,10 +15,14 @@
 #include <kernel/fs/vol/partition.h>
 #include <kernel/libc/buffer.h>
 
-Partition::Partition(Disk* disk, diskpart_t part) : Volume(disk, nullptr), mDisk(disk), mPartition(part) {
-    buffer b(22);
-    b.printf("vol%u", mPartition.sector);
-    id(b.c_str());
+Partition::Partition(Disk* disk, diskpart_t part, const char* Id) : Volume(disk, nullptr), mDisk(disk), mPartition(part) {
+    if (Id && Id[0]) {
+        id(Id);
+    } else {
+        buffer b(22);
+        b.printf("vol%u", mPartition.sector);
+        id(b.c_str());
+    }
 }
 
 uint8_t Partition::sysid() {

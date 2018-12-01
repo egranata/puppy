@@ -52,10 +52,15 @@ namespace boot::mount {
                     LOG_INFO("%s is mainfs (/system)", vol->id());
                     bootphase_t::printf("/system mounted from controller %s disk %s volume %s\n",
                         vol->disk()->controller()->id(), vol->disk()->id(), vol->id());
+                    return 0;
                 }
             }
         }
 
-        return 0;
+        return 1;
+    }
+
+    bool fail(uint32_t) {
+        return bootphase_t::gPanic;
     }
 }

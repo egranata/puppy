@@ -83,6 +83,7 @@ namespace boot {
     }
     namespace mount {
         uint32_t init();
+        bool fail(uint32_t);
     }
     namespace syscalls {
         uint32_t init();
@@ -227,7 +228,7 @@ __attribute__((constructor)) void loadBootPhases() {
         visible : false,
         operation : boot::mount::init,
         onSuccess : nullptr,
-        onFailure : nullptr
+        onFailure : boot::mount::fail
     });
 
     registerBootPhase(bootphase_t{

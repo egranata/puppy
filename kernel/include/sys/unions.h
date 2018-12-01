@@ -38,7 +38,7 @@ union sixtyfour {
 };
 
 template<unsigned int Nbytes>
-union buffer {
+union bwdBuffer {
     static_assert(Nbytes >= 4);
 
     uint32_t dword[Nbytes / 4];
