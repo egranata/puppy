@@ -21,15 +21,14 @@
 #include <kernel/libc/str.h>
 #include <kernel/syscalls/types.h>
 #include <kernel/libc/atomic.h>
+#include <kernel/sys/nocopy.h>
 
-class Filesystem {
+class Filesystem : NOCOPY {
     public:
-        class FilesystemObject {
+        class FilesystemObject : NOCOPY {
             public:
                 using stat_t = file_stat_t;
 
-                static constexpr size_t gFilenameSize = 32;
-                typedef unsigned char filename_t[gFilenameSize];
                 using kind_t = file_kind_t;
                 virtual ~FilesystemObject() = default;
 

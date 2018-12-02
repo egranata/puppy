@@ -18,9 +18,8 @@
 #define FS_INITRD_FILE
 
 #include <kernel/fs/filesystem.h>
-#include <kernel/sys/nocopy.h>
 
-class InitrdFile : public Filesystem::File, NOCOPY {
+class InitrdFile : public Filesystem::File {
     public:
         bool seek(size_t) override;
         bool tell(size_t*) override;

@@ -19,9 +19,8 @@
 
 #include <kernel/fs/filesystem.h>
 #include <kernel/fs/initrd/fs.h>
-#include <kernel/sys/nocopy.h>
 
-class InitrdDirectory : public Filesystem::Directory, NOCOPY {
+class InitrdDirectory : public Filesystem::Directory {
     public:
         bool next(fileinfo_t&) override;
         bool doStat(stat_t& stat) override;
