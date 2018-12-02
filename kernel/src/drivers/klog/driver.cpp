@@ -67,7 +67,7 @@ namespace {
                         if (len >= gUserspaceWriteSize) return 0;
                         char buffer[gUserspaceWriteSize] = {0};
 
-                        len = sprint(&buffer[0], gUserspaceWriteSize, "(pid=%u) %s", gCurrentProcess->pid, buf);
+                        len = sprint(&buffer[0], gUserspaceWriteSize, "(pid=%u) %.*s", gCurrentProcess->pid, len, buf);
                         TAG_ERROR(USERSPACE, "%s", &buffer[0]);
                         return len;
                     }
