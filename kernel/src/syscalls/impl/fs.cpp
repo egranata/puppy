@@ -17,7 +17,6 @@
 #include <kernel/process/current.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
-#include <kernel/log/log.h>
 
 LOG_TAG(FILEIO, 2);
 

@@ -35,5 +35,6 @@
     {"name":"proctable",        "argtypes":["process_info_t*", "size_t"]},
     {"name":"vmcheckreadable",  "argtypes":["uintptr_t", "size_t"]},
     {"name":"vmcheckwritable",  "argtypes":["uintptr_t", "size_t"]},
-    {"name":"pipe",             "argtypes":["size_t*", "size_t*"]}
+    {"name":"pipe",             "argtypes":["size_t*", "size_t*"]},
+    {"name":"mmap",             "argtypes":["size_t","int"]}
 ]}

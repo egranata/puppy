@@ -60,6 +60,18 @@ void VFS::filehandle_t::reset() {
     object = nullptr;
 }
 
+#define FILE_LIKE(x, y) case file_kind_t:: x: return (Filesystem::File*)object;
+#define DIR_LIKE(x, y) case file_kind_t:: x: return nullptr;
+Filesystem::File* VFS::filehandle_t::asFile() {
+    switch (object->kind()) {
+#include <kernel/fs/file_kinds.tbl>
+    }
+
+    return nullptr;
+}
+#undef FILE_LIKE
+#undef DIR_LIKE
+
 VFS& VFS::get() {
     static VFS gVFS;
 

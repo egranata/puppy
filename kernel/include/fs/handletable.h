@@ -52,6 +52,14 @@ class Handletable {
             return false;
         }
 
+        bool reset(size_t idx, const T& value) {
+            if (is(idx)) {
+                mData[idx] = value;
+                return true;
+            }
+            return false;
+        }
+
         bool is(size_t idx, T* value = nullptr) {
             bool ret = 0 != (mValid[idx / 8] & bit(idx));
             if (ret && value) {

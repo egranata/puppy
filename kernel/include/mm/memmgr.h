@@ -31,10 +31,15 @@ class MemoryManager : NOCOPY {
             using permission_t = VirtualPageManager::map_options_t;
 
             permission_t permission;
+            struct {
+                int fd;
+                size_t size;
+            } mmap_data;
 
             region_t (uintptr_t = 0, uintptr_t = 0, permission_t = permission_t::kernel());
 
             bool operator==(const region_t&) const;
+            bool isMmapRegion() const;
         };
 
         MemoryManager(process_t*);
@@ -49,6 +54,9 @@ class MemoryManager : NOCOPY {
 
         // finds a region and records it, all pages of the region are mapped to the zero page
         region_t findAndZeroPageRegion(size_t size, const VirtualPageManager::map_options_t&);
+
+        // finds a region and mmaps a file into it
+        region_t findAndFileMapRegion(int fd, size_t size);
 
         // edits an existing region to have new permissions
         bool protectRegionAtAddress(uintptr_t address, const VirtualPageManager::map_options_t&);

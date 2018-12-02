@@ -19,6 +19,7 @@
 #include <kernel/process/manager.h>
 #include <kernel/process/process.h>
 #include <kernel/mm/memmgr.h>
+#include <kernel/fs/vfs.h>
 
 LOG_TAG(PGFAULT, 2);
 
@@ -86,14 +87,55 @@ static const char* pageflt_description(uint32_t err) {
     }
 }
 
+static bool mmap_fault_recover(VirtualPageManager& vmm, uintptr_t vaddr, MemoryManager*, MemoryManager::region_t& rgn) {
+    size_t rgn_offset = vaddr - rgn.from;
+    auto vpage = VirtualPageManager::page(vaddr);
+    size_t base_offset = VirtualPageManager::page(rgn_offset);
+
+    if (rgn_offset > rgn.mmap_data.size) {
+        TAG_ERROR(PGFAULT, "page fault at 0x%p is at offset %u from region base; this is bigger than mapping size %u",
+            vaddr, rgn_offset, rgn.mmap_data.size);
+        return false;
+    }
+
+    VFS::filehandle_t file = {nullptr, nullptr};
+    if (false == gCurrentProcess->fds.is(rgn.mmap_data.fd,&file)) {
+        TAG_ERROR(PGFAULT, "mmap page fault can't be solved for missing fd %u", rgn.mmap_data.fd);
+        return false;
+    }
+    if (!file) {
+        TAG_ERROR(PGFAULT, "mmap page fault can't be solved for missing fd %u", rgn.mmap_data.fd);
+        return false;
+    }
+    auto realFile = file.asFile();
+    if (!realFile) {
+        TAG_ERROR(PGFAULT, "mmap page fault can't be solved for missing fd %u", rgn.mmap_data.fd);
+        return false;
+    }
+
+    bool sk = realFile->seek(base_offset);
+    if (!sk) {
+        TAG_ERROR(PGFAULT, "file 0x%p can't accept a seek at %u", realFile, base_offset);
+        return false;
+    }
+
+    vmm.mapAnyPhysicalPage(vpage, rgn.permission.clear(true));
+    size_t sz = realFile->read(VirtualPageManager::gPageSize, (char*)vpage);
+    return (sz != 0);
+}
+
 static bool zeropage_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     auto memmgr = gCurrentProcess->getMemoryManager();
     MemoryManager::region_t region;
     if (memmgr->isWithinRegion(vaddr, &region)) {
-        auto vpage = VirtualPageManager::page(vaddr);
-        TAG_DEBUG(PGFAULT, "faulting address found within a memory region - mapping page 0x%p", vpage);
-        vmm.mapAnyPhysicalPage(vpage, region.permission);
-        return true;
+        if (region.isMmapRegion()) {
+            return mmap_fault_recover(vmm, vaddr, memmgr, region);
+        } else {
+            auto vpage = VirtualPageManager::page(vaddr);
+            TAG_DEBUG(PGFAULT, "faulting address found within a memory region - mapping page 0x%p", vpage);
+            vmm.mapAnyPhysicalPage(vpage, region.permission);
+            return true;
+        }
     } else {
         return false;
     }
@@ -118,9 +160,7 @@ void pageflt_handler(GPR& gpr, InterruptStack& stack, void*) {
 
     if (vmm.isZeroPageAccess(vaddr)) {
         if (zeropage_recover(vmm, vaddr)) return;
-    }
-
-    if (vmm.isCOWAccess(stack.error, vaddr)) {
+    } else if (vmm.isCOWAccess(stack.error, vaddr)) {
         if (cow_recover(vmm, vaddr)) return;
     }
 

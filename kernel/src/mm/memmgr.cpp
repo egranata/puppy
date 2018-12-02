@@ -26,10 +26,16 @@ MemoryManager::region_t::region_t (uintptr_t f, uintptr_t t, permission_t p) {
     from = f;
     to = t;
     permission = p;
+    mmap_data.fd = -1;
+    mmap_data.size = 0;
 }
 
 bool MemoryManager::region_t::operator==(const region_t& other) const {
     return (from == other.from) && (to == other.to);
+}
+
+bool MemoryManager::region_t::isMmapRegion() const {
+    return mmap_data.fd >= 0 && mmap_data.size > 0;
 }
 
 MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions(), mAllRegionsSize(0) {
@@ -135,9 +141,26 @@ MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size, const 
     region_t region;
     if (findRegionImpl(size, region)) {
         region.permission = opts;
-        LOG_DEBUG("zeropage mapping all pages from 0x%p to 0x%p", region.from, region.to);        
+        LOG_DEBUG("zeropage mapping all pages from 0x%p to 0x%p", region.from, region.to);
         auto&& vmm(VirtualPageManager::get());
         vmm.mapZeroPage(region.from, region.to, opts);
+        return addRegion(region);
+    } else {
+        return {0,0};
+    }
+}
+
+MemoryManager::region_t MemoryManager::findAndFileMapRegion(int fd, size_t size) {
+    region_t region;
+    if (findRegionImpl(size, region)) {
+        auto opts = VirtualPageManager::map_options_t()
+            .rw(true)
+            .user(true);
+        auto&& vmm(VirtualPageManager::get());
+        vmm.mapZeroPage(region.from, region.to, opts);
+        region.mmap_data.fd = fd;
+        region.mmap_data.size = size;
+        region.permission = opts;
         return addRegion(region);
     } else {
         return {0,0};

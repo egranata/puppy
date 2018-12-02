@@ -28,12 +28,14 @@
 class VFS : NOCOPY {
     public:
         struct filehandle_t {
-            Filesystem* filesystem;
-            Filesystem::FilesystemObject* object;
+            Filesystem* filesystem = nullptr;
+            Filesystem::FilesystemObject* object = nullptr;
+            void* region = nullptr;   // base pointer of a memory region that this file is mmap'ed into
 
             explicit operator bool();
             void close();
             void reset();
+            Filesystem::File *asFile();
         };
         static VFS& get();
 
