@@ -32,7 +32,7 @@ class VFS : NOCOPY {
             Filesystem::FilesystemObject* object = nullptr;
             void* region = nullptr;   // base pointer of a memory region that this file is mmap'ed into
 
-            explicit operator bool();
+            explicit operator bool() const;
             void close();
             void reset();
             Filesystem::File *asFile();

@@ -45,6 +45,19 @@ class TheTest : public Test {
             }
         }
 
+        uint8_t *getMemoryMap() {
+            const char* fname = getTempFile("file");
+            FILE *fobj = fopen(fname, "r");
+            CHECK_NOT_NULL(fobj);
+            int fd = fileno(fobj);
+            auto result = mmap_syscall(FILE_SIZE, fd);
+            CHECK_EQ(0, (result & 1));
+            uint8_t *ptr = (uint8_t*)(result >> 1);
+            CHECK_NOT_NULL(ptr);
+            fclose(fobj);
+            return ptr;
+        }
+
     protected:
         bool setup() override {
             const char* file = getTempFile("file");
@@ -60,16 +73,8 @@ class TheTest : public Test {
         }
 
         void run() override {
-            const char* fname = getTempFile("file");
-            FILE *fobj = fopen(fname, "r");
-            CHECK_NOT_NULL(fobj);
-            int fd = fileno(fobj);
-            auto result = mmap_syscall(FILE_SIZE, fd);
-            CHECK_EQ(0, (result & 1));
-            uint8_t *ptr = (uint8_t*)(result >> 1);
-            CHECK_NOT_NULL(ptr);
-            checkBackwards(ptr);
-            checkForward(ptr);
+            checkBackwards(getMemoryMap());
+            checkForward(getMemoryMap());
         }
 };
 

@@ -26,7 +26,7 @@ MemoryManager::region_t::region_t (uintptr_t f, uintptr_t t, permission_t p) {
     from = f;
     to = t;
     permission = p;
-    mmap_data.fd = -1;
+    mmap_data.fhandle.object = nullptr;
     mmap_data.size = 0;
 }
 
@@ -35,7 +35,7 @@ bool MemoryManager::region_t::operator==(const region_t& other) const {
 }
 
 bool MemoryManager::region_t::isMmapRegion() const {
-    return mmap_data.fd >= 0 && mmap_data.size > 0;
+    return (bool)mmap_data.fhandle && mmap_data.size > 0;
 }
 
 MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions(), mAllRegionsSize(0) {
@@ -150,15 +150,19 @@ MemoryManager::region_t MemoryManager::findAndZeroPageRegion(size_t size, const 
     }
 }
 
-MemoryManager::region_t MemoryManager::findAndFileMapRegion(int fd, size_t size) {
+MemoryManager::region_t MemoryManager::findAndFileMapRegion(VFS::filehandle_t fhandle, size_t size) {
     region_t region;
-    if (findRegionImpl(size, region)) {
+    if (fhandle && findRegionImpl(size, region)) {
         auto opts = VirtualPageManager::map_options_t()
             .rw(true)
             .user(true);
         auto&& vmm(VirtualPageManager::get());
         vmm.mapZeroPage(region.from, region.to, opts);
-        region.mmap_data.fd = fd;
+        fhandle.region = (void*)region.from;
+        fhandle.object->incref(); // hold an extra reference to this file for the mmap
+                                  // the file descriptor can now be closed by userspace
+                                  // as the memory map will keep the underlying handle alive
+        region.mmap_data.fhandle = fhandle;
         region.mmap_data.size = size;
         region.permission = opts;
         return addRegion(region);
@@ -185,6 +189,7 @@ void MemoryManager::removeRegion(region_t region) {
         for (auto base = region.from; base < region.to; base += VirtualPageManager::gPageSize) {
             vmm.unmap(base);
         }
+        if (region.isMmapRegion()) region.mmap_data.fhandle.close();
     } else {
         LOG_DEBUG("attempted to remove region [0x%p - 0x%p] but was not found", region.from, region.to);
     }
@@ -204,4 +209,16 @@ uintptr_t MemoryManager::getTotalRegionsSize() const {
 void MemoryManager::clone(MemoryManager* ret) const {
     ret->mRegions = mRegions;
     ret->mAllRegionsSize = mAllRegionsSize;
+}
+
+void MemoryManager::cleanupAllRegions() {
+    mRegions.foreach([this] (region_t rgn) -> bool {
+        if (rgn.isMmapRegion() && rgn.mmap_data.fhandle) {
+            LOG_DEBUG("clearing memory mapping for region [0x%p - 0x%p], fhandle=0x%p,0x%p",
+                rgn.from, rgn.to,
+                rgn.mmap_data.fhandle.filesystem, rgn.mmap_data.fhandle.object);
+            rgn.mmap_data.fhandle.close();
+        }
+        return true;
+    });
 }

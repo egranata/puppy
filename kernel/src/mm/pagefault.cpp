@@ -98,18 +98,14 @@ static bool mmap_fault_recover(VirtualPageManager& vmm, uintptr_t vaddr, MemoryM
         return false;
     }
 
-    VFS::filehandle_t file = {nullptr, nullptr};
-    if (false == gCurrentProcess->fds.is(rgn.mmap_data.fd,&file)) {
-        TAG_ERROR(PGFAULT, "mmap page fault can't be solved for missing fd %u", rgn.mmap_data.fd);
-        return false;
-    }
+    VFS::filehandle_t file = rgn.mmap_data.fhandle;
     if (!file) {
-        TAG_ERROR(PGFAULT, "mmap page fault can't be solved for missing fd %u", rgn.mmap_data.fd);
+        TAG_ERROR(PGFAULT, "mmap page fault at 0x%p can't be solved - file is invalid", vaddr);
         return false;
     }
     auto realFile = file.asFile();
     if (!realFile) {
-        TAG_ERROR(PGFAULT, "mmap page fault can't be solved for missing fd %u", rgn.mmap_data.fd);
+        TAG_ERROR(PGFAULT, "mmap page fault at 0x%p can't be solved - file 0x%p is invalid", vaddr, file.object);
         return false;
     }
 

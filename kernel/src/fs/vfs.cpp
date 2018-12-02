@@ -49,7 +49,7 @@ namespace boot::vfs {
     }
 }
 
-VFS::filehandle_t::operator bool() {
+VFS::filehandle_t::operator bool() const {
     return (filesystem != nullptr) && (object != nullptr);
 }
 void VFS::filehandle_t::close() {

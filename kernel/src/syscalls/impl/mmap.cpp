@@ -37,7 +37,7 @@ syscall_response_t mmap_syscall_handler(size_t size, int fd) {
             }
 
             auto memmgr = gCurrentProcess->getMemoryManager();
-            auto rgn = memmgr->findAndFileMapRegion(fd, size);
+            auto rgn = memmgr->findAndFileMapRegion(file, size);
             if (rgn.from) {
                 // update the file to know it is mapped to a region
                 file.region = (void*)rgn.from;

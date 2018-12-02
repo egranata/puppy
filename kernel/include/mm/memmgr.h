@@ -22,6 +22,7 @@
 #include <kernel/libc/intervals.h>
 #include <kernel/libc/interval.h>
 #include <kernel/mm/virt.h>
+#include <kernel/fs/vfs.h>
 
 struct process_t;
 
@@ -32,7 +33,7 @@ class MemoryManager : NOCOPY {
 
             permission_t permission;
             struct {
-                int fd;
+                VFS::filehandle_t fhandle;
                 size_t size;
             } mmap_data;
 
@@ -56,7 +57,7 @@ class MemoryManager : NOCOPY {
         region_t findAndZeroPageRegion(size_t size, const VirtualPageManager::map_options_t&);
 
         // finds a region and mmaps a file into it
-        region_t findAndFileMapRegion(int fd, size_t size);
+        region_t findAndFileMapRegion(VFS::filehandle_t, size_t size);
 
         // edits an existing region to have new permissions
         bool protectRegionAtAddress(uintptr_t address, const VirtualPageManager::map_options_t&);
@@ -67,6 +68,11 @@ class MemoryManager : NOCOPY {
 
         // remove this region - and unmap all pages of it
         void removeRegion(region_t region);
+
+        // cleans up the address space on exit
+        // the VMM has already done all the unmap() at this point - this is mostly useful
+        // to let go of mmap() files
+        void cleanupAllRegions();
 
         uintptr_t getTotalRegionsSize() const;
 
