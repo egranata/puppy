@@ -54,6 +54,10 @@ bool isDirectory(int kind) {
     return kind == DT_DIR;
 }
 
+bool isDevice(int kind) {
+    return (kind == DT_CHR) || (kind == DT_BLK);
+}
+
 void print(dirent* entry) {
     char time_info[64] = {0};
 
@@ -74,6 +78,8 @@ void print(dirent* entry) {
 
     if (isDirectory(entry->d_type)) {
         printf("\x1b[38;2;0;111;184m%s\x1b[0m\n", entry->d_name);
+    } else if(isDevice(entry->d_type)) {
+        printf("\x1b[38;2;255;199;6m%s\x1b[0m\n", entry->d_name);
     } else {
         printf("%s\n", entry->d_name);
     }
