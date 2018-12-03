@@ -148,7 +148,7 @@ pair<Filesystem*, const char*> VFS::getfs(const char* root) {
     for(; b != e; ++b) {
         auto&& m = *b;
         auto next = strprefix(m.path, root);
-        if (next != nullptr) {
+        if (next != nullptr && *next == '/') {
             LOG_DEBUG("found matching root fs %s (at 0x%p) - next = %s", m.path, m.fs, next);
             return {m.fs, next};
         }
