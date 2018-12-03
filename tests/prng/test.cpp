@@ -27,12 +27,15 @@ class TheTest : public Test {
     protected:
         void run() override {
             FILE* f = fopen("/devices/prng/value", "r");
-            uint64_t data = 0;
-            CHECK_NOT_EQ(0, fread(&data, 1, sizeof(data), f));
-            printf("PRNG output: 0x%llx\n", data);
+            uint64_t data[1024] = {0};
+            CHECK_NOT_EQ(0, fread(data, 1024, sizeof(uint64_t), f));
             // in theory, 0x0 is a valid response - let's pretend it is never going to happen
             // in the interest of validating that *some signal* is coming out of the generator.
-            CHECK_NOT_EQ(data, 0);
+            bool nonZero = false;
+            for(size_t i = 0; i < 1024; ++i) {
+                if (data[i]) nonZero = true;
+            }
+            CHECK_TRUE(nonZero);
             fclose(f);
         }
 };
