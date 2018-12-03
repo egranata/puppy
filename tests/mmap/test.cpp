@@ -16,6 +16,7 @@
 
 #include <checkup/test.h>
 #include <checkup/assert.h>
+#include <sys/mman.h>
 #include <syscalls.h>
 
 #define FILE_SIZE 5000
@@ -45,17 +46,21 @@ class TheTest : public Test {
             }
         }
 
-        uint8_t *getMemoryMap() {
+        uint8_t *getMemoryMap(bool prefill) {
+            int flags = MAP_PRIVATE;
+            if (prefill) flags |= MAP_POPULATE;
+
             const char* fname = getTempFile("file");
             FILE *fobj = fopen(fname, "r");
             CHECK_NOT_NULL(fobj);
             int fd = fileno(fobj);
-            auto result = mmap_syscall(FILE_SIZE, fd);
-            CHECK_EQ(0, (result & 1));
-            uint8_t *ptr = (uint8_t*)(result >> 1);
-            CHECK_NOT_NULL(ptr);
+
+            void* result = mmap(nullptr, FILE_SIZE, PROT_READ, flags, fd, 0);
+            CHECK_NOT_EQ(result, (void*)-1);
+            CHECK_NOT_NULL(result);
+
             fclose(fobj);
-            return ptr;
+            return (uint8_t*)result;
         }
 
     protected:
@@ -73,8 +78,11 @@ class TheTest : public Test {
         }
 
         void run() override {
-            checkBackwards(getMemoryMap());
-            checkForward(getMemoryMap());
+            checkBackwards(getMemoryMap(false));
+            checkForward(getMemoryMap(false));
+
+            checkBackwards(getMemoryMap(true));
+            checkForward(getMemoryMap(true));
         }
 };
 
