@@ -6,3 +6,5 @@ cowspeak < /system/config/motd
 
 # This should be changed according to the user's timezone
 env TZ=America/Los_Angeles
+
+env HOME=/home

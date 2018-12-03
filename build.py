@@ -490,7 +490,6 @@ if BUILD_CORE:
     makeDir("out/mnt/libs")
     makeDir("out/mnt/tests")
     makeDir("out/mnt/include")
-    makeDir("out/mnt/libs/python")
     makeDir("out/mnt/boot")
     makeDir("out/mnt/config")
 
@@ -541,7 +540,7 @@ with Chronometer("Copyings headers and core libraries"):
     xcopy("third_party/pcre2-10.32/libs/lib*.a", "out/mnt/libs")
     xcopy("out/lib*.a", "out/mnt/libs")
     xcopy("newlib/lib/lib*.a", "out/mnt/libs")
-    xcopy("python/*.py", "out/mnt/libs/python")
+    rcopy("python", "out/mnt/libs")
     copy(LIBGCC_FILE, "out/mnt/libs")
     copy("out/newlibcrt0", NEWLIB_CRT0)
     copy("build/app.ld", "out/mnt/libs")

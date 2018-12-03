@@ -94,14 +94,14 @@ STATIC mp_obj_t mod_os_unlink(mp_obj_t path_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_os_unlink_obj, mod_os_unlink);
 
-STATIC mp_obj_t mod_os_getcwd(mp_obj_t var_in) {
+STATIC mp_obj_t mod_os_getcwd() {
     const char *s = getcwd(NULL, 0);
     if (s == NULL) {
         return mp_const_none;
     }
     return mp_obj_new_str(s, strlen(s));
 }
-MP_DEFINE_CONST_FUN_OBJ_1(mod_os_getcwd_obj, mod_os_getcwd);
+MP_DEFINE_CONST_FUN_OBJ_0(mod_os_getcwd_obj, mod_os_getcwd);
 
 STATIC mp_obj_t mod_os_getenv(mp_obj_t var_in) {
     const char *s = getenv(mp_obj_str_get_str(var_in));
