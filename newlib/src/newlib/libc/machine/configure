@@ -572,7 +572,7 @@ PACKAGE_STRING='newlib 3.0.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="d10v"
+ac_unique_file="i386"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -784,62 +784,7 @@ LDFLAGS
 LIBS
 CPPFLAGS
 CPP'
-ac_subdirs_all='a29k
-aarch64
-arc
-arm
-bfin
-cr16
-cris
-crx
-d10v
-d30v
-epiphany
-fr30
-frv
-ft32
-h8300
-h8500
-hppa
-i386
-i960
-iq2000
-lm32
-m32c
-m32r
-m68hc11
-m68k
-m88k
-mep
-microblaze
-mips
-riscv
-mn10200
-mn10300
-moxie
-msp430
-mt
-nds32
-necv70
-nios2
-nvptx
-or1k
-powerpc
-rl78
-rx
-sh
-sparc
-spu
-tic4x
-tic6x
-tic80
-v850
-visium
-w65
-x86_64
-xc16x
-xstormy16
-z8k'
+ac_subdirs_all='i386'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -11837,119 +11782,7 @@ fi
 
 if test -n "${machine_dir}"; then
   case ${machine_dir} in
-	a29k)
-
-subdirs="$subdirs a29k"
- ;;
-	aarch64) subdirs="$subdirs aarch64"
- ;;
-	arc) subdirs="$subdirs arc"
- ;;
-	arm) subdirs="$subdirs arm"
- ;;
-	bfin) subdirs="$subdirs bfin"
- ;;
-	cr16) subdirs="$subdirs cr16"
- ;;
-	cris) subdirs="$subdirs cris"
- ;;
-	crx) subdirs="$subdirs crx"
- ;;
-	d10v) subdirs="$subdirs d10v"
- ;;
-	d30v) subdirs="$subdirs d30v"
- ;;
-	epiphany) subdirs="$subdirs epiphany"
- ;;
-	fr30) subdirs="$subdirs fr30"
- ;;
-	frv) subdirs="$subdirs frv"
- ;;
-	ft32) subdirs="$subdirs ft32"
- ;;
-	h8300) subdirs="$subdirs h8300"
- ;;
-	h8500) subdirs="$subdirs h8500"
- ;;
-	hppa) subdirs="$subdirs hppa"
- ;;
 	i386) subdirs="$subdirs i386"
- ;;
-	i960) subdirs="$subdirs i960"
- ;;
-	iq2000) subdirs="$subdirs iq2000"
- ;;
-	lm32) subdirs="$subdirs lm32"
- ;;
-	m32c) subdirs="$subdirs m32c"
- ;;
-	m32r) subdirs="$subdirs m32r"
- ;;
-	m68hc11) subdirs="$subdirs m68hc11"
- ;;
-	m68k) subdirs="$subdirs m68k"
- ;;
-	m88k) subdirs="$subdirs m88k"
- ;;
-	mep ) subdirs="$subdirs mep"
- ;;
-	microblaze ) subdirs="$subdirs microblaze"
- ;;
-	mips) subdirs="$subdirs mips"
- ;;
-	riscv) subdirs="$subdirs riscv"
- ;;
-	mn10200) subdirs="$subdirs mn10200"
- ;;
-	mn10300) subdirs="$subdirs mn10300"
- ;;
-	moxie) subdirs="$subdirs moxie"
- ;;
-	msp430) subdirs="$subdirs msp430"
- ;;
-	mt) subdirs="$subdirs mt"
- ;;
-	nds32) subdirs="$subdirs nds32"
- ;;
-	necv70) subdirs="$subdirs necv70"
- ;;
-	nios2) subdirs="$subdirs nios2"
- ;;
-	nvptx) subdirs="$subdirs nvptx"
- ;;
-	or1k) subdirs="$subdirs or1k"
- ;;
-	powerpc) subdirs="$subdirs powerpc"
- ;;
-	rl78) subdirs="$subdirs rl78"
- ;;
-	rx) subdirs="$subdirs rx"
- ;;
-	sh) subdirs="$subdirs sh"
- ;;
-	sparc) subdirs="$subdirs sparc"
- ;;
-	spu) subdirs="$subdirs spu"
- ;;
-	tic4x) subdirs="$subdirs tic4x"
- ;;
-	tic6x) subdirs="$subdirs tic6x"
- ;;
-	tic80) subdirs="$subdirs tic80"
- ;;
-	v850) subdirs="$subdirs v850"
- ;;
-	visium) subdirs="$subdirs visium"
- ;;
-	w65) subdirs="$subdirs w65"
- ;;
-	x86_64) subdirs="$subdirs x86_64"
- ;;
-	xc16x) subdirs="$subdirs xc16x"
- ;;
-	xstormy16) subdirs="$subdirs xstormy16"
- ;;
-	z8k) subdirs="$subdirs z8k"
  ;;
   esac;
 fi
