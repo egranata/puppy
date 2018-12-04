@@ -50,6 +50,8 @@ class TheTest : public Test {
             CHECK_EQ(1, lt->tm_hour);
 
             CHECK_NOT_EQ(nullptr, ctime(&at));
+
+            mktime(lt); // check that one can link against mktime()
         }
 };
 
