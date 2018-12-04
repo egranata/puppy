@@ -31,6 +31,7 @@ VERBOSE = "-v" in sys.argv
 CLEAN_SLATE = "-keep-out" not in sys.argv
 BUILD_CORE = "-keep-kernel" not in sys.argv
 BUILD_USERSPACE = "-keep-user" not in sys.argv
+BUILD_NEWLIB = "-build-newlib" in sys.argv
 
 APPS_TO_REBUILD = []
 for arg in sys.argv:
@@ -41,6 +42,11 @@ if (not BUILD_USERSPACE) or (not BUILD_CORE):
     CLEAN_SLATE = False
 
 MYPATH = os.path.abspath(os.getcwd())
+
+if BUILD_NEWLIB and not BUILD_CORE:
+    # TODO: separate building the kernel and the core libraries
+    print("Rebuilding core system components because newlib is being built")
+    BUILD_CORE = True
 
 if BUILD_CORE and BUILD_USERSPACE:
     print("Build type: Full; OS path: %s" % MYPATH)
@@ -471,6 +477,11 @@ MY_CXX_PATH = os.path.join(MYPATH, "build", "g++.sh")
 LIBGCC_FILE = shell("i686-elf-gcc -print-libgcc-file-name").rstrip()
 
 IMG_FILE = "out/os.img"
+
+if BUILD_NEWLIB:
+    with Chronometer("Building Newlib"):
+        CMDLINE="build/makenewlib.sh"
+        shell(CMDLINE)
 
 if CLEAN_SLATE:
     clearDir("out")
