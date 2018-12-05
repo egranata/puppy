@@ -15,15 +15,16 @@
  */
 
 #include <checkup/test.h>
+#include <checkup/testplan.h>
 #include <checkup/assert.h>
 
 #include <libshell/system.h>
 
 #include <stdio.h>
 
-class TheTest : public Test {
+class IoRedirectionTest : public Test {
     public:
-        TheTest() : Test(TEST_NAME) {}
+        IoRedirectionTest() : Test("shell.IoRedirectionTest") {}
     
     protected:
         void run() override {
@@ -50,8 +51,35 @@ class TheTest : public Test {
         }
 };
 
+class SuccessConcatTest : public Test {
+    public:
+        SuccessConcatTest() : Test("shell.SuccessConcatTest") {}
+    
+    protected:
+        void run() override {
+            const char* script = getTempFile("sct.script.sh");
+            const char* dest = getTempFile("sct.script.txt");
+            FILE* f = fopen(script, "w");
+            CHECK_NOT_NULL(f);
+            fprintf(f, "#!/system/apps/shell\n");
+            fprintf(f, "touch %s && echo 1 > %s && cat %s && echo 234 > %s\n", dest, dest, dest, dest);
+            fclose(f);
+            int ok = libShellSupport::system(script);
+            CHECK_EQ(ok, 0);
+            f = fopen(dest, "r");
+            CHECK_EQ('2', fgetc(f));
+            CHECK_EQ('3', fgetc(f));
+            CHECK_EQ('4', fgetc(f));
+        }
+};
+
+
 int main() {
-    Test* test = new TheTest();
-    test->test();
+    auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
+
+    testPlan.add<IoRedirectionTest>()
+            .add<SuccessConcatTest>();
+
+    testPlan.test();
     return 0;
 }

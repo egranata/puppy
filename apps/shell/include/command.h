@@ -37,10 +37,12 @@ class Command {
         void redirectStdout(const char* target);
         void redirectStdin(const char* target);
         void setPipe(const Command& cmd);
+        void setSuccessChain(const Command& cmd);
         void clear();
 
         bool background() const { return mBackground; }
         const auto& pipe() const { return mPipeTarget; }
+        const auto& success() const { return mRunIfSuccess; }
         const auto begin() const { return mWords.begin(); }
         const auto end() const { return mWords.end(); }
         const auto& stdoutR() const { return mOutRedirect; }
@@ -55,6 +57,7 @@ class Command {
         std::optional<Redirect> mOutRedirect;
         std::optional<Redirect> mInRedirect;
         std::shared_ptr<Command> mPipeTarget;
+        std::shared_ptr<Command> mRunIfSuccess;
         bool mBackground = false;
 };
 

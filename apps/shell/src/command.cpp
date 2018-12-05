@@ -35,6 +35,7 @@ Command::Command(const Command& rhs) {
     if (rhs.mOutRedirect && rhs.mOutRedirect->target()) redirectStdout(rhs.mOutRedirect->target());
     if (rhs.mInRedirect && rhs.mInRedirect->target()) redirectStdin(rhs.mInRedirect->target());
     if (rhs.mPipeTarget) mPipeTarget = rhs.mPipeTarget;
+    if (rhs.mRunIfSuccess) mRunIfSuccess = rhs.mRunIfSuccess;
     mBackground = rhs.mBackground;
 }
 
@@ -53,11 +54,15 @@ void Command::redirectStdin(const char* target) {
 void Command::setPipe(const Command& cmd) {
     mPipeTarget.reset(new Command(cmd));
 }
+void Command::setSuccessChain(const Command& cmd) {
+    mRunIfSuccess.reset(new Command(cmd));
+}
 void Command::clear() {
     mWords.clear();
     mOutRedirect.reset();
     mInRedirect.reset();
     mPipeTarget.reset();
+    mRunIfSuccess.reset();
 }
 
 Command::operator bool() const {
@@ -80,5 +85,9 @@ void Command::printf() const {
     if (mPipeTarget) {
         ::printf("| ");
         mPipeTarget->printf();
+    }
+    if (mRunIfSuccess) {
+        ::printf("&& ");
+        mRunIfSuccess->printf();
     }
 }

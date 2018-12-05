@@ -123,6 +123,7 @@ void Command::exec() {
     } else {
             int exitcode = 0;
             waitpid(chld, &exitcode, 0);
-            handleExitStatus(chld, exitcode, false);
+            bool ok = handleExitStatus(chld, exitcode, false);
+            if (ok && mRunIfSuccess) mRunIfSuccess->exec();
     }
 }

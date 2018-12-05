@@ -26,25 +26,6 @@
 
 #include <libshell/expand.h>
 
-static bool runInShell(const char* program, size_t argc, char** args, bool is_bg) {
-    if (is_bg || !tryExecBuiltin(program, argc, args)) {
-        auto real_program = getProgramPath(program);
-        if (real_program.empty()) {
-            printf("%s: not found in PATH\n", program);
-            return false;
-        }
-        auto chld = spawn(real_program.c_str(), args, PROCESS_INHERITS_CWD | (is_bg ? SPAWN_BACKGROUND : SPAWN_FOREGROUND), nullptr);
-        if (is_bg) {
-            printf("[child %u] spawned\n", chld);
-        } else {
-            int exitcode = 0;
-            waitpid(chld, &exitcode, 0);
-            handleExitStatus(chld, exitcode, false);
-        }
-    }
-    return true;
-}
-
 bool runline(std::string cmdline) {
     trim(cmdline);
     if(cmdline.empty()) return true;

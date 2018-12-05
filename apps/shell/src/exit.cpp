@@ -19,7 +19,7 @@
 
 #include <kernel/syscalls/types.h>
 
-void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
+bool handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     if (WIFEXITED(exitcode)) {
         int status = WEXITSTATUS(exitcode);
         if (status || anyExit) {
@@ -28,6 +28,7 @@ void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
             if (status) printf("\x1b[0m");
             printf("\n");
         }
+        if (status == 0) return true;
     } else if(WIFSIGNALED(exitcode)) {
         int sig = WTERMSIG(exitcode);
         if (sig == process_exit_status_t::kernelError_noSuchFile) {
@@ -40,6 +41,8 @@ void handleExitStatus(uint16_t pid, int exitcode, bool anyExit) {
     } else {
         printf("\x1b[31m[child %u] terminated - exit status %d\x1b[0m\n", pid, exitcode);
     }
+
+    return false;
 }
 
 void tryCollect() {

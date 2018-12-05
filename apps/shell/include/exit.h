@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 
-void handleExitStatus(uint16_t pid, int exitcode, bool anyExit);
+bool handleExitStatus(uint16_t pid, int exitcode, bool anyExit);
 void tryCollect();
 
 #endif

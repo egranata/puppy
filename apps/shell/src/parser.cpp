@@ -129,6 +129,20 @@ bool Parser::parseCommand(Command& dest) {
             return true;
         }
 
+        if (accept(SUCCESSCONCAT)) {
+            if (!nextsym()) {
+                error("concatenation requires a valid command");
+                return false;
+            }
+            Command temp;
+            if (!parseCommand(temp)) {
+                error("concatenation requires a valid command");
+                return false;
+            }
+            dest.setSuccessChain(temp);
+            return true;
+        }
+
         if (accept(BACKGROUND)) {
             dest.setBackground(true);
             if (acceptNext(TERMINATOR)) return true; else {
