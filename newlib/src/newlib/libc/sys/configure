@@ -561,7 +561,7 @@ PACKAGE_STRING='newlib 3.0.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="a29khif"
+ac_unique_file="myos"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -774,34 +774,7 @@ LDFLAGS
 LIBS
 CPPFLAGS
 CPP'
-ac_subdirs_all='myos
-a29khif
-arm
-d10v
-decstation
-epiphany
-h8300hms
-h8500hms
-linux
-m88kbug
-mmixware
-netware
-or1k
-phoenix
-rdos
-rtems
-sh
-sparc64
-sun4
-sysmec
-sysnec810
-sysnecv850
-sysvi386
-sysvnecv70
-tic80
-tirtos
-w65
-z8ksim'
+ac_subdirs_all='myos'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -11769,63 +11742,7 @@ fi
 
 if test -n "${sys_dir}"; then
   case ${sys_dir} in
-    myos)
-
-subdirs="$subdirs myos"
- ;;
-	a29khif) subdirs="$subdirs a29khif"
- ;;
-	arm) subdirs="$subdirs arm"
- ;;
-	d10v) subdirs="$subdirs d10v"
- ;;
-	decstation) subdirs="$subdirs decstation"
- ;;
-	epiphany) subdirs="$subdirs epiphany"
- ;;
-	h8300hms) subdirs="$subdirs h8300hms"
- ;;
-	h8500hms) subdirs="$subdirs h8500hms"
- ;;
-	linux) subdirs="$subdirs linux"
- ;;
-	m88kbug) subdirs="$subdirs m88kbug"
- ;;
-	mmixware) subdirs="$subdirs mmixware"
- ;;
-	netware) subdirs="$subdirs netware"
- ;;
-	or1k) subdirs="$subdirs or1k"
- ;;
-	phoenix) subdirs="$subdirs phoenix"
- ;;
-	rdos) subdirs="$subdirs rdos"
- ;;
-	rtems) subdirs="$subdirs rtems"
- ;;
-	sh) subdirs="$subdirs sh"
- ;;
-	sparc64) subdirs="$subdirs sparc64"
- ;;
-	sun4) subdirs="$subdirs sun4"
- ;;
-	sysmec) subdirs="$subdirs sysmec"
- ;;
-	sysnec810) subdirs="$subdirs sysnec810"
- ;;
-	sysnecv850) subdirs="$subdirs sysnecv850"
- ;;
-	sysvi386) subdirs="$subdirs sysvi386"
- ;;
-	sysvnecv70) subdirs="$subdirs sysvnecv70"
- ;;
-	tic80) subdirs="$subdirs tic80"
- ;;
-	tirtos) subdirs="$subdirs tirtos"
- ;;
-	w65) subdirs="$subdirs w65"
- ;;
-	z8ksim) subdirs="$subdirs z8ksim"
+	myos) subdirs="$subdirs myos"
  ;;
   esac;
 fi
