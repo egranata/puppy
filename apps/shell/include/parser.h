@@ -19,9 +19,14 @@
 #include "symbol.h"
 #include "command.h"
 
+extern bool gParserDebug;
+
 class Parser {
     public:
+        static void setDefaultDebug(bool);
+
         Parser();
+        Parser(bool);
 
         bool parse();
         const Command& command() const;
@@ -42,6 +47,7 @@ class Parser {
 
         Command mCurrentCommand;
         Symbol mSymbol;
+        bool mDebug;
 };
 
 #endif

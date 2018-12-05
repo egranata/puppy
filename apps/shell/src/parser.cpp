@@ -13,8 +13,16 @@
 // limitations under the License.
 
 #include "parser.h"
+#include "symtype.h"
 
-Parser::Parser() = default;
+bool gParserDebug;
+
+void Parser::setDefaultDebug(bool b) {
+    gParserDebug = b;
+}
+
+Parser::Parser() : Parser(gParserDebug) {}
+Parser::Parser(bool debug) : mCurrentCommand(), mSymbol(), mDebug(debug) {}
 
 bool Parser::parse() {
     mCurrentCommand.clear();
@@ -140,11 +148,19 @@ void Parser::error(const char* msg) {
 bool Parser::nextsym() {
     if (auto sym = Symbol::fromLexer()) {
         mSymbol = *sym;
+        if (mDebug) {
+            printf("symbol parsed; type=%u %s value=%s\n",
+                mSymbol.kind(), symbolName(mSymbol.kind()),
+                mSymbol.value());
+        }
         return true;
     } return false;
 }
 bool Parser::accept(symbol_kind_t sk) {
     const bool ok = cursym().accept(sk);
+    if (mDebug && ok) {
+        printf("symbol accepted: %u %s\n", sk, symbolName(sk));
+    }
     return ok;
 }
 bool Parser::acceptNext(symbol_kind_t sk) {

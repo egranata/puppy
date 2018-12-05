@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SHELL_SYMTYPE
-#define SHELL_SYMTYPE
+#include "symtype.h"
 
-#define SYMBOL_TYPE(a,b) a = b,
+#define SYMBOL_TYPE(a,b) case a: return #a;
 
-// leave it outside of Symbol because it makes the rest of the code more convenient
-enum symbol_kind_t {
+const char* symbolName(symbol_kind_t kind) {
+    switch (kind) {
 #include "symboltypes.tbl"
-};
+    }
+    return "unknown";
+}
 
 #undef SYMBOL_TYPE
-
-const char* symbolName(symbol_kind_t);
-
-#endif

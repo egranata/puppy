@@ -37,6 +37,7 @@
 #include "include/runline.h"
 #include "include/str.h"
 #include "include/history.h"
+#include "include/parser.h"
 
 static void writeToLog(const char* msg) {
     static FILE* klog = nullptr;
@@ -73,13 +74,18 @@ static int interactiveLoop() {
 }
 
 int main(int argc, const char** argv) {
+    Parser::setDefaultDebug(false);
     setenv("PWD", getCurrentDirectory().c_str(), 1);
 
     bool is_init_shell = false;
+    bool is_interactive_shell = true;
     for (int i = 1; i < argc; ++i) {
         if (0 == strcmp(argv[i], "--init")) {
             is_init_shell = true;
-            break;
+        } else if (0 == strcmp(argv[i], "--parser-debug")) {
+            Parser::setDefaultDebug(true);
+        } else {
+            is_interactive_shell = false;
         }
     }
 
@@ -87,7 +93,7 @@ int main(int argc, const char** argv) {
         runInitShellTasks();
     }
 
-    if (argc == 1 || (argc == 2 && is_init_shell))
+    if (is_interactive_shell)
         return interactiveLoop();
     else {
         // TODO: proper exit code
