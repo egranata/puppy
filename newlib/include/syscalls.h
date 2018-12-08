@@ -95,5 +95,7 @@ syscall_response_t pipe_syscall(size_t* arg1,size_t* arg2);
 constexpr uint8_t pipe_syscall_id = 0x25;
 syscall_response_t mmap_syscall(size_t arg1,int arg2);
 constexpr uint8_t mmap_syscall_id = 0x26;
+syscall_response_t wait1_syscall(uint16_t arg1,uint32_t arg2);
+constexpr uint8_t wait1_syscall_id = 0x27;
 
 #endif

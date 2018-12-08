@@ -148,3 +148,6 @@ syscall_response_t pipe_syscall(size_t* arg1,size_t* arg2) {
 syscall_response_t mmap_syscall(size_t arg1,int arg2) {
 	return syscall2(mmap_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
+syscall_response_t wait1_syscall(uint16_t arg1,uint32_t arg2) {
+	return syscall2(wait1_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
+}

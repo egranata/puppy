@@ -13,13 +13,10 @@
 // limitations under the License.
 
 #include <kernel/syscalls/handlers.h>
-#include <kernel/process/manager.h>
-#include <kernel/log/log.h>
 #include <kernel/synch/pipe.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/filesystem.h>
-
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include <kernel/process/current.h>
 
 syscall_response_t pipe_syscall_handler(size_t *read_fd, size_t *write_fd) {
     auto pipeManager(PipeManager::get());

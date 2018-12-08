@@ -94,6 +94,8 @@ extern syscall_response_t pipe_syscall_handler(size_t* arg1,size_t* arg2);
 extern syscall_response_t pipe_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t mmap_syscall_handler(size_t arg1,int arg2);
 extern syscall_response_t mmap_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t wait1_syscall_handler(uint16_t arg1,uint32_t arg2);
+extern syscall_response_t wait1_syscall_helper(SyscallManager::Request& req);
 
 void SyscallManager::sethandlers() {
 	handle(1, yield_syscall_helper, false); 
@@ -134,6 +136,7 @@ void SyscallManager::sethandlers() {
 	handle(36, vmcheckwritable_syscall_helper, false); 
 	handle(37, pipe_syscall_helper, false); 
 	handle(38, mmap_syscall_helper, false); 
+	handle(39, wait1_syscall_helper, false); 
 }
 
 syscall_response_t yield_syscall_helper(SyscallManager::Request&) {
@@ -358,4 +361,10 @@ syscall_response_t mmap_syscall_helper(SyscallManager::Request& req) {
 }
 static_assert(sizeof(size_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(int) <= sizeof(uint32_t), "type is not safe to pass in a register");
+
+syscall_response_t wait1_syscall_helper(SyscallManager::Request& req) {
+	return wait1_syscall_handler((uint16_t)req.arg1,(uint32_t)req.arg2);
+}
+static_assert(sizeof(uint16_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
+static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
