@@ -69,6 +69,10 @@ public:
         return 0;
     }
 
+    WaitableObject* waitable() override {
+        return mSemaphore;
+    }
+
     uintptr_t ioctl(uintptr_t a, uintptr_t b) override {
         switch (a) {
             case semaphore_ioctl_t::IOCTL_SEMAPHORE_SIGNAL:

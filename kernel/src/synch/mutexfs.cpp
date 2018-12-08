@@ -69,6 +69,10 @@ public:
         return 0;
     }
 
+    WaitableObject *waitable() override {
+        return mMutex;
+    }
+
     uintptr_t ioctl(uintptr_t a, uintptr_t) override {
         switch (a) {
             case IOCTL_MUTEX_LOCK:
