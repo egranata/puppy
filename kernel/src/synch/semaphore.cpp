@@ -36,7 +36,7 @@ const char* Semaphore::key() {
 void Semaphore::wait() {
     while(true) {
         if(mValue == 0) {
-            waitqueue()->wait(gCurrentProcess);
+            waitqueue()->yield(gCurrentProcess);
         }
         auto v = mValue;
         if (v > 0 && __sync_bool_compare_and_swap(&mValue, v, v-1)) {

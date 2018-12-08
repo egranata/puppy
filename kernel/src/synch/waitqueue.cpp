@@ -26,13 +26,18 @@ void WaitQueue::pushToQueue(process_t* task) {
 
     mProcesses.push({task->waitToken, task});
     pm.deschedule(task, process_t::State::WAITING);
-    pm.yield();
 }
 
 void WaitQueue::wait(process_t* task) {
     LOG_DEBUG("task %u entering wait queue 0x%p at token %llu", task->pid, this, task->waitToken);
-
     pushToQueue(task);
+}
+
+void WaitQueue::yield(process_t* task) {
+    auto&& pm(ProcessManager::get());
+
+    wait(task);
+    pm.yield();
 }
 
 bool WaitQueue::wake(const queue_entry_t& q) {

@@ -42,7 +42,7 @@ void Mutex::lock() {
     while(true) {
         if (mLocked) {
             LOG_DEBUG("yielding as this mutex is locked");
-            waitqueue()->wait(gCurrentProcess);
+            waitqueue()->yield(gCurrentProcess);
         } else {
             dolock(gCurrentProcess);
             return;

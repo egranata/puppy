@@ -112,7 +112,7 @@ size_t MessageQueueBuffer::read(size_t n, char* dest, bool allowBlock) {
     while (mFreeSize == mTotalSize) {
         // no point on waiting on a writer that is gone
         if (numWriters() == 0) break;
-        if (allowBlock) mEmptyWQ.wait(gCurrentProcess);
+        if (allowBlock) mEmptyWQ.yield(gCurrentProcess);
         else return 0;
     }
 
@@ -138,7 +138,7 @@ size_t MessageQueueBuffer::write(size_t n, char* src, bool allowBlock) {
 
     while (0 == mFreeSize) {
         if (numReaders() == 0) return n;
-        if (allowBlock) mFullWQ.wait(gCurrentProcess);
+        if (allowBlock) mFullWQ.yield(gCurrentProcess);
         else return 0;
     }
 

@@ -26,7 +26,12 @@ class WaitQueue : NOCOPY {
     public:
         WaitQueue() = default;
 
+        // enter the WaitQueue, mark this process as WAITING, and return to scheduler
+        void yield(process_t*);
+
+        // enter the WaitQueue, mark the process as WAITING, and then return control to the process
         void wait(process_t*);
+
         process_t* wakeone();
         void wakeall();
         process_t *peek();

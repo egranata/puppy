@@ -77,7 +77,7 @@ key_event_t TTY::readKeyEvent() {
 
         if (false == allow) {
             LOG_WARNING("process %u wanting to use TTY but is not foreground", gCurrentProcess->pid);
-            mForegroundWQ.wait(gCurrentProcess);
+            mForegroundWQ.yield(gCurrentProcess);
         }
     } while(false == allow);
 

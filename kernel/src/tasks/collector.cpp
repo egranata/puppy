@@ -41,7 +41,7 @@ KERNEL_TASK_NAMESPACE_OPEN(collector) {
                 TAG_DEBUG(COLLECTOR, "collection done");
             }
 
-            queue().wait(gCurrentProcess);
+            queue().yield(gCurrentProcess);
         }
     }
 }
