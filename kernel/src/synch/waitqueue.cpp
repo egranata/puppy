@@ -48,7 +48,7 @@ bool WaitQueue::wake(const queue_entry_t& q) {
         if (q.process->state == process_t::State::WAITING) {
             if (q.process->waitToken == q.token) {
                 LOG_DEBUG("task wake happening");
-                pm.ready(q.process);
+                pm.ready(q.process, this);
                 return true;
             } else {
                 LOG_WARNING("wait queue's token %llu mismatches; ignoring wake", q.token);

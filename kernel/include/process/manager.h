@@ -100,7 +100,11 @@ class ProcessManager : NOCOPY {
         process_exit_status_t collect(kpid_t pid);
         bool collectany(bool wait, kpid_t*, process_exit_status_t*);
 
-        void ready(process_t*);
+        // process wakes up due to a WaitableObject
+        void ready(process_t*, void* waitable);
+        // process wakes up due to a sleep timeout
+        void wake(process_t*);
+
         void deschedule(process_t*, process_t::State);
         void enqueueForDeath(process_t*);
 
@@ -133,6 +137,7 @@ class ProcessManager : NOCOPY {
     private:
         ProcessManager();
 
+        void reschedule(process_t*);
         uint64_t fillGDT(process_t*);
         void forwardTTY(process_t*);
         void execFileops(process_t* parent, process_t *child, exec_fileop_t *fops);

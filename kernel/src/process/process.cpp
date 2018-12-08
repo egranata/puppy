@@ -32,6 +32,8 @@ process_t::process_t() : tss(), args(nullptr), environ(nullptr), mmap(this), tty
     iostats.read = iostats.written = 0;
 
     bzero(&this->priority, sizeof(this->priority));
+
+    wakeReason.clear();
 }
 
 process_t::ttyinfo_t::ttyinfo_t() : tty(nullptr), ttyfile(nullptr) {

@@ -486,7 +486,7 @@ process_t* ProcessManager::spawn(const spawninfo_t& si) {
     gProcessTable().set(process);
     if (si.schedulable) {
         LOG_DEBUG("process %u is schedulable", process->pid);
-        ready(process);
+        reschedule(process);
     } else {
         LOG_DEBUG("process %u is not schedulable", process->pid);
     }
@@ -645,7 +645,8 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
     }
     if (parent->state == process_t::State::COLLECTING) {
         LOG_DEBUG("parent %u woken up for collection", parent->pid);
-        ready(parent);
+        // TODO: a process should be a WaitableObject
+        reschedule(parent);
     } else {
         LOG_DEBUG("parent %u was not waiting to collect", parent->pid);
     }
@@ -690,14 +691,30 @@ kpid_t schedulerpid() {
     return gSchedulerTask->pid;
 }
 
-void ProcessManager::ready(process_t* task) {
+void ProcessManager::ready(process_t* task, void* waitable) {
     if (task->state == process_t::State::AVAILABLE) {
         LOG_INFO("waking up task %u which is already awake", task->pid);
     } else {
-        task->waitToken += 1;
-        task->state = process_t::State::AVAILABLE;
-        gReadyQueue().push_back(task);
+        task->wakeReason.timeout = false;
+        task->wakeReason.waitable = waitable;
+        reschedule(task);
     }
+}
+
+void ProcessManager::wake(process_t* task) {
+    if (task->state == process_t::State::AVAILABLE) {
+        LOG_INFO("waking up task %u which is already awake", task->pid);
+    } else {
+        task->wakeReason.timeout = true;
+        task->wakeReason.waitable = nullptr;
+        reschedule(task);
+    }
+}
+
+void ProcessManager::reschedule(process_t* task) {
+    task->waitToken += 1;
+    task->state = process_t::State::AVAILABLE;
+    gReadyQueue().push_back(task);
 }
 
 void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
@@ -709,6 +726,7 @@ void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
         if (*b == task) {
             ++numfound;
             (*b)->state = newstate;
+            (*b)->wakeReason.clear();
             rq.erase(b);
             b = rq.begin();
             e = rq.end();

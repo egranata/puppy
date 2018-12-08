@@ -46,7 +46,6 @@ struct process_t {
     const char* cwd;
     char** environ;
     State state;
-    uint64_t sleeptill;
     MemoryManager mmap;
     struct ttyinfo_t {
         TTY* tty;
@@ -107,11 +106,30 @@ struct process_t {
         uint64_t runtime; /** time that this process has been running */
     } runtimestats;
 
+    /* the system uptime that this process wants to sleep until */
+    uint64_t sleeptill;
+
     /* each time a process sleeps or waits on something, this counter's value
      * gets associated to the wait event; when the wait ends, this counter is
      * increased. if someone tries to wake a process but the wait token they
      * have is != process's current value, the wake is ignored */
     uint64_t waitToken = 0;
+
+    /* what prompted this process' most recent wake up:
+     * timeout is true if woken up by the end of a sleep, whether by explicitly sleeping or by
+     * waiting on an object with a timeout that elapsed and the object hasn't signaled yet;
+     * if the process was woken up by a waitable object's signaling, then waitable will be the
+     * pointer to that object
+     */
+    struct {
+        bool timeout;
+        void* waitable;
+
+        void clear() {
+            timeout = false;
+            waitable = nullptr;
+        }
+    } wakeReason;
 
     static_assert(sizeof(flags_t) == sizeof(uint16_t), "process_t::flags_t must fit in 2 bytes");
 

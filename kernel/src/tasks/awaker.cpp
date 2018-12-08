@@ -49,7 +49,7 @@ KERNEL_TASK_NAMESPACE_OPEN(awaker) {
                     if (top.process->waitToken == top.token) {
                         LOG_DEBUG("awakening process %u - it asked to sleep till %u", top.process->pid, top.process->sleeptill);
                         top = sq.pop();
-                        pmm.ready(top.process);
+                        pmm.wake(top.process);
                     } else {
                         LOG_ERROR("process %u in sleep queue; queue token is %llu, but process has token %llu; ignoring wake",
                             top.process->pid, top.token, top.process->waitToken);

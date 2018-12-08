@@ -19,10 +19,13 @@
 
 #include <kernel/synch/waitqueue.h>
 
+struct process_t;
+
 class WaitableObject {
     public:
         WaitQueue* waitqueue();
         virtual void wait() = 0;
+        virtual bool myWake(process_t*);
     protected:
         WaitableObject();
         virtual ~WaitableObject();

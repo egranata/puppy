@@ -13,11 +13,16 @@
 // limitations under the License.
 
 #include <kernel/synch/waitobj.h>
+#include <kernel/process/process.h>
 
 WaitableObject::WaitableObject() = default;
 
 WaitQueue* WaitableObject::waitqueue() {
     return &mWQ;
+}
+
+bool WaitableObject::myWake(process_t* task) {
+    return (task->wakeReason.waitable == waitqueue());
 }
 
 WaitableObject::~WaitableObject() = default;
