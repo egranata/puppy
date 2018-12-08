@@ -28,7 +28,6 @@ syscall_response_t wait1_syscall_handler(uint16_t fid, uint32_t timeout) {
     auto waitable = realFile->waitable();
     if (!waitable) return OK;
     
-    if (timeout) return ERR(UNIMPLEMENTED);
-    waitable->wait();
-    return OK;
+    bool ok = waitable->wait(timeout);
+    return ok ? OK : ERR(TIMEOUT);
 }

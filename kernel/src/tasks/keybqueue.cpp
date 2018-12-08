@@ -44,7 +44,7 @@ namespace tasks::keybqueue {
 
     key_event_t readKey() {
         while (gKeyEvents.empty()) {
-            gEventQueue.yield(gCurrentProcess);
+            gEventQueue.yield(gCurrentProcess, 0);
         }
         return gKeyEvents.read();
     }
@@ -67,7 +67,7 @@ namespace tasks::keybqueue {
                 }
                 if (any) gEventQueue.wakeall();
             }
-            gKeyIRQQueue->yield(gCurrentProcess);
+            gKeyIRQQueue->yield(gCurrentProcess, 0);
         }
     }
 }

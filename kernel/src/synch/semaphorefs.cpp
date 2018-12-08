@@ -79,7 +79,7 @@ public:
                 mSemaphore->signal();
                 return 1;
             case semaphore_ioctl_t::IOCTL_SEMAPHORE_WAIT:
-                mSemaphore->wait();
+                mSemaphore->wait(0);
                 return 1;
             case semaphore_ioctl_t::IOCTL_SEMAPHORE_GET_INFO: {
                 semaphore_info_t *seminfo = (semaphore_info_t*)b;

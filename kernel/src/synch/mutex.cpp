@@ -39,19 +39,22 @@ bool Mutex::dolock(process_t* task) {
 }
 
 void Mutex::lock() {
-    while(true) {
-        if (mLocked) {
-            LOG_DEBUG("yielding as this mutex is locked");
-            waitqueue()->yield(gCurrentProcess);
-        } else {
-            dolock(gCurrentProcess);
-            return;
-        }
-    }
+    wait(0);
 }
 
-void Mutex::wait() {
-    lock();
+bool Mutex::wait(uint32_t timeout) {
+    bool wait = true;
+    while(true) {
+        if (mLocked) {
+            if (!wait) return false;
+            waitqueue()->yield(gCurrentProcess, timeout);
+            if (!myWake(gCurrentProcess)) return false;
+            wait = (timeout > 0);
+        } else {
+            dolock(gCurrentProcess);
+            return true;
+        }
+    }
 }
 
 bool Mutex::trylock() {

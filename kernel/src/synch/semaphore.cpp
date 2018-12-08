@@ -33,17 +33,22 @@ const char* Semaphore::key() {
     return mKey;
 }
 
-void Semaphore::wait() {
-    while(true) {
+bool Semaphore::wait(uint32_t timeout) {
+    bool wait = true;
+    while(wait) {
         if(mValue == 0) {
-            waitqueue()->yield(gCurrentProcess);
+            waitqueue()->yield(gCurrentProcess, timeout);
+            if (!myWake(gCurrentProcess)) return false;
+            wait = (timeout > 0);
         }
         auto v = mValue;
         if (v > 0 && __sync_bool_compare_and_swap(&mValue, v, v-1)) {
             __sync_synchronize();
-            break;
+            return true;
         }
     }
+
+    return false;
 }
 
 void Semaphore::signal() {

@@ -29,6 +29,8 @@
 
 #define NOTIMEOUT_SEMPATH "/semaphores/wait1/notimeout"
 
+#define TIMEOUT_SEMPATH "/semaphores/wait1/notimeout"
+
 static uint16_t clone(void (*func)()) {
     auto ok = clone_syscall( (uintptr_t)func, nullptr );
     if (ok & 1) return 0;
@@ -40,6 +42,22 @@ static void test_noTimeout_child1() {
     FILE *fsema = fopen(NOTIMEOUT_SEMPATH, "r");
     int fdsema = fileno(fsema);
     int ok = wait1_syscall(fdsema, 0);
+    exit(ok);
+}
+
+static void test_timeout_child1() {
+    sleep(2);
+    FILE *fsema = fopen(TIMEOUT_SEMPATH, "r");
+    int fdsema = fileno(fsema);
+    int ok = wait1_syscall(fdsema, 5000);
+    exit(ok);
+}
+
+static void test_timeout_child2() {
+    sleep(2);
+    FILE *fsema = fopen(TIMEOUT_SEMPATH, "r");
+    int fdsema = fileno(fsema);
+    int ok = wait1_syscall(fdsema, 5000);
     exit(ok);
 }
 
@@ -64,9 +82,35 @@ class TestNoTimeout : public Test {
         }
 };
 
+class TestTimeout : public Test {
+    public:
+        TestTimeout() : Test("wait1.TestTimeout") {}
+    protected:
+        void run() override {
+            FILE *fsema = fopen(TIMEOUT_SEMPATH, "r");
+            CHECK_NOT_EQ(fsema, nullptr);
+            int fdsema = fileno(fsema);
+
+            auto c1 = clone(test_timeout_child1);
+            CHECK_NOT_EQ(c1, 0);
+            auto s1 = collect(c1);
+            CHECK_EQ(s1.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_NOT_EQ(s1.status, 0); // semaphore was not signaled - process should be exiting due to timeout
+
+            auto c2 = clone(test_timeout_child2);
+            CHECK_NOT_EQ(c2, 0);
+            ioctl(fdsema, semaphore_ioctl_t::IOCTL_SEMAPHORE_SIGNAL, 0);
+            auto s2 = collect(c2);
+            CHECK_EQ(s2.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(s2.status, 0); // semaphore was signaled
+        }
+};
+
+
 int main(int, char**) {
     TestPlan& plan(TestPlan::defaultPlan(TEST_NAME));
-    plan.add<TestNoTimeout>();
+    plan.add<TestNoTimeout>()
+        .add<TestTimeout>();
     plan.test();
     return 0;
 }

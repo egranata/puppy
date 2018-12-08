@@ -33,11 +33,12 @@ void WaitQueue::wait(process_t* task) {
     pushToQueue(task);
 }
 
-void WaitQueue::yield(process_t* task) {
+void WaitQueue::yield(process_t* task, uint32_t timeout) {
     auto&& pm(ProcessManager::get());
 
     wait(task);
-    pm.yield();
+    if (timeout) pm.sleep(timeout);
+    else pm.yield();
 }
 
 bool WaitQueue::wake(const queue_entry_t& q) {

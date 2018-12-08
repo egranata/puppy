@@ -24,7 +24,7 @@ struct process_t;
 class WaitableObject {
     public:
         WaitQueue* waitqueue();
-        virtual void wait() = 0;
+        virtual bool wait(uint32_t timeout) = 0;
         virtual bool myWake(process_t*);
     protected:
         WaitableObject();

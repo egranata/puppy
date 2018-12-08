@@ -71,7 +71,7 @@ KERNEL_TASK_NAMESPACE_OPEN(deleter) {
                 vmm.unmap((uintptr_t)proc);
             }
             
-            queue().yield(gCurrentProcess);
+            queue().yield(gCurrentProcess, 0);
         }
     }
 }

@@ -27,7 +27,7 @@ struct process_t;
 class Semaphore : public WaitableObject {
     public:
         Semaphore(const char* name, uint32_t initial, uint32_t max);
-        void wait() override;
+        bool wait(uint32_t) override;
         void signal();
 
         ~Semaphore();

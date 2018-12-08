@@ -32,8 +32,7 @@ class Mutex : public WaitableObject {
         bool trylock();
         void unlock();
 
-        // same as lock() - required for WaitableObject
-        void wait() override;
+        bool wait(uint32_t) override;
 
         ~Mutex();
 

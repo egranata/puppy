@@ -58,7 +58,7 @@ KERNEL_TASK_NAMESPACE_OPEN(awaker) {
                     pmm.yield();
                 }
             }
-            queue().yield(gCurrentProcess);
+            queue().yield(gCurrentProcess, 0);
         }
     }
 }

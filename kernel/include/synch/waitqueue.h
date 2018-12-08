@@ -27,7 +27,7 @@ class WaitQueue : NOCOPY {
         WaitQueue() = default;
 
         // enter the WaitQueue, mark this process as WAITING, and return to scheduler
-        void yield(process_t*);
+        void yield(process_t*, uint32_t);
 
         // enter the WaitQueue, mark the process as WAITING, and then return control to the process
         void wait(process_t*);

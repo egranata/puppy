@@ -61,7 +61,7 @@ size_t PipeBuffer::read(size_t n, char* data) {
     while (gBufferSize == mFreeSpace) {
         // no point on waiting on a writer that is gone
         if (!isWriteFileOpen()) break;
-        mEmptyWQ.yield(gCurrentProcess);
+        mEmptyWQ.yield(gCurrentProcess, 0);
     }
 
     size_t count = 0;
@@ -78,7 +78,7 @@ size_t PipeBuffer::write(size_t n, char* data) {
     while (0 == mFreeSpace) {
         // if a tree falls in the forest and nobody is listening...
         if (!isReadFileOpen()) return n;
-        mFullWQ.yield(gCurrentProcess);
+        mFullWQ.yield(gCurrentProcess, 0);
     }
 
     size_t count = 0;

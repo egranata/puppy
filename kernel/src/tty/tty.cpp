@@ -21,7 +21,7 @@
 TTY::TTY() : mWriteSemaphore("tty", 1, 1), mForeground(), mOutQueue(), mInQueue(), mFramebuffer(Framebuffer::get()) {}
 
 void TTY::write(size_t sz, const char* buffer) {
-    mWriteSemaphore.wait();
+    mWriteSemaphore.wait(0);
 
     while(sz) {
         mFramebuffer.putc(*buffer);
@@ -77,7 +77,7 @@ key_event_t TTY::readKeyEvent() {
 
         if (false == allow) {
             LOG_WARNING("process %u wanting to use TTY but is not foreground", gCurrentProcess->pid);
-            mForegroundWQ.yield(gCurrentProcess);
+            mForegroundWQ.yield(gCurrentProcess, 0);
         }
     } while(false == allow);
 
