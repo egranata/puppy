@@ -338,6 +338,18 @@ class UserspaceTool(Project):
         shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s CC=%s CXX=%s -j" % (MYPATH, self.outwhere, MY_CC_PATH, MY_CXX_PATH), curdir=self.srcdir)
         return os.path.join(self.outwhere, guessname)
 
+def parseSymbolTable(symf):
+    symtab = {}
+    with open(symf, "r") as f:
+        while True:
+            ln = f.readline()
+            if ln is None or len(ln) == 0: break
+            parts = ln[:-1].split(' ')
+            key = parts[1]
+            val = int('0x' + parts[0], 16)
+            symtab[key] = val
+    return symtab
+
 def writeSpecsFile(outfile):
     with open(outfile, "w") as f:
         print("*cpp_unique_options:", file=f)
@@ -564,6 +576,10 @@ with Chronometer("Generating GCC specs"):
 with Chronometer("Generating kernel symbol table"):
     CMDLINE = "nm out/kernel | grep -e ' [BbDdGgSsTtRr] ' | awk '{ print $1 \" \" $3 }' > out/kernel.sym"
     shell(CMDLINE)
+    symtab = parseSymbolTable("out/kernel.sym")
+    kernel_end = symtab["__kernel_end"]
+    kernel_start = symtab["__kernel_start"]
+    print("Kernel runtime size: %u bytes" % (kernel_end - kernel_start))
 
 with Chronometer("Copying configuration data"):
     rcopy("config", "out/mnt")
