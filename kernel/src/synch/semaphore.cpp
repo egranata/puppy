@@ -36,7 +36,7 @@ const char* Semaphore::key() {
 void Semaphore::wait() {
     while(true) {
         if(mValue == 0) {
-            mWQ.wait(gCurrentProcess);
+            waitqueue()->wait(gCurrentProcess);
         }
         auto v = mValue;
         if (v > 0 && __sync_bool_compare_and_swap(&mValue, v, v-1)) {
@@ -47,7 +47,7 @@ void Semaphore::wait() {
 }
 
 void Semaphore::signal() {
-    mWQ.wakeall();
+    waitqueue()->wakeall();
     if (__sync_add_and_fetch(&mValue, 1) > mMaxValue) {
         __atomic_store_n(&mValue, mMaxValue, __ATOMIC_SEQ_CST);
     }

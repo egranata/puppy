@@ -48,6 +48,10 @@ void Filesystem::FilesystemObject::kind(kind_t k) {
 Filesystem::File::File() : FilesystemObject(Filesystem::FilesystemObject::kind_t::file) {}
 Filesystem::Directory::Directory() : FilesystemObject(Filesystem::FilesystemObject::kind_t::directory) {}
 
+WaitableObject* Filesystem::File::waitable() {
+    return nullptr;
+}
+
 uintptr_t Filesystem::File::ioctl(uintptr_t, uintptr_t) {
     return 0;
 }

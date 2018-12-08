@@ -20,17 +20,20 @@
 #include <stdint.h>
 #include <kernel/synch/refcount.h>
 #include <kernel/sys/nocopy.h>
-#include <kernel/synch/waitqueue.h>
+#include <kernel/synch/waitobj.h>
 #include <kernel/syscalls/types.h>
 
 struct process_t;
 
-class Mutex {
+class Mutex : public WaitableObject {
     public:
         Mutex(const char*);
         void lock();
         bool trylock();
         void unlock();
+
+        // same as lock() - required for WaitableObject
+        void wait() override;
 
         ~Mutex();
 
@@ -42,7 +45,6 @@ class Mutex {
         char* mKey;
         bool mLocked;
         kpid_t mPid;
-        WaitQueue mWQ;
 
         friend class MutexManager;
 };

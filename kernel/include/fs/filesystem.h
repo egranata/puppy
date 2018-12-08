@@ -22,6 +22,7 @@
 #include <kernel/syscalls/types.h>
 #include <kernel/libc/atomic.h>
 #include <kernel/sys/nocopy.h>
+#include <kernel/synch/waitobj.h>
 
 class Filesystem : NOCOPY {
     public:
@@ -55,7 +56,8 @@ class Filesystem : NOCOPY {
                 virtual bool tell(size_t*) = 0;
                 virtual size_t read(size_t, char*) = 0;
                 virtual size_t write(size_t, char*) = 0;
-                
+
+                virtual WaitableObject* waitable();
                 virtual uintptr_t ioctl(uintptr_t, uintptr_t);
 
                 virtual ~File() = default;

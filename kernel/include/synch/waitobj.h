@@ -14,37 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef SYNCH_SEMAPHORE
-#define SYNCH_SEMAPHORE
+#ifndef SYNCH_WAITOBJ
+#define SYNCH_WAITOBJ
 
-#include <kernel/sys/stdint.h>
-#include <kernel/synch/waitobj.h>
-#include <kernel/synch/refcount.h>
-#include <kernel/sys/nocopy.h>
+#include <kernel/synch/waitqueue.h>
 
-struct process_t;
-
-class Semaphore : public WaitableObject {
+class WaitableObject {
     public:
-        Semaphore(const char* name, uint32_t initial, uint32_t max);
-        void wait() override;
-        void signal();
-
-        ~Semaphore();
-
-        const char* key();
-
-        uint32_t value() const;
-        uint32_t max() const;
-        void max(uint32_t);
-
+        WaitQueue* waitqueue();
+        virtual void wait() = 0;
+    protected:
+        WaitableObject();
+        virtual ~WaitableObject();
     private:
-        char* mKey;
-        uint32_t mValue;
-        uint32_t mMaxValue;
-
-        friend class SemaphoreManager;
+        WaitQueue mWQ;
 };
-
 
 #endif

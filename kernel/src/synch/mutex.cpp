@@ -42,12 +42,16 @@ void Mutex::lock() {
     while(true) {
         if (mLocked) {
             LOG_DEBUG("yielding as this mutex is locked");
-            mWQ.wait(gCurrentProcess);
+            waitqueue()->wait(gCurrentProcess);
         } else {
             dolock(gCurrentProcess);
             return;
         }
     }
+}
+
+void Mutex::wait() {
+    lock();
 }
 
 bool Mutex::trylock() {
@@ -62,6 +66,6 @@ void Mutex::unlock() {
     if (mLocked && (mPid == gCurrentProcess->pid)) {
         mLocked = false;
         LOG_DEBUG("process %u unlocked this mutex", mPid);
-        mWQ.wakeall();
+        waitqueue()->wakeall();
     }
 }
