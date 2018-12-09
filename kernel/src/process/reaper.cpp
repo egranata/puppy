@@ -13,13 +13,16 @@
 // limitations under the License.
 
 #include <kernel/process/manager.h>
+#include <kernel/mm/memmgr.h>
 #include <kernel/mm/virt.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
 
 extern "C"
 void reaper(uint32_t exitword) {
-    LOG_DEBUG("in reaper - releasing VM space");
+    LOG_DEBUG("in reaper - releasing regions");
+    gCurrentProcess->getMemoryManager()->cleanupAllRegions();
+    LOG_DEBUG("in reaper - releasing unregioned memory");
     VirtualPageManager::get().cleanAddressSpace();
 
     LOG_DEBUG("in reaper - exiting process");

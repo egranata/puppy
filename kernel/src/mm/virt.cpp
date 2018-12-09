@@ -673,6 +673,7 @@ void VirtualPageManager::cleanAddressSpace() {
 			if (tbl[j].present() && tbl[j].frompmm()) {
 				auto ptr = tbl[j].page();
 				LOG_DEBUG("freeing page %u at 0x%p", j, ptr);
+				LOG_WARNING("vm page tbl[%u] page[%u] at 0x%p being unmapped outside of regions", i, j, ptr);
 				phys.dealloc(ptr);
 				TAG_DEBUG(MEMLEAK, "MEMLEAK: process %u freed page virt=0x%x phys=0x%x", gCurrentProcess->pid, 0x0, ptr);
 			}

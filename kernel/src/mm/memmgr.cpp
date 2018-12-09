@@ -217,12 +217,7 @@ void MemoryManager::clone(MemoryManager* ret) const {
 
 void MemoryManager::cleanupAllRegions() {
     mRegions.foreach([this] (region_t rgn) -> bool {
-        if (rgn.isMmapRegion() && rgn.mmap_data.fhandle) {
-            LOG_DEBUG("clearing memory mapping for region [0x%p - 0x%p], fhandle=0x%p,0x%p",
-                rgn.from, rgn.to,
-                rgn.mmap_data.fhandle.filesystem, rgn.mmap_data.fhandle.object);
-            rgn.mmap_data.fhandle.close();
-        }
+        if (!rgn.isKernelRegion()) removeRegion(rgn);
         return true;
     });
 }
