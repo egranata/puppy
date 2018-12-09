@@ -28,8 +28,6 @@
 
 LOG_TAG(MEMLEAK, 2);
 
-static constexpr uintptr_t gBootVirtualOffset = 0xC0000000;
-
 static constexpr uint32_t gPresentBit = 0x1;
 static constexpr uint32_t gWritableBit = 0x2;
 static constexpr uint32_t gUserBit = 0x4;
@@ -154,7 +152,7 @@ uintptr_t VirtualPageManager::offset(uintptr_t addr) {
 }
 
 bool VirtualPageManager::iskernel(uintptr_t addr) {
-	return addr >= 0xC0000000;
+	return addr >= gKernelBase;
 }
 
 VirtualPageManager& VirtualPageManager::get() {
@@ -780,8 +778,8 @@ VirtualPageManager::scratch_page_t::~scratch_page_t() {
 
 void VirtualPageManager::addKernelRegion(uintptr_t low, uintptr_t high) {
 	LOG_INFO("adding a kernel region [0x%p - 0x%p]", low, high);
-	low -= gBootVirtualOffset;
-	high -= gBootVirtualOffset;
+	low -= gKernelBase;
+	high -= gKernelBase;
 	mKernelRegions.add({low, high});
 }
 
@@ -791,8 +789,8 @@ bool VirtualPageManager::findKernelRegion(size_t size, interval_t& rgn) {
 	}
 
 	if (mKernelRegions.findFree(size, rgn)) {
-		rgn.from += gBootVirtualOffset;
-		rgn.to += gBootVirtualOffset;
+		rgn.from += gKernelBase;
+		rgn.to += gKernelBase;
 		return true;
 	}
 
@@ -800,8 +798,8 @@ bool VirtualPageManager::findKernelRegion(size_t size, interval_t& rgn) {
 }
 
 void VirtualPageManager::delKernelRegion(interval_t rgn) {
-	rgn.from -= gBootVirtualOffset;
-	rgn.to -= gBootVirtualOffset;
+	rgn.from -= gKernelBase;
+	rgn.to -= gKernelBase;
 
 	mKernelRegions.del(rgn);
 }
@@ -872,8 +870,8 @@ VirtualPageManager::VirtualPageManager() : mKernelHeap(nullptr), mScratchPageInf
 		bzero(pq, PhysicalPageManager::gPageSize);
 	}
 	// all kernel memory is shared
-	uintptr_t cur = addr_kernel_start() - gBootVirtualOffset;
-	uintptr_t end = addr_kernel_end() - gBootVirtualOffset;
+	uintptr_t cur = addr_kernel_start() - gKernelBase;
+	uintptr_t end = addr_kernel_end() - gKernelBase;
 	uint32_t *pt = nullptr;
 	while(cur < end) {
 		pt = scratchMap<uint32_t>(pde[kernelidx.dir] & ~pagedirAttrib, 1);

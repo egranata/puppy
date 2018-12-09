@@ -17,7 +17,7 @@
 #include <kernel/process/process.h>
 #include <kernel/process/current.h>
 
-static constexpr uintptr_t gKernelInitial = 0xC0000000;
+static constexpr uintptr_t gKernelInitial = VirtualPageManager::gKernelBase;
 static constexpr uintptr_t gKernelFinal =   0xFFFFFFFF;
 
 LOG_TAG(PROTECT, 2);
@@ -36,6 +36,10 @@ bool MemoryManager::region_t::operator==(const region_t& other) const {
 
 bool MemoryManager::region_t::isMmapRegion() const {
     return (bool)mmap_data.fhandle && mmap_data.size > 0;
+}
+
+bool MemoryManager::region_t::isKernelRegion() const {
+    return VirtualPageManager::iskernel(from);
 }
 
 MemoryManager::MemoryManager(process_t* process) : mProcess(process), mRegions(), mAllRegionsSize(0) {

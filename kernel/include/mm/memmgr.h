@@ -41,6 +41,7 @@ class MemoryManager : NOCOPY {
 
             bool operator==(const region_t&) const;
             bool isMmapRegion() const;
+            bool isKernelRegion() const;
         };
 
         MemoryManager(process_t*);

@@ -31,6 +31,8 @@ struct process_t;
 
 class VirtualPageManager : NOCOPY {
 public:
+	static constexpr uintptr_t gKernelBase = 0xC0000000;
+
 	struct map_options_t {
 		#define DECLARE_OPTION(type, name) type name () const; map_options_t& name ( type ); type _ ## name
 
