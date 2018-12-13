@@ -70,6 +70,7 @@ NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
             MATCH(tty,         DT_TTY);
             MATCH(semaphore,   DT_SEMAPHORE);
             MATCH(mutex,       DT_MUTEX);
+            MATCH(event,       DT_EVENT);
         }
         return &dir->current;
     } else {

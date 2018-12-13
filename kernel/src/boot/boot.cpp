@@ -100,6 +100,10 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace eventfs {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
     namespace semaphorefs {
         uint32_t init();
         bool fail(uint32_t);
@@ -277,6 +281,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::smbios::init,
         onSuccess : nullptr,
         onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare events support",
+        visible : false,
+        operation : boot::eventfs::init,
+        onSuccess : nullptr,
+        onFailure : boot::eventfs::fail
     });
 
     registerBootPhase(bootphase_t{

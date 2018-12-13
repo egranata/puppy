@@ -18,6 +18,7 @@ extern "C" {
 #define DT_BLK               6
 #define DT_REG               8
 #define DT_QUEUE            16
+#define DT_EVENT            24
 #define DT_TTY              32
 #define DT_SEMAPHORE        64
 #define DT_MUTEX           128

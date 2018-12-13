@@ -130,6 +130,12 @@ enum semaphore_ioctl_t {
     IOCTL_SEMAPHORE_SET_MAX  = 0x5EA03334, // a2 = max value for this semaphore
 };
 
+// IOCTL operations that can run on an event
+enum event_ioctl_t {
+    IOCTL_EVENT_RAISE     = 0xE117AAAA,
+    IOCTL_EVENT_LOWER     = 0xE117BBBB,
+};
+
 struct semaphore_info_t {
     uint32_t value; // should only be used for informational purposes
     uint32_t max;
