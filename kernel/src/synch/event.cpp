@@ -29,8 +29,8 @@ const char* Event::key() {
     return mKey;
 }
 
-void Event::raise() {
-    mRaised = true;
+void Event::raise(bool level) {
+    if (level) mRaised = true;
     waitqueue()->wakeall();
 }
 void Event::lower() {
@@ -49,8 +49,7 @@ bool Event::wait(uint32_t timeout) {
         } else {
             if (!wait) return false;
             waitqueue()->yield(gCurrentProcess, timeout);
-            if (!myWake(gCurrentProcess)) return false;
-            wait = (timeout > 0);
+            return myWake(gCurrentProcess);
         }
     }
 }

@@ -25,7 +25,7 @@
 class Event : public WaitableObject {
     public:
         Event(const char*);
-        void raise();
+        void raise(bool level);
         void lower();
 
         bool raised() const;

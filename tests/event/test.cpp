@@ -56,9 +56,9 @@ void child3() {
     exit(ok);
 }
 
-class TheTest : public Test {
+class TestEventLevel : public Test {
     public:
-        TheTest() : Test(TEST_NAME) {}
+        TestEventLevel() : Test("event.TestEventLevel") {}
     
     protected:
         void run() override {
@@ -89,8 +89,38 @@ class TheTest : public Test {
         }
 };
 
+class TestEventPulse : public Test {
+    public:
+        TestEventPulse() : Test("event.TestEventPulse") {}
+    
+    protected:
+        void run() override {
+            FILE *fevt = fopen(EVENT_PATH, "r");
+            CHECK_NOT_EQ(fevt, nullptr);
+            int fdevt = fileno(fevt);
+
+            auto c1 = clone(child1);
+            CHECK_NOT_EQ(c1, 0);
+            sleep(2);
+            ioctl(fdevt, event_ioctl_t::IOCTL_EVENT_RAISE, 1);
+            auto s1 = collect(c1);
+            CHECK_EQ(s1.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_EQ(s1.status, 0);
+
+            auto c2 = clone(child3);
+            CHECK_NOT_EQ(c2, 0);
+            auto s2 = collect(c2);
+            CHECK_EQ(s2.reason, process_exit_status_t::reason_t::cleanExit);
+            CHECK_NOT_EQ(s2.status, 0);
+        }
+};
+
 int main() {
-    Test* test = new TheTest();
-    test->test();
+    auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
+
+    testPlan.add<TestEventLevel>()
+            .add<TestEventPulse>();
+
+    testPlan.test();
     return 0;
 }

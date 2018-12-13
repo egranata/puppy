@@ -73,10 +73,10 @@ public:
         return mEvent;
     }
 
-    uintptr_t ioctl(uintptr_t a, uintptr_t) override {
+    uintptr_t ioctl(uintptr_t a, uintptr_t b) override {
         switch (a) {
             case event_ioctl_t::IOCTL_EVENT_RAISE:
-                mEvent->raise();
+                mEvent->raise(b == 0);
                 return 1;
             case event_ioctl_t::IOCTL_EVENT_LOWER:
                 mEvent->lower();

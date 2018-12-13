@@ -132,7 +132,7 @@ enum semaphore_ioctl_t {
 
 // IOCTL operations that can run on an event
 enum event_ioctl_t {
-    IOCTL_EVENT_RAISE     = 0xE117AAAA,
+    IOCTL_EVENT_RAISE     = 0xE117AAAA, // a2 = 0 to keep the event raised (level); 1 to pulse the event
     IOCTL_EVENT_LOWER     = 0xE117BBBB,
 };
 
