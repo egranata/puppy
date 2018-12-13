@@ -24,41 +24,18 @@ class SMBIOS : NOCOPY {
     public:
         static SMBIOS* get();
     
-        const char* getBIOSVendor();
-        const char* getBIOSVersion();
-
-        const char* getSystemManufacturer();
-        const char* getSystemProductName();
-        const char* getSystemSerial();
-
-    private:
-        struct smbios_entrypoint_t {
-            uint32_t anchor;
-            uint8_t checksum;
-            uint8_t size;
-            uint8_t major;
-            uint8_t minor;
-            uint16_t maxsize;
-            uint8_t revision;
-            uint8_t reserved[5];
-            uint8_t dmi[5];
-            uint8_t ichecksum;
-            uint16_t tbllen;
-            uint32_t tblptr;
-            uint8_t numtbls;
-            uint8_t bcdrev;
-        } __attribute__((packed));
-
         struct smbios_biosinfo_t {
             char* vendor;
             char* version;
         };
+        smbios_biosinfo_t getBIOSinfo() const;
 
         struct smbios_systeminfo_t {
             char* manufacturer;
             char* name;
             char* serial;
         };
+        smbios_systeminfo_t getSystemInfo() const;
 
         struct smbios_cpu_info_t {
             char* socket;
@@ -73,6 +50,7 @@ class SMBIOS : NOCOPY {
             uint8_t status;
             uint8_t upgrade;
         };
+        smbios_cpu_info_t getCPUInfo() const;
 
         struct smbios_mem_block_t {
             uint16_t array_handle;
@@ -92,6 +70,26 @@ class SMBIOS : NOCOPY {
             char* asset;
             char* part;
         };
+        size_t getNumMemoryBlocks() const;
+        smbios_mem_block_t getMemoryBlock(size_t idx) const;
+
+    private:
+        struct smbios_entrypoint_t {
+            uint32_t anchor;
+            uint8_t checksum;
+            uint8_t size;
+            uint8_t major;
+            uint8_t minor;
+            uint16_t maxsize;
+            uint8_t revision;
+            uint8_t reserved[5];
+            uint8_t dmi[5];
+            uint8_t ichecksum;
+            uint16_t tbllen;
+            uint32_t tblptr;
+            uint8_t numtbls;
+            uint8_t bcdrev;
+        } __attribute__((packed));
 
         struct smbios_table_header_t {
             uint8_t type;

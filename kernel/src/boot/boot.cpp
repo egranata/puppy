@@ -192,14 +192,6 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "SMBIOS discovery",
-        visible : false,
-        operation : boot::smbios::init,
-        onSuccess : nullptr,
-        onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
         description : "APIC discovery",
         visible : false,
         operation : boot::apic::init,
@@ -275,6 +267,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "Install RAM driver",
         visible : false,
         operation : boot::ramdevice::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "SMBIOS discovery",
+        visible : false,
+        operation : boot::smbios::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });

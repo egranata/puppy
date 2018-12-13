@@ -21,39 +21,6 @@
 #include <kernel/boot/phase.h>
 #include <kernel/sys/unions.h>
 
-namespace boot::smbios {
-    uint32_t init() {
-        auto&& smbios(SMBIOS::get());
-        if (smbios == nullptr) {
-            bootphase_t::printf("System identification information unavailable\n");
-            return -1;
-        }
-
-        bootphase_t::printf("System: \n");
-        if (smbios->getSystemManufacturer())
-            bootphase_t::printf("        Manufactured by %s\n", smbios->getSystemManufacturer());
-        if (smbios->getSystemProductName())
-            bootphase_t::printf("        Model %s\n", smbios->getSystemProductName());
-        if (smbios->getSystemSerial())
-            bootphase_t::printf("        Serial %s\n", smbios->getSystemSerial());
-        
-        #define X_OR_NULL(expr) (expr) ? (expr) : "<null>"
-
-        LOG_DEBUG("System information: manufacturer = %s, model = %s, serial = %s",
-            X_OR_NULL(smbios->getSystemManufacturer()),
-            X_OR_NULL(smbios->getSystemProductName()),
-            X_OR_NULL(smbios->getSystemSerial()));
-
-        LOG_DEBUG("BIOS information: vendor = %s, version = %s",
-            X_OR_NULL(smbios->getBIOSVendor()),
-            X_OR_NULL(smbios->getBIOSVersion()));
-
-        #undef X_OR_NULL
-
-        return 0;
-    }
-}
-
 static constexpr uintptr_t gLowAddress =  0x0F000u;
 static constexpr uintptr_t gHighAddress = 0xFFFFFu;
 
@@ -88,21 +55,21 @@ SMBIOS* SMBIOS::get() {
     }
 }
 
-const char* SMBIOS::getBIOSVendor() {
-    return mBiosInfo.vendor;
+SMBIOS::smbios_biosinfo_t SMBIOS::getBIOSinfo() const {
+    return mBiosInfo;
 }
-const char* SMBIOS::getBIOSVersion() {
-    return mBiosInfo.version;
+SMBIOS::smbios_systeminfo_t SMBIOS::getSystemInfo() const {
+    return mSystemInfo;
+}
+SMBIOS::smbios_cpu_info_t SMBIOS::getCPUInfo() const {
+    return mCPUInfo;
 }
 
-const char* SMBIOS::getSystemManufacturer() {
-    return mSystemInfo.manufacturer;
+size_t SMBIOS::getNumMemoryBlocks() const {
+    return mMemoryInfo.count;
 }
-const char* SMBIOS::getSystemProductName() {
-    return mSystemInfo.name;
-}
-const char* SMBIOS::getSystemSerial() {
-    return mSystemInfo.serial;
+SMBIOS::smbios_mem_block_t SMBIOS::getMemoryBlock(size_t idx) const {
+    return mMemoryInfo.data[idx];
 }
 
 bool SMBIOS::valid() const {
