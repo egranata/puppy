@@ -17,21 +17,9 @@
 #include <kernel/drivers/pic/pic.h>
 #include <kernel/drivers/acpi/acpica/osi.h>
 #include <kernel/drivers/acpi/device.h>
+#include <kernel/drivers/acpi/events.h>
 
 #define IS_ERR (acpi_init != AE_OK)
-
-static void acpi_notify_handler(ACPI_HANDLE handle, UINT32 value, void* context) {
-    TAG_INFO(ACPICA, "acpi_notify_handler(0x%p, %u, 0x%p)", handle, value, context);
-}
-
-static void acpi_event_handler(UINT32 type, ACPI_HANDLE device, UINT32 number, void* context) {
-    TAG_INFO(ACPICA, "acpi_event_handler(%u, 0x%p, %u, 0x%p)", type, device, number, context);
-}
-
-static UINT32 acpi_power_button_event_handler(void* context) {
-    TAG_INFO(ACPICA, "acpi_power_button_event_handler(0x%p)", context);
-    return ACPI_INTERRUPT_HANDLED;
-}
 
 static void acpi_scan_callback(const AcpiDeviceManager::acpica_device_t& device, void* ctx) {
     uint64_t *count = (uint64_t*)ctx;
@@ -69,9 +57,6 @@ namespace boot::acpica {
         acpi_init = AcpiLoadTables();
         if (IS_ERR) return gNonFatalFailure;
 
-        acpi_init = AcpiInstallNotifyHandler(ACPI_ROOT_OBJECT, ACPI_SYSTEM_NOTIFY, acpi_notify_handler, nullptr);
-        if (IS_ERR) return gNonFatalFailure;
-
         acpi_init = AcpiEnableSubsystem(0);
         if (IS_ERR) return gNonFatalFailure;
 
@@ -83,10 +68,7 @@ namespace boot::acpica {
         acpi_init = PIC::get().setupACPI();
         if (IS_ERR) return gFatalFailure;
 
-        acpi_init = AcpiInstallGlobalEventHandler(acpi_event_handler, nullptr);
-        if (IS_ERR) return gFatalFailure;
-
-        acpi_init = AcpiInstallFixedEventHandler(ACPI_EVENT_POWER_BUTTON, acpi_power_button_event_handler, nullptr);
+        acpi_init = AcpiEvents::get().installEventHandlers();
         if (IS_ERR) return gFatalFailure;
 
         acpi_init = AcpiEnableEvent(ACPI_EVENT_POWER_BUTTON, 0);
