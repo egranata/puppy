@@ -28,6 +28,18 @@
 #include <unique_ptr>
 #include <unordered_map>
 
+struct init_config_t {
+    bool verbose;
+} gInitConfig;
+
+void parse(int argc, char** argv) {
+    bzero(&gInitConfig, sizeof(gInitConfig));
+
+    for(int i = 1; i < argc; ++i) {
+        if (0 == strcmp(argv[i], "-v")) gInitConfig.verbose = true;
+    }
+}
+
 struct init_service_t {
     std::string name;
     std::string path;
@@ -87,12 +99,12 @@ kpid_t spawnService(const init_service_t &svc) {
     if (svc.foreground == false) flags = 0;
 
     if (svc.args.empty()) {
-        printf("[init] spawning %s\n", svc.path.c_str());
+        if (gInitConfig.verbose) printf("[init] spawning %s\n", svc.path.c_str());
         pid = exec_syscall(svc.path.c_str(), nullptr, environ, flags, nullptr);
     }
     else {
         std::string line = svc.path + " " + svc.args;
-        printf("[init] spawning %s\n", line.c_str());
+        if (gInitConfig.verbose) printf("[init] spawning %s\n", line.c_str());
         size_t argc;
         auto argv = libShellSupport::parseCommandLine(line.c_str(), &argc);
         auto program = argv[0];
@@ -205,7 +217,7 @@ void watchForServicesDie() {
     if (collectany(true, &pid, &status)) {
         auto iter = getServicesMap().find(pid), end = getServicesMap().end();
         if (iter != end) {
-            printf("[init] service %u (%s) exited - respawning\n", pid, iter->second.path.c_str());
+            if (gInitConfig.verbose) printf("[init] service %u (%s) exited - respawning\n", pid, iter->second.path.c_str());
             spawnInitService(iter->second);
             getServicesMap().erase(iter);
         }
@@ -227,7 +239,9 @@ static void __attribute__((constructor)) init_ctor() {
     writeToLog("init is up and running");
 }
 
-int main(int, const char**) {
+int main(int argc, char** argv) {
+    parse(argc, argv);
+
     if (!loadInitServices()) {
         writeToLog("init could not load system services - will exit");
         exit(1);
