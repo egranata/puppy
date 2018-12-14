@@ -148,6 +148,38 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
+        description : "Prepare events support",
+        visible : false,
+        operation : boot::eventfs::init,
+        onSuccess : nullptr,
+        onFailure : boot::eventfs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare message queues support",
+        visible : false,
+        operation : boot::msg_queue::init,
+        onSuccess : nullptr,
+        onFailure : boot::msg_queue::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare semaphores support",
+        visible : false,
+        operation : boot::semaphorefs::init,
+        onSuccess : nullptr,
+        onFailure : boot::semaphorefs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Prepare mutex support",
+        visible : false,
+        operation : boot::mutexfs::init,
+        onSuccess : nullptr,
+        onFailure : boot::mutexfs::fail
+    });
+
+    registerBootPhase(bootphase_t{
         description : "Setup Interrupt Controller",
         visible : false,
         operation : boot::pic::init,
@@ -281,38 +313,6 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::smbios::init,
         onSuccess : nullptr,
         onFailure : nullptr
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Prepare events support",
-        visible : false,
-        operation : boot::eventfs::init,
-        onSuccess : nullptr,
-        onFailure : boot::eventfs::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Prepare message queues support",
-        visible : false,
-        operation : boot::msg_queue::init,
-        onSuccess : nullptr,
-        onFailure : boot::msg_queue::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Prepare semaphores support",
-        visible : false,
-        operation : boot::semaphorefs::init,
-        onSuccess : nullptr,
-        onFailure : boot::semaphorefs::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Prepare mutex support",
-        visible : false,
-        operation : boot::mutexfs::init,
-        onSuccess : nullptr,
-        onFailure : boot::mutexfs::fail
     });
 
     registerBootPhase(bootphase_t{
