@@ -79,10 +79,12 @@ std::vector<acpi_device_info_t> getDevices() {
     return dest;
 }
 
-int main() {
+int main(int argc, char** argv) {
     auto devicesList = getDevices();
 
     printf("%u ACPI devices discovered on this system.\n", devicesList.size());
+    if (argc == 2 && 0 == strcmp(argv[1], "--count")) return 0;
+
     for (const auto& device : devicesList) {
 
                                 printf("Type:     %s\n", typeToString(device.type));

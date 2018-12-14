@@ -1,4 +1,16 @@
 [
+    {"name" : "acpi_count",
+     "path" : "/system/apps/lsacpi",
+     "args" : "--count",
+     "wait" : true
+    },
+
+    {"name" : "pci_count",
+     "path" : "/system/apps/lspci",
+     "args" : "--count",
+     "wait" : true
+    },
+
     {"name" : "mkramdisk",
      "path" : "/system/apps/mkramdisk",
      "args" : "4096",

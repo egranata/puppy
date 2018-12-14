@@ -38,10 +38,12 @@ std::vector<pci_device_info_t> getDevices() {
     return dest;
 }
 
-int main() {
+int main(int argc, char** argv) {
     auto devicesList = getDevices();
 
     printf("%u PCI devices discovered on this system.\n", devicesList.size());
+    if (argc == 2 && 0 == strcmp(argv[1], "--count")) return 0;
+
     for (const auto& device : devicesList) {
         printf("Device 0x%4x:0x%4x\n", device.vendor, device.device);
         printf("Bus   %3u Slot     %3u Func      %3u\n", device.bus, device.slot, device.func);

@@ -97,8 +97,6 @@ namespace boot::acpica {
         acpi_init = acpi_dev_mgr.discoverDevices(acpi_scan_callback, &num_acpi_devs);
         if (IS_ERR) return gFatalFailure;
 
-        bootphase_t::printf("%llu ACPI devices detected\n", num_acpi_devs);
-
         acpi_dev_mgr.tryLoadDrivers();
 
         DevFS& devfs(DevFS::get());

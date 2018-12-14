@@ -77,8 +77,6 @@ namespace boot::pci {
         auto pciDir = devfs.getDeviceDirectory("pci");
         pciDir->add(new DeviceDataFile());
 
-        bootphase_t::printf("%u PCI devices detected\n", pciBus.numDeviceDataEntries());
-
         return 0;
     }
 }
