@@ -25,6 +25,8 @@ class AcpiEvents : NOCOPY {
     public:
         static AcpiEvents& get();
         uint32_t installEventHandlers();
+
+        void onPowerButtonPress();
     private:
         AcpiEvents();
         Filesystem::File *mPowerButtonFile;

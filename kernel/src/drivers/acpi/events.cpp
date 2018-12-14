@@ -27,8 +27,12 @@ static void acpi_event_handler(UINT32 type, ACPI_HANDLE device, UINT32 number, v
     TAG_INFO(ACPICA, "acpi_event_handler(%u, 0x%p, %u, 0x%p)", type, device, number, context);
 }
 
-static UINT32 acpi_power_button_event_handler(void* context) {
-    TAG_INFO(ACPICA, "acpi_power_button_event_handler(0x%p)", context);
+void AcpiEvents::onPowerButtonPress() {
+    mPowerButtonFile->ioctl(IOCTL_EVENT_RAISE, 1);
+    TAG_INFO(ACPICA, "power button press intercepted");
+}
+static UINT32 acpi_power_button_event_handler(void*) {
+    AcpiEvents::get().onPowerButtonPress();
     return ACPI_INTERRUPT_HANDLED;
 }
 
@@ -46,7 +50,7 @@ uint32_t AcpiEvents::installEventHandlers() {
 }
 
 AcpiEvents::AcpiEvents() {
-    mPowerButtonFile = EventFS::get()->open("acpi_power_button", FILE_OPEN_READ | FILE_OPEN_WRITE);
+    mPowerButtonFile = EventFS::get()->open("/acpi_power_button", FILE_OPEN_READ | FILE_OPEN_WRITE);
 }
 
 AcpiEvents& AcpiEvents::get() {
