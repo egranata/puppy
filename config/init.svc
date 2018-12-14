@@ -35,6 +35,12 @@
      "wait" : true
     },
 
+    {"name" : "acpid",
+     "path" : "/system/apps/acpid",
+     "args" : "",
+     "foreground" : false
+    },
+
     {"name" : "shell",
      "path" : "/system/apps/shell",
      "args" : "--init",
