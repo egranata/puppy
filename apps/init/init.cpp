@@ -217,9 +217,10 @@ void watchForServicesDie() {
     if (collectany(true, &pid, &status)) {
         auto iter = getServicesMap().find(pid), end = getServicesMap().end();
         if (iter != end) {
-            if (gInitConfig.verbose) printf("[init] service %u (%s) exited - respawning\n", pid, iter->second.path.c_str());
-            spawnInitService(iter->second);
-            getServicesMap().erase(iter);
+            auto svc_info(iter->second);
+            if (gInitConfig.verbose) printf("[init] service %u (%s) exited - respawning\n", pid, svc_info.path.c_str());
+            getServicesMap().erase(pid);
+            spawnInitService(svc_info);
         }
     }
 }
