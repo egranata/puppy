@@ -35,9 +35,9 @@
      "wait" : true
     },
 
-    {"name" : "acpid",
+    {"name" : "acpid_power",
      "path" : "/system/apps/acpid",
-     "args" : "",
+     "args" : "/system/config/acpid/power.cfg",
      "foreground" : false
     },
 
