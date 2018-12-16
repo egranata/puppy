@@ -42,6 +42,12 @@ class TheTest : public Test {
             bzero(&statbuf, sizeof(statbuf));
             ok = stat("/system/not/a/real/path", &statbuf);
             CHECK_NOT_EQ(0, ok);
+
+            bzero(&statbuf, sizeof(statbuf));
+            ok = stat("/system", &statbuf);
+            CHECK_EQ(0, ok);
+            CHECK_TRUE(S_ISDIR(statbuf.st_mode));
+            CHECK_FALSE(S_ISREG(statbuf.st_mode));
         }
 };
 

@@ -201,8 +201,38 @@ class FATFileSystemDirectory_AsFile : public Filesystem::File {
         FILINFO mFileInfo;
 };
 
+class FATFileSystem_RootDirectory_AsFile : public Filesystem::File {
+    public:
+        FATFileSystem_RootDirectory_AsFile() {
+            kind(file_kind_t::directory);
+        }
+
+        bool seek(size_t) override {
+            return false;
+        }
+
+        bool tell(size_t*) override {
+            return false;
+        }
+
+        size_t read(size_t, char*) override {
+            return 0;
+        }
+
+        size_t write(size_t, char*) override {
+            return 0;
+        }
+
+        bool doStat(stat_t&) override {
+            return true;
+        }
+
+        ~FATFileSystem_RootDirectory_AsFile() override = default;
+};
+
 Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
-    LOG_DEBUG("FatFs on drive %d is trying to open file %s", mFatFS.pdrv, path);
+    if (path == nullptr || path[0] == 0) path = "/";
+    LOG_DEBUG("FatFs on drive %d is trying to open file '%s'", mFatFS.pdrv, path);
     auto len = 4 + strlen(path);
     char* fullpath = allocate<char>(len);
     bzero((uint8_t*)&fullpath[0], len);
@@ -233,6 +263,11 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
                 break;
         }
 
+        if (st_out == FR_INVALID_NAME && 0 == strcmp(path, "/")) {
+            LOG_INFO("trying to open root directory as file - returning appropriate proxy object");
+            return new FATFileSystem_RootDirectory_AsFile();
+        }
+
         if (st_out == FR_OK && (fileInfo.fattrib & AM_DIR)) {
             LOG_INFO("trying to open directory %s as file - returning appropriate proxy object", fullpath);
             return new FATFileSystemDirectory_AsFile(fileInfo);
@@ -247,7 +282,6 @@ Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
                 return nullptr;
         }
     }
-    
 }
 
 bool FATFileSystem::del(const char* path) {

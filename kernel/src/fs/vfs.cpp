@@ -153,7 +153,7 @@ pair<Filesystem*, const char*> VFS::getfs(const char* root) {
         switch (*next) {
             case 0:
             case '/':
-                LOG_DEBUG("found matching root fs %s (at 0x%p) - next = %s", m.path, m.fs, next);
+                LOG_DEBUG("found matching root fs %s (at 0x%p) - next = '%s'", m.path, m.fs, next);
                 return {m.fs, next};
         }
     }
@@ -161,24 +161,12 @@ pair<Filesystem*, const char*> VFS::getfs(const char* root) {
     return {nullptr, nullptr};
 }
 
-VFS::filehandle_t VFS::open(const char* path, uint32_t mode) {
-    if (!isAbsolutePath(path)) return {nullptr, nullptr};
-
-    auto rest = getfs(path);
-    if (rest.first == nullptr) {
-        LOG_DEBUG("could not find filesystem to open %s", path);
-        return {nullptr, nullptr};
-    }
-
-    return {rest.first, rest.first->open(rest.second, mode)};
-}
-
 bool VFS::del(const char* path) {
     if (!isAbsolutePath(path)) return false;
 
     auto rest = getfs(path);
     if (rest.first == nullptr) {
-        LOG_DEBUG("could not find filesystem to delete %s", path);
+        LOG_DEBUG("could not find filesystem to delete '%s'", path);
         return false;
     }
 
@@ -190,7 +178,7 @@ bool VFS::mkdir(const char* path) {
 
     auto rest = getfs(path);
     if (rest.first == nullptr) {
-        LOG_DEBUG("could not find filesystem to create %s", path);
+        LOG_DEBUG("could not find filesystem to create '%s'", path);
         return false;
     }
 
@@ -249,6 +237,19 @@ class RootDirectory : public Filesystem::Directory {
         decltype(VFS::mMounts)::iterator mEnd;
         uint64_t mTime;
 };
+
+VFS::filehandle_t VFS::open(const char* path, uint32_t mode) {
+    if (!isAbsolutePath(path)) return {nullptr, nullptr};
+
+    auto rest = getfs(path);
+    if (rest.first == nullptr) {
+        LOG_DEBUG("could not find filesystem to open '%s'", path);
+        return {nullptr, nullptr};
+    }
+
+    LOG_DEBUG("found matching root fs at 0x%p - forwarding open request of '%s'", rest.first, rest.second);
+    return {rest.first, rest.first->open(rest.second, mode)};
+}
 
 VFS::filehandle_t VFS::opendir(const char* path) {
     if (!isAbsolutePath(path)) return {nullptr, nullptr};
