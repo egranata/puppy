@@ -25,10 +25,13 @@ char* strdup(const char* str) {
 }
 
 extern "C"
-const char* strprefix(const char* prefix, const char* full) {
+bool strprefix(const char* prefix, const char* full, const char** next) {
 	switch (strncmp(prefix, full, strlen(prefix))) {
-		case 0: return full + strlen(prefix);
-		default: return nullptr;
+		case 0: {
+			if (next) *next = full + strlen(prefix);
+			return true;
+		}
+		default: return false;
 	}
 }
 

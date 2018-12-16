@@ -21,7 +21,7 @@
 #include <muzzle/string.h>
 
 extern "C"
-const char* strprefix(const char* prefix, const char* full);
+bool strprefix(const char* prefix, const char* full, const char **next);
 
 extern "C"
 char* strdup(const char* str);

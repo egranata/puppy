@@ -147,10 +147,14 @@ pair<Filesystem*, const char*> VFS::getfs(const char* root) {
     auto b = mMounts.begin(), e = mMounts.end();
     for(; b != e; ++b) {
         auto&& m = *b;
-        auto next = strprefix(m.path, root);
-        if (next != nullptr && *next == '/') {
-            LOG_DEBUG("found matching root fs %s (at 0x%p) - next = %s", m.path, m.fs, next);
-            return {m.fs, next};
+        const char* next = nullptr;
+        bool match = strprefix(m.path, root, &next);
+        if (match == false || next == nullptr) continue;
+        switch (*next) {
+            case 0:
+            case '/':
+                LOG_DEBUG("found matching root fs %s (at 0x%p) - next = %s", m.path, m.fs, next);
+                return {m.fs, next};
         }
     }
 
@@ -259,18 +263,14 @@ VFS::filehandle_t VFS::opendir(const char* path) {
             ++path;
         }
     }
-    auto b = mMounts.begin(), e = mMounts.end();
-    for(; b != e; ++b) {
-        auto&& m = *b;
-        auto next = strprefix(m.path, path);
-        if (next != nullptr) {
-            LOG_DEBUG("found matching root fs %s (at 0x%p) - forwarding open request of %s", m.path, m.fs, next);
-            return {m.fs, m.fs->opendir(next)};
-        }
-    }
 
-    LOG_DEBUG("no matching filesystem found - failure");
-    return {nullptr, nullptr};
+    auto rest = getfs(path);
+    if (rest.first == nullptr) {
+        LOG_DEBUG("no matching filesystem found for '%s'- failure", path);
+        return {nullptr, nullptr};
+    }
+    LOG_DEBUG("found matching root fs at 0x%p - forwarding opendir request of '%s'", rest.first, rest.second);
+    return {rest.first, rest.first->opendir(rest.second)};
 }
 
 bool VFS::isAbsolutePath(const char* path) {
