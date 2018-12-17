@@ -15,7 +15,7 @@
 #include "../include/history.h"
 #include <linenoise/linenoise.h>
 
-History::History(const char* path) : mFilePath(path) {
+History::History(const char* path) : mFilePath(path ? path : gDefaultHistoryFile) {
     linenoiseHistoryLoad(mFilePath.c_str());
 }
 

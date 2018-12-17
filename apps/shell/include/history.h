@@ -19,7 +19,9 @@
 
 class History {
     public:
-        History(const char* path = "/system/config/shell.history");
+        static constexpr const char* gDefaultHistoryFile = "/home/shell.history";
+
+        History(const char* path = nullptr);
         void save();
         ~History();
 
