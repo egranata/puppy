@@ -74,10 +74,7 @@ static std::optional<int> readJSONInteger(JSON_Object *root, const char* key) {
 
 static bool loadConfigData(const char* path, config_data *cfg_data) {
     if (path == nullptr || 0 == *path) return false;
-    auto string_data = readFile(path);
-    if (string_data.empty()) return false;
-
-    JSON_Value *json_value = json_parse_string(string_data.c_str());
+    JSON_Value *json_value = json_parse_file(path);
     if (json_value == nullptr) return false;
     JSON_Object *root_object = json_object(json_value);
     if (root_object == nullptr) return false;
