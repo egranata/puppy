@@ -37,6 +37,7 @@ static void _runGlobalConstructors() {
 
 static void _runBootPhases() {
 	size_t phaseidx = 0;
+	char phase_fail[64] = {0};
 	while(true) {
 		auto phase = getBootPhase(phaseidx);
 		if (phase) {
@@ -62,7 +63,9 @@ static void _runBootPhases() {
 				}
 				if (musthang == bootphase_t::gPanic) {
 					LOG_ERROR("boot phase %s failed - system hanging", phase.description);
-					PANIC("boot phase failure");
+					memcpy(phase_fail, "boot phase failure: ", 20);
+					strcpy(phase_fail + 20, phase.description);
+					PANIC(phase_fail);
 				}
 			}
 		} else {

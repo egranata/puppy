@@ -140,7 +140,7 @@ __attribute__((constructor)) void loadBootPhases() {
     });
 
     registerBootPhase(bootphase_t{
-        description : "VFS",
+        description : "Initialize VFS layer",
         visible : false,
         operation : boot::vfs::init,
         onSuccess : nullptr,
