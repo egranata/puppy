@@ -96,8 +96,45 @@ NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
     return -1;
 }
 
+#define MATCH(x, y) case file_kind_t:: x: st->st_mode = y; break
+NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
+    file_stat_t fs;
+    bzero(st, sizeof(struct stat));
+
+    bool ok = (0 == fstat_syscall(fd, (uint32_t)&fs));
+
+    if (ok) {
+        switch (fs.kind) {
+            MATCH(file, S_IFREG);
+            MATCH(directory, S_IFDIR);
+            MATCH(blockdevice, S_IFBLK);
+            MATCH(pipe, S_IFIFO);
+            MATCH(msgqueue, S_IFQUEUE);
+            MATCH(tty, S_IFTTY);
+            MATCH(semaphore, S_IFSEMAPHORE);
+            MATCH(mutex,     S_IFMUTEX);
+            MATCH(event,     S_IFEVENT);
+        }
+        st->st_size = fs.size;
+        st->st_atime = fs.time;
+        return 0;
+    } else {
+        errno = EIO;
+        return -1;
+    }
+}
+#undef MATCH
+
 NEWLIB_IMPL_REQUIREMENT int lseek(int file, int ptr, int dir) {
-    if (dir == SEEK_END) ERR_EXIT(EINVAL);
+    if (dir == SEEK_END) {
+        struct stat st;
+        if (0 != fstat(file, &st)) ERR_EXIT(EIO);
+        if (st.st_mode != S_IFREG) ERR_EXIT(EIO);
+        size_t pos = st.st_size;
+        if (0 != fseek_syscall(file, pos)) ERR_EXIT(EINVAL);
+        if (0 != ftell_syscall((uint16_t)file, &pos)) ERR_EXIT(EINVAL);
+        return pos;
+    }
     if (dir == SEEK_CUR && ptr == 0) {
         size_t pos = 0;
         if (0 != ftell_syscall((uint16_t)file, &pos)) ERR_EXIT(EINVAL);
@@ -171,34 +208,6 @@ NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
     auto ptr = gSbrkPointer;
     gSbrkPointer += incr;
     return (caddr_t)ptr;
-}
-
-#define MATCH(x, y) case file_kind_t:: x: st->st_mode = y; break
-NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
-    file_stat_t fs;
-    bzero(st, sizeof(struct stat));
-
-    bool ok = (0 == fstat_syscall(fd, (uint32_t)&fs));
-
-    if (ok) {
-        switch (fs.kind) {
-            MATCH(file, S_IFREG);
-            MATCH(directory, S_IFDIR);
-            MATCH(blockdevice, S_IFBLK);
-            MATCH(pipe, S_IFIFO);
-            MATCH(msgqueue, S_IFQUEUE);
-            MATCH(tty, S_IFTTY);
-            MATCH(semaphore, S_IFSEMAPHORE);
-            MATCH(mutex,     S_IFMUTEX);
-            MATCH(event,     S_IFEVENT);
-        }
-        st->st_size = fs.size;
-        st->st_atime = fs.time;
-        return 0;
-    } else {
-        errno = EIO;
-        return -1;
-    }
 }
 
 NEWLIB_IMPL_REQUIREMENT int stat(const char *file, struct stat *st) {

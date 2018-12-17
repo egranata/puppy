@@ -20,11 +20,6 @@
 #include <string.h>
 #include <stdio.h>
 
-       int fseek(FILE *stream, long offset, int whence);
-
-       long ftell(FILE *stream);
-
-
 #define SOURCE_TEXT "This is a long string to write into a file in order to test seek behavior on Puppy filesystem implementation."
 
 class TheTest : public Test {
@@ -38,17 +33,24 @@ class TheTest : public Test {
             fclose(f);
 
             f = fopen("/tmp/seek.txt", "r");
+
             CHECK_EQ(ftell(f), 0);
             CHECK_EQ(fgetc(f), 'T');
             CHECK_EQ(ftell(f), 1);
+
             CHECK_EQ(0, fseek(f, 10, SEEK_SET));
             CHECK_EQ(ftell(f), 10);
             CHECK_EQ(fgetc(f), 'l');
             CHECK_EQ(fgetc(f), 'o');
             CHECK_EQ(ftell(f), 12);
+
             CHECK_EQ(0, fseek(f, -1, SEEK_CUR));
             CHECK_EQ(ftell(f), 11);
             CHECK_EQ(fgetc(f), 'o');
+
+            CHECK_EQ(0, fseek(f, -2, SEEK_END));
+            CHECK_EQ(fgetc(f), 'n');
+            CHECK_EQ(fgetc(f), '.');
         }
 };
 
