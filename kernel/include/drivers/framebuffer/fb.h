@@ -67,6 +67,8 @@ class Framebuffer : NOCOPY {
 
         uint16_t width() const;
         uint16_t height() const;
+        uint16_t bpp() const;
+        uint16_t pitch() const;
 
         uint16_t rows() const;
         uint16_t columns() const;
@@ -89,6 +91,9 @@ class Framebuffer : NOCOPY {
         void cls();
         void clearAtCursor();
         void clearLine(bool to_cursor, bool from_cursor);
+
+        uint32_t readPixel(uint16_t x, uint16_t y);
+        void writePixel(uint16_t x, uint16_t y, uint32_t value);
 
     private:
         Framebuffer(uint16_t width, uint16_t height, uint16_t pitch, uint8_t bpp, uintptr_t phys);

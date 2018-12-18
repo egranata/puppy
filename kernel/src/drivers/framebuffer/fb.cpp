@@ -119,11 +119,25 @@ Framebuffer::pixel_data_t Framebuffer::getpixel(uint16_t x, uint16_t y) {
 	return pdata;
 }
 
+uint32_t Framebuffer::readPixel(uint16_t x, uint16_t y) {
+	return *getpixel(x, y).back;
+}
+void Framebuffer::writePixel(uint16_t x, uint16_t y, uint32_t value) {
+	auto pxl = getpixel(x,y);
+	*pxl.back = *pxl.vram = value;
+}
+
 uint16_t Framebuffer::width() const {
 	return mWidth;
 }
 uint16_t Framebuffer::height() const {
 	return mHeight;
+}
+uint16_t Framebuffer::bpp() const {
+	return mBytesPerPixel;
+}
+uint16_t Framebuffer::pitch() const {
+	return mPitch;
 }
 
 uint16_t Framebuffer::rows() const {
