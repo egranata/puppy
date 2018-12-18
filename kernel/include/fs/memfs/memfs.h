@@ -80,6 +80,12 @@ public:
             virtual delete_ptr<FileBuffer> content() = 0;
             virtual uintptr_t ioctl(uintptr_t, uintptr_t);
             virtual ~File() = default;
+
+            // helpers to generate simple files from primitive data types
+            static File* fromString(const char* name, const char* value);
+            static File* fromSignedInteger(const char* name, int64_t value);
+            static File* fromUnsignedInteger(const char* name, uint64_t value);
+            static File* fromPrintf(const char* name, size_t max, const char* fmt, ...);
     };
 
     class Directory : public Entity {

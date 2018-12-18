@@ -56,8 +56,13 @@ class buffer {
         size_t printf(const char* fmt, ...) {
             va_list argptr;
             va_start(argptr, fmt);
-            auto ret = vsprint((char*)mBuffer, mSize-1, fmt, argptr);
+            auto ret = vprintf(fmt, argptr);
             va_end(argptr);
+            return ret;
+        }
+
+        size_t vprintf(const char* fmt, va_list argptr) {
+            auto ret = vsprint((char*)mBuffer, mSize-1, fmt, argptr);
             return ret;
         }
 
