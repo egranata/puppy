@@ -112,6 +112,9 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
+    namespace fb_file {
+        uint32_t init();
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -303,6 +306,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "Install RAM driver",
         visible : false,
         operation : boot::ramdevice::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Framebuffer driver",
+        visible : false,
+        operation : boot::fb_file::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
