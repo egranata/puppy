@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <kernel/log/log.h>
 #include <kernel/drivers/framebuffer/file.h>
 #include <kernel/drivers/framebuffer/fb.h>
 #include <kernel/fs/devfs/devfs.h>
@@ -40,6 +41,57 @@ MemFS::Directory* FramebufferFile::deviceDirectory() {
 }
 
 FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
+    class DataFile : public MemFS::File {
+        private:
+            class DataFileBuffer : public MemFS::FileBuffer {
+                private:
+                    Framebuffer &fb;
+                public:
+                    DataFileBuffer() : MemFS::FileBuffer(), fb(Framebuffer::get()) {}
+                    ~DataFileBuffer() override = default;
+
+                    size_t len() override {
+                        return fb.width() * fb.height() * 4;
+                    }
+
+                    bool at(size_t idx, uint8_t *dest) override {
+                        if (idx >= len()) return false;
+
+                        const auto byte_idx = idx & 3;
+                        const auto pixel_idx = idx >> 2;
+                        const auto y = pixel_idx % fb.width();
+                        const auto x = (pixel_idx - y) / fb.width();
+                        const auto pixel = fb.readPixel(x,y);
+
+                        switch (byte_idx) {
+                            case 0: {
+                                *dest = (pixel & 0xFF);
+                                break;
+                            } case 1: {
+                                *dest = (pixel & 0xFF00) >> 8;
+                                break;
+                            } case 2: {
+                                *dest = (pixel & 0xFF0000) >> 16;
+                                break;
+                            } case 3: {
+                                *dest = (pixel & 0xFF000000) >> 24;
+                                break;
+                            }
+                        }
+                        return true;
+                    }
+
+                    size_t write(size_t, char*) override {
+                        return 0;
+                    }
+            };
+        public:
+            DataFile() : MemFS::File("data") {}
+            delete_ptr<MemFS::FileBuffer> content() override {
+                return new DataFileBuffer();
+            }
+    };
+
     auto& fb(Framebuffer::get());
     DevFS& devfs(DevFS::get());
     mDeviceDirectory = devfs.getDeviceDirectory("framebuffer");
@@ -48,4 +100,5 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
         fb.width(), fb.height()));
     mDeviceDirectory->add(MemFS::File::fromPrintf("characters", 24, "%ux%u",
         fb.rows(), fb.columns()));
+    mDeviceDirectory->add(new DataFile());
 }
