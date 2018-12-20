@@ -104,7 +104,7 @@ int ls(const char* path) {
 
     printf("        %lu File(s)        %lu bytes\n", gNumFiles, gTotalSize);
     printf("        %lu Dir(s)\n", gNumDirectories);
-    printf("        %lu Devices(s)\n", gNumDevices);
+    printf("        %lu Device(s)\n", gNumDevices);
 
     return 0;
 }

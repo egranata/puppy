@@ -25,7 +25,6 @@ int main(int argc, const char** argv) {
     
     auto arg = argv[1];
     auto size = 512 * atoi(arg);
-    printf("About to create a RAM disk volume of %u bytes...\n", size);
 
     auto fd = fopen("/devices/ramdisk/new", "r");
     if (fd == nullptr) {
@@ -35,7 +34,7 @@ int main(int argc, const char** argv) {
 
     int result = ioctl(fileno(fd), 0x4449534b, size);
     if (result != 0x7FFFFFFF) {
-        printf("/devices/ramdisk/vol%u should now be a valid RAM disk\n", result);
+        printf("/devices/ramdisk/vol%u created; RAM disk of %u bytes\n", result, size);
     } else {
         printf("error: ramdisk device returned 0x%x\n", result);
         exit(3);
