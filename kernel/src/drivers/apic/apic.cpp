@@ -38,9 +38,7 @@ namespace boot::apic {
 
         uint32_t init() {
             auto& apic(APIC::get());
-            bootphase_t::printf("Calbrating APIC timer...");
-            auto ticks_per_ms = apic.calibrate();
-            bootphase_t::printf("%u ticks/ms\n", ticks_per_ms);
+            LOG_DEBUG("APIC calibration: %u", apic.calibrate());
             Interrupts::get().sethandler(APIC::gAPICTimerIRQ, "APIC", timer);
             PIT::get().disable();
             TimeManager::get().registerTimeSource("APIC", gMillisPerTick);

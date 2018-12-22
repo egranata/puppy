@@ -20,26 +20,6 @@
 namespace boot::info {
     uint32_t init() {
         bootphase_t::printf("%s built on %s at %s\n", OSNAME, __DATE__, __TIME__);
-
-    	auto&& cpuid(CPUID::get());
-        auto&& sig(cpuid.getSignature());
-        auto&& features(cpuid.getFeatures());
-        bootphase_t::printf("CPU: %s %s\n", cpuid.getVendorString(), cpuid.getBrandString());
-        bootphase_t::printf("     Family %u Model %u Stepping %u\n", sig.family, sig.model, sig.stepping);
-        bootphase_t::printf("     Supported Features: ");
-        #define CPU_FEATURE(name, reg, bit) {\
-            if (features. name) { bootphase_t::printf("%s ", #name); } \
-        }
-      	#include <kernel/i386/features.tbl>
-    	#undef CPU_FEATURE
-        bootphase_t::printf("\n");
-
-        auto&& fb(Framebuffer::get());
-
-        bootphase_t::printf("Screen size: %u x %u (%u rows x %u columns)\n",
-            fb.width(), fb.height(),
-            fb.rows(), fb.columns());
-
         return 0;
     }
 }

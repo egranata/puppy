@@ -21,11 +21,7 @@ LOG_TAG(PMTIMER, 0);
 
 namespace boot::pmtimer {
     uint32_t init() {
-        PMTimer& pmtimer(PMTimer::get());
-
-        bootphase_t::printf("PM timer discovered: %u bits at port %u\n",
-            pmtimer.isThirtyTwoBits() ? 32 : 24,
-            (uint32_t)pmtimer.port());
+        PMTimer::get();
 
         return 0;
     }
