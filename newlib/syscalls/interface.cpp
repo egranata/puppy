@@ -199,11 +199,11 @@ NEWLIB_IMPL_REQUIREMENT int read(int file, char* ptr, int len) {
     return ro >> 1;
 }
 
-uint8_t *gSbrkPointer = nullptr;
-
 NEWLIB_IMPL_REQUIREMENT caddr_t sbrk(int incr) {
+    static uint8_t *gSbrkPointer = nullptr;
+
     if (gSbrkPointer == nullptr) {
-        gSbrkPointer = (uint8_t*)mapregion_syscall(128*1024*1024, 1);
+        gSbrkPointer = (uint8_t*)mapregion_syscall(256*1024*1024, 1);
     }
     auto ptr = gSbrkPointer;
     gSbrkPointer += incr;
