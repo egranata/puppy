@@ -29,5 +29,6 @@ $\([,0-9A-Za-z:/\-\_=\.]+\) yylval = yytext; return ENVIRONMENT;
 [;\n]   return TERMINATOR;
 &&    return SUCCESSCONCAT;
 &     return BACKGROUND;
+!!    return HISTORY;
 \"(\\.|[^\\"])*\" yylval = yytext; return QUOTED;
 %%

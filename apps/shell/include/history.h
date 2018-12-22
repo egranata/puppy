@@ -16,6 +16,7 @@
 #define SHELL_HISTORY
 
 #include <string>
+#include <vector>
 
 class History {
     public:
@@ -26,9 +27,12 @@ class History {
         ~History();
 
         void add(const std::string& s);
+        bool get(size_t idx, std::string& s) const;
+        size_t size() const;
 
         static History& defaultHistory();
     private:
+        std::vector<std::string> mHistory;
         std::string mFilePath;
 };
 

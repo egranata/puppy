@@ -14,9 +14,19 @@
 
 #include "../include/history.h"
 #include <linenoise/linenoise.h>
+#include <unique_ptr>
 
 History::History(const char* path) : mFilePath(path ? path : gDefaultHistoryFile) {
     linenoiseHistoryLoad(mFilePath.c_str());
+    auto ml = linenoiseHistoryGetMaxLen();
+    size_t i = 0;
+    std::unique_ptr<char*> buffer;
+    buffer.reset((char**)calloc(ml, sizeof(char**)));
+    linenoiseHistoryCopy(buffer.get(), ml);
+    for(char** ptr = buffer.get(); i < ml; ++i) {
+        if (ptr[i] == nullptr) break;
+        if (ptr[i][0]) mHistory.push_back(std::string(ptr[i]));
+    }
 }
 
 History::~History() {
@@ -25,6 +35,18 @@ History::~History() {
 
 void History::add(const std::string& s) {
     linenoiseHistoryAdd(s.c_str());
+    mHistory.push_back(s);
+}
+
+bool History::get(size_t idx, std::string& s) const {
+    if (idx >= mHistory.size()) return false;
+
+    s = mHistory[idx];
+    return true;
+}
+
+size_t History::size() const {
+    return mHistory.size();
 }
 
 void History::save() {

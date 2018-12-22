@@ -14,6 +14,8 @@
 
 #include "parser.h"
 #include "symtype.h"
+#include "history.h"
+#include "input.h"
 
 bool gParserDebug;
 
@@ -101,6 +103,33 @@ bool Parser::parseInRedirect(Command& dest) {
 }
 
 bool Parser::parseCommand(Command& dest) {
+    if (accept(HISTORY)) {
+        if (!nextsym()) {
+            error("history requires a command id");
+            return false;
+        }
+
+        std::string id;
+        if (!acceptText(id)) {
+            error("history requires a numeric command id");
+            return false;
+        }
+
+        int i = atoi(id.c_str());
+        if (i <= 0) {
+            error("history requires a positive numeric command id");
+            return false;
+        }
+        bool ok = History::defaultHistory().get(i-1, id);
+        if (!ok) {
+            error("history requires a valid numeric command id");
+            return false;
+        }
+
+        setInputBuffer(id.c_str());
+        return parse();
+    }
+
     while(true) {
         std::string word;
         if (accept(TERMINATOR)) break;
