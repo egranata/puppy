@@ -299,10 +299,17 @@ class Project(object):
     def link(self, out):
         pass
 
+    def hasMakefile(self):
+        return os.path.exists(os.path.join(self.srcdir, "Makefile"))
+
     def build(self):
-        chrono = Chronometer("Compiling %s" % self.name if self.announce else None)
-        with chrono:
-            return self.link(self.compile())
+        with Chronometer("Compiling %s" % self.name if self.announce else None):
+            if not self.hasMakefile():
+                return self.link(self.compile())
+            else:
+                guessname = os.path.basename(self.srcdir)
+                shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s CC=%s CXX=%s -j" % (MYPATH, self.outwhere, MY_CC_PATH, MY_CXX_PATH), curdir=self.srcdir)
+                return os.path.join(self.outwhere, guessname)
 
 class UserspaceTool(Project):
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
@@ -328,15 +335,6 @@ class UserspaceTool(Project):
                          gcc=gcc,
                          announce=announce)
         self.link = self.linkGcc
-
-    def hasMakefile(self):
-        return os.path.exists(os.path.join(self.srcdir, "Makefile"))
-    
-    def build(self):
-        if not self.hasMakefile(): return Project.build(self)
-        guessname = os.path.basename(self.srcdir)
-        shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s CC=%s CXX=%s -j" % (MYPATH, self.outwhere, MY_CC_PATH, MY_CXX_PATH), curdir=self.srcdir)
-        return os.path.join(self.outwhere, guessname)
 
 def parseSymbolTable(symf):
     symtab = {}
