@@ -317,6 +317,12 @@ class Project(object):
                 return os.path.join(self.outwhere, guessname)
 
 class UserspaceTool(Project):
+    def linkAndStrip(self, out):
+        target = self.linkGcc(out)
+        CMDLINE="strip %s" % target
+        shell(CMDLINE)
+        return target
+
     def __init__(self, name, srcdir, cflags=None, cppflags=None, outwhere="out/apps", linkerdeps=[], announce=False):
         cflags = USERSPACE_CFLAGS + (cflags if cflags else [])
         cppflags = USERSPACE_CFLAGS + USERSPACE_CPPFLAGS + (cppflags if cppflags else [])
@@ -339,7 +345,7 @@ class UserspaceTool(Project):
                          outwhere=outwhere,
                          gcc=gcc,
                          announce=announce)
-        self.link = self.linkGcc
+        self.link = self.linkAndStrip
 
 def parseSymbolTable(symf):
     symtab = {}
