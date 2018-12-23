@@ -622,6 +622,19 @@ INITRD_REFS = [] # apps for initrd
 
 if BUILD_USERSPACE:
     with Chronometer("Building apps and tests"):
+        SLIBS_PRINT_PREFIX="Building static libraries: "
+        print(SLIBS_PRINT_PREFIX, end='', flush=True)
+
+        SLIB_DIRS = findSubdirectories("slibs", self=False)
+        def markAsStatic(lib):
+            lib.link = lib.linkAr
+        for lib in SLIB_DIRS:
+            buildUserlandComponent(os.path.basename(lib),
+                                lib,
+                                "out/mnt/libs",
+                                beforeBuild = markAsStatic)
+        print('')
+
         DYLIBS_PRINT_PREFIX="Building dynamic libraries: "
         print(DYLIBS_PRINT_PREFIX, end='', flush=True)
 
