@@ -15,6 +15,7 @@
      "linkLogic" : "gcc"},
     {"name" : "NewlibInterface",
      "src" : "newlib/syscalls",
+     "linkLogic" : "script",
      "includePaths" : ["include", "include/newlib"]},
     {"name" : "NewlibCrt0",
      "src" : "newlib/crt0",

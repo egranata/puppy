@@ -296,6 +296,11 @@ class Project(object):
         copy(out, destfile)
         return destfile
 
+    def linkScript(self, out):
+        destfile = self.name.lower()
+        shell("%s %s %s" % (self.linker, destfile, ' '.join(out)))
+        return destfile
+
     def link(self, out):
         pass
 
@@ -471,7 +476,7 @@ NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
               "out/mnt/libs/libpcre2-8.a",
               "out/mnt/libs/libm.a",
               "out/mnt/libs/libc.a",
-              "out/mnt/libs/libnewlibinterface.a",
+              "out/mnt/libs/libnewlib.a",
               "out/mnt/libs/libc.a"]
 NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
 
@@ -547,9 +552,15 @@ if BUILD_CORE:
             linkerdeps = linkerdeps)
 
         linklogic = core_project.get('linkLogic', 'ar')
-        if linklogic == 'ar':   project.link = project.linkAr
-        if linklogic == 'copy': project.link = project.linkCopy
-        if linklogic == 'gcc':  project.link = project.linkGcc
+        if linklogic == 'ar':
+            project.link = project.linkAr
+        elif linklogic == 'copy':
+            project.link = project.linkCopy
+        elif linklogic == 'gcc':
+            project.link = project.linkGcc
+        elif linklogic == 'script':
+            project.link = project.linkScript
+            project.linker = "%s/%s" % (project.srcdir, "linker.py")
 
         CORE_PROJECTS.append(project)
 
