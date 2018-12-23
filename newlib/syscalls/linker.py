@@ -39,7 +39,7 @@ def copy(src, dst):
     return dst
 
 INFILES = sys.argv[2:]
-OUTFILE = "out/libnewlib.a"
+OUTFILE = "out/libc.a"
 INLIB = "newlib/lib/libc.a"
 
 copy(INLIB, OUTFILE)

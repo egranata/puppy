@@ -475,8 +475,6 @@ NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
               "out/mnt/libs/libpcre2-posix.a",
               "out/mnt/libs/libpcre2-8.a",
               "out/mnt/libs/libm.a",
-              "out/mnt/libs/libc.a",
-              "out/mnt/libs/libnewlib.a",
               "out/mnt/libs/libc.a"]
 NEWLIB_DEPS = [NEWLIB_CRT0] + NEWLIB_ARS
 
@@ -571,7 +569,9 @@ with Chronometer("Copyings headers and core libraries"):
     rcopy("include", "out/mnt")
     xcopy("third_party/pcre2-10.32/libs/lib*.a", "out/mnt/libs")
     xcopy("out/lib*.a", "out/mnt/libs")
-    xcopy("newlib/lib/lib*.a", "out/mnt/libs")
+    copy("newlib/lib/libm.a", "out/mnt/libs")
+    copy("newlib/lib/libg.a", "out/mnt/libs")
+    copy("newlib/lib/libnosys.a", "out/mnt/libs")
     rcopy("python", "out/mnt/libs")
     copy(LIBGCC_FILE, "out/mnt/libs")
     copy("out/newlibcrt0", NEWLIB_CRT0)
