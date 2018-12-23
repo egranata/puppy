@@ -52,6 +52,19 @@ STATIC mp_obj_t mod_os_system(mp_obj_t path_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_os_system_obj, mod_os_system);
 
+STATIC mp_obj_t mod_os_pipe() {
+    int fd[] = {0, 0};
+
+    int ok = pipe(fd);
+    RAISE_ERRNO(ok, errno);
+    
+    mp_obj_tuple_t *t = MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));
+    t->items[0] = MP_OBJ_NEW_SMALL_INT(fd[0]);
+    t->items[1] = MP_OBJ_NEW_SMALL_INT(fd[1]);
+    return MP_OBJ_FROM_PTR(t);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_os_pipe_obj, mod_os_pipe);
+
 STATIC mp_obj_t mod_os_access(mp_obj_t path_in, mp_obj_t mode_in) {
     const char *path = mp_obj_str_get_str(path_in);
     mp_int_t mode = mp_obj_int_get_truncated(mode_in);
@@ -184,6 +197,7 @@ STATIC const mp_rom_map_elem_t mp_module_os_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_F_OK), MP_ROM_INT(0) },
     { MP_ROM_QSTR(MP_QSTR_access), MP_ROM_PTR(&mod_os_access_obj) },
     { MP_ROM_QSTR(MP_QSTR_stat), MP_ROM_PTR(&mod_os_stat_obj) },
+    { MP_ROM_QSTR(MP_QSTR_pipe), MP_ROM_PTR(&mod_os_pipe_obj) },
     { MP_ROM_QSTR(MP_QSTR_system), MP_ROM_PTR(&mod_os_system_obj) },
     { MP_ROM_QSTR(MP_QSTR_unlink), MP_ROM_PTR(&mod_os_unlink_obj) },
     { MP_ROM_QSTR(MP_QSTR_getenv), MP_ROM_PTR(&mod_os_getenv_obj) },
