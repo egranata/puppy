@@ -18,6 +18,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <algorithm>
+#include <vector>
+#include <string>
+
 #include <libcolors/ansi.h>
 #include <libcolors/configcolors.h>
 #include <libcolors/color.h>
@@ -47,68 +51,96 @@ ansi_escape_t getDeviceColor() {
     }
 }
 
-const char* kind2Str(int kind) {
-    switch (kind) {
-        case DT_DIR:
-            ++gNumDirectories;
-            return "<DIR>";
-        case DT_BLK:
-            ++gNumDevices;
-            return "<BLK>";
-        case DT_CHR:
-            ++gNumDevices;
-            return "<CHR>";
-        case DT_QUEUE:
-            ++gNumDevices;
-            return "<QUE>";
-        case DT_REG:
+enum class entry_type {
+    regular_file,
+    directory,
+    device,
+    unknown
+};
+struct dir_entry_t {
+    std::string name;
+    entry_type type;
+    size_t size;
+    std::string tim;
+
+    dir_entry_t(dirent *de) {
+        char time_info[64] = {0};
+
+        size = de->d_size;
+        switch (de->d_type) {
+            case DT_DIR:
+                type = entry_type::directory; break;
+            case DT_BLK:
+            case DT_CHR:
+                type = entry_type::device; break;
+            case DT_REG:
+                type = entry_type::regular_file; break;
+            default:
+                type = entry_type::unknown; break;
+        }
+        name = std::string(de->d_name);
+
+        auto lt = localtime(&de->d_time);
+        strftime(&time_info[0], sizeof(time_info) - 1, "%D %I:%M%p", lt);
+        tim = std::string(time_info);
+    }
+
+    bool isDirectory() const { return type == entry_type::directory; }
+    bool isDevice() const { return type == entry_type::device; }
+    bool isRegularFile() const { return type == entry_type::regular_file; }
+
+    const char* kindTo3LetterCode() const {
+        switch(type) {
+            case entry_type::directory: return "<DIR>";
+            case entry_type::device: return "<DEV>";
+            case entry_type::regular_file:
+            case entry_type::unknown:
+            default: return "     ";
+        }
+    }
+
+    void print() const {
+        printf("%s ", tim.c_str());
+        gTotalSize += size;
+        printf("%5s  ", kindTo3LetterCode());
+        if (isRegularFile()) {
             ++gNumFiles;
-            __attribute__ ((fallthrough));
-        case DT_UNKNOWN:
-        default:
-            return "";
+            printf("%12lu ", size);
+        } else {
+            printf("             ");
+        }
+        if (isDirectory()) {
+            ++gNumDirectories;
+            auto clr = getDirectoryColor();
+            printf("%s%s%s\n", clr.c_str(), name.c_str(), ansi_escape_t::reset().c_str());
+        } else if (isDevice()) {
+            ++gNumDevices;
+            auto clr = getDeviceColor();
+            printf("%s%s%s\n", clr.c_str(), name.c_str(), ansi_escape_t::reset().c_str());
+        } else {
+            printf("%s\n", name.c_str());
+        }
     }
-}
+};
 
-bool doesPrintSize(int kind) {
-    return kind == DT_REG;
-}
-
-bool isDirectory(int kind) {
-    return kind == DT_DIR;
-}
-
-bool isDevice(int kind) {
-    return (kind == DT_CHR) || (kind == DT_BLK);
-}
-
-void print(dirent* entry) {
-    char time_info[64] = {0};
-
-    if (entry == nullptr) return;
-
-    auto lt = localtime(&entry->d_time);
-    strftime(&time_info[0], sizeof(time_info) - 1, "%D %I:%M%p", lt);
-    printf("%s ", &time_info[0]);
-
-    gTotalSize += entry->d_size;
-
-    printf("%5s  ", kind2Str(entry->d_type));
-    if (doesPrintSize(entry->d_type)) {
-        printf("%12lu ", entry->d_size);
-    } else {
-        printf("             ");
+void loadDirectory(DIR* dir, std::vector<dir_entry_t>& dest) {
+    while(true) {
+        dirent* de = readdir(dir);
+        if (de == nullptr) break;
+        dest.push_back(de);
     }
-
-    if (isDirectory(entry->d_type)) {
-        auto clr = getDirectoryColor();
-        printf("%s%s%s\n", clr.c_str(), entry->d_name, ansi_escape_t::reset().c_str());
-    } else if(isDevice(entry->d_type)) {
-        auto clr = getDeviceColor();
-        printf("%s%s%s\n", clr.c_str(), entry->d_name, ansi_escape_t::reset().c_str());
-    } else {
-        printf("%s\n", entry->d_name);
-    }
+    std::sort(dest.begin(), dest.end(), [](const dir_entry_t& d1, const dir_entry_t& d2) -> bool {
+        if (d1.type == d2.type) {
+            return (d1.name < d2.name);
+        } else {
+            // directory comes first
+            if (d1.isDirectory()) return true;
+            // followed by devices
+            if (d1.isDevice()) return !d2.isDirectory();
+            // followed by files, then everything else
+            if (d1.isRegularFile()) return !(d2.isDirectory() || d2.isDevice());
+        }
+    });
 }
 
 int ls(const char* path) {
@@ -118,15 +150,16 @@ int ls(const char* path) {
         printf("error: could not open %s\n", path);
         return 1;
     }
+    std::vector<dir_entry_t> entries;
+    loadDirectory(dir, entries);
+    closedir(dir);
 
     printf("Directory of %s\n\n", rpath ? rpath : path);
     free((void*)rpath);
 
-    while(true) {
-        dirent* de = readdir(dir);
-        if (de == nullptr) break;
-        print(de);
-    }
+    std::for_each(entries.begin(), entries.end(), [](const dir_entry_t& entry) -> void {
+        entry.print();
+    });
 
     printf("        %lu File(s)        %lu bytes\n", gNumFiles, gTotalSize);
     printf("        %lu Dir(s)\n", gNumDirectories);

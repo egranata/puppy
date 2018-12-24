@@ -13,3 +13,4 @@
 // limitations under the License.
 
 #include <EASTL/algorithm.h>
+#include <EASTL/sort.h>
