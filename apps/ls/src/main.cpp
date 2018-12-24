@@ -18,10 +18,34 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <libcolors/ansi.h>
+#include <libcolors/configcolors.h>
+#include <libcolors/color.h>
+
 uint32_t gNumFiles = 0;
 uint32_t gNumDirectories = 0;
 uint32_t gNumDevices = 0;
 uint32_t gTotalSize = 0;
+
+ansi_escape_t getDirectoryColor() {
+    static config_colors_t colorTable = config_colors_t::loadFromDisk("/system/config/ls.colors");
+    color_t value = color_t::white();
+    if (colorTable.get("directory", value)) {
+        return ansi_escape_t::foreground(value);
+    } else {
+        return ansi_escape_t::reset();
+    }
+}
+
+ansi_escape_t getDeviceColor() {
+    static config_colors_t colorTable = config_colors_t::loadFromDisk("/system/config/ls.colors");
+    color_t value = color_t::white();
+    if (colorTable.get("device", value)) {
+        return ansi_escape_t::foreground(value);
+    } else {
+        return ansi_escape_t::reset();
+    }
+}
 
 const char* kind2Str(int kind) {
     switch (kind) {
@@ -77,9 +101,11 @@ void print(dirent* entry) {
     }
 
     if (isDirectory(entry->d_type)) {
-        printf("\x1b[38;2;0;111;184m%s\x1b[0m\n", entry->d_name);
+        auto clr = getDirectoryColor();
+        printf("%s%s%s\n", clr.c_str(), entry->d_name, ansi_escape_t::reset().c_str());
     } else if(isDevice(entry->d_type)) {
-        printf("\x1b[38;2;255;199;6m%s\x1b[0m\n", entry->d_name);
+        auto clr = getDeviceColor();
+        printf("%s%s%s\n", clr.c_str(), entry->d_name, ansi_escape_t::reset().c_str());
     } else {
         printf("%s\n", entry->d_name);
     }
