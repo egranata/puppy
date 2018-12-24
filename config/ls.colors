@@ -1,4 +1,4 @@
 {
-    "directory":[0,111,184],
-    "device":[255,199,6]
+    "directory":"sys:directory",
+    "device":"sys:device"
 }

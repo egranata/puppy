@@ -42,23 +42,32 @@ config_colors_t::config_colors_t(const char* path) {
     for (size_t i = 0; i < json_object_get_count(colors); ++i) {
         JSON_Value* col_info = json_object_get_value_at(colors, i);
         if (col_info == nullptr) continue;
-        JSON_Array* value = json_value_get_array(col_info);
-        if (value == nullptr) continue;
-        if (json_array_get_count(value) != 3) continue;
+        if (JSON_Array* value = json_value_get_array(col_info)) {
+            if (json_array_get_count(value) != 3) continue;
 
-        int val1 = (int)json_array_get_number(value, 0);
-        int val2 = (int)json_array_get_number(value, 1);
-        int val3 = (int)json_array_get_number(value, 2);
+            int val1 = (int)json_array_get_number(value, 0);
+            int val2 = (int)json_array_get_number(value, 1);
+            int val3 = (int)json_array_get_number(value, 2);
 
-#define INVALID(x) (x < 0) || (x > 255)
-        if (INVALID(val1)) continue;
-        if (INVALID(val2)) continue;
-        if (INVALID(val3)) continue;
-#undef INVALID
+    #define INVALID(x) (x < 0) || (x > 255)
+            if (INVALID(val1)) continue;
+            if (INVALID(val2)) continue;
+            if (INVALID(val3)) continue;
+    #undef INVALID
 
-        std::string name = std::string(json_object_get_name(colors, i));
-        color_t color = color_t( (uint8_t)val1, (uint8_t)val2, (uint8_t)val3 );
-        mColors.emplace(name, color);
+            std::string name = std::string(json_object_get_name(colors, i));
+            color_t color = color_t( (uint8_t)val1, (uint8_t)val2, (uint8_t)val3 );
+            mColors.emplace(name, color);
+        } else if (const char* value = json_value_get_string(col_info)) {
+            if (value == strstr(value, "sys:")) {
+                value = &value[4];
+                auto sys_colors = config_colors_t::systemConfig();
+                color_t color = color_t::white();
+                if (sys_colors.get(value, color)) {
+                    mColors.emplace(value, color);
+                }
+            }
+        }
     }
 }
 
