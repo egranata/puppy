@@ -25,6 +25,7 @@ struct color_t {
     uint8_t blue;
 
     static color_t black();
+    static color_t white();
     color_t(uint8_t, uint8_t, uint8_t);
 
     static color_t grey(uint8_t);

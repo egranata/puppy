@@ -17,6 +17,7 @@
 #ifndef COLORS_CONFIGCOLORS
 #define COLORS_CONFIGCOLORS
 
+#include <vector>
 #include <unordered_map>
 #include <string>
 #include <libcolors/color.h>
@@ -28,6 +29,7 @@ class config_colors_t {
 
         bool get(const char* name, color_t&) const;
         size_t size() const;
+        std::vector<std::string> keys() const;
     private:
         config_colors_t(const char* path);
         std::unordered_map<std::string, color_t> mColors;

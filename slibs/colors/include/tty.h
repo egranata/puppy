@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-#include "../include/color.h"
+#ifndef COLORS_TTY
+#define COLORS_TTY
 
-color_t::color_t(uint8_t r, uint8_t g, uint8_t b) : red(r), green(g), blue(b) {}
+#include <libcolors/color.h>
 
-color_t color_t::grey(uint8_t n) {
-    return color_t(n,n,n);
-}
+class tty_color_t {
+    public:
+        tty_color_t(int fd = 0);
 
-color_t color_t::black() {
-    return color_t::grey(0);
-}
+        color_t defaultBackground();
+        color_t defaultForeground();
 
-color_t color_t::white() {
-    return color_t::grey(255);
-}
+        void defaultBackground(const color_t&);
+        void defaultForeground(const color_t&);
+    private:
+        int mTTYfd;
+};
 
-bool color_t::operator==(const color_t& rhs) const {
-    if (rhs.red != red) return false;
-    if (rhs.green != green) return false;
-    if (rhs.blue != blue) return false;
-
-    return true;
-}
-
-color_t color_t::inverted() const {
-    return color_t(255-red, 255-green, 255-blue);
-}
+#endif

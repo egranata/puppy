@@ -24,9 +24,6 @@ class ansi_escape_t {
     public:
         static ansi_escape_t reset();
 
-        static ansi_escape_t defaultForeground(int ttyfd = 0);
-        static ansi_escape_t defaultBackground(int ttyfd = 0);
-
         static ansi_escape_t foreground(const color_t&);
         static ansi_escape_t background(const color_t&);
 

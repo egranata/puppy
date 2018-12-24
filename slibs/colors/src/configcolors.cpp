@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "../include/configcolors.h"
+#include <libcolors/configcolors.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,4 +79,14 @@ bool config_colors_t::get(const char* name, color_t& dest) const {
 
 size_t config_colors_t::size() const {
     return mColors.size();
+}
+
+std::vector<std::string> config_colors_t::keys() const {
+    std::vector<std::string> ret;
+
+    for (const auto& iter : mColors) {
+        ret.push_back(iter.first);
+    }
+
+    return ret;
 }
