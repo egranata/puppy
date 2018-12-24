@@ -24,9 +24,17 @@ ansi_escape_t ansi_escape_t::reset() {
     return ansi_escape_t ("\x1b[0m");
 }
 
-ansi_escape_t::ansi_escape_t(const color_t& c) {
-    mString.append_sprintf("\x1b[38;2;%u;%u;%um",
+ansi_escape_t ansi_escape_t::foreground(const color_t& c) {
+    std::string s;
+    s.append_sprintf("\x1b[38;2;%u;%u;%um",
         c.red, c.green, c.blue);
+    return ansi_escape_t(s.c_str());
+}
+ansi_escape_t ansi_escape_t::background(const color_t& c) {
+    std::string s;
+    s.append_sprintf("\x1b[48;2;%u;%u;%um",
+        c.red, c.green, c.blue);
+    return ansi_escape_t(s.c_str());
 }
 
 const char* ansi_escape_t::c_str() const {

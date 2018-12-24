@@ -70,3 +70,13 @@ config_colors_t config_colors_t::loadFromDisk(const char* path) {
     return config_colors_t(path);
 }
 
+bool config_colors_t::get(const char* name, color_t& dest) const {
+    auto iter = mColors.find(name), end = mColors.end();
+    if (iter == end) return false;
+    dest = iter->second;
+    return true;
+}
+
+size_t config_colors_t::size() const {
+    return mColors.size();
+}

@@ -25,6 +25,9 @@ class config_colors_t {
     public:
         static config_colors_t systemConfig();
         static config_colors_t loadFromDisk(const char*);
+
+        bool get(const char* name, color_t&) const;
+        size_t size() const;
     private:
         config_colors_t(const char* path);
         std::unordered_map<std::string, color_t> mColors;
