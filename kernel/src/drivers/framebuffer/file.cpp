@@ -110,7 +110,9 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
                     }
             };
         public:
-            DataFile() : MemFS::File("data") {}
+            DataFile() : MemFS::File("data") {
+                kind(file_kind_t::chardevice);
+            }
             delete_ptr<MemFS::FileBuffer> content() override {
                 return new DataFileBuffer();
             }
