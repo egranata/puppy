@@ -54,6 +54,34 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
                         return fb.width() * fb.height() * 4;
                     }
 
+                    size_t at(size_t idx, char src) {
+                        if (idx >= len()) return 0;
+
+                        const auto byte_idx = idx & 3;
+                        const auto pixel_idx = idx >> 2;
+                        const auto y = pixel_idx % fb.width();
+                        const auto x = (pixel_idx - y) / fb.width();
+                        
+                        auto pixel = fb.readPixel(x,y);
+                        switch (byte_idx) {
+                            case 0: {
+                                pixel = (pixel & 0xFFFFFF00) | src;
+                                break;
+                            } case 1: {
+                                pixel = (pixel & 0xFFFF00FF) | ((uint32_t)src << 8);
+                                break;
+                            } case 2: {
+                                pixel = (pixel & 0xFF00FFFF) | ((uint32_t)src << 16);
+                                break;
+                            } case 3: {
+                                pixel = (pixel & 0x00FFFFF) | ((uint32_t)src << 24);
+                                break;
+                            }
+                        }
+                        fb.writePixel(x,y,pixel);
+                        return 1;
+                    }
+
                     bool at(size_t idx, uint8_t *dest) override {
                         if (idx >= len()) return false;
 
@@ -81,8 +109,14 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
                         return true;
                     }
 
-                    size_t write(size_t, char*) override {
-                        return 0;
+                    size_t write(size_t n, char* s) override {
+                        size_t cnt = 0;
+                        size_t i = 0;
+                        while(n) {
+                            cnt += at(i, s[i]);
+                            --n; ++i;
+                        }
+                        return cnt;
                     }
             };
         public:
