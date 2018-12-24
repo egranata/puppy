@@ -62,7 +62,7 @@ namespace {
                         *dest = mBuffer[idx];
                         return true;
                     }
-                    size_t write(size_t len, char* buf) override {
+                    size_t write(size_t, size_t len, const char* buf) override {
                         static constexpr size_t gUserspaceWriteSize = 1024;
                         if (len >= gUserspaceWriteSize) return 0;
                         char buffer[gUserspaceWriteSize] = {0};

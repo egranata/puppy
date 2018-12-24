@@ -54,8 +54,8 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
                         return fb.width() * fb.height() * 4;
                     }
 
-                    size_t at(size_t idx, char src) {
-                        if (idx >= len()) return 0;
+                    bool at(size_t idx, char src) {
+                        if (idx >= len()) return false;
 
                         const auto byte_idx = idx & 3;
                         const auto pixel_idx = idx >> 2;
@@ -79,7 +79,7 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
                             }
                         }
                         fb.writePixel(x,y,pixel);
-                        return 1;
+                        return true;
                     }
 
                     bool at(size_t idx, uint8_t *dest) override {
@@ -107,16 +107,6 @@ FramebufferFile::FramebufferFile() : mDeviceDirectory(nullptr) {
                             }
                         }
                         return true;
-                    }
-
-                    size_t write(size_t n, char* s) override {
-                        size_t cnt = 0;
-                        size_t i = 0;
-                        while(n) {
-                            cnt += at(i, s[i]);
-                            --n; ++i;
-                        }
-                        return cnt;
                     }
             };
         public:

@@ -45,8 +45,15 @@ public:
         public:
             virtual ~FileBuffer() = default;
             virtual size_t len() = 0;
+            
+            // used for reading - fills in "dest", returns true if read was OK
             virtual bool at(size_t idx, uint8_t *dest) = 0;
-            virtual size_t write(size_t, char*) { return 0; }
+
+            // used for writing, reads from char arg; returns true if write was OK
+            virtual bool at(size_t, char) { return false; }
+
+            // can also override writing a whole block; (pos, cnt, data)
+            virtual size_t write(size_t, size_t, const char*);
     };
 
     class EmptyBuffer : public FileBuffer {

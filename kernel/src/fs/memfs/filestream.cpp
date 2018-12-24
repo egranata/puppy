@@ -59,7 +59,9 @@ Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
 
             size_t write(size_t n, char* src) {
                 if (0 == (mMode & FILE_OPEN_WRITE)) return 0;
-                return mContent->write(n, src);
+                size_t len = mContent->write(mIndex, n, src);
+                mIndex += len;
+                return len;
             }
 
             uintptr_t ioctl(uintptr_t a, uintptr_t b) {
