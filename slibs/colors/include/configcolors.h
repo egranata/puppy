@@ -19,7 +19,7 @@
 
 #include <unordered_map>
 #include <string>
-#include "../include/color.h"
+#include <libcolors/color.h>
 
 class config_colors_t {
     public:

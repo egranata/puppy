@@ -17,7 +17,7 @@
 #ifndef COLORS_ANSI
 #define COLORS_ANSI
 
-#include "../include/color.h"
+#include <libcolors/color.h>
 #include <string>
 
 class ansi_escape_t {

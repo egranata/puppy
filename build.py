@@ -629,7 +629,11 @@ if BUILD_USERSPACE:
         def markAsStatic(lib):
             lib.link = lib.linkAr
         for lib in SLIB_DIRS:
-            buildUserlandComponent(os.path.basename(lib),
+            lib_name = os.path.basename(lib)
+            lib_include = "out/mnt/include/lib%s" % lib_name
+            makeDir(lib_include)
+            xcopy("%s/include/*" % lib, lib_include)
+            buildUserlandComponent(lib_name,
                                 lib,
                                 "out/mnt/libs",
                                 beforeBuild = markAsStatic)
