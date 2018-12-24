@@ -63,6 +63,7 @@ NEWLIB_IMPL_REQUIREMENT struct dirent* readdir(DIR* dir) {
         dir->current.d_time = fi.time;
         switch (fi.kind) {
             MATCH(blockdevice, DT_BLK);
+            MATCH(chardevice,  DT_CHR);
             MATCH(directory,   DT_DIR);
             MATCH(file,        DT_REG);
             MATCH(pipe,        DT_PIPE);

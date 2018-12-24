@@ -105,15 +105,16 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
 
     if (ok) {
         switch (fs.kind) {
-            MATCH(file, S_IFREG);
-            MATCH(directory, S_IFDIR);
+            MATCH(file,        S_IFREG);
+            MATCH(directory,   S_IFDIR);
+            MATCH(chardevice,  S_IFCHR);
             MATCH(blockdevice, S_IFBLK);
-            MATCH(pipe, S_IFIFO);
-            MATCH(msgqueue, S_IFQUEUE);
-            MATCH(tty, S_IFTTY);
-            MATCH(semaphore, S_IFSEMAPHORE);
-            MATCH(mutex,     S_IFMUTEX);
-            MATCH(event,     S_IFEVENT);
+            MATCH(pipe,        S_IFIFO);
+            MATCH(msgqueue,    S_IFQUEUE);
+            MATCH(tty,         S_IFTTY);
+            MATCH(semaphore,   S_IFSEMAPHORE);
+            MATCH(mutex,       S_IFMUTEX);
+            MATCH(event,       S_IFEVENT);
         }
         st->st_size = fs.size;
         st->st_atime = fs.time;
