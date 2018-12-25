@@ -91,7 +91,7 @@ NEWLIB_IMPL_REQUIREMENT int isatty(int file) {
     return 0;
 }
 
-NEWLIB_IMPL_REQUIREMENT int link(char*, char*) {
+NEWLIB_IMPL_REQUIREMENT int link(const char*, const char*) {
     errno = EMLINK;
     return -1;
 }
@@ -126,7 +126,7 @@ NEWLIB_IMPL_REQUIREMENT int fstat(int fd, struct stat* st) {
 }
 #undef MATCH
 
-NEWLIB_IMPL_REQUIREMENT int lseek(int file, int ptr, int dir) {
+NEWLIB_IMPL_REQUIREMENT off_t lseek(int file, int ptr, int dir) {
     if (dir == SEEK_END) {
         struct stat st;
         if (0 != fstat(file, &st)) ERR_EXIT(EIO);
@@ -404,8 +404,13 @@ NEWLIB_IMPL_REQUIREMENT int fcntl(int /* fd */, int /* cmd */, ... /* arg */ ) {
     return -1;
 }
 
-NEWLIB_IMPL_REQUIREMENT long sysconf(int /*name*/) {
-    return -1;
+#define _SC_PAGESIZE                      8
+#define _SC_PAGE_SIZE                     _SC_PAGESIZE
+NEWLIB_IMPL_REQUIREMENT long sysconf(int name) {
+    switch (name) {
+        case _SC_PAGESIZE: return 4096;
+        default: return -1;
+    }
 }
 
 NEWLIB_IMPL_REQUIREMENT int chown (const char* /* __path */ , uid_t /*__owner*/, gid_t /*__group*/) {
