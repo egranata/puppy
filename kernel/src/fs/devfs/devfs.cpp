@@ -20,6 +20,10 @@ DevFS& DevFS::get() {
     return gDevFS;
 }
 
+MemFS::Directory* DevFS::getRootDirectory() {
+    return mFilesystem.root();
+}
+
 MemFS::Directory* DevFS::getDeviceDirectory(const char* device) {
     string _devices(device);
     auto found = mFilesystem.root()->get(_devices.buf());

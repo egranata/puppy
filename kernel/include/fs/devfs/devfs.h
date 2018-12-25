@@ -24,6 +24,7 @@ class DevFS : NOCOPY {
     public:
         static DevFS& get();
         MemFS::Directory* getDeviceDirectory(const char* device);
+        MemFS::Directory* getRootDirectory();
         MemFS* getMemFS();
     private:
         MemFS mFilesystem;
