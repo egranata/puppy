@@ -52,24 +52,24 @@ MultiBootHeader:
 ; be subtracted from a virtual address to get a physical address.
 KERNEL_VIRTUAL_BASE equ 0xC0000000                  ; 3GB
 KERNEL_PAGE_NUMBER equ (KERNEL_VIRTUAL_BASE >> 22)  ; Page directory index of kernel's 4MB PTE. 
- 
+KERNEL_NUM_PAGES equ 2
+
 section .data
 align 0x1000
 __bootpagetbl:
 	times 1024 dd 0
 __bootpagedir:
-    ; This page directory entry identity-maps the first 4MB of the 32-bit physical address space.
-    ; All bits are clear except the following:
-    ; bit 7: PS The kernel page is 4MB.
-    ; bit 1: RW The kernel page is read/write.
-    ; bit 0: P  The kernel page is present.
-    ; This entry must be here -- otherwise the kernel will crash immediately after paging is
-    ; enabled because it can't fetch the next instruction! It's ok to unmap this page later.
-    dd 0x00000083
-    times (KERNEL_PAGE_NUMBER - 1) dd 0                 ; Pages before kernel space.
+    ; This is the initial page table setup - it is used to bootstrap the kernel into early boot
+    ; and from there map all memory and into _kmain and onwards. It provides an initial mapping
+    ; at the start of the memory space & in the higher half. The mapping is done as follows:
+    ; - 4MB pages; read/write; present (user/supervisor doesn't matter much as userspace only
+    ;                                   enters the picture at the very end of the boot process)
+    ; These initial entries (and the higher half below) will be unmapped later on by the VMM layer
+    times KERNEL_NUM_PAGES dd 0x00000083
+    times (KERNEL_PAGE_NUMBER - KERNEL_NUM_PAGES) dd 0                 ; Pages before kernel space.
     ; Map the kernel again in higher half
-    dd 0x00000083
-    times (1024 - KERNEL_PAGE_NUMBER - 1) dd 0 ; loader will overwrite the last entry here
+    times KERNEL_NUM_PAGES dd 0x00000083
+    times (1024 - KERNEL_PAGE_NUMBER - KERNEL_NUM_PAGES) dd 0 ; loader will overwrite the last entry here
 
 ; change this value here if system entries are added to the GDT
 __numsysgdtentries:
