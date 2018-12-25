@@ -25,7 +25,7 @@ void newlib::puppy::impl::klog(const char* fmt, ...) {
     static FILE* klog = nullptr;
 
     if (klog == nullptr) {
-        klog = fopen("/devices/klog/log", "w");
+        klog = fopen("/devices/klog", "w");
     }
     if (klog) {
         va_list ap;

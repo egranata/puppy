@@ -73,7 +73,9 @@ namespace {
                     }
             };
         public:
-            KernelLogFile() : MemFS::File("log") {}
+            KernelLogFile() : MemFS::File("klog") {
+                kind(file_kind_t::chardevice);
+            }
             delete_ptr<MemFS::FileBuffer> content() override {
                 return new KernelLogBuffer();
             }
@@ -92,6 +94,6 @@ MemFS::Directory* KernelLogDriver::deviceDirectory() {
 
 KernelLogDriver::KernelLogDriver() : mDeviceDirectory(nullptr) {
     DevFS& devfs(DevFS::get());
-    mDeviceDirectory = devfs.getDeviceDirectory("klog");
+    mDeviceDirectory = devfs.getRootDirectory();
     mDeviceDirectory->add(new KernelLogFile());
 }

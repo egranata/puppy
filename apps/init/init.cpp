@@ -228,7 +228,7 @@ void watchForServicesDie() {
 static void writeToLog(const char* msg) {
     static FILE* klog = nullptr;
     if (klog == nullptr) {
-        klog = fopen("/devices/klog/log", "w");
+        klog = fopen("/devices/klog", "w");
     }
     if (klog) {
         fprintf(klog, "%s", msg);
