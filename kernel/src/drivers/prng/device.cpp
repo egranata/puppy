@@ -70,7 +70,9 @@ class DeviceBuffer : public MemFS::FileBuffer {
 
 class DeviceFile : public MemFS::File {
     public:
-        DeviceFile() : MemFS::File("value"), mRng(nullptr) {}
+        DeviceFile() : MemFS::File("rand"), mRng(nullptr) {
+            kind(file_kind_t::chardevice);
+        }
 
         delete_ptr<MemFS::FileBuffer> content() override {
             if (mRng == nullptr) {
@@ -87,6 +89,6 @@ class DeviceFile : public MemFS::File {
 
 PRNGDevice::PRNGDevice() {
     DevFS& devfs(DevFS::get());
-    mDeviceDirectory = devfs.getDeviceDirectory("prng");
+    mDeviceDirectory = devfs.getRootDirectory();
     mDeviceDirectory->add(new DeviceFile());
 }

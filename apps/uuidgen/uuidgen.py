@@ -23,7 +23,7 @@ def useNibbles(nibbles, N):
         N = N - 1
     return nibbles
 
-with open("/devices/prng/value", "r") as f:
+with open("/devices/rand", "r") as f:
     data = f.read(16)
     nibbles = []
     for byte in data:

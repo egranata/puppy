@@ -26,7 +26,7 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            FILE* f = fopen("/devices/prng/value", "r");
+            FILE* f = fopen("/devices/rand", "r");
             uint64_t data[1024] = {0};
             CHECK_NOT_EQ(0, fread(data, 1024, sizeof(uint64_t), f));
             // in theory, 0x0 is a valid response - let's pretend it is never going to happen
