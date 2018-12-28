@@ -58,9 +58,9 @@ class PipeManager : public Filesystem {
     public:
         static PipeManager* get();
 
-        File* open(const char*, uint32_t) override { return nullptr; }
+        File* doOpen(const char*, uint32_t) override { return nullptr; }
         bool del(const char*) override { return false; }
-        Directory* opendir(const char*) override { return nullptr; }
+        Directory* doOpendir(const char*) override { return nullptr; }
         bool mkdir(const char*) override { return false; }
         void doClose(FilesystemObject* object) override;
 

@@ -53,7 +53,7 @@ Initrd* Initrd::tryget(uintptr_t address) {
     return new Initrd(address);
 }
 
-Filesystem::File* Initrd::open(const char* path, uint32_t mode) {
+Filesystem::File* Initrd::doOpen(const char* path, uint32_t mode) {
     if (mode & (FILE_OPEN_WRITE | FILE_OPEN_APPEND | FILE_OPEN_NEW)) {
         LOG_ERROR("file mode 0x%x not allowed for initrd", mode);
         return nullptr;
@@ -75,7 +75,7 @@ void Initrd::doClose(Filesystem::FilesystemObject* f) {
     delete f;
 }
 
-Filesystem::Directory* Initrd::opendir(const char* path) {
+Filesystem::Directory* Initrd::doOpendir(const char* path) {
     if (0 == strcmp(path, "/") || path == nullptr || path[0] == 0) {
         return new InitrdDirectory(mFiles);
     }

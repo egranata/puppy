@@ -90,7 +90,7 @@ private:
     Event *mEvent;
 };
 
-Filesystem::File* EventFS::open(const char* name, uint32_t) {
+Filesystem::File* EventFS::doOpen(const char* name, uint32_t) {
     Event* event = mEvents.getOrCreate(name);
     if (event == nullptr) return nullptr;
     return new EventFile(event);

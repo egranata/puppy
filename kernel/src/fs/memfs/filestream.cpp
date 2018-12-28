@@ -20,7 +20,7 @@
 
 LOG_TAG(MEMFS, 1);
 
-Filesystem::File* MemFS::open(const char* path, uint32_t mode) {
+Filesystem::File* MemFS::doOpen(const char* path, uint32_t mode) {
     class FileStream : public Filesystem::File {
         public:
             FileStream(MemFS::File* file, MemFS::FileBuffer* buffer, uint32_t mode)

@@ -80,9 +80,11 @@ class Filesystem : NOCOPY {
 
         virtual ~Filesystem() = default;
 
-        virtual File* open(const char* path, uint32_t mode) = 0;
+        File* open(const char* path, uint32_t mode);
+        virtual File* doOpen(const char* path, uint32_t mode) = 0;
         virtual bool del(const char* path);
-        virtual Directory* opendir(const char* path) = 0;
+        Directory* opendir(const char* path);
+        virtual Directory* doOpendir(const char* path) = 0;
         virtual bool mkdir(const char* path);
 
         virtual void doClose(FilesystemObject*) = 0;
@@ -94,9 +96,9 @@ class DeleterFS : public Filesystem {
     public:
         static DeleterFS* theDeleterFS();
 
-        File* open(const char*, uint32_t) override { return nullptr; }
+        File* doOpen(const char*, uint32_t) override { return nullptr; }
         bool del(const char*) override { return false; }
-        Directory* opendir(const char*) override { return nullptr; }
+        Directory* doOpendir(const char*) override { return nullptr; }
         bool mkdir(const char*) override { return false; }
         void doClose(FilesystemObject* object) override {
             delete object;

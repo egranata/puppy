@@ -220,7 +220,7 @@ MessageQueueFS::MessageQueueFS() : mQueues() {}
     TAG_ERROR(MQ, "trying to open %s with forbidden flags %u", name, mode); \
     return nullptr; \
 }
-Filesystem::File* MessageQueueFS::open(const char* name, uint32_t mode) {
+Filesystem::File* MessageQueueFS::doOpen(const char* name, uint32_t mode) {
     FORBIDDEN_MODE(FILE_OPEN_READ | FILE_OPEN_WRITE);
     FORBIDDEN_MODE(FILE_OPEN_APPEND);
 

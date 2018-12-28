@@ -30,9 +30,9 @@ class FATFileSystem : public Filesystem {
 
         FATFS* getFAT() { return &mFatFS; }
 
-        File* open(const char* path, uint32_t mode) override;
+        File* doOpen(const char* path, uint32_t mode) override;
         bool del(const char*) override;
-        Directory* opendir(const char* path) override;
+        Directory* doOpendir(const char* path) override;
         bool mkdir(const char* path) override;
 
         void doClose(FilesystemObject*) override;

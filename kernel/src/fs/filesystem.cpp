@@ -76,6 +76,14 @@ bool Filesystem::FilesystemObject::stat(stat_t& st) {
     return ok;
 }
 
+Filesystem::File* Filesystem::open(const char* path, uint32_t mode) {
+    return doOpen(path, mode);
+}
+
+Filesystem::Directory* Filesystem::opendir(const char* path) {
+    return doOpendir(path);
+}
+
 void Filesystem::close(FilesystemObject* object) {
     if (0 == object->decref()) {
         LOG_DEBUG("0x%p refcount is 0; go ahead and nuke it from orbit", object);

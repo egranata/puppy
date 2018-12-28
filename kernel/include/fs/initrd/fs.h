@@ -59,8 +59,8 @@ class Initrd : public Filesystem {
     public:
         static Initrd* tryget(uintptr_t address);
 
-        File* open(const char* path, uint32_t mode) override;
-        Directory* opendir(const char* path) override;
+        File* doOpen(const char* path, uint32_t mode) override;
+        Directory* doOpendir(const char* path) override;
 
         void doClose(FilesystemObject*) override;
 };

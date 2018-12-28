@@ -230,7 +230,7 @@ class FATFileSystem_RootDirectory_AsFile : public Filesystem::File {
         ~FATFileSystem_RootDirectory_AsFile() override = default;
 };
 
-Filesystem::File* FATFileSystem::open(const char* path, uint32_t mode) {
+Filesystem::File* FATFileSystem::doOpen(const char* path, uint32_t mode) {
     if (path == nullptr || path[0] == 0) path = "/";
     LOG_DEBUG("FatFs on drive %d is trying to open file '%s'", mFatFS.pdrv, path);
     auto len = 4 + strlen(path);
@@ -320,7 +320,7 @@ void FATFileSystem::doClose(Filesystem::FilesystemObject* f) {
     delete f;
 }
 
-Filesystem::Directory* FATFileSystem::opendir(const char* path) {
+Filesystem::Directory* FATFileSystem::doOpendir(const char* path) {
     if (path == nullptr || path[0] == 0) path = "/";
     LOG_DEBUG("FatFs on drive %d is trying to open directory %s", mFatFS.pdrv, path);
     auto len = 4 + strlen(path);

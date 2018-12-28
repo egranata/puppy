@@ -99,7 +99,7 @@ private:
     Semaphore *mSemaphore;
 };
 
-Filesystem::File* SemaphoreFS::open(const char* name, uint32_t) {
+Filesystem::File* SemaphoreFS::doOpen(const char* name, uint32_t) {
     Semaphore* semaphore = mSemaphores.getOrCreate(name);
     if (semaphore == nullptr) return nullptr;
     return new SemaphoreFile(semaphore);

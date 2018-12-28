@@ -189,11 +189,11 @@ bool VFS::mkdir(const char* path) {
 // to cleanup instances of RootDirectory
 class VFSFilesystem : public Filesystem {
 public:
-        File* open(const char*, uint32_t) {
+        File* doOpen(const char*, uint32_t) {
             return nullptr;
         }
 
-        Directory* opendir(const char*) {
+        Directory* doOpendir(const char*) {
             return nullptr;
         }
 

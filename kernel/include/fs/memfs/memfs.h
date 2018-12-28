@@ -122,8 +122,8 @@ public:
 
     Directory* root();
 
-    Filesystem::File* open(const char* path, uint32_t mode) override;
-    Filesystem::Directory* opendir(const char* path) override;
+    Filesystem::File* doOpen(const char* path, uint32_t mode) override;
+    Filesystem::Directory* doOpendir(const char* path) override;
     void doClose(FilesystemObject*) override;
     bool del(const char* path) override;
     bool mkdir(const char* path) override;
