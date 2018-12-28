@@ -14,6 +14,7 @@
 
 #include <kernel/fs/filesystem.h>
 #include <kernel/log/log.h>
+#include <kernel/panic/panic.h>
 
 Filesystem::FilesystemObject::FilesystemObject(kind_t kind) : mRefcount(1), mKind(kind) {}
 
@@ -56,6 +57,10 @@ uintptr_t Filesystem::File::ioctl(uintptr_t, uintptr_t) {
     return 0;
 }
 
+uint64_t Filesystem::openObjectsCount() {
+    return __sync_fetch_and_add(&mOpenObjcts, 0);
+}
+
 bool Filesystem::del(const char*) {
     return false;
 }
@@ -76,25 +81,36 @@ bool Filesystem::FilesystemObject::stat(stat_t& st) {
     return ok;
 }
 
+void Filesystem::openObject() {
+    __sync_fetch_and_add(&mOpenObjcts, 1);
+}
+void Filesystem::closeObject() {
+    if(0 == __sync_fetch_and_sub(&mOpenObjcts, 1)) {
+        LOG_ERROR("filesystem 0x%p had 0 open objects but one was just closed", this);
+        PANIC("VFS state corrupt");
+    }
+}
+
 Filesystem::File* Filesystem::open(const char* path, uint32_t mode) {
-    return doOpen(path, mode);
+    if (auto f = doOpen(path, mode)) {
+        openObject();
+        return f;
+    }
+    return nullptr;
 }
 
 Filesystem::Directory* Filesystem::opendir(const char* path) {
-    return doOpendir(path);
+    if (auto d = doOpendir(path)) {
+        openObject();
+        return d;
+    }
+    return nullptr;
 }
 
 void Filesystem::close(FilesystemObject* object) {
     if (0 == object->decref()) {
         LOG_DEBUG("0x%p refcount is 0; go ahead and nuke it from orbit", object);
         doClose(object);
+        closeObject();
     }
 }
-
-DeleterFS* DeleterFS::theDeleterFS() {
-    static DeleterFS gFS;
-
-    return &gFS;
-}
-
-DeleterFS::DeleterFS() = default;

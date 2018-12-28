@@ -89,22 +89,17 @@ class Filesystem : NOCOPY {
 
         virtual void doClose(FilesystemObject*) = 0;
         void close(FilesystemObject*);
-};
 
-// This is a minimal implementation of a Filesystem only valid for deleting standalone objects
-class DeleterFS : public Filesystem {
-    public:
-        static DeleterFS* theDeleterFS();
-
-        File* doOpen(const char*, uint32_t) override { return nullptr; }
-        bool del(const char*) override { return false; }
-        Directory* doOpendir(const char*) override { return nullptr; }
-        bool mkdir(const char*) override { return false; }
-        void doClose(FilesystemObject* object) override {
-            delete object;
-        }
+        uint64_t openObjectsCount();
+    protected:
+        // filesystem should prefer going through open()/opendir() and close
+        // to have the open objects counter updated "organically" and with
+        // proper correctness guarantees. If for some reason this is not feasible
+        // the filesystem can use these APIs to guide the VFS layer
+        void openObject();
+        void closeObject();
     private:
-        DeleterFS();
+        uint64_t mOpenObjcts = 0;
 };
 
 #endif
