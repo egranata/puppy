@@ -613,9 +613,11 @@ with Chronometer("Copying configuration data"):
 # this table allows one to configure which apps land where (the default
 # being /apps in the main filesystem and not /initrd)
 APPS_CONFIG = {
-    "init"  : {"initrd": True},
-    "mount" : {"initrd": True},
-    "ls"    : {"initrd": True},
+    "init"   : {"initrd": True},
+    "mount"  : {"initrd": True},
+    "ls"     : {"initrd": True},
+    "halt"   : {"initrd": True},
+    "reboot" : {"initrd": True},
 }
 
 INITRD_REFS = [] # apps for initrd
