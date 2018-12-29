@@ -37,5 +37,5 @@ int main(int argc, const char** argv) {
         exit(1);
     }
 
-    return trymount_syscall(fileno(fd), mountpoint); // returns 0 on success
+    return mount_syscall(fileno(fd), mountpoint); // returns 0 on success
 }

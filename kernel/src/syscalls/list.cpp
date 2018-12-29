@@ -74,8 +74,8 @@ extern syscall_response_t unmapregion_syscall_handler(uint32_t arg1);
 extern syscall_response_t unmapregion_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t setregionperms_syscall_handler(uint32_t arg1,uint32_t arg2);
 extern syscall_response_t setregionperms_syscall_helper(SyscallManager::Request& req);
-extern syscall_response_t trymount_syscall_handler(uint32_t arg1,const char* arg2);
-extern syscall_response_t trymount_syscall_helper(SyscallManager::Request& req);
+extern syscall_response_t mount_syscall_handler(uint32_t arg1,const char* arg2);
+extern syscall_response_t mount_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t collectany_syscall_handler(bool arg1,kpid_t* arg2,process_exit_status_t* arg3);
 extern syscall_response_t collectany_syscall_helper(SyscallManager::Request& req);
 extern syscall_response_t clone_syscall_handler(uintptr_t arg1,exec_fileop_t* arg2);
@@ -126,7 +126,7 @@ void SyscallManager::sethandlers() {
 	handle(26, mapregion_syscall_helper, false); 
 	handle(27, unmapregion_syscall_helper, false); 
 	handle(28, setregionperms_syscall_helper, false); 
-	handle(29, trymount_syscall_helper, false); 
+	handle(29, mount_syscall_helper, false); 
 	handle(30, collectany_syscall_helper, false); 
 	handle(31, clone_syscall_helper, false); 
 	handle(32, fdel_syscall_helper, false); 
@@ -303,8 +303,8 @@ syscall_response_t setregionperms_syscall_helper(SyscallManager::Request& req) {
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 
-syscall_response_t trymount_syscall_helper(SyscallManager::Request& req) {
-	return trymount_syscall_handler((uint32_t)req.arg1,(const char*)req.arg2);
+syscall_response_t mount_syscall_helper(SyscallManager::Request& req) {
+	return mount_syscall_handler((uint32_t)req.arg1,(const char*)req.arg2);
 }
 static_assert(sizeof(uint32_t) <= sizeof(uint32_t), "type is not safe to pass in a register");
 static_assert(sizeof(const char*) <= sizeof(uint32_t), "type is not safe to pass in a register");

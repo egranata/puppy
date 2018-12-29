@@ -19,7 +19,7 @@
 #include <kernel/log/log.h>
 #include <kernel/fs/vol/volume.h>
 
-syscall_response_t trymount_syscall_handler(uint32_t fileid, const char* path) {
+syscall_response_t mount_syscall_handler(uint32_t fileid, const char* path) {
     auto& vfs(VFS::get());
 
     VFS::filehandle_t fh = {nullptr, nullptr};

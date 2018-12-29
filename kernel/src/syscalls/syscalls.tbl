@@ -27,7 +27,7 @@
     {"name":"mapregion",        "argtypes":["uint32_t", "uint32_t"]},
     {"name":"unmapregion",      "argtypes":["uint32_t"]},
     {"name":"setregionperms",   "argtypes":["uint32_t", "uint32_t"]},
-    {"name":"trymount",         "argtypes":["uint32_t", "const char*"]},
+    {"name":"mount",            "argtypes":["uint32_t", "const char*"]},
     {"name":"collectany",       "argtypes":["bool", "kpid_t*", "process_exit_status_t*"]},
     {"name":"clone",            "argtypes":["uintptr_t", "exec_fileop_t*"]},
     {"name":"fdel",             "argtypes":["const char*"]},
