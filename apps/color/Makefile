@@ -15,4 +15,4 @@
 INPUTS := $(wildcard src/*.cpp)
 
 all: $(INPUTS)
-	$(CC) $(INPUTS) -lcolors -o $(PUPPY_ROOT)/$(OUTWHERE)/color
+	$(CC) $(INPUTS) -lcolors -lparson -o $(PUPPY_ROOT)/$(OUTWHERE)/color

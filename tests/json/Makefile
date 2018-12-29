@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-INPUTS := $(wildcard src/*.cpp)
+INPUTS = test.cpp
 
 all: $(INPUTS)
-	$(CC) $(INPUTS) -lcolors -lparson -o $(PUPPY_ROOT)/$(OUTWHERE)/ls
+	$(CC) -I$(PWD)/include $(INPUTS) -lparson -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/json

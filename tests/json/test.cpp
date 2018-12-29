@@ -22,7 +22,7 @@
 
 class TheTest : public Test {
     public:
-        TheTest() : Test(TEST_NAME) {}
+        TheTest() : Test("json") {}
     
     protected:
         void run() override {
