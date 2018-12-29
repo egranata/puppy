@@ -105,12 +105,17 @@ Filesystem* VFS::findfs(const char* mnt) {
 }
 
 bool VFS::unmount(const char* path) {
+    if (path[0] == '/') ++path;
     LOG_DEBUG("asked to unmount at %s", path);
     auto b = mMounts.begin(), e = mMounts.end();
     for(; b != e; ++b) {
         auto&& m = *b;
         if (0 == strcmp(m.path, path)) {
             LOG_DEBUG("filesystem found - 0x%p", m.fs);
+            if (m.fs->openObjectsCount() > 0) {
+                LOG_ERROR("filesystem 0x%p has open objects; can't unmount", m.fs);
+                return false;
+            }
             mMounts.remove(b);
             free((void*)m.path);
             return true;

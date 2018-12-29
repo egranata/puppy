@@ -28,6 +28,7 @@
     {"name":"unmapregion",      "argtypes":["uint32_t"]},
     {"name":"setregionperms",   "argtypes":["uint32_t", "uint32_t"]},
     {"name":"mount",            "argtypes":["uint32_t", "const char*"]},
+    {"name":"unmount",          "argtypes":["const char*"]},
     {"name":"collectany",       "argtypes":["bool", "kpid_t*", "process_exit_status_t*"]},
     {"name":"clone",            "argtypes":["uintptr_t", "exec_fileop_t*"]},
     {"name":"fdel",             "argtypes":["const char*"]},
