@@ -476,7 +476,6 @@ NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
               "out/mnt/libs/libeastl.a",
               "out/mnt/libs/libcxxsupport.a",
-              "out/mnt/libs/liblinenoise.a",
               "out/mnt/libs/libparson.a",
               "out/mnt/libs/libpcre2-posix.a",
               "out/mnt/libs/libpcre2-8.a",

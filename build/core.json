@@ -43,9 +43,5 @@
      "src" : "libshell/src",
      "cppflagsAgument" : ["-Wno-error=extra", "-Wno-error=deprecated-declarations"],
      "includePaths" : ["${NEWLIB}"],
-     "linkerDependencies" : ["${NEWLIB}"]},
-    {"name" : "Linenoise",
-     "src" : "third_party/linenoise",
-     "includePaths" : ["${NEWLIB}"],
      "linkerDependencies" : ["${NEWLIB}"]}
 ]
