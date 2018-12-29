@@ -54,6 +54,13 @@ static bool do_pushd(const char* dir) {
     return false;
 }
 
+static bool do_gohome() {
+    const char* home = getenv("HOME");
+    if (home && '/' == home[0]) {
+        return do_pushd(home);
+    } else return false;
+}
+
 static bool do_popd() {
     if (dirStack().empty()) return false;
     auto dir = dirStack().top();
@@ -66,6 +73,8 @@ bool cd_exec(size_t argc, char** argv) {
 
     if (0 == strcmp("-", argv[1])) {
         return do_popd();
+    } else if(0 == strcmp("~", argv[1])) {
+        return do_gohome();
     } else {
         return do_pushd(argv[1]);
     }
