@@ -252,10 +252,11 @@ void Framebuffer::putdata(unsigned char* fontdata, uint16_t start_x, uint16_t st
 		auto&& fdi = fontdata[i];
 		auto j = FONT_WIDTH - 1;
 		do {
-			auto light_up = 0 != (fdi & (1 << j));
+			const auto light_up = 0 != (fdi & (1 << j));
 			if (light_up) {
-				p.vram[j * (mBytesPerPixel >> 2)] = fg;
-				p.back[j * (mBytesPerPixel >> 2)] = fg;
+				const auto offset = j * (mBytesPerPixel >> 2);
+				const auto cur = p.back[offset];
+				if (cur != fg) p.back[offset] = p.vram[offset] = fg;
 			}
 			if (j == 0) break;
 			--j;
