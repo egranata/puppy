@@ -16,5 +16,5 @@ all:
 	rm -rf $(PUPPY_ROOT)/out/lua
 	cp -R $(PUPPY_ROOT)/third_party/lua $(PUPPY_ROOT)/out
 	$(MAKE) -C $(PUPPY_ROOT)/out/lua generic
-	cp $(PUPPY_ROOT)/out/lua/src/lua $(PUPPY_ROOT)/$(OUTWHERE)/lua
+	cp $(PUPPY_ROOT)/out/lua/src/lua $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
 

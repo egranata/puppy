@@ -15,4 +15,4 @@
 INPUTS := $(wildcard src/*.cpp)
 
 all: $(INPUTS)
-	$(CC) -I$(PWD)/include $(INPUTS) -llinenoise -o $(PUPPY_ROOT)/$(OUTWHERE)/pupped
+	$(CC) -I$(PWD)/include $(INPUTS) -llinenoise -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

@@ -15,4 +15,4 @@
 INPUTS = test.cpp
 
 all: $(INPUTS)
-	$(CC) -I$(PWD)/include $(INPUTS) -lparson -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/json
+	$(CC) -I$(PWD)/include $(INPUTS) -lparson -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

@@ -13,4 +13,4 @@
 # limitations under the License.
 
 all:
-	cp uuidgen.py $(PUPPY_ROOT)/$(OUTWHERE)/uuidgen
+	cp uuidgen.py $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

@@ -16,4 +16,4 @@ all:
 	cp -R $(PUPPY_ROOT)/third_party/nasm $(PUPPY_ROOT)/out
 	cd $(PUPPY_ROOT)/out/nasm; ./autogen.sh; ./configure --host=linux
 	$(MAKE) -C $(PUPPY_ROOT)/out/nasm
-	cp $(PUPPY_ROOT)/out/nasm/nasm $(PUPPY_ROOT)/$(OUTWHERE)/nasm
+	cp $(PUPPY_ROOT)/out/nasm/nasm $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

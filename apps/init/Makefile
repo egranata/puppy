@@ -15,4 +15,4 @@
 INPUTS = init.cpp
 
 all: $(INPUTS)
-	$(CC) -I$(PWD)/include $(INPUTS) -lparson -o $(PUPPY_ROOT)/$(OUTWHERE)/init
+	$(CC) -I$(PWD)/include $(INPUTS) -lparson -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

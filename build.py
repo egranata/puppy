@@ -307,13 +307,26 @@ class Project(object):
     def hasMakefile(self):
         return os.path.exists(os.path.join(self.srcdir, "Makefile"))
 
+    def getMakefileEnvironment(self):
+        env = {
+            "V" : "1",
+            "PUPPY_ROOT" : MYPATH,
+            "OUTWHERE" : self.outwhere,
+            "CC" : MY_CC_PATH,
+            "CXX" : MY_CXX_PATH,
+            "TGTNAME" : self.name
+        }
+        return env
+
     def build(self):
         with Chronometer("Compiling %s" % self.name if self.announce else None):
             if not self.hasMakefile():
                 return self.link(self.compile())
             else:
                 guessname = os.path.basename(self.srcdir)
-                shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s CC=%s CXX=%s -j" % (MYPATH, self.outwhere, MY_CC_PATH, MY_CXX_PATH), curdir=self.srcdir)
+                env = self.getMakefileEnvironment()
+                env_string = ' '.join(['%s=%s' % (a,b) for (a,b) in env.items()])
+                shell("make %s -j" % (env_string), curdir=self.srcdir)
                 return os.path.join(self.outwhere, guessname)
 
 class UserspaceTool(Project):

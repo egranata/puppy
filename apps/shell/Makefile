@@ -18,4 +18,4 @@ INPUTS += main.cpp
 
 all: $(INPUTS) src/lexer.l
 	lex -o$(PUPPY_ROOT)/out/shell.lex.yy.c src/lexer.l
-	$(CC) -I$(PWD)/include $(INPUTS) -llinenoise $(PUPPY_ROOT)/out/shell.lex.yy.c -o $(PUPPY_ROOT)/$(OUTWHERE)/shell
+	$(CC) -I$(PWD)/include $(INPUTS) -llinenoise $(PUPPY_ROOT)/out/shell.lex.yy.c -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

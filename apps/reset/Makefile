@@ -13,4 +13,4 @@
 # limitations under the License.
 
 all:
-	cp reset.py $(PUPPY_ROOT)/$(OUTWHERE)/reset
+	cp reset.py $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
