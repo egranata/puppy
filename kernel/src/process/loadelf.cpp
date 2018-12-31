@@ -92,6 +92,13 @@ elf_load_result_t load_elf_image(elf_header_t* header) {
             TAG_DEBUG(LOADELF, "start by mapping a page at 0x%p (page delta = %u)", vaddr, vaddr_PageDelta);
             const auto residualPage = VirtualPageManager::gPageSize - vaddr_PageDelta;
 
+            if (VirtualPageManager::iskernel(vaddr_Page)) {
+                TAG_ERROR(LOADELF, "executable wants to be mapped in kernel memory; fail");
+                result.ok = false;
+                result.error = "cannot load userland binary in kernel memory";
+                return result;
+            }
+
             vmm.mapAnyPhysicalPage( vaddr_Page, mapopts.rw(true) );
             vaddr1 = (vaddr_Page + VirtualPageManager::gPageSize);
 
