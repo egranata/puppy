@@ -692,7 +692,7 @@ if BUILD_USERSPACE:
             TEST_PLAN.append({
                 "path" : test_ref,
                 "id" : test.name,
-                "wait" : "15" # allow tests to wait for more or less than 15 seconds
+                "wait" : "20" # TODO: allow individual tests to edit this value
             })
         for test in TEST_DIRS:
             test_name = os.path.basename(test)
