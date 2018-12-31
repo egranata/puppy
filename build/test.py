@@ -43,6 +43,10 @@ def checkTestPass(tid):
     log = readLog()
     return log.find("TEST[%s] PASS" % tid) > 0
 
+def checkTestFail(tid):
+    log = readLog()
+    return log.find("TEST[%s] FAIL" % tid) > 0
+
 def say(qemu, msg):
     qemu.stdin.write(bytes("%s\n" % msg, 'ascii'))
 
@@ -68,24 +72,31 @@ def quit(qemu, ec):
     qemu.communicate()
     sys.exit(ec)
 
-def waitFor(prefix, deadline, condition):
+def waitFor(prefix, deadline, passed, failed):
     print("%s..." % prefix, end='', flush=True)
     expired = 0
+    result = None
     while expired < deadline:
         time.sleep(1)
         print('.', end='', flush=True)
         expired = expired + 1
-        if condition():
+        if passed():
             print("PASS (in %d of %d seconds)" % (expired, deadline))
-            return True
-    print("FAIL")
+            result = True
+            break
+        if failed and failed():
+            print("FAIL (in %d of %d seconds)" % (expired, deadline))
+            result = False
+            break
+    if result: return result
+    if result is None: print("TIMEOUT")
     print(readLog())
     quit(qemu, 1)
 
 ensureGone("out/kernel.log")
 qemu = spawn()
 
-waitFor("Boot", 15, checkAlive)
+waitFor("Boot", 15, checkAlive, None)
 
 TEST_PLAN = json.load(open(sys.argv[1], "r"))
 
@@ -94,6 +105,6 @@ sendString(qemu, "/system/tests/runall.sh")
 for TEST in TEST_PLAN:
     wait = int(TEST["wait"])
     tid = TEST["id"]
-    waitFor(tid, wait, lambda: checkTestPass(tid))
+    waitFor(tid, wait, lambda: checkTestPass(tid), lambda: checkTestFail(tid))
 
 quit(qemu, 0)
