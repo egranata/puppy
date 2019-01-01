@@ -30,6 +30,7 @@
 #include <vector>
 
 struct config_data {
+    std::string event_name;
     std::string event_file_path;
     FILE *event_file;
     int event_fd;
@@ -79,6 +80,11 @@ static bool loadConfigData(const char* path, config_data *cfg_data) {
     JSON_Object *root_object = json_object(json_value);
     if (root_object == nullptr) return false;
 
+    auto event_name = readJSONString(root_object, "event_name");
+    VALID_OR_FAIL(event_name) {
+        cfg_data->event_name = *event_name;
+    }
+
     auto event_file = readJSONString(root_object, "event_file");
     VALID_OR_FAIL(event_file) {
         cfg_data->event_file_path = *event_file;
@@ -113,8 +119,15 @@ static int uptime() {
     return atoi(uptime_str.c_str());
 }
 
+static void logEvent(config_data& cfg_data, int uptime) {
+    FILE *f = fopen("/devices/klog", "w");
+    fprintf(f, "acpid event %s at %d", cfg_data.event_name.c_str(), uptime);
+    fflush(f); fclose(f);
+}
+
 static bool pushNewEvent(config_data& cfg_data) {
     auto now = uptime();
+    logEvent(cfg_data, now);
     if (cfg_data.event_times.size() == cfg_data.num_events) {
         cfg_data.event_times.pop_back();
     }
