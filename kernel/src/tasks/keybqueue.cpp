@@ -54,7 +54,7 @@ namespace tasks::keybqueue {
             switch (event.keycode) {
                 case key_event_t::DEL:
                 case key_event_t::ESC:
-                    return true;
+                    return !event.down;
             }
         }
         return false;
