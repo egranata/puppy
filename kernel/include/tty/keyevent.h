@@ -38,7 +38,8 @@ struct key_event_t {
     static constexpr uint16_t F11       = 0x0275;
     static constexpr uint16_t F12       = 0x0276;
 
-    static constexpr uint16_t DEL       = 0x0365;
+    static constexpr uint16_t ESC       = 0x0365;
+    static constexpr uint16_t DEL       = 0x0366;
 
     key_event_t();
 
