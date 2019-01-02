@@ -27,7 +27,7 @@
 
 class RunSimpleScriptTest : public Test {
     public:
-        RunSimpleScriptTest() : Test("micropython.RunSimpleScriptTest") {}
+        RunSimpleScriptTest() : Test(TEST_NAME ".RunSimpleScriptTest") {}
     
     protected:
         void run() override {
@@ -50,7 +50,7 @@ class RunSimpleScriptTest : public Test {
 
 class FileIOTest : public Test {
     public:
-        FileIOTest() : Test("micropython.FileIOTest") {}
+        FileIOTest() : Test(TEST_NAME ".FileIOTest") {}
     
     protected:
         const char* testRead(const char* file, const char* expected) {

@@ -18,4 +18,4 @@ helper:
 	$(CC) helf.cpp -Xlinker -Ttext -Xlinker 0xC0100000 -o $(PUPPY_ROOT)/$(OUTWHERE)/helf
 
 test: test.cpp
-	$(CC) -I$(PWD)/include test.cpp -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
+	$(CC) -DTEST_NAME=\"$(TGTNAME)\" -I$(PWD)/include test.cpp -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

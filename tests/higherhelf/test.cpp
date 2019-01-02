@@ -24,7 +24,7 @@
 
 class TheTest : public Test {
     public:
-        TheTest() : Test("higherhelf") {}
+        TheTest() : Test(TEST_NAME) {}
     
     protected:
         void run() override {
