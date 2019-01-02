@@ -23,7 +23,7 @@
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
 
-LOG_TAG(RESCHEDULE, 0);
+LOG_TAG(RESCHEDULE, 1);
 
 namespace boot::syscalls {
     uint32_t init() {
