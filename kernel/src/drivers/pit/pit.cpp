@@ -73,7 +73,7 @@ void PIT::removeInterruptFunction(pit_func_f f) {
     }
 }
 
-static void timer(GPR&, InterruptStack& stack, void*) {
+static uint32_t timer(GPR&, InterruptStack& stack, void*) {
     PIC::eoi(0);
 
     // TODO: do not hardcode frequency to 100Hz
@@ -86,10 +86,13 @@ static void timer(GPR&, InterruptStack& stack, void*) {
             }
         }
     }
+
+	return IRQ_RESPONSE_NONE;
 }
 
-static void pit_eoi_only(GPR&, InterruptStack&, void*) {
+static uint32_t pit_eoi_only(GPR&, InterruptStack&, void*) {
     PIC::eoi(0);
+	return IRQ_RESPONSE_NONE;
 }
 
 void PIT::disable() {

@@ -29,7 +29,7 @@ void appkiller(const char*, GPR&, InterruptStack&);
 
 extern "C" bool isKernelStack(const InterruptStack& stack);
 
-extern "C" void GPF_handler(GPR&, InterruptStack&, void*);
+extern "C" uint32_t GPF_handler(GPR&, InterruptStack&, void*);
 
 extern "C" void pushGPFRecovery(uintptr_t eip);
 extern "C" void popGPFRecovery(uintptr_t eip);

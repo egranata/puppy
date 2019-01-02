@@ -36,29 +36,34 @@ static constexpr size_t multibootOffset(uintptr_t multiboot_data) {
 	return multiboot_data % (4_MB);
 }
 
-static void early_opcodehandler(GPR& gpr, InterruptStack& stack, void*) {
+static uint32_t early_opcodehandler(GPR& gpr, InterruptStack& stack, void*) {
 	LOG_ERROR("invalid instruction [eip = 0x%p]", stack.eip);
 	PANICFORWARD("invalid instruction. see log for details.", gpr, stack);
+	return IRQ_RESPONSE_NONE;
 }
 
-static void early_pagefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
+static uint32_t early_pagefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
 	LOG_ERROR("page fault due to adress 0x%p [eip = 0x%p]", gpr.cr2, stack.eip);
 	PANICFORWARD("page fault. see log for details.", gpr, stack);
+	return IRQ_RESPONSE_NONE;
 }
 
-static void early_gpfhandler(GPR& gpr, InterruptStack& stack, void*) {
+static uint32_t early_gpfhandler(GPR& gpr, InterruptStack& stack, void*) {
 	LOG_ERROR("GPF error code %u", stack.error);
 	PANICFORWARD("general protection fault. see log for details.", gpr, stack);
+	return IRQ_RESPONSE_NONE;
 }
 
-static void early_divby0handler(GPR& gpr, InterruptStack& stack, void*) {
+static uint32_t early_divby0handler(GPR& gpr, InterruptStack& stack, void*) {
 	LOG_ERROR("division by zero occurred [eip = 0x%p]", stack.eip);
 	PANICFORWARD("division by zero. see log for details.", gpr, stack);
+	return IRQ_RESPONSE_NONE;
 }
 
-static void early_doublefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
+static uint32_t early_doublefaulthandler(GPR& gpr, InterruptStack& stack, void*) {
 	LOG_ERROR("double fault [eip = 0x%p]", stack.eip);
 	PANICFORWARD("double fault. see log for details.", gpr, stack);
+	return IRQ_RESPONSE_NONE;
 }
 
 void setupEarlyIRQs() {

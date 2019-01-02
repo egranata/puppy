@@ -55,15 +55,17 @@ extern "C" bool isKernelStack(const InterruptStack& stack) {
 }
 
 #define EXCEPTIONHANDLER(name, description) \
-static void name ## _handler (GPR& gpr, InterruptStack& stack, void*) { \
+static uint32_t name ## _handler (GPR& gpr, InterruptStack& stack, void*) { \
     if (isKernelStack(stack)) { PANICFORWARD( description, gpr, stack ); } \
     else { APP_PANIC(description, gpr, stack); } \
+	return IRQ_RESPONSE_NONE; \
 }
 
-static void fpuerror(GPR&, InterruptStack&, void*) {
+static uint32_t fpuerror(GPR&, InterruptStack&, void*) {
     cleartaskswitchflag();
     // restore FPU state for this process
     fprestore((uintptr_t)&gCurrentProcess->fpstate[0]);
+    return IRQ_RESPONSE_NONE;
 }
 
 #define HANDLERINSTALL(id, name) interrupts.sethandler( id, #name, & name ## _handler )

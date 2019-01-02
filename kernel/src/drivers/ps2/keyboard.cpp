@@ -188,10 +188,12 @@ static bool parse_scan_code() {
     return new_evt;
 }
 
-static void keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
+static uint32_t keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
     PS2Keyboard::keyb_irq_data_t *irq_data = (PS2Keyboard::keyb_irq_data_t*)id;
     if (parse_scan_code()) irq_data->source->queue().wakeall();
     PIC::eoi(irq_data->pic_irq_id);
+
+	return IRQ_RESPONSE_NONE;
 }
 
 PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {

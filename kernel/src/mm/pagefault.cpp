@@ -148,18 +148,20 @@ static bool cow_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     return false;
 }
 
-void pageflt_handler(GPR& gpr, InterruptStack& stack, void*) {
+extern "C" uint32_t pageflt_handler(GPR& gpr, InterruptStack& stack, void*) {
     if (gCurrentProcess) ++gCurrentProcess->memstats.pagefaults;
 
     auto&& vmm(VirtualPageManager::get());
     auto vaddr = gpr.cr2;
 
     if (vmm.isZeroPageAccess(vaddr)) {
-        if (zeropage_recover(vmm, vaddr)) return;
+        if (zeropage_recover(vmm, vaddr)) return IRQ_RESPONSE_NONE;
     } else if (vmm.isCOWAccess(stack.error, vaddr)) {
-        if (cow_recover(vmm, vaddr)) return;
+        if (cow_recover(vmm, vaddr)) return IRQ_RESPONSE_NONE;
     }
 
     TAG_DEBUG(PGFAULT, "page fault, vaddr = 0x%p, physical counterpart 0x%p", vaddr, vmm.mapping(vaddr));
     APP_PANIC(pageflt_description(stack.error), gpr, stack);
+
+    return IRQ_RESPONSE_NONE;
 }

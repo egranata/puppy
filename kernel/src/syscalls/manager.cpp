@@ -72,7 +72,7 @@ static syscall_handler_info_t gHandlers[256];
 
 #define ERR(name) SyscallManager::SYSCALL_ERR_ ## name
 
-static void syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
+static uint32_t syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
     SyscallManager::Request req = {
         .code = (uint8_t)(gpr.eax & 0xFF),
         .arg1 = gpr.ebx,
@@ -106,6 +106,8 @@ static void syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
         TAG_DEBUG(RESCHEDULE, "process %u forced to yield by flag", gCurrentProcess->pid);
         ProcessManager::get().yield();
     }
+
+	return IRQ_RESPONSE_NONE;
 }
 
 SyscallManager::SyscallManager() {
