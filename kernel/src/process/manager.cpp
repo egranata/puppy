@@ -46,6 +46,17 @@ extern "C" process_t *gParentProcess() {
     return nullptr;
 }
 
+static bool tick_for_schedule(InterruptStack& stack, uint64_t, void*) {
+    bool can_yield = ProcessManager::isinterruptible(stack.eip);
+    ProcessManager::get().tickForSchedule(can_yield);
+    return true;
+}
+
+static bool tick_for_metrics(InterruptStack&, uint64_t, void*) {
+    ProcessManager::get().tickForMetrics();
+    return true;
+}
+
 namespace boot::task {
     uint32_t init() {
         ProcessManager &proc(ProcessManager::get());
@@ -69,16 +80,8 @@ namespace boot::task {
     	proc.installexceptionhandlers();
         LOG_INFO("real fault handlers enabled");
 
-        TimeManager::get().registerTickHandler([] (InterruptStack& stack, const uint64_t&) -> bool {
-            bool can_yield = ProcessManager::isinterruptible(stack.eip);
-            ProcessManager::get().tickForSchedule(can_yield);
-            return true;
-        }, 5);
-
-        TimeManager::get().registerTickHandler([] (InterruptStack&, const uint64_t&) -> bool {
-            ProcessManager::get().tickForMetrics();
-            return true;
-        }, 1);
+        TimeManager::get().registerTickHandler(tick_for_schedule, nullptr, 5);
+        TimeManager::get().registerTickHandler(tick_for_metrics, nullptr, 1);
 
         return 0;
     }

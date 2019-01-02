@@ -21,10 +21,10 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/function.h>
 #include <kernel/i386/idt.h>
+#include <kernel/time/callback.h>
 
 class TimeManager : NOCOPY {
     public:
-        using tick_func_t = function<bool(InterruptStack&, const uint64_t&)>;
         static TimeManager& get();
 
         void registerTimeSource(const char*, uint32_t);
@@ -38,7 +38,7 @@ class TimeManager : NOCOPY {
         uint64_t UNIXtime();
         void UNIXtimeIncrement(uint64_t seconds = 1);
 
-        size_t registerTickHandler(tick_func_t, uint32_t every_N);
+        size_t registerTickHandler(time_tick_callback_t::func_f, void*, uint32_t every_N);
         void unregisterTickHandler(size_t);
 
         void bootCompleted();
@@ -54,12 +54,12 @@ class TimeManager : NOCOPY {
         uint64_t mUNIXTimestamp;
 
         struct {
-            struct { 
-                tick_func_t func;
+            struct {
+                time_tick_callback_t callback;
                 uint32_t every_N; // only run func every N ticks
                 uint32_t every_countdown; // how many ticks left before the next execution of func
 
-                explicit operator bool() { return (bool)func; }
+                explicit operator bool() const { return callback.operator bool(); }
             } funcs[gMaxTickFunctions];
         } mTickHandlers;
 
