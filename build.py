@@ -38,6 +38,11 @@ for arg in sys.argv:
     if arg.startswith("-rebuild-app="):
         APPS_TO_REBUILD.append(arg.replace("-rebuild-app=", ""))
 
+APPS_TO_SKIP = []
+for arg in sys.argv:
+    if arg.startswith("-skip-app="):
+        APPS_TO_SKIP.append(arg.replace("-skip-app=", ""))
+
 if (not BUILD_USERSPACE) or (not BUILD_CORE):
     CLEAN_SLATE = False
 
@@ -674,6 +679,7 @@ if BUILD_USERSPACE:
             if config["initrd"]: INITRD_REFS.append(app_out)
         for app in APP_DIRS:
             bn = os.path.basename(app)
+            if bn in APPS_TO_SKIP: continue
             if len(APPS_TO_REBUILD) == 0 or bn in APPS_TO_REBUILD or bn in APPS_CONFIG:
                 buildUserlandComponent(bn,
                                     app,
@@ -697,6 +703,7 @@ if BUILD_USERSPACE:
         for test in TEST_DIRS:
             test_name = os.path.basename(test)
             test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
+            if test_name in APPS_TO_SKIP: continue
             if len(APPS_TO_REBUILD) == 0 or test_name in APPS_TO_REBUILD:
                 buildUserlandComponent(test_name,
                                     test,
