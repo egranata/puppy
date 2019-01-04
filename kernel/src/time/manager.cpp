@@ -80,7 +80,9 @@ uint64_t TimeManager::millisPerTick() {
     return mTimeSource.millisPerTick;
 }
 
-void TimeManager::tick(InterruptStack& stack) {
+time_tick_callback_t::yield_vote_t TimeManager::tick(InterruptStack& stack) {
+    time_tick_callback_t::yield_vote_t want_yield = time_tick_callback_t::no_yield;
+
     if (mTimeSource.millisPerTick == 0) {
         PANIC("TimeManager asked to tick without a known time source");
     }
@@ -89,13 +91,17 @@ void TimeManager::tick(InterruptStack& stack) {
         auto& ti = mTickHandlers.funcs[i];
         if (ti) {
             if (0 == ti.every_countdown) {
-                ti.callback.run(stack, new_count);
+                if (time_tick_callback_t::yield == ti.callback.run(stack, new_count)) {
+                    want_yield = time_tick_callback_t::yield;
+                }
                 ti.every_countdown = ti.every_N;
             } else {
                 --ti.every_countdown;
             }
         }
     }
+
+    return want_yield;
 }
 
 uint64_t TimeManager::millisUptime() {

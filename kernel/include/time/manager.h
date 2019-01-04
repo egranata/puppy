@@ -29,7 +29,7 @@ class TimeManager : NOCOPY {
 
         void registerTimeSource(const char*, uint32_t);
 
-        void tick(InterruptStack&);
+        time_tick_callback_t::yield_vote_t tick(InterruptStack&);
 
         uint64_t millisUptime();
 

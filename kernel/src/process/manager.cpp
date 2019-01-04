@@ -46,13 +46,17 @@ extern "C" process_t *gParentProcess() {
     return nullptr;
 }
 
-static void tick_for_schedule(InterruptStack& stack, uint64_t, void*) {
+static time_tick_callback_t::yield_vote_t tick_for_schedule(InterruptStack& stack, uint64_t, void*) {
     bool can_yield = ProcessManager::isinterruptible(stack.eip);
     ProcessManager::get().tickForSchedule(can_yield);
+
+    return time_tick_callback_t::no_yield;
 }
 
-static void tick_for_metrics(InterruptStack&, uint64_t, void*) {
+static time_tick_callback_t::yield_vote_t tick_for_metrics(InterruptStack&, uint64_t, void*) {
     ProcessManager::get().tickForMetrics();
+
+    return time_tick_callback_t::no_yield;
 }
 
 namespace boot::task {

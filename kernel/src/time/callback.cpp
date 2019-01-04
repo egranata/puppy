@@ -34,6 +34,8 @@ time_tick_callback_t::operator bool() const {
     return func != nullptr;
 }
 
-void time_tick_callback_t::run(InterruptStack& is, uint64_t count) {
-    if(func) func(is, count, baton);
+time_tick_callback_t::yield_vote_t time_tick_callback_t::run(InterruptStack& is, uint64_t count) {
+    yield_vote_t vote = no_yield;
+    if(func) vote = func(is, count, baton);
+    return vote;
 }

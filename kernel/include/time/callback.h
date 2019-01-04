@@ -20,7 +20,11 @@
 #include <kernel/i386/idt.h>
 
 struct time_tick_callback_t {
-    using func_f = void(*)(InterruptStack&, uint64_t, void*);
+    using yield_vote_t = bool;
+    static constexpr yield_vote_t yield = true;
+    static constexpr yield_vote_t no_yield = false;
+
+    using func_f = yield_vote_t(*)(InterruptStack&, uint64_t, void*);
     func_f func;
     void* baton;
 
@@ -30,7 +34,7 @@ struct time_tick_callback_t {
     void clear();
 
     explicit operator bool() const;
-    void run(InterruptStack&, uint64_t);
+    yield_vote_t run(InterruptStack&, uint64_t);
 };
 
 #endif
