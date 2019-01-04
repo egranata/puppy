@@ -80,7 +80,7 @@ uint64_t TimeManager::millisPerTick() {
     return mTimeSource.millisPerTick;
 }
 
-uint64_t TimeManager::tick(InterruptStack& stack) {
+void TimeManager::tick(InterruptStack& stack) {
     if (mTimeSource.millisPerTick == 0) {
         PANIC("TimeManager asked to tick without a known time source");
     }
@@ -96,8 +96,6 @@ uint64_t TimeManager::tick(InterruptStack& stack) {
             }
         }
     }
-
-    return new_count;
 }
 
 uint64_t TimeManager::millisUptime() {

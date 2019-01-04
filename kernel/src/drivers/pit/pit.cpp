@@ -74,10 +74,10 @@ void PIT::removeInterruptFunction(pit_func_f f) {
 }
 
 static uint32_t timer(GPR&, InterruptStack& stack, void*) {
+    auto& tmgr(TimeManager::get());
     PIC::eoi(0);
 
-    // TODO: do not hardcode frequency to 100Hz
-    auto now = TimeManager::get().tick(stack);
+    auto now = (tmgr.tick(stack), tmgr.millisUptime());
 
     for(auto i = 0u; i < gInterruptFunctions.gNumFunctions; ++i) {
         if (auto f = gInterruptFunctions.mFunctions[i]) {
