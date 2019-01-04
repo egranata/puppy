@@ -18,7 +18,7 @@
 #include <kernel/libc/str.h>
 #include <muzzle/string.h>
 
-Filesystem::Directory* MemFS::opendir(const char* path) {
+Filesystem::Directory* MemFS::doOpendir(const char* path) {
     class DirectoryIterator : public Filesystem::Directory {
         public:
             // use C++ trickery to only initialize an iterator to a safely locked directory

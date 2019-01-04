@@ -13,4 +13,4 @@
 # limitations under the License.
 
 all:
-	$(CC) -I$(PUPPY_ROOT)/third_party/pcre2-10.32/include $(PUPPY_ROOT)/third_party/pcre2-10.32/src/pcre2grep.c -o $(PUPPY_ROOT)/$(OUTWHERE)/grep
+	$(CC) -I$(PUPPY_ROOT)/third_party/pcre2-10.32/include $(PUPPY_ROOT)/third_party/pcre2-10.32/src/pcre2grep.c -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

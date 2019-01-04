@@ -35,17 +35,9 @@
      "cppflagsAgument" : ["-Wno-error=extra", "-Wno-error=deprecated-declarations"],
      "includePaths" : ["${NEWLIB}"],
      "linkerDependencies" : ["${NEWLIB}"]},
-    {"name" : "Parson",
-     "src" : "third_party/parson",
-     "includePaths" : ["${NEWLIB}"],
-     "linkerDependencies" : ["${NEWLIB}"]},
     {"name" : "ShellSupport",
      "src" : "libshell/src",
      "cppflagsAgument" : ["-Wno-error=extra", "-Wno-error=deprecated-declarations"],
-     "includePaths" : ["${NEWLIB}"],
-     "linkerDependencies" : ["${NEWLIB}"]},
-    {"name" : "Linenoise",
-     "src" : "third_party/linenoise",
      "includePaths" : ["${NEWLIB}"],
      "linkerDependencies" : ["${NEWLIB}"]}
 ]

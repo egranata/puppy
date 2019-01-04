@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <syscalls.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <linenoise/linenoise.h>
 
-int main(int, char**) {
-    printf("LineNoise test!\n");
-    char* line = nullptr;
-    while((line = linenoise("hello> ")) != nullptr) {
-        printf("You wrote: %s\n", line);
-        linenoiseHistoryAdd(line);
-        linenoiseFree(line); /* Or just free(line) if you use libc malloc. */
+static void usage(const char* name) {
+    printf("%s: <path>\n", name);
+    exit(1);
+}
+
+int main(int argc, const char** argv) {
+    if (argc != 2) {
+        usage(argv[0]);
     }
 
-    return 0;
+    const char* mountpoint = argv[1];
+
+    return unmount_syscall(mountpoint); // returns 0 on success
 }

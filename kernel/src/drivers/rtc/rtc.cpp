@@ -55,7 +55,7 @@ uint64_t RTC::cmos_now_t::timestamp() const {
 
 static uint8_t gIncrement = 0;
 
-static void rtchandler(GPR&, InterruptStack&, void*) {
+static uint32_t rtchandler(GPR&, InterruptStack&, void*) {
     outb(RTC::gSelectPort, RTC::gNMI | RTC::gStatusRegisterC);
     inb(RTC::gDataPort);
 
@@ -63,6 +63,8 @@ static void rtchandler(GPR&, InterruptStack&, void*) {
     gIncrement = 1 - gIncrement;
 
     PIC::eoi(8);
+
+    return IRQ_RESPONSE_NONE;
 }
 
 RTC& RTC::get() {

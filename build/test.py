@@ -20,6 +20,8 @@ CMDLINE='qemu-system-i386 -drive format=raw,media=disk,file=out/os.img -display 
         '-rtc base=utc -monitor stdio -smbios type=0,vendor="Puppy" -smbios type=1,manufacturer="Puppy",product="Puppy System",serial="P0PP1" ' + \
         '-k en-us -cpu n270'
 
+MAX_TEST_LEN = 0
+
 def ensureGone(path):
     try:
         os.remove(path)
@@ -42,6 +44,10 @@ def checkAlive():
 def checkTestPass(tid):
     log = readLog()
     return log.find("TEST[%s] PASS" % tid) > 0
+
+def checkTestFail(tid):
+    log = readLog()
+    return log.find("TEST[%s] FAIL" % tid) > 0
 
 def say(qemu, msg):
     qemu.stdin.write(bytes("%s\n" % msg, 'ascii'))
@@ -68,32 +74,44 @@ def quit(qemu, ec):
     qemu.communicate()
     sys.exit(ec)
 
-def waitFor(prefix, deadline, condition):
-    print("%s..." % prefix, end='', flush=True)
+def waitFor(testid, deadline, passed, failed):
+    print("%-*s   [" % (MAX_TEST_LEN+1, testid), end='', flush=True)
     expired = 0
+    result = None
     while expired < deadline:
         time.sleep(1)
         print('.', end='', flush=True)
         expired = expired + 1
-        if condition():
-            print("PASS (in %d of %d seconds)" % (expired, deadline))
-            return True
-    print("FAIL")
+        residual = (' ' * (deadline-expired))
+        if passed():
+            print("%s] PASS (in %3d of %3d seconds)" % (residual, expired, deadline))
+            result = True
+            break
+        if failed and failed():
+            print("%s] FAIL (in %3d of %3d seconds)" % (residual, expired, deadline))
+            result = False
+            break
+    if result: return result
+    if result is None: print("] TIMEOUT")
     print(readLog())
     quit(qemu, 1)
 
 ensureGone("out/kernel.log")
 qemu = spawn()
 
-waitFor("Boot", 15, checkAlive)
-
 TEST_PLAN = json.load(open(sys.argv[1], "r"))
+
+for TEST in TEST_PLAN:
+    tid = TEST["id"]
+    MAX_TEST_LEN = max(MAX_TEST_LEN, len(tid))
+
+waitFor("Boot", 15, checkAlive, None)
 
 sendString(qemu, "/system/tests/runall.sh")
 
 for TEST in TEST_PLAN:
     wait = int(TEST["wait"])
     tid = TEST["id"]
-    waitFor(tid, wait, lambda: checkTestPass(tid))
+    waitFor(tid, wait, lambda: checkTestPass(tid), lambda: checkTestFail(tid))
 
 quit(qemu, 0)

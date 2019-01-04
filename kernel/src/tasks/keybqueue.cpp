@@ -49,6 +49,17 @@ namespace tasks::keybqueue {
         return gKeyEvents.read();
     }
 
+    bool isKernelAttentionSequence(const key_event_t& event) {
+        if (event.ctrldown && event.altdown) {
+            switch (event.keycode) {
+                case key_event_t::DEL:
+                case key_event_t::ESC:
+                    return !event.down;
+            }
+        }
+        return false;
+    }
+
     void task() {
         LOG_INFO("preparing for keyboard input");
         prepare();
@@ -61,9 +72,14 @@ namespace tasks::keybqueue {
                 Interrupts::ScopedDisabler sd;
                 key_event_t evt;
                 while (gKeyboard->next(&evt)) {
-                    any = true;
-                    gKeyEvents.write(evt);
-                    LOG_DEBUG("ingested new keyboard event: %s '%c'", evt.down ? "down" : "up", evt.keycode);
+                    if (isKernelAttentionSequence(evt)) {
+                        LOG_INFO("received KAS");
+                        gCurrentProcess->ttyinfo.tty->killForegroundProcess();
+                    } else {
+                        any = true;
+                        gKeyEvents.write(evt);
+                        LOG_DEBUG("ingested new keyboard event: %s '%c'", evt.down ? "down" : "up", evt.keycode);
+                    }
                 }
                 if (any) gEventQueue.wakeall();
             }

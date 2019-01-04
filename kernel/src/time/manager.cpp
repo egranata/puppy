@@ -88,13 +88,15 @@ uint64_t TimeManager::tick(InterruptStack& stack) {
     for (auto i = 0u; i < gMaxTickFunctions; ++i) {
         auto& ti = mTickHandlers.funcs[i];
         if (ti) {
-            if (0 == --ti.every_countdown) {
-                bool keep = ti.func(stack, new_count);
+            if (0 == ti.every_countdown) {
+                bool keep = ti.callback.run(stack, new_count);
                 if (!keep) {
                     unregisterTickHandler(i);
                 } else {
                     ti.every_countdown = ti.every_N;
                 }
+            } else {
+                --ti.every_countdown;
             }
         }
     }
@@ -111,13 +113,16 @@ TimeManager::TimeManager() : mMillisecondsSinceBoot(0), mBootDurationMillis(0), 
     bzero(&mTimeSource, sizeof(mTimeSource));
 }
 
-size_t TimeManager::registerTickHandler(TimeManager::tick_func_t f, uint32_t every) {
+size_t TimeManager::registerTickHandler(time_tick_callback_t::func_f f, void* baton, uint32_t every_N) {
     for (auto i = 0u; i < gMaxTickFunctions; ++i) {
-        if (mTickHandlers.funcs[i]) continue;
+        auto& th(mTickHandlers.funcs[i]);
 
-        mTickHandlers.funcs[i].every_N = mTickHandlers.funcs[i].every_countdown = every;
-        mTickHandlers.funcs[i].func = f;
-        return i;
+        if (th) continue;
+        else {
+            th.every_N = th.every_countdown = every_N;
+            th.callback.set(f, baton);
+            return i;
+        }
     }
 
     return -1;
@@ -126,7 +131,7 @@ size_t TimeManager::registerTickHandler(TimeManager::tick_func_t f, uint32_t eve
 void TimeManager::unregisterTickHandler(size_t i) {
     if (i == (size_t)-1) return;
     if (i >= gMaxTickFunctions) return;
-    mTickHandlers.funcs[i].func = nullptr;
+    mTickHandlers.funcs[i].callback.clear();
 }
 
 uint64_t TimeManager::UNIXtime() {

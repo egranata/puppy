@@ -25,11 +25,11 @@
 #include <kernel/time/manager.h>
 #include <kernel/drivers/pit/pit.h>
 
-static void timer(GPR&, InterruptStack& stack, void*) {
-    // LOG_DEBUG("APIC timer ticks");
+static uint32_t timer(GPR&, InterruptStack& stack, void*) {
     APIC::get().EOI();
-
     TimeManager::get().tick(stack);
+
+	return IRQ_RESPONSE_NONE;
 }
 
 namespace boot::apic {

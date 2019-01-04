@@ -147,5 +147,7 @@ pair<PipeManager::ReadFile*, PipeManager::WriteFile*> PipeManager::pipe() {
     result.first = new PipeManager::ReadFile(buffer);
     result.second = new PipeManager::WriteFile(buffer);
 
+    openObject(); openObject();
+
     return result;
 }

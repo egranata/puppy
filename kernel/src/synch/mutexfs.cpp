@@ -92,7 +92,7 @@ private:
     Mutex *mMutex;
 };
 
-Filesystem::File* MutexFS::open(const char* name, uint32_t) {
+Filesystem::File* MutexFS::doOpen(const char* name, uint32_t) {
     Mutex* mtx = mMutexes.getOrCreate(name);
     if (mtx == nullptr) return nullptr;
     return new MutexFile(mtx);

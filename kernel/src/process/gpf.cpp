@@ -58,7 +58,7 @@ extern "C" void popGPFRecovery(uintptr_t eip) {
     TAG_DEBUG(GPFHANDLER, "at index %u popped recovery 0x%p", gpf_recovery_data.idx, eip);
 }
 
-extern "C" void GPF_handler(GPR& gpr, InterruptStack& stack, void*) {
+extern "C" uint32_t GPF_handler(GPR& gpr, InterruptStack& stack, void*) {
     if (isKernelStack(stack)) {
         bool can_recover = false;
         uintptr_t eip = 0;
@@ -85,4 +85,6 @@ extern "C" void GPF_handler(GPR& gpr, InterruptStack& stack, void*) {
     else {
         APP_PANIC(GPF_DESCRIPTION, gpr, stack);
     }
+
+    return IRQ_RESPONSE_NONE;
 }

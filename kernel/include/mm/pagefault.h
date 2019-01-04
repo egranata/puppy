@@ -20,6 +20,6 @@
 #include <kernel/process/exceptions.h>
 #include <kernel/i386/idt.h>
 
-void pageflt_handler(GPR&, InterruptStack&, void*);
+extern "C" uint32_t pageflt_handler(GPR&, InterruptStack&, void*);
 
 #endif

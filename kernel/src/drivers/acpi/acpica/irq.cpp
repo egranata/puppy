@@ -25,11 +25,13 @@ namespace {
         uint8_t pic_irq_n;
         uint8_t cpu_irq_n;
     };
-    static void acpi_irq_f(GPR&, InterruptStack&, void* ctx) {
+    static uint32_t acpi_irq_f(GPR&, InterruptStack&, void* ctx) {
         acpi_irq_t *context = (acpi_irq_t*)ctx;
 
         context->acpi_handler_f(context->acpi_context);
         PIC::eoi(context->pic_irq_n);
+
+        return IRQ_RESPONSE_NONE;
     }
 }
 

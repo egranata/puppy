@@ -38,6 +38,11 @@ for arg in sys.argv:
     if arg.startswith("-rebuild-app="):
         APPS_TO_REBUILD.append(arg.replace("-rebuild-app=", ""))
 
+APPS_TO_SKIP = []
+for arg in sys.argv:
+    if arg.startswith("-skip-app="):
+        APPS_TO_SKIP.append(arg.replace("-skip-app=", ""))
+
 if (not BUILD_USERSPACE) or (not BUILD_CORE):
     CLEAN_SLATE = False
 
@@ -307,13 +312,26 @@ class Project(object):
     def hasMakefile(self):
         return os.path.exists(os.path.join(self.srcdir, "Makefile"))
 
+    def getMakefileEnvironment(self):
+        env = {
+            "V" : "1",
+            "PUPPY_ROOT" : MYPATH,
+            "OUTWHERE" : self.outwhere,
+            "CC" : MY_CC_PATH,
+            "CXX" : MY_CXX_PATH,
+            "TGTNAME" : self.name
+        }
+        return env
+
     def build(self):
         with Chronometer("Compiling %s" % self.name if self.announce else None):
             if not self.hasMakefile():
                 return self.link(self.compile())
             else:
                 guessname = os.path.basename(self.srcdir)
-                shell("make V=1 PUPPY_ROOT=%s OUTWHERE=%s CC=%s CXX=%s -j" % (MYPATH, self.outwhere, MY_CC_PATH, MY_CXX_PATH), curdir=self.srcdir)
+                env = self.getMakefileEnvironment()
+                env_string = ' '.join(['%s=%s' % (a,b) for (a,b) in env.items()])
+                shell("make %s -j" % (env_string), curdir=self.srcdir)
                 return os.path.join(self.outwhere, guessname)
 
 class UserspaceTool(Project):
@@ -476,8 +494,6 @@ NEWLIB_CRT0 = "out/mnt/libs/crt0.o"
 NEWLIB_ARS = ["out/mnt/libs/libshellsupport.a",
               "out/mnt/libs/libeastl.a",
               "out/mnt/libs/libcxxsupport.a",
-              "out/mnt/libs/liblinenoise.a",
-              "out/mnt/libs/libparson.a",
               "out/mnt/libs/libpcre2-posix.a",
               "out/mnt/libs/libpcre2-8.a",
               "out/mnt/libs/libm.a",
@@ -613,9 +629,11 @@ with Chronometer("Copying configuration data"):
 # this table allows one to configure which apps land where (the default
 # being /apps in the main filesystem and not /initrd)
 APPS_CONFIG = {
-    "init"  : {"initrd": True},
-    "mount" : {"initrd": True},
-    "ls"    : {"initrd": True},
+    "init"   : {"initrd": True},
+    "mount"  : {"initrd": True},
+    "ls"     : {"initrd": True},
+    "halt"   : {"initrd": True},
+    "reboot" : {"initrd": True},
 }
 
 INITRD_REFS = [] # apps for initrd
@@ -661,6 +679,7 @@ if BUILD_USERSPACE:
             if config["initrd"]: INITRD_REFS.append(app_out)
         for app in APP_DIRS:
             bn = os.path.basename(app)
+            if bn in APPS_TO_SKIP: continue
             if len(APPS_TO_REBUILD) == 0 or bn in APPS_TO_REBUILD or bn in APPS_CONFIG:
                 buildUserlandComponent(bn,
                                     app,
@@ -679,11 +698,12 @@ if BUILD_USERSPACE:
             TEST_PLAN.append({
                 "path" : test_ref,
                 "id" : test.name,
-                "wait" : "15" # allow tests to wait for more or less than 15 seconds
+                "wait" : "20" # TODO: allow individual tests to edit this value
             })
         for test in TEST_DIRS:
             test_name = os.path.basename(test)
             test_name_define = ' -DTEST_NAME=\\"%s\\" ' % test_name
+            if test_name in APPS_TO_SKIP: continue
             if len(APPS_TO_REBUILD) == 0 or test_name in APPS_TO_REBUILD:
                 buildUserlandComponent(test_name,
                                     test,

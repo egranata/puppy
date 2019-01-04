@@ -40,7 +40,7 @@ static bool validateProcessList(const std::vector<process_info_t>& plist,
 
 class TheTest : public Test {
     public:
-        TheTest() : Test("proctable") {}
+        TheTest() : Test(TEST_NAME) {}
 
     private:
         std::vector<process_info_t> processes() {

@@ -18,4 +18,4 @@ helper:
 	$(CC) helper.cpp -o $(PUPPY_ROOT)/$(OUTWHERE)/proctable_helper
 
 test:
-	$(CC) test.cpp -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/proctable
+	$(CC) -DTEST_NAME=\"$(TGTNAME)\" test.cpp -lcheckup -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

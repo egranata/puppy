@@ -113,9 +113,9 @@ class MessageQueueFS : public Filesystem {
     public:
         static MessageQueueFS* get();
 
-        File* open(const char*, uint32_t) override;
+        File* doOpen(const char*, uint32_t) override;
         bool del(const char*) override { return false; }
-        Directory* opendir(const char*) override { return nullptr; }
+        Directory* doOpendir(const char*) override { return nullptr; }
         bool mkdir(const char*) override { return false; }
         void doClose(FilesystemObject* object) override;
 

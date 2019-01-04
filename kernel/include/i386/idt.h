@@ -23,10 +23,16 @@
 extern "C"
 void interrupt_handler(GPR gpr, InterruptStack stack);
 
+static constexpr uint32_t IRQ_RESPONSE_NONE = 0; /* resume execution */
+static constexpr uint32_t IRQ_RESPONSE_YIELD = 1u << 1; /* yield the current process */
+// add values here for different IRQ responses
+
 class Interrupts {
 public:
 	struct handler_t {
-		using irq_handler_f = void(*)(GPR&, InterruptStack&, void*);
+		using irq_response_t = uint32_t;
+
+		using irq_handler_f = irq_response_t(*)(GPR&, InterruptStack&, void*);
 		using irq_name_t = char[16];
 		irq_handler_f func;
 		irq_name_t name;

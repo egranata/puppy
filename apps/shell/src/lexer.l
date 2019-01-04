@@ -20,8 +20,8 @@
 extern const char* yylval;
 %}
 %%
-$\([,0-9A-Za-z:/\-\_=\.]+\) yylval = yytext; return ENVIRONMENT;
-[,0-9A-Za-z:/\-\_=\.]+ yylval = yytext; return ARGUMENT;
+$\([,0-9A-Za-z:/\-\_=\.~]+\) yylval = yytext; return ENVIRONMENT;
+[,0-9A-Za-z:/\-\_=\.~]+ yylval = yytext; return ARGUMENT;
 [>]   return OUTREDIR;
 [<]   return INREDIR;
 [|]   return PIPE;
