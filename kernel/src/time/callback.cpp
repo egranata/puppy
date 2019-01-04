@@ -34,6 +34,6 @@ time_tick_callback_t::operator bool() const {
     return func != nullptr;
 }
 
-bool time_tick_callback_t::run(InterruptStack& is, uint64_t count) {
-    return func ? func(is, count, baton) : true;
+void time_tick_callback_t::run(InterruptStack& is, uint64_t count) {
+    if(func) func(is, count, baton);
 }

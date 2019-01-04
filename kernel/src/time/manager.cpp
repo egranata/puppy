@@ -89,12 +89,8 @@ uint64_t TimeManager::tick(InterruptStack& stack) {
         auto& ti = mTickHandlers.funcs[i];
         if (ti) {
             if (0 == ti.every_countdown) {
-                bool keep = ti.callback.run(stack, new_count);
-                if (!keep) {
-                    unregisterTickHandler(i);
-                } else {
-                    ti.every_countdown = ti.every_N;
-                }
+                ti.callback.run(stack, new_count);
+                ti.every_countdown = ti.every_N;
             } else {
                 --ti.every_countdown;
             }

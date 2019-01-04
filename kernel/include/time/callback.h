@@ -20,7 +20,7 @@
 #include <kernel/i386/idt.h>
 
 struct time_tick_callback_t {
-    using func_f = bool(*)(InterruptStack&, uint64_t, void*);
+    using func_f = void(*)(InterruptStack&, uint64_t, void*);
     func_f func;
     void* baton;
 
@@ -30,7 +30,7 @@ struct time_tick_callback_t {
     void clear();
 
     explicit operator bool() const;
-    bool run(InterruptStack&, uint64_t);
+    void run(InterruptStack&, uint64_t);
 };
 
 #endif
