@@ -20,7 +20,8 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/syscalls/manager.h>
 
-#define ERR(name) SyscallManager::SYSCALL_ERR_ ## name
+#define ERR(name) SyscallManager::SYSCALL_ERROR_ ## name
+#define ACT(name) SyscallManager::SYSCALL_ACTION_ ## name
 #define OK SyscallManager::SYSCALL_SUCCESS
 
 #define HANDLER0(name) syscall_response_t name ## _syscall_handler()

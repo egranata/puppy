@@ -22,15 +22,28 @@
 
 typedef uint32_t syscall_response_t;
 
-#define DEFINE_ERROR(name, value) \
-    static constexpr uint32_t SYSCALL_ERR_ ## name = (value << 1) | SYSCALL_ERROR
+// this should only be defined inside the class, but then syscall_error/action_code
+// couldn't be defined because reasons (see https://stackoverflow.com/questions/29551223/static-constexpr-function-called-in-a-constant-expression-is-an-error
+// for details) - so duplicate this globally
+static constexpr uint32_t SYSCALL_ERROR = 1;
+
+static constexpr uint8_t gNumActionBits = 4;
+static constexpr uint32_t syscall_error_code(uint16_t code) {
+    return (code << (gNumActionBits + 1)) | SYSCALL_ERROR;
+}
+static constexpr uint32_t syscall_action_code(uint8_t code) {
+    return (1 << (code+1)) | SYSCALL_ERROR;
+}
 
 class SyscallManager : NOCOPY {
     public:
         static constexpr uint32_t SYSCALL_SUCCESS = 0;
-        static constexpr uint32_t SYSCALL_ERROR = 1;
+        static constexpr uint32_t SYSCALL_ERROR = ::SYSCALL_ERROR;
 
-        static constexpr uint8_t gSyscallIRQ = 0x80;
+        static constexpr uint8_t gNumActionBits = ::gNumActionBits;
+
+#define DEFINE_ERROR(name, value) \
+    static constexpr uint32_t SYSCALL_ERROR_ ## name = syscall_error_code(value)
 
         DEFINE_ERROR(NO_SUCH_SYSCALL, 1);
         DEFINE_ERROR(NO_SUCH_DEVICE, 2);
@@ -46,6 +59,12 @@ class SyscallManager : NOCOPY {
         DEFINE_ERROR(ALREADY_LOCKED, 12);
         DEFINE_ERROR(NOT_A_FILE, 13);
         DEFINE_ERROR(TIMEOUT, 14);
+
+#define DEFINE_ACTION(name, value) \
+    static_assert(value < gNumActionBits); \
+    static constexpr uint32_t SYSCALL_ACTION_ ## name = syscall_action_code(value)
+
+        static constexpr uint8_t gSyscallIRQ = 0x80;
 
         struct Request {
             uint8_t code;
@@ -71,5 +90,6 @@ class SyscallManager : NOCOPY {
 };
 
 #undef DEFINE_ERROR
+#undef DEFINE_ACTION
 
 #endif

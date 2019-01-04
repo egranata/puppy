@@ -19,6 +19,7 @@
 #include <kernel/process/process.h>
 #include <kernel/boot/phase.h>
 #include <kernel/process/current.h>
+#include <kernel/syscalls/handlers.h>
 
 #define LOG_LEVEL 2
 #include <kernel/log/log.h>
@@ -70,8 +71,6 @@ namespace {
 
 static syscall_handler_info_t gHandlers[256];
 
-#define ERR(name) SyscallManager::SYSCALL_ERR_ ## name
-
 static uint32_t syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
     SyscallManager::Request req = {
         .code = (uint8_t)(gpr.eax & 0xFF),
@@ -121,4 +120,3 @@ SyscallManager::SyscallManager() {
 void SyscallManager::handle(uint8_t code, SyscallManager::Handler handler, bool systemOnly) {
     gHandlers[code].reset(handler, systemOnly);
 }
-
