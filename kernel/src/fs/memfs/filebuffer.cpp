@@ -23,3 +23,13 @@ size_t MemFS::FileBuffer::write(size_t pos, size_t len, const char* data) {
     }
     return total;
 }
+
+size_t MemFS::FileBuffer::read(size_t pos, size_t len, char* dest) {
+    size_t idx = 0;
+    while(true) {
+        uint8_t *dst = (uint8_t*)&dest[idx];
+        if (at(pos + idx, dst) == false) break;
+        if (++idx == len) break;
+    }
+    return idx;
+}

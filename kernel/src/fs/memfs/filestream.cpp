@@ -44,17 +44,9 @@ Filesystem::File* MemFS::doOpen(const char* path, uint32_t mode) {
 
             size_t read(size_t n, char* dest) {
                 if (0 == (mMode & FILE_OPEN_READ)) return 0;
-                TAG_DEBUG(MEMFS, "asked to read %u bytes into 0x%p starting index = %u", n, dest, mIndex);
-                size_t r = 0;
-                while(true) {
-                    uint8_t val = 0;
-                    if (mContent->at(mIndex, &val) == false) break;
-                    dest[r] = val;
-                    ++mIndex;
-                    if (++r == n) break;
-                }
-                TAG_DEBUG(MEMFS, "finished reading %u bytes final index = %u", r, mIndex);
-                return r;
+                size_t cnt = mContent->read(mIndex, n, dest);
+                mIndex += cnt;
+                return cnt;
             }
 
             size_t write(size_t n, char* src) {

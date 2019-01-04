@@ -52,6 +52,9 @@ public:
             // used for writing, reads from char arg; returns true if write was OK
             virtual bool at(size_t, char) { return false; }
 
+            // can also override reading a whole block: (pos, cnt, data)
+            virtual size_t read(size_t, size_t, char*);
+
             // can also override writing a whole block; (pos, cnt, data)
             virtual size_t write(size_t, size_t, const char*);
     };
