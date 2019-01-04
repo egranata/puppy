@@ -18,6 +18,8 @@
 #include <kernel/libc/string.h>
 #include <kernel/log/log.h>
 #include <muzzle/string.h>
+#include <kernel/process/manager.h>
+#include <kernel/process/current.h>
 
 LOG_TAG(INIRQ, 2);
 LOG_TAG(IRQSETUP, 1);
@@ -37,7 +39,14 @@ void interrupt_handler(GPR gpr, InterruptStack stack) {
     handler.count += 1;
     TAG_DEBUG(INIRQ, "IRQ %u occurred %llu times", stack.irqnumber, handler.count);
 	if (handler) {
-		handler.func(gpr, stack, handler.payload);
+		auto action = handler.func(gpr, stack, handler.payload);
+        if ((action & IRQ_RESPONSE_YIELD) == IRQ_RESPONSE_YIELD) {
+            if (nullptr == gCurrentProcess) {
+                LOG_ERROR("yield requested outside of process context");
+            } else {
+                ProcessManager::get().yield();
+            }
+        }
 	} else {
         TAG_DEBUG(INIRQ, "IRQ %u received - no handler", stack.irqnumber);
     }
