@@ -45,20 +45,9 @@ class SyscallManager : NOCOPY {
 #define DEFINE_ERROR(name, value) \
     static constexpr uint32_t SYSCALL_ERROR_ ## name = syscall_error_code(value)
 
-        DEFINE_ERROR(NO_SUCH_SYSCALL, 1);
-        DEFINE_ERROR(NO_SUCH_DEVICE, 2);
-        DEFINE_ERROR(MSG_QUEUE_EMPTY, 3);
-        DEFINE_ERROR(NO_SUCH_PROCESS, 4);
-        DEFINE_ERROR(OUT_OF_MEMORY, 5);
-        DEFINE_ERROR(DISK_IO_ERROR, 6);
-        DEFINE_ERROR(NO_SUCH_FILE, 7);
-        DEFINE_ERROR(UNIMPLEMENTED, 8);
-        DEFINE_ERROR(OUT_OF_HANDLES, 9);
-        DEFINE_ERROR(NO_SUCH_OBJECT, 10);
-        DEFINE_ERROR(NOT_ALLOWED, 11);
-        DEFINE_ERROR(ALREADY_LOCKED, 12);
-        DEFINE_ERROR(NOT_A_FILE, 13);
-        DEFINE_ERROR(TIMEOUT, 14);
+#include "errors.h"
+
+#undef DEFINE_ERROR
 
 #define DEFINE_ACTION(name, value) \
     static_assert(value < gNumActionBits); \
@@ -89,7 +78,6 @@ class SyscallManager : NOCOPY {
         void handle(uint8_t code, Handler handler, bool systemOnly);
 };
 
-#undef DEFINE_ERROR
 #undef DEFINE_ACTION
 
 #endif
