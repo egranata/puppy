@@ -24,12 +24,13 @@
 #include <kernel/boot/phase.h>
 #include <kernel/time/manager.h>
 #include <kernel/drivers/pit/pit.h>
+#include <kernel/time/callback.h>
 
 static uint32_t timer(GPR&, InterruptStack& stack, void*) {
     APIC::get().EOI();
-    TimeManager::get().tick(stack);
-
-	return IRQ_RESPONSE_NONE;
+    auto decision = TimeManager::get().tick(stack);
+    if (decision == time_tick_callback_t::yield) return IRQ_RESPONSE_YIELD;
+    else return IRQ_RESPONSE_NONE;
 }
 
 namespace boot::apic {

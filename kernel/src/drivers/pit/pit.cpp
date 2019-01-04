@@ -77,7 +77,8 @@ static uint32_t timer(GPR&, InterruptStack& stack, void*) {
     auto& tmgr(TimeManager::get());
     PIC::eoi(0);
 
-    auto now = (tmgr.tick(stack), tmgr.millisUptime());
+    auto decision = TimeManager::get().tick(stack);
+    auto now = tmgr.millisUptime();
 
     for(auto i = 0u; i < gInterruptFunctions.gNumFunctions; ++i) {
         if (auto f = gInterruptFunctions.mFunctions[i]) {
@@ -87,7 +88,8 @@ static uint32_t timer(GPR&, InterruptStack& stack, void*) {
         }
     }
 
-	return IRQ_RESPONSE_NONE;
+    if (decision == time_tick_callback_t::yield) return IRQ_RESPONSE_YIELD;
+    else return IRQ_RESPONSE_NONE;
 }
 
 static uint32_t pit_eoi_only(GPR&, InterruptStack&, void*) {

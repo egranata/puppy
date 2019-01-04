@@ -48,9 +48,10 @@ extern "C" process_t *gParentProcess() {
 
 static time_tick_callback_t::yield_vote_t tick_for_schedule(InterruptStack& stack, uint64_t, void*) {
     bool can_yield = ProcessManager::isinterruptible(stack.eip);
-    ProcessManager::get().tickForSchedule(can_yield);
+    bool must_yield = false;
+    ProcessManager::get().tickForSchedule(can_yield, &must_yield);
 
-    return time_tick_callback_t::no_yield;
+    return must_yield ? time_tick_callback_t::yield : time_tick_callback_t::no_yield;
 }
 
 static time_tick_callback_t::yield_vote_t tick_for_metrics(InterruptStack&, uint64_t, void*) {
@@ -673,12 +674,14 @@ void ProcessManager::tickForMetrics() {
     if (gCurrentProcess) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, TimeManager::get().millisPerTick());
 }
 
-void ProcessManager::tickForSchedule(bool can_yield) {
+void ProcessManager::tickForSchedule(bool can_yield, bool* will_yield) {
+    *will_yield = false;
+
     auto allowedticks = __atomic_load_n(&gCurrentProcess->priority.quantum.current, __ATOMIC_SEQ_CST);
     if (allowedticks > 0) {
         auto usedticks = __atomic_add_fetch(&gCurrentProcess->usedticks, 1, __ATOMIC_SEQ_CST);
         if (usedticks >= allowedticks) {
-            if (can_yield) yield(true);
+            if (can_yield) *will_yield = true;
             else gCurrentProcess->flags.due_for_reschedule = true;
         }
     }

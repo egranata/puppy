@@ -80,7 +80,7 @@ class ProcessManager : NOCOPY {
         process_t *exec(const char* path, const char** args, const char** env, uint32_t flags, exec_priority_t prio = gDefaultBasePriority, uintptr_t argp = 0, exec_fileop_t* fileops = nullptr);
 
         void tickForMetrics();
-        void tickForSchedule(bool can_yield);
+        void tickForSchedule(bool can_yield, bool* will_yield);
 
         static void ctxswitch(process_t* task);
 
