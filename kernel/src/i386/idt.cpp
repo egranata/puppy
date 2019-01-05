@@ -143,3 +143,8 @@ void Interrupts::setWakeQueue(uint8_t irq, WaitQueue* wq) {
     auto& handler = mHandlers[irq];
     handler.wq = wq;
 }
+
+void Interrupts::setFlags(uint8_t irq, bool userspace, bool mask) {
+    auto& handler = mEntries[irq];
+    handler.flags(userspace, mask);
+}

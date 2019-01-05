@@ -32,6 +32,11 @@ class WaitQueue;
 
 class Interrupts {
 public:
+	static constexpr uint32_t gMaskOtherIRQs       = 0x0E;
+	static constexpr uint32_t gAllowOtherIRQs      = 0x0F;
+	static constexpr uint32_t gEnableFromUserspace = 0xE0;
+	static constexpr uint32_t gDisabelFromuserland = 0x80;
+
 	struct handler_t {
 		using irq_response_t = uint32_t;
 
@@ -59,6 +64,7 @@ public:
 
 	void sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f = nullptr, void* = nullptr, WaitQueue* wq = nullptr);
 	void setWakeQueue(uint8_t irq, WaitQueue* = nullptr);
+	void setFlags(uint8_t irq, bool userspace, bool mask);
 
 	uint64_t getNumOccurrences(uint8_t irq);
 	const char* getName(uint8_t irq);
@@ -83,16 +89,20 @@ private:
 	    uint8_t mReserved;
 	    uint8_t mInfo;
 	    uint16_t mOffsetHigh;
-		
+
+		void flags(bool userspace, bool mask) {
+			// interrupt gates (0xE) mask other interrupts;
+			// trap gates (0xF) do not
+			mInfo = (mask ? gMaskOtherIRQs : gAllowOtherIRQs) | (userspace ? gEnableFromUserspace : gDisabelFromuserland); 
+		}
+
 		// allow default construction
 		Entry(uintptr_t handler = 0, bool userspace = false, bool mask = true) {
 			mOffsetLow = handler & 0xFFFF;
 			mOffsetHigh = (handler & 0xFFFF0000) >> 16;
 			mSelector = 8;
 			mReserved = 0;
-			// interrupt gates (0xE) mask other interrupts;
-			// trap gates (0xF) do not
-			mInfo = (mask ? 0xE : 0xF) | (userspace ? 0xE0 : 0x80); 
+			flags(userspace, mask);
 		}
 	} __attribute__((packed)) mEntries[256];
 	
