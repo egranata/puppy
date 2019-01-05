@@ -72,6 +72,8 @@ namespace {
 static syscall_handler_info_t gHandlers[256];
 
 static uint32_t syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
+    auto irq_ret = IRQ_RESPONSE_NONE;
+
     SyscallManager::Request req = {
         .code = (uint8_t)(gpr.eax & 0xFF),
         .arg1 = gpr.ebx,
@@ -101,12 +103,17 @@ static uint32_t syscall_irq_handler(GPR& gpr, InterruptStack& stack, void*) {
         gpr.eax = ERR(NO_SUCH_SYSCALL);
     }
 
-    if (gCurrentProcess->flags.due_for_reschedule) {
+    if (gpr.eax == ACT(YIELD)) {
+        TAG_DEBUG(RESCHEDULE, "process %u will yield by syscall decision", gCurrentProcess->pid);
+        gpr.eax = SYSCALL_SUCCESS;
+        irq_ret = IRQ_RESPONSE_YIELD;
+    }
+    else if (gCurrentProcess->flags.due_for_reschedule) {
         TAG_DEBUG(RESCHEDULE, "process %u forced to yield by flag", gCurrentProcess->pid);
-        ProcessManager::get().yield();
+        irq_ret = IRQ_RESPONSE_YIELD;
     }
 
-	return IRQ_RESPONSE_NONE;
+	return irq_ret;
 }
 
 SyscallManager::SyscallManager() {

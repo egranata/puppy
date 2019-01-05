@@ -27,11 +27,6 @@
 #include <kernel/process/elf.h>
 #include <kernel/sys/globals.h>
 
-HANDLER0(yield) {
-    ProcessManager::get().yield();
-    return OK;
-}
-
 HANDLER1(sleep, interval) {
     ProcessManager::get().sleep(interval);
     return OK;

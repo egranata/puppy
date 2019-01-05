@@ -25,6 +25,7 @@ typedef uint32_t syscall_response_t;
 // this should only be defined inside the class, but then syscall_error/action_code
 // couldn't be defined because reasons (see https://stackoverflow.com/questions/29551223/static-constexpr-function-called-in-a-constant-expression-is-an-error
 // for details) - so duplicate this globally
+static constexpr uint32_t SYSCALL_SUCCESS = 0;
 static constexpr uint32_t SYSCALL_ERROR = 1;
 
 static constexpr uint8_t gNumActionBits = 4;
@@ -37,21 +38,21 @@ static constexpr uint32_t syscall_action_code(uint8_t code) {
 
 class SyscallManager : NOCOPY {
     public:
-        static constexpr uint32_t SYSCALL_SUCCESS = 0;
+        static constexpr uint32_t SYSCALL_SUCCESS = ::SYSCALL_SUCCESS;
         static constexpr uint32_t SYSCALL_ERROR = ::SYSCALL_ERROR;
 
         static constexpr uint8_t gNumActionBits = ::gNumActionBits;
 
 #define DEFINE_ERROR(name, value) \
     static constexpr uint32_t SYSCALL_ERROR_ ## name = syscall_error_code(value)
-
 #include "errors.h"
-
 #undef DEFINE_ERROR
 
 #define DEFINE_ACTION(name, value) \
     static_assert(value < gNumActionBits); \
     static constexpr uint32_t SYSCALL_ACTION_ ## name = syscall_action_code(value)
+#include "actions.h"
+#undef DEFINE_ACTION
 
         static constexpr uint8_t gSyscallIRQ = 0x80;
 
@@ -77,7 +78,5 @@ class SyscallManager : NOCOPY {
 
         void handle(uint8_t code, Handler handler, bool systemOnly);
 };
-
-#undef DEFINE_ACTION
 
 #endif
