@@ -25,7 +25,10 @@ void interrupt_handler(GPR gpr, InterruptStack stack);
 
 static constexpr uint32_t IRQ_RESPONSE_NONE = 0; /* resume execution */
 static constexpr uint32_t IRQ_RESPONSE_YIELD = 1u << 1; /* yield the current process */
+static constexpr uint32_t IRQ_RESPONSE_WAKE = 1u << 2; /* wake the WaitQueue for this IRQ */
 // add values here for different IRQ responses
+
+class WaitQueue;
 
 class Interrupts {
 public:
@@ -37,6 +40,7 @@ public:
 		irq_handler_f func;
 		irq_name_t name;
 		void* payload;
+		WaitQueue* wq;
 		uint64_t count;
 		explicit operator bool();
 		handler_t();
@@ -51,7 +55,8 @@ public:
 
 	bool enabled();
 	
-	void sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f = nullptr, void* = nullptr);
+	void sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f = nullptr, void* = nullptr, WaitQueue* wq = nullptr);
+	void setWakeQueue(uint8_t irq, WaitQueue* = nullptr);
 
 	uint64_t getNumOccurrences(uint8_t irq);
 	const char* getName(uint8_t irq);
