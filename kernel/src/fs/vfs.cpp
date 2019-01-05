@@ -116,6 +116,7 @@ bool VFS::unmount(const char* path) {
                 LOG_ERROR("filesystem 0x%p has open objects; can't unmount", m.fs);
                 return false;
             }
+            if(0 == m.fs->decref()) delete m.fs;
             mMounts.remove(b);
             free((void*)m.path);
             return true;

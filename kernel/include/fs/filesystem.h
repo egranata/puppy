@@ -78,6 +78,7 @@ class Filesystem : NOCOPY {
                 Directory();
         };
 
+        Filesystem();
         virtual ~Filesystem() = default;
 
         File* open(const char* path, uint32_t mode);
@@ -90,6 +91,10 @@ class Filesystem : NOCOPY {
         virtual void doClose(FilesystemObject*) = 0;
         void close(FilesystemObject*);
 
+        uint32_t refcount() const;
+        uint32_t incref();
+        uint32_t decref();
+
         uint64_t openObjectsCount();
     protected:
         // filesystem should prefer going through open()/opendir() and close
@@ -99,6 +104,7 @@ class Filesystem : NOCOPY {
         void openObject();
         void closeObject();
     private:
+        atomic<uint32_t> mRefcount;
         uint64_t mOpenObjcts = 0;
 };
 

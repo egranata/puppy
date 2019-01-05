@@ -114,3 +114,25 @@ void Filesystem::close(FilesystemObject* object) {
         closeObject();
     }
 }
+
+Filesystem::Filesystem() : mRefcount(1) {}
+
+uint32_t Filesystem::refcount() const {
+    return mRefcount.load();
+}
+
+uint32_t Filesystem::incref() {
+    while(true) {
+        uint32_t current = mRefcount.load();
+        uint32_t wanted = (current == UINT32_MAX) ? current : current+1;
+        if (mRefcount.cmpxchg(current, wanted)) return wanted;
+    }
+}
+
+uint32_t Filesystem::decref() {
+    while(true) {
+        uint32_t current = mRefcount.load();
+        uint32_t wanted = (current == 0) ? current : current-1;
+        if (mRefcount.cmpxchg(current, wanted)) return wanted;
+    }
+}
