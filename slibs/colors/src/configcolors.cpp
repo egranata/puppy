@@ -16,28 +16,31 @@
 
 #include <libcolors/configcolors.h>
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <vector>
 #include <parson/parson.h>
 
-config_colors_t::config_colors_t(const char* path) {
+config_colors_t::config_colors_t() {}
+
+config_colors_t& config_colors_t::load(const char* path) {
     struct stat fs;
     stat(path, &fs);
 
     FILE* fp = fopen(path, "r");
-    if (fp == nullptr) return;
+    if (fp == nullptr) return *this;
 
     std::vector<char> data(fs.st_size);
     fread(data.data(), 1, fs.st_size, fp);
     fclose(fp);
 
     JSON_Value* jv = json_parse_string(data.data());
-    if (jv == nullptr) return;
+    if (jv == nullptr) return *this;
 
     JSON_Object* colors = json_value_get_object(jv);
-    if (colors == nullptr) return;
+    if (colors == nullptr) return *this;
 
     for (size_t i = 0; i < json_object_get_count(colors); ++i) {
         JSON_Value* col_info = json_object_get_value_at(colors, i);
@@ -57,26 +60,34 @@ config_colors_t::config_colors_t(const char* path) {
 
             std::string name = std::string(json_object_get_name(colors, i));
             color_t color = color_t( (uint8_t)val1, (uint8_t)val2, (uint8_t)val3 );
-            mColors.emplace(name, color);
+            mColors.insert_or_assign(name, color);
         } else if (const char* value = json_value_get_string(col_info)) {
             if (value == strstr(value, "sys:")) {
                 value = &value[4];
                 auto sys_colors = config_colors_t::systemConfig();
                 color_t color = color_t::white();
                 if (sys_colors.get(value, color)) {
-                    mColors.emplace(value, color);
+                    mColors.insert_or_assign(value, color);
                 }
             }
         }
     }
+
+    return *this;
 }
 
 config_colors_t config_colors_t::systemConfig() {
-    return loadFromDisk("/system/config/colors");
+    const char* home = getenv("HOME");
+    if (!home) home = "/home";
+    std::string home_s;
+    home_s.append_sprintf("%s/config/colors", home);
+    return fromDisk("/system/config/colors").load(home_s.c_str());
 }
 
-config_colors_t config_colors_t::loadFromDisk(const char* path) {
-    return config_colors_t(path);
+config_colors_t config_colors_t::fromDisk(const char* path) {
+    config_colors_t cfg;
+    cfg.load(path);
+    return cfg;
 }
 
 bool config_colors_t::get(const char* name, color_t& dest) const {

@@ -25,13 +25,14 @@
 class config_colors_t {
     public:
         static config_colors_t systemConfig();
-        static config_colors_t loadFromDisk(const char*);
+        static config_colors_t fromDisk(const char*);
 
+        config_colors_t& load(const char*);
         bool get(const char* name, color_t&) const;
         size_t size() const;
         std::vector<std::string> keys() const;
     private:
-        config_colors_t(const char* path);
+        config_colors_t();
         std::unordered_map<std::string, color_t> mColors;
 };
 

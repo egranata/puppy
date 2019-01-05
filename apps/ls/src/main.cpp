@@ -35,7 +35,7 @@ uint32_t gNumDevices = 0;
 uint32_t gTotalSize = 0;
 
 ansi_escape_t getDirectoryColor() {
-    static config_colors_t colorTable = config_colors_t::loadFromDisk("/system/config/ls.colors");
+    static config_colors_t colorTable = config_colors_t::fromDisk("/system/config/ls.colors");
     color_t value = color_t::white();
     if (colorTable.get("directory", value)) {
         return ansi_escape_t::foreground(value);
@@ -45,7 +45,7 @@ ansi_escape_t getDirectoryColor() {
 }
 
 ansi_escape_t getDeviceColor() {
-    static config_colors_t colorTable = config_colors_t::loadFromDisk("/system/config/ls.colors");
+    static config_colors_t colorTable = config_colors_t::fromDisk("/system/config/ls.colors");
     color_t value = color_t::white();
     if (colorTable.get("device", value)) {
         return ansi_escape_t::foreground(value);
