@@ -48,6 +48,7 @@ syscall_response_t sysinfo_syscall_handler(sysinfo_t* dest, uint32_t fill) {
         dest->local.committed = gCurrentProcess->memstats.allocated;
         dest->local.pagefaults = gCurrentProcess->memstats.pagefaults;
         dest->local.allocated = gCurrentProcess->getMemoryManager()->getTotalRegionsSize();
+        dest->local.ctxswitches = gCurrentProcess->runtimestats.ctxswitches;
     }
     
     return OK;

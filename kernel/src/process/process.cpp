@@ -26,11 +26,10 @@ process_t::process_t() : tss(), args(nullptr), environ(nullptr), mmap(this), tty
     cwd = strdup("/");
     flags.flags = 0;
 
-    memstats.allocated = memstats.available = 0;
-    memstats.pagefaults = 0;
-
-    iostats.read = iostats.written = 0;
-
+    // zero-out stats
+    bzero(&this->memstats, sizeof(this->memstats));
+    bzero(&this->iostats, sizeof(this->iostats));
+    bzero(&this->runtimestats, sizeof(this->runtimestats));
     bzero(&this->priority, sizeof(this->priority));
 
     wakeReason.clear();

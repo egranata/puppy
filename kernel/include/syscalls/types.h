@@ -33,6 +33,7 @@ struct sysinfo_t {
         uint32_t allocated; /** amount of memory allocated to this process */
         uint32_t committed; /** amount of actual RAM given to this process */
         uint32_t pagefaults; /** number of page faults that this process caused */
+        uint64_t ctxswitches; /** number of times this process has been context switched */
     } local;
 };
 
@@ -201,6 +202,8 @@ struct process_info_t {
 
     uint64_t diskReadBytes;
     uint64_t diskWrittenBytes;
+
+    uint64_t ctxswitches;
 
 #define FLAG_PUBLIC(name, bit) bool name;
 #define FLAG_PRIVATE(name, bit)

@@ -688,7 +688,10 @@ void ProcessManager::tickForSchedule(bool can_yield, bool* will_yield) {
 }
 
 void ProcessManager::yield(bool bytimer) {
-    if (!bytimer && gCurrentProcess) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, 1);
+    if (gCurrentProcess) {
+        __sync_add_and_fetch(&gCurrentProcess->runtimestats.ctxswitches, 1);
+        if (!bytimer) __sync_add_and_fetch(&gCurrentProcess->runtimestats.runtime, 1);
+    }
     switchtoscheduler();
 }
 

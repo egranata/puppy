@@ -104,6 +104,7 @@ struct process_t {
 
     struct runtimestats_t {
         uint64_t runtime; /** time that this process has been running */
+        uint64_t ctxswitches; /** number of times this process has been context switched */
     } runtimestats;
 
     /* the system uptime that this process wants to sleep until */
