@@ -1,24 +1,23 @@
-# The Puppy Kernel
+# The Puppy Operating System
 [![](https://travis-ci.org/egranata/puppy.svg?branch=master)](https://travis-ci.org/egranata/puppy)
 
 Welcome to Puppy.
 
 Puppy is an operating system for IBM-compatible computers with 32-bit Intel CPUs (you may have heard of this kind of hardware under the name *personal computer*).
 
-More specifically, Puppy aims to provide:
+Development of Puppy has started on January 1st 2018 and the project has been open-source since May 29 2018. Since then, the operating system has grown to provide:
 
-- preemptive multitasking (but not a preemptive kernel); ✅
-- memory protection; ✅
-- system calls for userspace; ✅
-- FAT32 filesystems; ✅
-- support for actual physical x86 hardware; ✅
-- a C/C++ standard library for userspace programs; ✅
-- ACPI support;
-- a functional userspace (custom built or ported as needed).
+- preemptive multitasking (but not a preemptive kernel);
+- memory protection;
+- system calls for userspace;
+- FAT32 filesystems;
+- support for actual physical x86 hardware, including ACPI.
 
-Some additional goals and features are covered by https://github.com/egranata/puppy/issues. Features such as USB and/or networking are definitely interesting and may become important as the core goals are fulfilled.
+Puppy also includes a partial C/C++ standard library (most notably absent is C++ `iostream`).
 
-On the other hands, there are some things that are explicit **non-goals** and as such will not be worked on:
+Puppy's userspace consists of a mix of custom tools as well as ported open source tools. Notably, there is no full C++ toolchain, but a port of MicroPython is available for scripting.
+
+Future goals and features are covered by https://github.com/egranata/puppy/issues. While I would be very happy to accept input in terms of feature ideas as well as patches (but see below), some things are explicit **non-goals**, namely:
 
 - porting to anything other than x86;
 - a GUI (either porting or writing a new one);
@@ -34,20 +33,21 @@ Puppy is actively tested on QEMU - and occasionally Bochs.
 Assuming a few requirements are met, Puppy should boot and work on an actual PC:
 - PS/2 keyboard;
 - A video card and screen with VBE support and capable of 800x600 or better;
-- APIC timer;
 - Intel CPU from - at least - the early-2000s (*);
-- at least 1GB of RAM (should not need nearly as much, but is untested).
+- at least 1GB of RAM (**).
 
 (*) Testing with Bochs suggests that Puppy can boot on something as old as a Pentium Pro, but this is untested on real hardware.
 Alas, booting on anything older is currently not possible (see https://github.com/egranata/puppy/issues/63).
 
-If your system has a physical serial port, you should be able to collect kernel logs which might help in diagnosing boot-time issue. I personally use `picocom` for this purpose, but other tools should work if they're capable of 8N1 115200 operation.
+(**) Testing with QEMU suggests that 32MB is the minimum required for Puppy to boot to userspace, but this is untested on real hardware.2
 
-Testing on other virtualizers and/or real hardware is definitely most welcome.
+If your system has a physical serial port, you should be able to collect kernel logs which might help in diagnosing boot-time issue. I personally use `picocom` for this purpose, but other tools should work if they're capable of 8N1 115200 operation. Patches to enable customizing the serial port settings at boot would be gladly accepted.
+
+Testing on other virtualizers and/or real hardware is also most welcome.
 
 # Software requirements
 
-To compile a Puppy image, you'll want to use Linux (native or in a VM/container - I do most of my development in Docker). Dependencies for compilation are aptly described by `build/deps.sh` (the script used to setup a CI instance).
+To compile a Puppy image, you'll want to use Linux (native or in a VM/container; Docker is known to work). Dependencies for compilation are aptly described by `build/deps.sh` (the script used to setup a CI instance).
 
 # Getting started
 
@@ -62,6 +62,8 @@ in a shell. This will churn for a while (should be under a minute) and produce a
 The HD image includes the kernel, as well as a fairly minimal userspace + suite of tests. It can be used to boot an emulator, or bit-blasted to a real hard disk.
 
 A sample configuration for Bochs and QEMU launcher script can be found in the `build` directory.
+
+Assuming everything works, booting Puppy ends up with a shell prompt. `ls` works to start exploring the file-system.
 
 # Contributing
 
