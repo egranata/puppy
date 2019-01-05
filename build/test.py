@@ -21,6 +21,7 @@ CMDLINE='qemu-system-i386 -drive format=raw,media=disk,file=out/os.img -display 
         '-k en-us -cpu n270'
 
 MAX_TEST_LEN = 0
+MAX_TEST_WAIT = 0
 
 def ensureGone(path):
     try:
@@ -103,9 +104,11 @@ TEST_PLAN = json.load(open(sys.argv[1], "r"))
 
 for TEST in TEST_PLAN:
     tid = TEST["id"]
+    wait = int(TEST["wait"])
     MAX_TEST_LEN = max(MAX_TEST_LEN, len(tid))
+    MAX_TEST_WAIT = max(MAX_TEST_WAIT, wait)
 
-waitFor("Boot", 15, checkAlive, None)
+waitFor("Boot", MAX_TEST_WAIT, checkAlive, None)
 
 sendString(qemu, "/system/tests/runall.sh")
 
