@@ -189,11 +189,11 @@ static bool parse_scan_code() {
 }
 
 static uint32_t keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
-    PS2Keyboard::keyb_irq_data_t *irq_data = (PS2Keyboard::keyb_irq_data_t*)id;
-    if (parse_scan_code()) irq_data->source->queue().wakeall();
+    const PS2Keyboard::keyb_irq_data_t *irq_data = (PS2Keyboard::keyb_irq_data_t*)id;
+    const bool need_wake = parse_scan_code();
     PIC::eoi(irq_data->pic_irq_id);
 
-	return IRQ_RESPONSE_NONE;
+	return need_wake ? IRQ_RESPONSE_WAKE : IRQ_RESPONSE_NONE;
 }
 
 PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
@@ -206,7 +206,7 @@ PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
     irq_data.pic_irq_id = devid == 1 ? 1 : 12;
     irq_data.cpu_irq_id = PIC::gIRQNumber(irq_data.pic_irq_id);
 
-    Interrupts::get().sethandler(irq_data.cpu_irq_id, "PS2Keyb", keyboard_irq_handler, (void*)&irq_data);
+    Interrupts::get().sethandler(irq_data.cpu_irq_id, "PS2Keyb", keyboard_irq_handler, (void*)&irq_data, &mWaitForEvent);
     TAG_DEBUG(BOOTINFO, "setup keyboard IRQ handler for irq %u - device %u", irq_data.cpu_irq_id, devid);
 }
 
