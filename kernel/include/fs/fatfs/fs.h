@@ -37,6 +37,8 @@ class FATFileSystem : public Filesystem {
 
         void doClose(FilesystemObject*) override;
 
+        bool fillInfo(filesystem_info_t*) override;
+
     private:
         FATFS mFatFS;
 };

@@ -20,7 +20,7 @@
 syscall_response_t fsinfo_syscall_handler(const char* path, filesystem_info_t* info) {
     auto& vfs(VFS::get());
 
-    auto fs = vfs.findfs(path);
+    auto fs = vfs.fsForPath(path);
     if (fs == nullptr) return ERR(NO_SUCH_OBJECT);
     if (fs->fillInfo(info)) return OK;
     return ERR(UNIMPLEMENTED);

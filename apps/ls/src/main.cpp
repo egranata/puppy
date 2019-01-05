@@ -26,6 +26,9 @@
 #include <libcolors/configcolors.h>
 #include <libcolors/color.h>
 
+#include <kernel/syscalls/types.h>
+#include <syscalls.h>
+
 uint32_t gNumFiles = 0;
 uint32_t gNumDirectories = 0;
 uint32_t gNumDevices = 0;
@@ -150,19 +153,31 @@ int ls(const char* path) {
         printf("error: could not open %s\n", path);
         return 1;
     }
+
+    std::pair<bool, filesystem_info_t> fsinfo;
+    if (0 == fsinfo_syscall(rpath, &fsinfo.second)) {
+        fsinfo.first = true;
+    }
+
     std::vector<dir_entry_t> entries;
     loadDirectory(dir, entries);
     closedir(dir);
 
+    if (fsinfo.first) {
+        printf("Volume serial is %llx\n", fsinfo.second.fs_uuid);
+    }
     printf("Directory of %s\n\n", rpath ? rpath : path);
-    free((void*)rpath);
 
     std::for_each(entries.begin(), entries.end(), [](const dir_entry_t& entry) -> void {
         entry.print();
     });
 
     printf("        %lu File(s)        %lu bytes\n", gNumFiles, gTotalSize);
-    printf("        %lu Dir(s)\n", gNumDirectories);
+    if (fsinfo.first) {
+        printf("        %lu Dir(s)        %llu free bytes\n", gNumDirectories, fsinfo.second.fs_free_size);
+    } else {
+        printf("        %lu Dir(s)\n", gNumDirectories);
+    }
     printf("        %lu Device(s)\n", gNumDevices);
 
     return 0;

@@ -21,6 +21,7 @@
 #include <kernel/libc/string.h>
 #include <kernel/libc/deleteptr.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/libc/buffer.h>
 
 LOG_TAG(FATCALENDAR, 0);
 
@@ -359,4 +360,34 @@ bool FATFileSystem::mkdir(const char* path) {
     }
 
     return false;
+}
+
+bool FATFileSystem::fillInfo(filesystem_info_t* info) {
+    bzero(info, sizeof(*info));
+
+    info->fs_size = mFatFS.vol->numsectors() * mFatFS.vol->sectorsize();
+
+    buffer buf(5);
+    buf.printf("%d:", mFatFS.pdrv);
+
+    DWORD free_clust;
+    FATFS* fatfs;
+    switch (f_getfree(buf.c_str(), &free_clust, &fatfs)) {
+        case FR_OK:
+            info->fs_free_size = free_clust * 512 * fatfs->csize;
+            break;
+        default:
+            LOG_WARNING("failed to get free size for '%s'", buf.c_str());
+            return false;
+    }
+
+    DWORD uuid;
+    switch(f_getlabel(buf.c_str(), nullptr, &uuid)) {
+        case FR_OK:
+            info->fs_uuid = uuid;
+            return true;
+        default:
+            LOG_WARNING("failed to get volume label for '%s'", buf.c_str());
+            return false;
+    }
 }

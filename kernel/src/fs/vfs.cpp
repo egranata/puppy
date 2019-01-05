@@ -22,6 +22,7 @@
 #include <kernel/boot/bootinfo.h>
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/time/manager.h>
+#include <kernel/libc/buffer.h>
 
 namespace boot::vfs {
     uint32_t init() {
@@ -110,6 +111,33 @@ Filesystem* VFS::findfs(const char* mnt) {
     for(; b != e; ++b) {
         auto&& m = *b;
         if (0 == strcmp(m.path, mnt)) {
+            return m.fs;
+        }
+    }
+
+    return nullptr;
+}
+
+Filesystem* VFS::fsForPath(const char* path) {
+    if (path == nullptr || path[0] == 0) return nullptr;
+
+    const char* path_start = path;
+    if (*path_start == '/') ++path_start;
+    size_t path_len = 0;
+    while(true) {
+        if (path_start[path_len] == 0 ||
+            path_start[path_len] == '/') break;
+        else ++path_len;
+    }
+    buffer buf(path_len + 2);
+    buf.printf("%.*s", path_len+1, path_start);
+
+    LOG_DEBUG("for path '%s', seeking filesystem at '%s'", path, buf.c_str());
+
+    auto b = mMounts.begin(), e = mMounts.end();
+    for(; b != e; ++b) {
+        auto&& m = *b;
+        if (0 == strcmp(m.path, buf.c_str())) {
             return m.fs;
         }
     }

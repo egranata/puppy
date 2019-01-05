@@ -45,6 +45,11 @@ class VFS : NOCOPY {
         Volume* findvol(const char* mnt);
         Filesystem* findfs(const char* mnt);
 
+        // find the filesystem associated with a given - absolute - path
+        // this is the same as findfs() for a path of the form /mntpoint
+        // but has intelligent behavior given /mntpoint/some/other/path
+        Filesystem* fsForPath(const char* path);
+
         fs_ident_t::mount_result_t mount(Volume* vol, const char* where = nullptr);
 
         filehandle_t open(const char* path, uint32_t mode);
