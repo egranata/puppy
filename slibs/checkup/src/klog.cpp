@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-#include <checkup/assert.h>
-#include <checkup/failure.h>
+#include <libcheckup/klog.h>
 
-void __do_check(bool ok, const char* name, const char* file, int line, const char* condition) {
-    if (ok) return;
-    __failed(name, file, line, condition);
+FILE* getLogFile() {
+    static FILE* klog = nullptr;
+    if (klog == nullptr) {
+        klog = fopen("/devices/klog", "w");
+        if (klog) setvbuf(klog, nullptr, _IONBF, 0);
+    }
+
+    return klog;
 }

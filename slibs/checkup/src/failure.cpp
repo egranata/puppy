@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-#include <checkup/klog.h>
+#include <libcheckup/failure.h>
+#include <libcheckup/klog.h>
 
-void __success(const char* test) {
-    fprintf(getLogFile(), "TEST[%s] PASS", test);
-    printf("TEST[%s] PASS\n", test);
+#include <newlib/stdlib.h>
+#include <newlib/stdio.h>
+
+void __failed(const char* test, const char* file, int line, const char* condition) {
+    fprintf(getLogFile(), "[TEST[%s] FAIL condition failed: %s at %s:%d", test, condition, file, line);
+    printf("TEST[%s] \x1b[31mFAIL\x1b[0m condition failed: %s at %s:%d\n", test, condition, file, line);
+    exit(1);
 }

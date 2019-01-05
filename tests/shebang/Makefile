@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-INPUTS = init.cpp
+all: test
 
-all: $(INPUTS)
-	$(CC) -I$(PWD)/include $(INPUTS) -lparson -lshell -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
+test:
+	$(CC) -DTEST_NAME=\"$(TGTNAME)\" test.cpp -lcheckup -lshell -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

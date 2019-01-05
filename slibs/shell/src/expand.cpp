@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include <libshell/expand.h>
+#include "../include/expand.h"
+
 #include <EASTL/stack.h>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>

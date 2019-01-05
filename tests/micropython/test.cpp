@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <checkup/test.h>
-#include <checkup/testplan.h>
-#include <checkup/assert.h>
+#include <libcheckup/test.h>
+#include <libcheckup/testplan.h>
+#include <libcheckup/assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/collect.h>

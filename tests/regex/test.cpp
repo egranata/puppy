@@ -15,8 +15,8 @@
  */
 
 #include <stdint.h>
-#include <checkup/test.h>
-#include <checkup/assert.h>
+#include <libcheckup/test.h>
+#include <libcheckup/assert.h>
 #include <regex.h>
 
 class TheTest : public Test {

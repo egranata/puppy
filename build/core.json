@@ -29,15 +29,5 @@
      "src" : "third_party/EASTL/src",
      "cppflagsAgument" : ["-Wno-error=extra", "-Wno-error=deprecated-declarations"],
      "includePaths" : ["include", "include/newlib", "include/EASTL"],
-     "linkerDependencies" : ["${NEWLIB}"]},
-    {"name" : "Checkup",
-     "src" : "checkup/src",
-     "cppflagsAgument" : ["-Wno-error=extra", "-Wno-error=deprecated-declarations"],
-     "includePaths" : ["${NEWLIB}"],
-     "linkerDependencies" : ["${NEWLIB}"]},
-    {"name" : "ShellSupport",
-     "src" : "libshell/src",
-     "cppflagsAgument" : ["-Wno-error=extra", "-Wno-error=deprecated-declarations"],
-     "includePaths" : ["${NEWLIB}"],
      "linkerDependencies" : ["${NEWLIB}"]}
 ]

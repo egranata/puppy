@@ -38,7 +38,7 @@ OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/, $(SRC_CXX:.cpp=.o))
 
 LD = $(CC)
-LDFLAGS += -llinenoise
+LDFLAGS += -llinenoise -lshell
 
 define compile_cpp
 $(ECHO) "CXX $<"

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include <libshell/path.h>
+#include "../include/path.h"
+
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 #include <newlib/unistd.h>

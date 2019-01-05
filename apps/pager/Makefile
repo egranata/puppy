@@ -12,5 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include $(PUPPY_ROOT)/build/userspacecommon.mk
-include $(PUPPY_ROOT)/build/userspacedefault.mk
+INPUTS = pager.cpp
+
+all: $(INPUTS)
+	$(CC) -I$(PWD)/include $(INPUTS) -lshell -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)

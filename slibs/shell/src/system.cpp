@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#include <libshell/system.h>
+#include "../include/system.h"
+#include "../include/expand.h"
+#include "../include/path.h"
+
 #include <sys/collect.h>
 #include <unistd.h>
-#include <libshell/expand.h>
-#include <libshell/path.h>
 #include <stdlib.h>
 
 namespace libShellSupport {

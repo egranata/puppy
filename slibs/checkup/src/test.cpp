@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <checkup/failure.h>
-#include <checkup/test.h>
-#include <checkup/success.h>
+#include <libcheckup/failure.h>
+#include <libcheckup/test.h>
+#include <libcheckup/success.h>
 
 #include <unistd.h>
 

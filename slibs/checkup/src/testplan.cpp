@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <checkup/testplan.h>
-#include <checkup/test.h>
-#include <checkup/success.h>
+#include <libcheckup/testplan.h>
+#include <libcheckup/test.h>
+#include <libcheckup/success.h>
 
 TestPlan::TestPlan(const char* name) : mName(name ? name : "TestPlan") {}
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <checkup/test.h>
-#include <checkup/assert.h>
+#include <libcheckup/test.h>
+#include <libcheckup/assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/vm.h>

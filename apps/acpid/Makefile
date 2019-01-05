@@ -15,4 +15,4 @@
 INPUTS = main.cpp
 
 all: $(INPUTS)
-	$(CC) -I$(PWD)/include $(INPUTS) -lparson -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
+	$(CC) -I$(PWD)/include $(INPUTS) -lparson -lshell -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
