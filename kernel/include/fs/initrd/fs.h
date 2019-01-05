@@ -25,11 +25,12 @@ class InitrdDirectory;
 class Initrd : public Filesystem {
     private:
         struct header_t {
-            static constexpr uint8_t gExpectedVersion = 2;
+            static constexpr uint8_t gExpectedVersion = 3;
 
             uint8_t magic[4];
             uint8_t ver;
             uint8_t reserved[3];
+            uint64_t serial;
         } __attribute__((packed));
         struct file_t {
             uint8_t name[64];
@@ -45,11 +46,12 @@ class Initrd : public Filesystem {
             header_t header;
             files_t table;
         } __attribute__((packed));
-        static_assert(5132 == sizeof(preamble_t));
+        static_assert(5140 == sizeof(preamble_t));
         uint8_t *mBase;
         header_t *mHeader;
         files_t *mFiles;
         uint8_t *mData;
+        uint64_t mTotalSize;
         Initrd(uintptr_t address);
 
         friend class InitrdDirectory;
@@ -61,8 +63,9 @@ class Initrd : public Filesystem {
 
         File* doOpen(const char* path, uint32_t mode) override;
         Directory* doOpendir(const char* path) override;
-
         void doClose(FilesystemObject*) override;
+
+        bool fillInfo(filesystem_info_t*) override;
 };
 
 #endif

@@ -23,13 +23,17 @@ import struct
 import os
 import os.path
 
-VERSION = 2
+VERSION = 3
 
 def unixnow():
     return calendar.timegm(datetime.utcnow().utctimetuple())
 
+def timeserial():
+    tpl = datetime.now().isocalendar()
+    return (tpl[0]*1000000+tpl[1]*10000+tpl[2]) << 10 | 0x11730 | VERSION
+
 def writeHeader(stream):
-    header = struct.pack('<B3sBBBB', 0x80, b'IRD', VERSION, 0, 0, 0)
+    header = struct.pack('<B3sBBBBQ', 0x80, b'IRD', VERSION, 0, 0, 0, timeserial())
     stream.write(header)
 
 def writeFile(stream, f):
@@ -66,7 +70,7 @@ class InputFile(object):
         self.offset = offset
 
 def genInputFiles(files):
-    offset = 5132
+    offset = 5140
     l = []
     for f in files:
         f = InputFile(f, offset)

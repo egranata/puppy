@@ -37,6 +37,11 @@ class TheTest : public Test {
             CHECK_NOT_EQ(0, fsinfo.fs_size);
             CHECK_NOT_EQ(0, fsinfo.fs_free_size);
             CHECK_TRUE(fsinfo.fs_size > fsinfo.fs_free_size);
+
+            CHECK_EQ(0, fsinfo_syscall("/initrd", &fsinfo));
+            CHECK_NOT_EQ(0, fsinfo.fs_uuid);
+            CHECK_NOT_EQ(0, fsinfo.fs_size);
+            CHECK_EQ(0, fsinfo.fs_free_size);
         }
 };
 

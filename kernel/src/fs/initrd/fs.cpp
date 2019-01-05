@@ -29,10 +29,12 @@ Initrd::Initrd(uintptr_t address) {
     mHeader = (header_t*)address;
     mFiles = (files_t*)(address + sizeof(header_t));
     mData = mBase + sizeof(header_t) + sizeof(files_t);
+    mTotalSize = 0;
     LOG_DEBUG("this filesystem contains %u files - data starts at 0x%p", mFiles->count, mData);
     for (auto i = 0u; i < mFiles->count; ++i) {
         LOG_DEBUG("file %u is named %s and contains %u bytes of data",
             i, mFiles->files[i].name, mFiles->files[i].size);
+        mTotalSize += mFiles->files[i].size;
     }
 }
 
@@ -80,4 +82,11 @@ Filesystem::Directory* Initrd::doOpendir(const char* path) {
         return new InitrdDirectory(mFiles);
     }
     return nullptr;
+}
+
+bool Initrd::fillInfo(filesystem_info_t* info) {
+    info->fs_uuid = mHeader->serial;
+    info->fs_free_size = 0;
+    info->fs_size = mTotalSize;
+    return true;
 }
