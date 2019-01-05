@@ -38,7 +38,7 @@ class VFS : NOCOPY {
             Filesystem::File *asFile();
         };
         static VFS& get();
-
+    
         bool mount(const char* path, Filesystem* fs, Volume* = nullptr);
         bool unmount(const char* path);
 

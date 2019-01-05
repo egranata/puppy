@@ -99,5 +99,7 @@ syscall_response_t mmap_syscall(size_t arg1,int arg2);
 constexpr uint8_t mmap_syscall_id = 0x27;
 syscall_response_t wait1_syscall(uint16_t arg1,uint32_t arg2);
 constexpr uint8_t wait1_syscall_id = 0x28;
+syscall_response_t fsinfo_syscall(const char* arg1,filesystem_info_t* arg2);
+constexpr uint8_t fsinfo_syscall_id = 0x29;
 
 #endif

@@ -170,6 +170,12 @@ enum class file_kind_t {
 #undef FILE_LIKE
 };
 
+struct filesystem_info_t {
+    uint64_t fs_size;
+    uint64_t fs_free_size;
+    uint64_t fs_uuid;
+};
+
 struct file_stat_t {
     file_kind_t kind;
     uint32_t size;

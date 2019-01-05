@@ -91,6 +91,8 @@ class Filesystem : NOCOPY {
         virtual void doClose(FilesystemObject*) = 0;
         void close(FilesystemObject*);
 
+        virtual bool fillInfo(filesystem_info_t*) { return false; }
+
         uint32_t refcount() const;
         uint32_t incref();
         uint32_t decref();

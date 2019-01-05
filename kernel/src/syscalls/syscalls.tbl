@@ -38,5 +38,6 @@
     {"name":"vmcheckwritable",  "argtypes":["uintptr_t", "size_t"]},
     {"name":"pipe",             "argtypes":["size_t*", "size_t*"]},
     {"name":"mmap",             "argtypes":["size_t","int"]},
-    {"name":"wait1",            "argtypes":["uint16_t", "uint32_t"]}
+    {"name":"wait1",            "argtypes":["uint16_t", "uint32_t"]},
+    {"name":"fsinfo",           "argtypes":["const char*", "filesystem_info_t*"]}
 ]}
