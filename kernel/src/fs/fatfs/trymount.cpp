@@ -61,7 +61,7 @@ pair<bool, const char*> fatfs_trymount(Volume* vol, const char* where) {
     if ((ebr16->signature == 0x28 || ebr16->signature == 0x29) || (ebr32->signature == 0x28 || ebr32->signature == 0x29)) {
         FATFileSystem* fatfs = new FATFileSystem(vol);
         auto&& vfs(VFS::get());
-        vfs.mount(where, fatfs);
+        vfs.mount(where, fatfs, vol);
         // TODO: LEAK
         return {true,strdup(where)};
     } else {

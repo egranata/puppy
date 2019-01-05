@@ -82,14 +82,27 @@ VFS::VFS() : mMounts() {
     LOG_DEBUG("initializing VFS");
 }
 
-bool VFS::mount(const char* path, Filesystem* fs) {
+bool VFS::mount(const char* path, Filesystem* fs, Volume* vol) {
     if (path[0] == '/') ++path;
     LOG_DEBUG("mounting /%s as 0x%p", path, fs);
     mMounts.add(mount_t{
         strdup(path),
         TimeManager::get().UNIXtime(),
+        vol,
         fs});
     return true;
+}
+
+Volume* VFS::findvol(const char* mnt) {
+    auto b = mMounts.begin(), e = mMounts.end();
+    for(; b != e; ++b) {
+        auto&& m = *b;
+        if (0 == strcmp(m.path, mnt)) {
+            return m.volume;
+        }
+    }
+
+    return nullptr;
 }
 
 Filesystem* VFS::findfs(const char* mnt) {
@@ -102,6 +115,20 @@ Filesystem* VFS::findfs(const char* mnt) {
     }
 
     return nullptr;
+}
+
+VFS::mount_t VFS::findMountInfo(Volume* vol) {
+    if (vol == nullptr) {
+        PANIC("cannot locate mount info for no volume");
+    }
+
+    auto b = mMounts.begin(), e = mMounts.end();
+    for(; b != e; ++b) {
+        auto& m = *b;
+        if (m.volume == vol) return m;
+    }
+
+    return mount_t{nullptr,0,nullptr,nullptr};
 }
 
 bool VFS::unmount(const char* path) {

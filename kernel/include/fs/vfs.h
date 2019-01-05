@@ -39,9 +39,10 @@ class VFS : NOCOPY {
         };
         static VFS& get();
 
-        bool mount(const char* path, Filesystem* fs);
+        bool mount(const char* path, Filesystem* fs, Volume* = nullptr);
         bool unmount(const char* path);
 
+        Volume* findvol(const char* mnt);
         Filesystem* findfs(const char* mnt);
 
         fs_ident_t::mount_result_t mount(Volume* vol, const char* where = nullptr);
@@ -56,10 +57,13 @@ class VFS : NOCOPY {
         struct mount_t {
             const char* path;
             uint64_t when;
+            Volume *volume;
             Filesystem* fs;
         };
         slist<mount_t> mMounts;
         VFS();
+
+        mount_t findMountInfo(Volume*);
 
         pair<Filesystem*, const char*> getfs(const char* root);
 
