@@ -418,13 +418,13 @@ def prepareDiskImages(file, sysPartitionMBs = 48,
     CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (sysPartitionFile, 1024*1024, sysPartitionMBs)
     shell(CMDLINE)
 
-    CMDLINE="mkfs.fat -F32 %s" % (sysPartitionFile)
+    CMDLINE="mkfs.fat -F32 %s -i 55AABB66" % (sysPartitionFile)
     shell(CMDLINE)
 
     CMDLINE="dd if=/dev/zero of=%s bs=%s count=%s" % (userPartitionFile, 1024*1024, userPartitionMBs)
     shell(CMDLINE)
 
-    CMDLINE="mkfs.fat -F32 %s" % (userPartitionFile)
+    CMDLINE="mkfs.fat -F32 %s -i A0B0C0D0" % (userPartitionFile)
     shell(CMDLINE)
 
     partitions = [
