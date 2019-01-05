@@ -55,6 +55,8 @@ public:
 
 	bool enabled();
 	
+	uint32_t irqDepth() const;
+
 	void sethandler(uint8_t irq, const char* name, handler_t::irq_handler_f = nullptr, void* = nullptr, WaitQueue* wq = nullptr);
 	void setWakeQueue(uint8_t irq, WaitQueue* = nullptr);
 

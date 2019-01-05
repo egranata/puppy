@@ -33,8 +33,13 @@ Interrupts::handler_t::operator bool() {
     return func != nullptr;
 }
 
+static uint32_t gIRQDepthCounter = 0;
+
 extern "C"
 void interrupt_handler(GPR gpr, InterruptStack stack) {
+    __atomic_add_fetch(&gIRQDepthCounter, 1, __ATOMIC_SEQ_CST);
+    bool yield_on_exit = false;
+
     TAG_DEBUG(INIRQ, "received IRQ %u", stack.irqnumber);
     auto& handler = Interrupts::get().mHandlers[stack.irqnumber];
     handler.count += 1;
@@ -52,12 +57,19 @@ void interrupt_handler(GPR gpr, InterruptStack stack) {
             if (nullptr == gCurrentProcess) {
                 LOG_ERROR("yield requested outside of process context");
             } else {
-                ProcessManager::get().yield();
+                yield_on_exit = true;
             }
         }
 	} else {
         TAG_DEBUG(INIRQ, "IRQ %u received - no handler", stack.irqnumber);
     }
+
+    __atomic_fetch_sub(&gIRQDepthCounter, 1, __ATOMIC_SEQ_CST);
+    if (yield_on_exit) ProcessManager::get().yield();
+}
+
+uint32_t Interrupts::irqDepth() const {
+    return __atomic_load_n(&gIRQDepthCounter, __ATOMIC_SEQ_CST);
 }
 
 Interrupts& Interrupts::get() {
