@@ -64,6 +64,7 @@ class VFS : NOCOPY {
         VFS();
 
         mount_t findMountInfo(Volume*);
+        fs_ident_t::mount_result_t doMountVolume(Volume* vol, const char* where);
 
         pair<Filesystem*, const char*> getfs(const char* root);
 

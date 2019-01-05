@@ -155,6 +155,25 @@ bool VFS::unmount(const char* path) {
 }
 
 fs_ident_t::mount_result_t VFS::mount(Volume* vol, const char* where) {
+    auto previous_mount = findMountInfo(vol);
+    if (previous_mount.fs == nullptr) {
+        return doMountVolume(vol, where);
+    } else {
+        LOG_INFO("volume 0x%p already mounted as filesystem 0x%p at %s; mounting an alias at %s",
+            vol, previous_mount.fs, previous_mount.path, where);
+        previous_mount.fs->incref();
+        mount_t new_mount{
+            strdup(where),
+            TimeManager::get().UNIXtime(),
+            vol,
+            previous_mount.fs
+        };
+        mMounts.add(new_mount);
+        return {true, new_mount.path};
+    }
+}
+
+fs_ident_t::mount_result_t VFS::doMountVolume(Volume* vol, const char* where) {
     auto sysid = vol->sysid();
     
     for (auto i = 0u; true; ++i) {
