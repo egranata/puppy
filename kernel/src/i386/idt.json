@@ -1,0 +1,65 @@
+{
+    "irqs" : {
+        "8" : {
+            "pushes_error" : true
+        },
+        "10" : {
+            "pushes_error" : true
+        },
+        "11" : {
+            "pushes_error" : true
+        },
+        "12" : {
+            "pushes_error" : true
+        },
+        "13" : {
+            "pushes_error" : true
+        },
+        "14" : {
+            "pushes_error" : true
+        },
+        "15" : {
+            "reserved" : true
+        },
+        "17" : {
+            "pushes_error" : true
+        },
+        "21" : {
+            "reserved" : true
+        },
+        "22" : {
+            "reserved" : true
+        },
+        "23" : {
+            "reserved" : true
+        },
+        "24" : {
+            "reserved" : true
+        },
+        "25" : {
+            "reserved" : true
+        },
+        "26" : {
+            "reserved" : true
+        },
+        "27" : {
+            "reserved" : true
+        },
+        "28" : {
+            "reserved" : true
+        },
+        "29" : {
+            "reserved" : true
+        },
+        "30" : {
+            "pushes_error" : true
+        },
+        "31" : {
+            "reserved" : true
+        },
+        "128" : {
+            "userspace" : true,
+            "interruptible" : true
+        }
+    }
+}
