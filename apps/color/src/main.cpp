@@ -15,6 +15,7 @@
 #include <libcolors/color.h>
 #include <libcolors/tty.h>
 #include <libcolors/configcolors.h>
+#include <libcolors/profile.h>
 
 int main(int argc, char** argv) {
     auto default_colors(config_colors_t::systemConfig());
@@ -42,6 +43,16 @@ int main(int argc, char** argv) {
             exit(2);
         }
     } else if (argc == 3) {
+        if (0 == strcmp("profile", argv[1])) {
+            if (auto profile = color_profile_t::fromDisk(argv[2])) {
+                profile->set(tty_config);
+                exit(0);
+            } else {
+                printf("unknown color profile: %s\n", argv[2]);
+                exit(3);
+            }
+        }
+
         color_t value = color_t::white();
         bool ok = default_colors.get(argv[2], value);
         if (!ok) {
@@ -60,7 +71,10 @@ int main(int argc, char** argv) {
     } else {
         printf("usage: color with no arguments prints a list of known color data\n"
                "color <name> sets the foreground color\n"
-               "color <fg|bg> <name> sets the foreground or background color\n");
+               "color <fg|bg> <name> sets the foreground or background color\n"
+               "color <profile> <name> sets the colors based off a profile name\n"
+               "                       color profiles are searched in /home/config/color.profiles/"
+               "                       and in /system/config/color.profiles/ if necessary");
         exit(4);
     }
 

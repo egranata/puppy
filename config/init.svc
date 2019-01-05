@@ -31,7 +31,7 @@
 
     {"name" : "color",
      "path" : "/system/apps/color",
-     "args" : "bg grey",
+     "args" : "profile boot",
      "wait" : true
     },
 
