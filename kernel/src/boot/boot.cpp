@@ -115,6 +115,10 @@ namespace boot {
     namespace fb_file {
         uint32_t init();
     }
+    namespace disk_mgr {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -156,6 +160,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::eventfs::init,
         onSuccess : nullptr,
         onFailure : boot::eventfs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Initialize Disk Manager",
+        visible : false,
+        operation : boot::disk_mgr::init,
+        onSuccess : nullptr,
+        onFailure : boot::disk_mgr::fail
     });
 
     registerBootPhase(bootphase_t{
