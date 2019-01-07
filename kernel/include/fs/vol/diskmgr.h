@@ -20,7 +20,6 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/vec.h>
 #include <kernel/fs/memfs/memfs.h>
-#include <kernel/fs/filesystem.h>
 
 class DiskController;
 class Disk;
@@ -41,10 +40,6 @@ class DiskManager : NOCOPY {
         DiskManager();
 
         MemFS::Directory *mDevFSDirectory;
-
-        Filesystem::File *mNewControllerEventFile;
-        Filesystem::File *mNewDiskEventFile;
-        Filesystem::File *mNewVolumeEventFile;
 
         vector<DiskController*> mDiskControllers;
         vector<Disk*> mDisks;

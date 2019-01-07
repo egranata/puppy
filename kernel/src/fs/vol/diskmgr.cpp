@@ -14,27 +14,11 @@
 
 #include <kernel/log/log.h>
 
-#include <kernel/boot/phase.h>
-
 #include <kernel/fs/vol/diskmgr.h>
 #include <kernel/fs/vol/diskctrl.h>
 #include <kernel/fs/vol/disk.h>
 #include <kernel/fs/vol/volume.h>
-
 #include <kernel/fs/devfs/devfs.h>
-
-#include <kernel/synch/eventfs.h>
-
-namespace boot::disk_mgr {
-    uint32_t init() {
-        DiskManager::get();
-        return 0;
-    }
-
-    bool fail(uint32_t) {
-        return bootphase_t::gPanic;
-    }
-}
 
 DiskManager& DiskManager::get() {
     static DiskManager gManager;
@@ -44,17 +28,12 @@ DiskManager& DiskManager::get() {
 
 DiskManager::DiskManager() {
     mDevFSDirectory = DevFS::get().getDeviceDirectory("disks");
-
-    mNewControllerEventFile = EventFS::get()->open("/disk_mgr_new_controller", FILE_OPEN_READ | FILE_OPEN_WRITE);
-    mNewDiskEventFile = EventFS::get()->open("/disk_mgr_new_disk", FILE_OPEN_READ | FILE_OPEN_WRITE);
-    mNewVolumeEventFile = EventFS::get()->open("/disk_mgr_new_volume", FILE_OPEN_READ | FILE_OPEN_WRITE);
 }
 
 void DiskManager::onNewDiskController(DiskController* ctrl) {
     if (ctrl) {
         mDiskControllers.push_back(ctrl);
         LOG_INFO("added new DiskController 0x%p %s", ctrl, ctrl->id());
-        if (mNewControllerEventFile) mNewControllerEventFile->ioctl(IOCTL_EVENT_RAISE, 1);
     }
 }
 
@@ -63,7 +42,6 @@ void DiskManager::onNewDisk(Disk *dsk) {
         mDisks.push_back(dsk);
         LOG_INFO("added new Disk 0x%p %s, controller is 0x%p %s", dsk, dsk->id(), dsk->controller(), dsk->controller()->id());
         mDevFSDirectory->add(dsk->file());
-        if (mNewDiskEventFile) mNewDiskEventFile->ioctl(IOCTL_EVENT_RAISE, 1);
     }
 }
 
@@ -73,7 +51,6 @@ void DiskManager::onNewVolume(Volume *vol) {
         LOG_INFO("added new Volume 0x%p %s disk 0x%p %s controller is 0x%p %s",
             vol, vol->id(), vol->disk(), vol->disk()->id(), vol->disk()->controller(), vol->disk()->controller()->id());
         mDevFSDirectory->add(vol->file());
-        if (mNewVolumeEventFile) mNewVolumeEventFile->ioctl(IOCTL_EVENT_RAISE, 1);
     }
 }
 
