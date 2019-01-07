@@ -34,7 +34,12 @@ SECTIONS {
         *(COMMON)
         *(.bss*)
     }
-	
+
+	.kstack ALIGN (0x1000) : AT(ADDR(.kstack)-0xC0000000) {
+		KEEP(*(.kstack))
+        *(.kstack*)
+    }
+
 	.acpi_ddriv ALIGN (0x1000) : AT(ADDR(.acpi_ddriv)-0xC0000000) {
 		__acpi_ddriv_start = .;
 		KEEP(*(.acpi_ddriv))

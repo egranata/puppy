@@ -65,10 +65,12 @@ __bootpagedir:
     ; - 4MB pages; read/write; present (user/supervisor doesn't matter much as userspace only
     ;                                   enters the picture at the very end of the boot process)
     ; These initial entries (and the higher half below) will be unmapped later on by the VMM layer
-    times KERNEL_NUM_PAGES dd 0x00000083
+    dd 0x00000083
+    dd 0x00400083
     times (KERNEL_PAGE_NUMBER - KERNEL_NUM_PAGES) dd 0                 ; Pages before kernel space.
     ; Map the kernel again in higher half
-    times KERNEL_NUM_PAGES dd 0x00000083
+    dd 0x00000083
+    dd 0x00400083
     times (1024 - KERNEL_PAGE_NUMBER - KERNEL_NUM_PAGES) dd 0 ; loader will overwrite the last entry here
 
 ; change this value here if system entries are added to the GDT
@@ -170,7 +172,7 @@ WhyHere: ; TODO: could _earlyBoot and/or _kmain return a code to tell us what ha
     hlt
     jmp WhyHere
 
-section .bss
+section .kstack
 align 32
-    resb STACKSIZE
+    times STACKSIZE db 0
 stack:
