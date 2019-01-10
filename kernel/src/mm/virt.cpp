@@ -805,6 +805,11 @@ void VirtualPageManager::delKernelRegion(interval_t rgn) {
 	mKernelRegions.del(rgn);
 }
 
+bool VirtualPageManager::isWithinKernelRegion(uintptr_t address, interval_t *rgn) {
+	address -= gKernelBase;
+	return mKernelRegions.contains(address, rgn);
+}
+
 uintptr_t VirtualPageManager::mapOtherProcessPage(process_t* other, uintptr_t otherVirt, uintptr_t selfVirt, const map_options_t& op) {
 	auto opts = map_options_t(op);
 	PagingIndices indices(otherVirt);

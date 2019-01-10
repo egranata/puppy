@@ -63,7 +63,17 @@ static constexpr size_t toPage(size_t size) {
 bool MemoryManager::isWithinRegion(uintptr_t addr, region_t *rgn) {
     // hacky but effective - page 0 is never permitted to be mapped
     if (VirtualPageManager::page(addr) == 0) return false;
-    return mRegions.contains(addr, rgn);
+
+    // kernel regions are handled separately from MemoryManager
+    if (VirtualPageManager::iskernel(addr)) {
+        interval_t ival;
+        bool yes = VirtualPageManager::get().isWithinKernelRegion(addr, &ival);
+        if (!yes) return false;
+        *rgn = region_t(ival.from + VirtualPageManager::gKernelBase, ival.to + VirtualPageManager::gKernelBase);
+        return yes;
+    } else {
+        return mRegions.contains(addr, rgn);
+    }
 }
 
 bool MemoryManager::protectRegionAtAddress(uintptr_t address, const VirtualPageManager::map_options_t& new_opts) {

@@ -153,6 +153,7 @@ public:
 	void addKernelRegion(uintptr_t low, uintptr_t high);
 	bool findKernelRegion(size_t size, interval_t& rgn);
 	void delKernelRegion(interval_t rgn);
+	bool isWithinKernelRegion(uintptr_t address, interval_t *rgn);
 
 	void setheap(uintptr_t heap, size_t size);
 	uintptr_t getheap() const;
