@@ -105,7 +105,7 @@ class ProcessManager : NOCOPY {
         // process wakes up due to a sleep timeout
         void wake(process_t*);
 
-        void deschedule(process_t*, process_t::State);
+        void deschedule(process_t*, process_t::State, void* waitable);
         void enqueueForDeath(process_t*);
 
         PM_GLOBAL(ProcessBitmap<ProcessManager::gNumProcesses>, gPidBitmap);

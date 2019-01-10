@@ -110,6 +110,19 @@ class vector : NOCOPY {
             while (erase(value));
         }
 
+        template<typename U>
+        void eraseAll(bool(*f)(const T& t, U u), U u) {
+            entry:
+                auto b = begin();
+                auto e = end();
+                for(; b != e; ++b) {
+                    if (f(*b, u)) {
+                        erase(b);
+                        goto entry;
+                    }
+                }
+        }
+
         void pop_back() {
             if (mSize > 0) --mSize;
         }

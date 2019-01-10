@@ -55,6 +55,11 @@ class dynqueue {
             mElements.eraseAll(t);
         }
 
+        template<typename U>
+        void remove(bool(*f)(const T& t, U u), U u) {
+            mElements.eraseAll(f, u);
+        }
+
     private:
         vector<T> mElements;
 };

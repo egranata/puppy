@@ -561,7 +561,7 @@ kpid_t ProcessManager::getpid() {
 void ProcessManager::sleep(uint32_t durationMs) {
     gCurrentProcess->sleeptill = TimeManager::get().millisUptime() + durationMs;
     LOG_DEBUG("task %u scheduled to sleep till %llu", gCurrentProcess->pid, gCurrentProcess->sleeptill);
-    deschedule(gCurrentProcess, process_t::State::SLEEPING);
+    deschedule(gCurrentProcess, process_t::State::SLEEPING, nullptr);
     gSleepQueue().insert({gCurrentProcess->waitToken, gCurrentProcess});
     tasks::awaker::queue().wakeall();
     yield();
@@ -716,6 +716,9 @@ void ProcessManager::wake(process_t* task) {
     if (task->state == process_t::State::AVAILABLE) {
         LOG_INFO("waking up task %u which is already awake", task->pid);
     } else {
+        if (task->wakeReason.waitable) {
+            ((WaitQueue*)task->wakeReason.waitable)->remove(task);
+        }
         task->wakeReason.timeout = true;
         task->wakeReason.waitable = nullptr;
         reschedule(task);
@@ -728,7 +731,7 @@ void ProcessManager::reschedule(process_t* task) {
     gReadyQueue().push_back(task);
 }
 
-void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
+void ProcessManager::deschedule(process_t* task, process_t::State newstate, void* waitable) {
     int numfound = 0;
 
     auto&& rq(gReadyQueue());
@@ -737,7 +740,7 @@ void ProcessManager::deschedule(process_t* task, process_t::State newstate) {
         if (*b == task) {
             ++numfound;
             (*b)->state = newstate;
-            (*b)->wakeReason.clear();
+            (*b)->wakeReason.waitable = waitable;
             rq.erase(b);
             b = rq.begin();
             e = rq.end();
@@ -773,7 +776,7 @@ bool ProcessManager::collectany(bool wait, kpid_t* pid, process_exit_status_t* s
             }
         }
         if (wait) {
-            deschedule(gCurrentProcess, process_t::State::COLLECTING);
+            deschedule(gCurrentProcess, process_t::State::COLLECTING, nullptr);
             yield();
         }
     } while(wait);
@@ -803,7 +806,7 @@ begin:
     if (task->state != process_t::State::EXITED) {
         // cannot collect a non-EXITED process
         LOG_DEBUG("attempting to collect task %u, not dead yet - parent %u must wait", task->pid, gCurrentProcess->pid);
-        deschedule(gCurrentProcess, process_t::State::COLLECTING);
+        deschedule(gCurrentProcess, process_t::State::COLLECTING, nullptr);
         yield();
         goto begin;
     }

@@ -32,6 +32,8 @@ class WaitQueue : NOCOPY {
         // enter the WaitQueue, mark the process as WAITING, and then return control to the process
         void wait(process_t*);
 
+        void remove(process_t*);
+
         process_t* wakeone();
         void wakeall();
         process_t *peek();
@@ -41,6 +43,10 @@ class WaitQueue : NOCOPY {
             uint64_t token;
             process_t *process;
         };
+
+        static bool is_same_process(const queue_entry_t& q, process_t* t) {
+            return q.process == t;
+        }
 
         void pushToQueue(process_t*);
 

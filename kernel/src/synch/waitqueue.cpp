@@ -25,7 +25,7 @@ void WaitQueue::pushToQueue(process_t* task) {
     auto&& pm(ProcessManager::get());
 
     mProcesses.push({task->waitToken, task});
-    pm.deschedule(task, process_t::State::WAITING);
+    pm.deschedule(task, process_t::State::WAITING, this);
 }
 
 void WaitQueue::wait(process_t* task) {
@@ -90,4 +90,8 @@ process_t* WaitQueue::peek() {
 
 bool WaitQueue::empty() {
     return mProcesses.empty();
+}
+
+void WaitQueue::remove(process_t* task) {
+    mProcesses.remove(is_same_process, task);
 }
