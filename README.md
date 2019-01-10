@@ -5,7 +5,7 @@ Welcome to Puppy.
 
 Puppy is an operating system for IBM-compatible computers with 32-bit Intel CPUs (you may have heard of this kind of hardware under the name *personal computer*).
 
-Development of Puppy has started on January 1st 2018 and the project has been open-source since May 29 2018. Since then, the operating system has grown to provide:
+Development of Puppy has started [on January 1st 2018](docs/initial_commit.png) and the project has been open-source since May 29 2018. Since then, the operating system has grown to provide:
 
 - preemptive multitasking (but not a preemptive kernel);
 - memory protection;
