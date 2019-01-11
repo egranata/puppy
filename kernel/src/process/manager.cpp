@@ -60,7 +60,7 @@ static time_tick_callback_t::yield_vote_t tick_for_metrics(InterruptStack&, uint
     return time_tick_callback_t::no_yield;
 }
 
-namespace boot::task {
+namespace boot::proc_manager {
     uint32_t init() {
         ProcessManager &proc(ProcessManager::get());
         VirtualPageManager &vm(VirtualPageManager::get());
@@ -83,8 +83,20 @@ namespace boot::task {
     	proc.installexceptionhandlers();
         LOG_INFO("real fault handlers enabled");
 
-        TimeManager::get().registerTickHandler(tick_for_schedule, nullptr, 5);
-        TimeManager::get().registerTickHandler(tick_for_metrics, nullptr, 1);
+        return 0;
+    }
+
+    bool fail(uint32_t) {
+        return bootphase_t::gPanic;
+    }
+}
+
+namespace boot::scheduler_tick {
+    uint32_t init() {
+        auto& tmgr(TimeManager::get());
+
+        tmgr.registerTickHandler(tick_for_schedule, nullptr, 5);
+        tmgr.registerTickHandler(tick_for_metrics, nullptr, 1);
 
         return 0;
     }

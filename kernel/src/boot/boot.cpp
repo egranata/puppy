@@ -61,7 +61,11 @@ namespace boot {
         uint32_t init();
         bool fail(uint32_t);
     }
-    namespace task {
+    namespace proc_manager {
+        uint32_t init();
+        bool fail(uint32_t);
+    }
+    namespace scheduler_tick {
         uint32_t init();
         bool fail(uint32_t);
     }
@@ -180,6 +184,14 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::mutexfs::init,
         onSuccess : nullptr,
         onFailure : boot::mutexfs::fail
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Create initial process",
+        visible : false,
+        operation : boot::proc_manager::init,
+        onSuccess : nullptr,
+        onFailure : boot::proc_manager::fail
     });
 
     registerBootPhase(bootphase_t{
@@ -337,8 +349,8 @@ __attribute__((constructor)) void loadBootPhases() {
     registerBootPhase(bootphase_t{
         description : "Enter multitasking",
         visible : false,
-        operation : boot::task::init,
+        operation : boot::scheduler_tick::init,
         onSuccess : nullptr,
-        onFailure : boot::task::fail
+        onFailure : boot::scheduler_tick::fail
     });
 }

@@ -32,8 +32,13 @@
 #include <kernel/libc/pair.h>
 #include <kernel/libc/function.h>
 
-namespace boot::task {
-    uint32_t init();
+namespace boot {
+    namespace proc_manager {
+        uint32_t init();
+    }
+    namespace scheduler_tick {
+        uint32_t init();
+    }
 }
 
 #define PM_GLOBAL(Type, Name) static Type& Name();
@@ -148,7 +153,8 @@ class ProcessManager : NOCOPY {
         uintptr_t mProcessPagesLow;
         uintptr_t mProcessPagesHigh;
 
-        friend uint32_t boot::task::init();
+        friend uint32_t boot::proc_manager::init();
+        friend uint32_t boot::scheduler_tick::init();
 };
 
 #undef PM_GLOBAL
