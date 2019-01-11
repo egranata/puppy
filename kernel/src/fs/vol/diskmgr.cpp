@@ -20,6 +20,8 @@
 #include <kernel/fs/vol/volume.h>
 #include <kernel/fs/devfs/devfs.h>
 
+#include <kernel/synch/msgqueue.h>
+
 DiskManager& DiskManager::get() {
     static DiskManager gManager;
 
@@ -28,12 +30,18 @@ DiskManager& DiskManager::get() {
 
 DiskManager::DiskManager() {
     mDevFSDirectory = DevFS::get().getDeviceDirectory("disks");
+    mQueueFile = MessageQueueFS::get()->open("/diskmgr_events", FILE_OPEN_WRITE);
 }
 
 void DiskManager::onNewDiskController(DiskController* ctrl) {
     if (ctrl) {
         mDiskControllers.push_back(ctrl);
         LOG_INFO("added new DiskController 0x%p %s", ctrl, ctrl->id());
+
+        diskmgr_msg_t msg;
+        bzero(&msg, sizeof(msg));
+        msg.kind = diskmgr_msg_t::gNewController;
+        mQueueFile->write(sizeof(msg), (char*)&msg);
     }
 }
 
@@ -41,7 +49,16 @@ void DiskManager::onNewDisk(Disk *dsk) {
     if (dsk) {
         mDisks.push_back(dsk);
         LOG_INFO("added new Disk 0x%p %s, controller is 0x%p %s", dsk, dsk->id(), dsk->controller(), dsk->controller()->id());
-        mDevFSDirectory->add(dsk->file());
+        auto dskFile = dsk->file();
+        mDevFSDirectory->add(dskFile);
+
+        buffer buf(diskmgr_msg_t::payloadSize);
+        diskmgr_msg_t msg;
+        bzero(&msg, sizeof(msg));
+        dsk->filename(&buf);
+        msg.kind = diskmgr_msg_t::gNewDisk;
+        memcpy(msg.payload, buf.c_str(), buf.size());
+        mQueueFile->write(sizeof(msg), (char*)&msg);
     }
 }
 
@@ -50,7 +67,16 @@ void DiskManager::onNewVolume(Volume *vol) {
         mVolumes.push_back(vol);
         LOG_INFO("added new Volume 0x%p %s disk 0x%p %s controller is 0x%p %s",
             vol, vol->id(), vol->disk(), vol->disk()->id(), vol->disk()->controller(), vol->disk()->controller()->id());
-        mDevFSDirectory->add(vol->file());
+        auto volFile = vol->file();
+        mDevFSDirectory->add(volFile);
+
+        buffer buf(diskmgr_msg_t::payloadSize);
+        diskmgr_msg_t msg;
+        bzero(&msg, sizeof(msg));
+        vol->filename(&buf);
+        msg.kind = diskmgr_msg_t::gNewVolume;
+        memcpy(msg.payload, buf.c_str(), buf.size());
+        mQueueFile->write(sizeof(msg), (char*)&msg);
     }
 }
 

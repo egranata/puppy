@@ -41,6 +41,8 @@ class DiskManager : NOCOPY {
 
         MemFS::Directory *mDevFSDirectory;
 
+        Filesystem::File *mQueueFile;
+
         vector<DiskController*> mDiskControllers;
         vector<Disk*> mDisks;
         vector<Volume*> mVolumes;

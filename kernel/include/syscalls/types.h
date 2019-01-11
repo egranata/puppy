@@ -271,6 +271,17 @@ struct message_t {
 
 static_assert(sizeof(message_t) == message_t::gTotalSize);
 
+struct diskmgr_msg_t {
+    static constexpr uint8_t gNewController = (1 << 1) | 1;
+    static constexpr uint8_t gNewDisk       = (1 << 2) | 1;
+    static constexpr uint8_t gNewVolume     = (1 << 3) | 1;
+
+    static constexpr size_t payloadSize = gMaxPathSize;
+
+    uint8_t kind;
+    uint8_t payload[payloadSize];
+};
+
 struct pci_device_info_t {
     uint8_t bus;
     uint8_t slot;
