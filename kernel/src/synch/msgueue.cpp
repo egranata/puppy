@@ -137,7 +137,6 @@ size_t MessageQueueBuffer::write(size_t n, char* src, bool allowBlock) {
     memcpy(msg.payload, src, n);
 
     while (0 == mFreeSize) {
-        if (numReaders() == 0) return n;
         if (allowBlock) mFullWQ.yield(gCurrentProcess, 0);
         else return 0;
     }
