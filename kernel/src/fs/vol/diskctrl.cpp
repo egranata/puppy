@@ -25,3 +25,7 @@ const char* DiskController::id() const {
 void DiskController::id(const char* Id) {
     mId = Id;
 }
+
+void DiskController::filename(buffer* buf) {
+    buf->printf("%s", mId);
+}

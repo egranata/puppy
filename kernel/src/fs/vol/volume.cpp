@@ -40,6 +40,10 @@ void Volume::id(const char* Id) {
     mId = Id ? Id : "";
 }
 
+void Volume::filename(buffer* buf) {
+    buf->printf("%s%s%s", disk()->controller()->id(), disk()->id(), id());
+}
+
 LOG_TAG(LRUCACHE, 2);
 
 bool Volume::tryReadSector(uint32_t sector, unsigned char* buffer, bool tryReadCache, bool updateCache) {
@@ -137,17 +141,9 @@ uintptr_t Volume::ioctl(uintptr_t a, uintptr_t b) {
 MemFS::File* Volume::file() {
     class VolumeFile : public MemFS::File {
         public:
-            VolumeFile(Volume* vol, Disk *disk) : MemFS::File(""), mVolume(vol) {
+            VolumeFile(Volume* vol) : MemFS::File(""), mVolume(vol) {
                 buffer b(64);
-                if (disk) {
-                    if (disk->controller()) {
-                        b.printf("%s%s%s", disk->controller()->id(), disk->id(), vol->id());
-                    } else {
-                        b.printf("%s%s", disk->id(), vol->id());
-                    }
-                } else {
-                    b.printf("%s", vol->id());
-                }
+                vol->filename(&b);
                 name(b.c_str());
                 kind(Filesystem::FilesystemObject::kind_t::blockdevice);
             }
@@ -172,5 +168,5 @@ MemFS::File* Volume::file() {
             Volume *mVolume;
     };
 
-    return new VolumeFile(this, disk());
+    return new VolumeFile(this);
 }

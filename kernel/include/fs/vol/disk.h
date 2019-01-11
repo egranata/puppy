@@ -22,6 +22,7 @@
 #include <kernel/libc/str.h>
 #include <kernel/fs/vol/ptable.h>
 #include <kernel/fs/memfs/memfs.h>
+#include <kernel/libc/buffer.h>
 
 class DiskController;
 class Volume;
@@ -38,6 +39,8 @@ class Disk : NOCOPY {
         virtual DiskController *controller() = 0;
         virtual Volume* volume(const diskpart_t&) = 0;
         virtual MemFS::File* file();
+
+        void filename(buffer*);
     protected:
         Disk(const char* Id);
         void id(const char* Id);

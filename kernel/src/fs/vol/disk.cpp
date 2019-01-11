@@ -26,12 +26,16 @@ void Disk::id(const char* Id) {
     mId = Id;
 }
 
+void Disk::filename(buffer* buf) {
+    buf->printf("%s%s", controller()->id(), id());
+}
+
 MemFS::File* Disk::file() {
     class DiskFile : public MemFS::File {
         public:
             DiskFile(Disk *dsk) : MemFS::File(""), mDisk(dsk) {
                 buffer buf(64);
-                buf.printf("%s%s", mDisk->controller()->id(), mDisk->id());
+                dsk->filename(&buf);
                 name(buf.c_str());
                 kind(Filesystem::FilesystemObject::kind_t::blockdevice);
             }

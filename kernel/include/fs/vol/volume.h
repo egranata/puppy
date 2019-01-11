@@ -22,6 +22,7 @@
 #include <kernel/fs/vol/lru.h>
 #include <kernel/libc/str.h>
 #include <kernel/fs/memfs/memfs.h>
+#include <kernel/libc/buffer.h>
 
 class Disk;
 
@@ -49,6 +50,7 @@ class Volume : NOCOPY {
         virtual MemFS::File* file();
 
         const char* id() const;
+        void filename(buffer*);
 
         virtual Disk* disk();
     private:

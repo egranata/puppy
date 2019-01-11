@@ -20,10 +20,12 @@
 #include <kernel/sys/nocopy.h>
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/str.h>
+#include <kernel/libc/buffer.h>
 
 class DiskController : NOCOPY {
     public:
         const char* id() const;
+        void filename(buffer*);
     protected:
         DiskController(const char* Id);
         void id(const char* Id);
