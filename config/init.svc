@@ -1,4 +1,10 @@
 [
+    {"name" : "vold",
+     "path" : "/system/apps/vold",
+     "args" : "",
+     "foreground" : false
+    },
+
     {"name" : "acpi_count",
      "path" : "/system/apps/lsacpi",
      "args" : "--count",
