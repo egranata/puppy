@@ -19,8 +19,10 @@
 #include <kernel/syscalls/types.h>
 
 #include "handlers.h"
+#include "settings.h"
+#include "automount.h"
 
-static void onEvent(const char* kind, const char* id) {
+static void notifyHandler(const char* kind, const char* id) {
     printf("[vold] new %s detected: '%s'\n", kind, id);
 }
 
@@ -60,15 +62,26 @@ static int eventLoop(FILE* f) {
 }
 
 int main() {
-    addControllerHandler([] (const char* id) -> void {
-        onEvent("controller", id);
-    });
-    addDiskHandler([] (const char* id) -> void {
-        onEvent("disk", id);
-    });
-    addVolumeHandler([] (const char* id) -> void {
-        onEvent("volume", id);
-    });
+    vold_settings_t settings;
+    if (!vold_settings_t::load(&settings)) {
+        printf("[vold] unable to load settings\n");
+        return 1;
+    }
+
+    if (settings.notify) {
+        addControllerHandler([] (const char* id) -> void {
+            notifyHandler("controller", id);
+        });
+        addDiskHandler([] (const char* id) -> void {
+            notifyHandler("disk", id);
+        });
+        addVolumeHandler([] (const char* id) -> void {
+            notifyHandler("volume", id);
+        });
+    }
+
+    if (settings.automount)
+        addVolumeHandler(automountVolumeHandler);
 
     FILE *f = fopen("/queues/diskmgr_events", "r");
     setvbuf(f, nullptr, _IOFBF, sizeof(message_t));

@@ -15,4 +15,4 @@
 INPUTS := $(wildcard src/*.cpp)
 
 all: $(INPUTS)
-	$(CC) $(INPUTS) -Iinclude -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
+	$(CC) $(INPUTS) -Iinclude -lparson -o $(PUPPY_ROOT)/$(OUTWHERE)/$(TGTNAME)
