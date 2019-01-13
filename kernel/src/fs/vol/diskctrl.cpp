@@ -27,5 +27,5 @@ void DiskController::id(const char* Id) {
 }
 
 void DiskController::filename(buffer* buf) {
-    buf->printf("%s", mId);
+    buf->printf("%s", id());
 }

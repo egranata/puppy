@@ -38,9 +38,12 @@ void DiskManager::onNewDiskController(DiskController* ctrl) {
         mDiskControllers.push_back(ctrl);
         LOG_INFO("added new DiskController 0x%p %s", ctrl, ctrl->id());
 
+        buffer buf(diskmgr_msg_t::payloadSize);
         diskmgr_msg_t msg;
         bzero(&msg, sizeof(msg));
+        ctrl->filename(&buf);
         msg.kind = diskmgr_msg_t::gNewController;
+        memcpy(msg.payload, buf.c_str(), buf.size());
         mQueueFile->write(sizeof(msg), (char*)&msg);
     }
 }
