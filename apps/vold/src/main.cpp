@@ -18,14 +18,22 @@
 
 #include <kernel/syscalls/types.h>
 
-int main() {
-    FILE *f = fopen("/queues/diskmgr_events", "r");
-    setvbuf(f, nullptr, _IOFBF, sizeof(message_t));
-    while(true) {
+#include "handlers.h"
+
+static void onEvent(const char* kind, const char* id) {
+    printf("[vold] new %s detected: '%s'\n", kind, id);
+}
+
+static volatile bool exitLoop = false;
+
+static int eventLoop(FILE* f) {
+    int numErrors = 0;
+    while(!exitLoop) {
         message_t msg;
         bzero(&msg, sizeof(msg));
         while(0 == fread(&msg, sizeof(msg), 1, f));
         if (msg.header.payload_size != sizeof(diskmgr_msg_t)) {
+            ++numErrors;
             printf("[vold] unknown message size: %u\n", msg.header.payload_size);
             continue;
         }
@@ -33,17 +41,37 @@ int main() {
         diskmgr_msg_t *info = (diskmgr_msg_t*)msg.payload;
         switch (info->kind) {
             case diskmgr_msg_t::gNewController:
-                printf("[vold] new controller detected\n");
+                onNewController( (const char*)info->payload );
                 break;
             case diskmgr_msg_t::gNewDisk:
-                printf("[vold] new disk detected '%s'\n", info->payload);
+                onNewDisk( (const char*)info->payload );
                 break;
             case diskmgr_msg_t::gNewVolume:
-                printf("[vold] new volume detected '%s'\n", info->payload);
+                onNewVolume( (const char*)info->payload );
                 break;
             default:
+                ++numErrors;
                 printf("[vold] unknown message type: %u\n", info->kind);
                 break;
         }
     }
+
+    return numErrors;
+}
+
+int main() {
+    addControllerHandler([] (const char* id) -> void {
+        onEvent("controller", id);
+    });
+    addDiskHandler([] (const char* id) -> void {
+        onEvent("disk", id);
+    });
+    addVolumeHandler([] (const char* id) -> void {
+        onEvent("volume", id);
+    });
+
+    FILE *f = fopen("/queues/diskmgr_events", "r");
+    setvbuf(f, nullptr, _IOFBF, sizeof(message_t));
+
+    return eventLoop(f);
 }
