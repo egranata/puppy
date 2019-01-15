@@ -23,15 +23,9 @@
      "wait" : true
     },
 
-    {"name" : "mount",
+    {"name" : "mount ramdisk",
      "path" : "/initrd/mount",
      "args" : "/devices/ramdisk/vol0 /tmp",
-     "wait" : true
-    },
-
-    {"name" : "home",
-     "path" : "/initrd/mount",
-     "args" : "/devices/disks/ide0dsk00vol1 /home",
      "wait" : true
     },
 
