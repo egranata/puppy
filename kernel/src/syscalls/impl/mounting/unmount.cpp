@@ -14,8 +14,19 @@
 
 #include <kernel/syscalls/handlers.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/log/log.h>
 
 syscall_response_t unmount_syscall_handler(const char* path) {
+    if (path[0] == '/') ++path;
+    if (path[0] == 0) {
+        LOG_ERROR("empty mountpoint path not valid");
+        return ERR(NOT_ALLOWED);
+    }
+    if (nullptr != strchr(path, '/')) {
+        LOG_ERROR("mountpoint path '%s' not valid", path);
+        return ERR(NOT_ALLOWED);
+    }
+
     auto& vfs(VFS::get());
     auto fs = vfs.findfs(path);
     if (fs == nullptr) return ERR(NO_SUCH_OBJECT);

@@ -20,6 +20,16 @@
 #include <kernel/fs/vol/volume.h>
 
 syscall_response_t mount_syscall_handler(uint32_t fileid, const char* path) {
+    if (path[0] == '/') ++path;
+    if (path[0] == 0) {
+        LOG_ERROR("empty mountpoint path not valid");
+        return ERR(NOT_ALLOWED);
+    }
+    if (nullptr != strchr(path, '/')) {
+        LOG_ERROR("mountpoint path '%s' not valid", path);
+        return ERR(NOT_ALLOWED);
+    }
+
     auto& vfs(VFS::get());
 
     VFS::filehandle_t fh = {nullptr, nullptr};
