@@ -17,7 +17,27 @@
 #include <stdio.h>
 
 #include <syscalls.h>
-#include <string>
+#include <kernel/syscalls/types.h>
+
+#include <unordered_map>
+
+#include <parson/parson.h>
+
+#define VOLD_SETTINGS_PATH "/system/config/vold/automount.json"
+
+std::unordered_map<uint64_t, automount_rule_t> gAutomountRules;
+
+struct fdelete {
+    fdelete(FILE* f) : fobj(f) {}
+    operator FILE*() {
+        return fobj;
+    }
+    ~fdelete() {
+        if (fobj) fclose(fobj);
+    }
+private:
+    FILE* fobj;
+};
 
 void automountVolumeHandler(const char* volid) {
     std::string fpath;
@@ -27,10 +47,53 @@ void automountVolumeHandler(const char* volid) {
         printf("[vold] error: volume '%s' does not match any device file\n", volid);
         return;
     }
+    fdelete _fdel(f);
+
     int fid = fileno(f);
     int ok = mount_syscall(fid, volid);
-    fclose(f);
     if (ok) {
         printf("[vold] error: volume '%s' cannot be mounted\n", volid);
+        return;
     }
+
+    filesystem_info_t fsinfo;
+    if (0 != fsinfo_syscall(volid, &fsinfo)) {
+        printf("[vold] error: volume '%s' cannot be configured\n", volid);
+        return;
+    }
+
+    auto iter = gAutomountRules.find(fsinfo.fs_uuid), end = gAutomountRules.end();
+    if (iter == end) return;
+    ok = mount_syscall(fid, iter->second.path.c_str());
+    if (ok) {
+        printf("[vold] error: volume '%s' cannot be mounted at '%s'\n", volid, iter->second.path.c_str());
+        return;
+    }
+    ok = unmount_syscall(volid);
+    if (ok) {
+        printf("[vold] error: volume '%s' cannot be unmounted from default location\n", volid);
+        return;
+    }
+}
+
+bool loadAutomountRules() {
+    JSON_Value *json_value = json_parse_file(VOLD_SETTINGS_PATH);
+    if (json_value == nullptr) return false;
+    JSON_Array *root_array = json_array(json_value);
+    if (root_array == nullptr) return false;
+
+    const size_t count = json_array_get_count(root_array);
+    for (size_t i = 0u; i < count; ++i) {
+        JSON_Object *entry = json_array_get_object(root_array, i);
+        if (entry == nullptr) return false;
+        automount_rule_t rule;
+        rule.uuid = (uint64_t)json_object_get_number(entry, "uuid");
+        rule.path = json_object_get_string(entry, "mountpoint");
+        if (rule.uuid != 0 && rule.path.size() > 0)
+            gAutomountRules.emplace(rule.uuid, rule);
+        else
+            return false;
+    }
+
+    return true;
 }

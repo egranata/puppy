@@ -80,8 +80,13 @@ int main() {
         });
     }
 
-    if (settings.automount)
+    if (settings.automount) {
+        if (!loadAutomountRules()) {
+            printf("[vold] unable to load automount settings\n");
+            return 2;
+        }
         addVolumeHandler(automountVolumeHandler);
+    }
 
     FILE *f = fopen("/queues/diskmgr_events", "r");
     setvbuf(f, nullptr, _IOFBF, sizeof(message_t));

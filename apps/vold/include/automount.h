@@ -15,8 +15,19 @@
 #ifndef VOLD_AUTOMOUNT
 #define VOLD_AUTOMOUNT
 
+#include <stdint.h>
+
 #include "settings.h"
 
+#include <string>
+
 void automountVolumeHandler(const char* volid);
+
+struct automount_rule_t {
+    uint64_t uuid;
+    std::string path;
+};
+
+bool loadAutomountRules();
 
 #endif
