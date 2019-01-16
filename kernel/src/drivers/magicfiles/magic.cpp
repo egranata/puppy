@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,32 @@ class NullFile : public MemFS::File {
         }
 };
 
+class ZeroFile : public MemFS::File {
+    public:
+        ZeroFile() : MemFS::File("zero") {
+            kind(file_kind_t::chardevice);
+        }
+
+        delete_ptr<MemFS::FileBuffer> content() override {
+            class Buffer : public MemFS::FileBuffer {
+                public:
+                    size_t len() override { return 0xFFFFFFFF; }
+                    bool at(size_t, uint8_t* c) override {
+                        *c = 0;
+                        return true;
+                    }
+            };
+            return new Buffer();
+        }
+};
+
 namespace boot::magicfiles {
     uint32_t init() {
         DevFS& devfs(DevFS::get());
+        auto root_dir = devfs.getRootDirectory();
 
-        devfs.getRootDirectory()->add(new NullFile());
+        root_dir->add(new NullFile());
+        root_dir->add(new ZeroFile());
 
         return 0;
     }
