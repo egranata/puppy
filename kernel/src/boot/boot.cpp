@@ -119,6 +119,9 @@ namespace boot {
     namespace fb_file {
         uint32_t init();
     }
+    namespace magicfiles {
+        uint32_t init();
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -310,6 +313,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "Install PRNG driver",
         visible : false,
         operation : boot::prng::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Setup magic file devices",
+        visible : false,
+        operation : boot::magicfiles::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
