@@ -90,19 +90,14 @@ namespace std
 		{
 		}
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <class Allocator>
-			queue(this_type&& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
-			  : c(std::move(x.c), allocator)
-			{
-			}
-		#endif
+		template <class Allocator>
+		queue(this_type&& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+		  : c(std::move(x.c), allocator)
+		{
+		}
 
 		explicit queue(const container_type& x);
-
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			explicit queue(container_type&& x);
-		#endif
+		explicit queue(container_type&& x);
 
 		// Additional C++11 support to consider:
 		//
@@ -124,21 +119,10 @@ namespace std
 		const_reference back() const;
 
 		void push(const value_type& value);
+		void push(value_type&& x);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			void push(value_type&& x);
-		#endif
-
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <class... Args>
-			void emplace_back(Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				void emplace_back(value_type&& x);
-			#endif
-
-			void emplace_back(const value_type& x);
-		#endif
+		template <class... Args>
+		void emplace_back(Args&&... args);
 
 		void pop();
 
@@ -174,14 +158,12 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Container>
-		inline queue<T, Container>::queue(Container&& x)
-			: c(std::move(x))
-		{
-			// Empty
-		}
-	#endif
+	template <typename T, typename Container>
+	inline queue<T, Container>::queue(Container&& x)
+		: c(std::move(x))
+	{
+		// Empty
+	}
 
 
 	template <typename T, typename Container>
@@ -254,37 +236,19 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Container>
-		inline void queue<T, Container>::push(value_type&& x) 
-		{
-			c.push_back(std::move(x));
-		}
-	#endif
+	template <typename T, typename Container>
+	inline void queue<T, Container>::push(value_type&& x) 
+	{
+		c.push_back(std::move(x));
+	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-		template <typename T, typename Container>
-		template <class... Args> 
-		inline void queue<T, Container>::emplace_back(Args&&... args)
-		{
-			c.emplace_back(std::forward<Args>(args)...);
-		}
-	#else
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename T, typename Container>
-			inline void queue<T, Container>::emplace_back(value_type&& x)
-			{
-				c.emplace_back(std::move(x));
-			}
-		#endif
-
-		template <typename T, typename Container>
-		inline void queue<T, Container>::emplace_back(const value_type& x)
-		{
-			c.emplace_back(x);
-		}
-	#endif
+	template <typename T, typename Container>
+	template <class... Args> 
+	inline void queue<T, Container>::emplace_back(Args&&... args)
+	{
+		c.emplace_back(std::forward<Args>(args)...);
+	}
 
 
 	template <typename T, typename Container>

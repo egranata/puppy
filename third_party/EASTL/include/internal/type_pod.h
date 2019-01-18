@@ -388,11 +388,10 @@ namespace std
 
 	#define EASTL_TYPE_TRAIT_has_trivial_relocate_CONFORMANCE 0  // is_pod is not fully conforming. Can return false negatives.
 
-	// With current compilers, this is all we can do.
-	template <typename T> 
-	struct has_trivial_relocate : public std::integral_constant<bool, std::is_pod<T>::value && !std::is_volatile<T>::value>{};
+	template <typename T>
+	struct has_trivial_relocate : public std::bool_constant<std::is_pod_v<T> && !std::is_volatile_v<T>> {};
 
-	#define EASTL_DECLARE_TRIVIAL_RELOCATE(T) namespace std{ template <> struct has_trivial_relocate<T> : public true_type{}; template <> struct has_trivial_relocate<const T> : public true_type{}; }
+    #define EASTL_DECLARE_TRIVIAL_RELOCATE(T) namespace std{ template <> struct has_trivial_relocate<T> : public true_type{}; template <> struct has_trivial_relocate<const T> : public true_type{}; }
 
 
 
@@ -716,71 +715,77 @@ namespace std
 
 	#define EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE 1
 
-	// We implement a copy of move here has move_internal. We are currently stuck doing this because our move
-	// implementation is in <utility.h> and <utility.h> currently #includes us, and so we have a header 
-	// chicken-and-egg problem. To do: Resolve this, probably by putting std::move somewhere else.
-	template <typename T>
-	inline typename std::remove_reference<T>::type&& move_internal(T&& x) EA_NOEXCEPT
+	#if EASTL_COMPILER_INTRINSIC_TYPE_TRAITS_AVAILABLE && (defined(_MSC_VER) || (defined(EA_COMPILER_CLANG) && EA_COMPILER_HAS_FEATURE(is_constructible)))
+		template<typename T, typename... Args>
+		struct is_constructible : public bool_constant<__is_constructible(T, Args...) > {};
+	#else
+		// We implement a copy of move here has move_internal. We are currently stuck doing this because our move
+		// implementation is in <utility.h> and <utility.h> currently #includes us, and so we have a header 
+		// chicken-and-egg problem. To do: Resolve this, probably by putting std::move somewhere else.
+		template <typename T>
+		inline typename std::remove_reference<T>::type&& move_internal(T&& x) EA_NOEXCEPT
 		{ return ((typename std::remove_reference<T>::type&&)x); }
 
-	template <typename T, class ...Args>
-	typename first_type_select<std::true_type, decltype(std::move_internal(T(std::declval<Args>()...)))>::type is(T&&, Args&& ...);
+		template <typename T, class ...Args>
+		typename first_type_select<std::true_type, decltype(std::move_internal(T(std::declval<Args>()...)))>::type is(T&&, Args&& ...);
 
-	template <typename T>
-	struct can_construct_scalar_helper
-	{
+		template <typename T>
+		struct can_construct_scalar_helper
+		{
 			static std::true_type can(T);
 			static std::false_type can(...);
-	};
+		};
 
-	template <typename ...Args>
-	std::false_type is(argument_sink, Args&& ...);
+		template <typename ...Args>
+		std::false_type is(argument_sink, Args&& ...);
 
-	// Except for scalars and references (handled below), check for constructibility via decltype.
-	template <bool, typename T, typename... Args>
-	struct is_constructible_helper_2    // argument_sink will catch all T that is not constructible from the Args and denote false_type
-		: public std::identity<decltype(is(std::declval<T>(), std::declval<Args>()...))>::type {};
+		// Except for scalars and references (handled below), check for constructibility via decltype.
+		template <bool, typename T, typename... Args>
+		struct is_constructible_helper_2    // argument_sink will catch all T that is not constructible from the Args and denote false_type
+			: public std::identity<decltype(is(std::declval<T>(), std::declval<Args>()...))>::type {};
 
-	template <typename T>
-	struct is_constructible_helper_2<true, T>
-		: public std::is_scalar<T> {};
+		template <typename T>
+		struct is_constructible_helper_2<true, T>
+			: public std::is_scalar<T> {};
 
-	template <typename T, typename Arg0> // We handle the case of multiple arguments below (by disallowing them).
-	struct is_constructible_helper_2<true, T, Arg0>
-		: public std::identity<decltype(can_construct_scalar_helper<T>::can(std::declval<Arg0>()))>::type {};
+		template <typename T, typename Arg0> // We handle the case of multiple arguments below (by disallowing them).
+		struct is_constructible_helper_2<true, T, Arg0>
+			: public std::identity<decltype(can_construct_scalar_helper<T>::can(std::declval<Arg0>()))>::type {};
 
-	// Scalars and references can be constructed only with 0 or 1 argument. e.g the following is an invalid expression: int(17, 23)
-	template <typename T, typename Arg0, typename ...Args>
-	struct is_constructible_helper_2<true, T, Arg0, Args...>
-		: public std::false_type {};
+		// Scalars and references can be constructed only with 0 or 1 argument. e.g the following is an invalid expression: int(17, 23)
+		template <typename T, typename Arg0, typename ...Args>
+		struct is_constructible_helper_2<true, T, Arg0, Args...>
+			: public std::false_type {};
 
-	template <bool, typename T, typename... Args>
-	struct is_constructible_helper_1
-		: public is_constructible_helper_2<std::is_scalar<T>::value || std::is_reference<T>::value, T, Args...> {};
+		template <bool, typename T, typename... Args>
+		struct is_constructible_helper_1
+			: public is_constructible_helper_2<std::is_scalar<T>::value || std::is_reference<T>::value, T, Args...> {};
 
-	// Unilaterally dismiss void, abstract, unknown bound arrays, and function types as not constructible.
-	template <typename T, typename... Args>
-	struct is_constructible_helper_1<true, T, Args...>
-		: public false_type {};
+		// Unilaterally dismiss void, abstract, unknown bound arrays, and function types as not constructible.
+		template <typename T, typename... Args>
+		struct is_constructible_helper_1<true, T, Args...>
+			: public false_type {};
 
-	// is_constructible
-	template <typename T, typename... Args>
-	struct is_constructible
-		: public is_constructible_helper_1<(std::is_abstract<typename std::remove_all_extents<T>::type>::value || 
-											std::is_array_of_unknown_bounds<T>::value                            ||
-											std::is_function<typename std::remove_all_extents<T>::type>::value || 
-											std::has_void_arg<T, Args...>::value), 
-											T, Args...> {};
+		// is_constructible
+		template <typename T, typename... Args>
+		struct is_constructible
+			: public is_constructible_helper_1<(std::is_abstract<typename std::remove_all_extents<T>::type>::value || 
+												std::is_array_of_unknown_bounds<T>::value                            ||
+												std::is_function<typename std::remove_all_extents<T>::type>::value || 
+												std::has_void_arg<T, Args...>::value), 
+												T, Args...> {};
 
-	// Array types are constructible if constructed with no arguments and if their element type is default-constructible
-	template <typename Array, size_t N>
-	struct is_constructible_helper_2<false, Array[N]>
-		: public std::is_constructible<typename std::remove_all_extents<Array>::type> {};
+		// Array types are constructible if constructed with no arguments and if their element type is default-constructible
+		template <typename Array, size_t N>
+		struct is_constructible_helper_2<false, Array[N]>
+			: public std::is_constructible<typename std::remove_all_extents<Array>::type> {};
 
-	// Arrays with arguments are not constructible. e.g. the following is an invalid expression: int[3](37, 34, 12)
-	template <typename Array, size_t N, typename ...Args>
-	struct is_constructible_helper_2<false, Array[N], Args...>
-		: public std::false_type {};
+		// Arrays with arguments are not constructible. e.g. the following is an invalid expression: int[3](37, 34, 12)
+		template <typename Array, size_t N, typename ...Args>
+		struct is_constructible_helper_2<false, Array[N], Args...>
+			: public std::false_type {};
+
+	#endif
 
 
 	// You need to manually declare const/volatile variants individually if you want them.
@@ -1443,6 +1448,11 @@ namespace std
 			: public std::integral_constant<bool, std::is_scalar<T>::value> {};
 
 	#endif
+
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T, class U>
+		EA_CONSTEXPR bool is_trivially_assignable_v = is_trivially_assignable<T, U>::value;
+    #endif
 
 	// The main purpose of this function is to help the non-conforming case above.
 	// Note: We don't handle const/volatile variations here, as we expect the user to 

@@ -31,12 +31,12 @@
 
 #ifdef _MSC_VER
 	#pragma warning(push, 0)
-	#include <EASTL/new>
+	#include <new>
 	#include <stddef.h>
 	#include <string.h>
 	#pragma warning(pop)
 #else
-	#include <EASTL/new>
+	#include <new>
 	#include <stddef.h>
 	#include <string.h>
 #endif

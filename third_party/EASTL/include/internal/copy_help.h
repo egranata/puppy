@@ -14,7 +14,7 @@
 #include <EASTL/internal/config.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/iterator.h>
-#include <newlib/string.h> // memcpy, memcmp, memmove
+#include <string.h> // memcpy, memcmp, memmove
 
 
 namespace std

@@ -32,10 +32,10 @@
 
 #ifdef _MSC_VER
 	#pragma warning(push, 0)
-	#include <EASTL/new>
+	#include <new>
 	#pragma warning(pop)
 #else
-	#include <EASTL/new>
+	#include <new>
 #endif
 
 #if defined(_MSC_VER)

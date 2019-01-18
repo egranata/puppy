@@ -56,7 +56,7 @@
 #endif
 
 EA_DISABLE_ALL_VC_WARNINGS()
-#include <EASTL/new>
+#include <new>
 #include <stddef.h>
 EA_RESTORE_ALL_VC_WARNINGS()
 

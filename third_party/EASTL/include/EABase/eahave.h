@@ -122,7 +122,7 @@
 #if !defined(EA_HAVE_DINKUMWARE_CPP_LIBRARY) && !defined(EA_NO_HAVE_DINKUMWARE_CPP_LIBRARY)
 	#if defined(__cplusplus)
 		EA_DISABLE_ALL_VC_WARNINGS()
-		#include <EASTL/cstddef> // Need to trigger the compilation of yvals.h without directly using <yvals.h> because it might not exist.
+		#include <cstddef> // Need to trigger the compilation of yvals.h without directly using <yvals.h> because it might not exist.
 		EA_RESTORE_ALL_VC_WARNINGS()
 	#endif
 

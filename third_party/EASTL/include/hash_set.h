@@ -145,18 +145,16 @@ namespace std
 		}
 
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			hash_set(this_type&& x)
-			  : base_type(std::move(x))
-			{
-			}
+		hash_set(this_type&& x)
+		  : base_type(std::move(x))
+		{
+		}
 
 
-			hash_set(this_type&& x, const allocator_type& allocator)
-			  : base_type(std::move(x), allocator)
-			{
-			}
-		#endif
+		hash_set(this_type&& x, const allocator_type& allocator)
+		  : base_type(std::move(x), allocator)
+		{
+		}
 
 
 		/// hash_set
@@ -198,12 +196,10 @@ namespace std
 		}
 
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			this_type& operator=(this_type&& x)
-			{
-				return static_cast<this_type&>(base_type::operator=(std::move(x)));
-			}
-		#endif
+		this_type& operator=(this_type&& x)
+		{
+			return static_cast<this_type&>(base_type::operator=(std::move(x)));
+		}
 
 	}; // hash_set
 
@@ -267,18 +263,16 @@ namespace std
 		}
 
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			hash_multiset(this_type&& x)
-			  : base_type(std::move(x))
-			{
-			}
+		hash_multiset(this_type&& x)
+		  : base_type(std::move(x))
+		{
+		}
 
 
-			hash_multiset(this_type&& x, const allocator_type& allocator)
-			  : base_type(std::move(x), allocator)
-			{
-			}
-		#endif
+		hash_multiset(this_type&& x, const allocator_type& allocator)
+		  : base_type(std::move(x), allocator)
+		{
+		}
 
 
 		/// hash_multiset
@@ -320,12 +314,10 @@ namespace std
 		}
 
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			this_type& operator=(this_type&& x)
-			{
-				return static_cast<this_type&>(base_type::operator=(std::move(x)));
-			}
-		#endif
+		this_type& operator=(this_type&& x)
+		{
+			return static_cast<this_type&>(base_type::operator=(std::move(x)));
+		}
 
 	}; // hash_multiset
 

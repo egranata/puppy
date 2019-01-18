@@ -322,14 +322,13 @@ namespace std
 			}
 		#endif
 
-	protected:
-		std::compressed_pair<pointer, deleter_type> mPair;
-
-		/// These functions are private in order to prevent copying, for safety.
+		/// These functions are deleted in order to prevent copying, for safety.
 		unique_ptr(const this_type&) = delete;
 		unique_ptr& operator=(const this_type&) = delete;
 		unique_ptr& operator=(pointer pValue) = delete;
 
+	protected:
+		std::compressed_pair<pointer, deleter_type> mPair;
 	}; // class unique_ptr
 
 
@@ -500,13 +499,13 @@ namespace std
 			}
 		#endif
 
+		/// These functions are deleted in order to prevent copying, for safety.
+		unique_ptr(const this_type&) = delete;
+		unique_ptr& operator=(const this_type&) = delete;
+		unique_ptr& operator=(pointer pArray) = delete;
+
 	protected:
 		std::compressed_pair<pointer, deleter_type> mPair;
-
-		/// These functions are private in order to prevent copying, for safety.
-		unique_ptr(const this_type&);
-		unique_ptr& operator=(const this_type&);
-		unique_ptr& operator=(pointer pArray);
 	};
 
 

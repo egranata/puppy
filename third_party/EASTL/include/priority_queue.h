@@ -132,23 +132,17 @@ namespace std
 			std::make_heap(c.begin(), c.end(), comp);
 		}
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <class Allocator>
-			priority_queue(this_type&& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
-				: c(std::move(x.c), allocator), comp(x.comp)
-			{
-				std::make_heap(c.begin(), c.end(), comp);
-			}
-		#endif
+		template <class Allocator>
+		priority_queue(this_type&& x, const Allocator& allocator, typename std::enable_if<std::uses_allocator<container_type, Allocator>::value>::type* = NULL)
+			: c(std::move(x.c), allocator), comp(x.comp)
+		{
+			std::make_heap(c.begin(), c.end(), comp);
+		}
 
 		explicit priority_queue(const compare_type& compare);
+		explicit priority_queue(const compare_type& compare, container_type&& x);
 
 		priority_queue(const compare_type& compare, const container_type& x);
-
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			explicit priority_queue(const compare_type& compare, container_type&& x);
-		#endif
-
 		priority_queue(std::initializer_list<value_type> ilist, const compare_type& compare = compare_type()); // C++11 doesn't specify that std::priority_queue has initializer list support.
 
 		template <typename InputIterator>
@@ -160,10 +154,8 @@ namespace std
 		template <typename InputIterator>
 		priority_queue(InputIterator first, InputIterator last, const compare_type& compare, const container_type& x);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <class InputIterator>
-			priority_queue(InputIterator first, InputIterator last, const compare_type& compare, container_type&& x);
-		#endif
+		template <class InputIterator>
+		priority_queue(InputIterator first, InputIterator last, const compare_type& compare, container_type&& x);
 
 		// Additional C++11 support to consider:
 		//
@@ -183,20 +175,10 @@ namespace std
 
 		void push(const value_type& value);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			void push(value_type&& x);
-		#endif
+		void push(value_type&& x);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <class... Args>
-			void emplace(Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				void emplace(value_type&& x);
-			#endif
-
-			void emplace(const value_type& x);
-		#endif
+		template <class... Args>
+		void emplace(Args&&... args);
 
 		void pop();
 
@@ -246,14 +228,12 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Container, typename Compare>
-		inline priority_queue<T, Container, Compare>::priority_queue(const compare_type& compare, container_type&& x)
-		  : c(std::move(x)), comp(compare)
-		{
-			std::make_heap(c.begin(), c.end(), comp);
-		}
-	#endif
+	template <typename T, typename Container, typename Compare>
+	inline priority_queue<T, Container, Compare>::priority_queue(const compare_type& compare, container_type&& x)
+	  : c(std::move(x)), comp(compare)
+	{
+		std::make_heap(c.begin(), c.end(), comp);
+	}
 
 
 	template <typename T, typename Container, typename Compare>
@@ -294,16 +274,14 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Container, typename Compare>
-		template <typename InputIterator>
-		inline priority_queue<T, Container, Compare>::priority_queue(InputIterator first, InputIterator last, const compare_type& compare, container_type&& x)
-			: c(std::move(x)), comp(compare)
-		{
-			c.insert(c.end(), first, last);
-			std::make_heap(c.begin(), c.end(), comp);
-		}
-	#endif
+	template <typename T, typename Container, typename Compare>
+	template <typename InputIterator>
+	inline priority_queue<T, Container, Compare>::priority_queue(InputIterator first, InputIterator last, const compare_type& compare, container_type&& x)
+		: c(std::move(x)), comp(compare)
+	{
+		c.insert(c.end(), first, last);
+		std::make_heap(c.begin(), c.end(), comp);
+	}
 
 
 	template <typename T, typename Container, typename Compare>
@@ -350,51 +328,33 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Container, typename Compare>
-		inline void priority_queue<T, Container, Compare>::push(value_type&& value)
-		{
-			#if EASTL_EXCEPTIONS_ENABLED
-				try
-				{
-					c.push_back(std::move(value));
-					std::push_heap(c.begin(), c.end(), comp);
-				}
-				catch(...)
-				{
-					c.clear();
-					throw;
-				}
-			#else
+	template <typename T, typename Container, typename Compare>
+	inline void priority_queue<T, Container, Compare>::push(value_type&& value)
+	{
+		#if EASTL_EXCEPTIONS_ENABLED
+			try
+			{
 				c.push_back(std::move(value));
 				std::push_heap(c.begin(), c.end(), comp);
-			#endif
-		}
-	#endif
-
-
-	#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-		template <typename T, typename Container, typename Compare>
-		template <class... Args>
-		inline void priority_queue<T, Container, Compare>::emplace(Args&&... args)
-		{
-			push(value_type(std::forward<Args>(args)...)); // The C++11 Standard 23.6.4/1 states that c.emplace is used, but also declares that c doesn't need to have an emplace function.
-		}
-	#else
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename T, typename Container, typename Compare>
-			inline void priority_queue<T, Container, Compare>::emplace(value_type&& value)
-			{
-				push(std::move(value)); // The C++11 Standard 23.6.4/1 states that c.emplace is used, but also declares that c doesn't need to have an emplace function.
 			}
+			catch(...)
+			{
+				c.clear();
+				throw;
+			}
+		#else
+			c.push_back(std::move(value));
+			std::push_heap(c.begin(), c.end(), comp);
 		#endif
+	}
 
-		template <typename T, typename Container, typename Compare>
-		inline void priority_queue<T, Container, Compare>::emplace(const value_type& value)
-		{
-			push(value); // The C++11 Standard 23.6.4/1 states that c.emplace is used, but also declares that c doesn't need to have an emplace function.
-		}
-	#endif
+
+	template <typename T, typename Container, typename Compare>
+	template <class... Args>
+	inline void priority_queue<T, Container, Compare>::emplace(Args&&... args)
+	{
+		push(value_type(std::forward<Args>(args)...)); // The C++11 Standard 23.6.4/1 states that c.emplace is used, but also declares that c doesn't need to have an emplace function.
+	}
 
 
 	template <typename T, typename Container, typename Compare>

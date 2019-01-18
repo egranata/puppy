@@ -53,6 +53,7 @@
  *    EA_SEALED
  *    EA_ABSTRACT
  *    EA_CONSTEXPR / EA_CONSTEXPR_OR_CONST
+ *    EA_CONSTEXPR_IF 
  *    EA_EXTERN_TEMPLATE
  *    EA_NOEXCEPT
  *    EA_NORETURN
@@ -352,7 +353,7 @@
 	// using postfix alignment attributes. Prefix works for alignment, but does not align
 	// the size like postfix does.  Prefix also fails on templates.  So gcc style post fix
 	// is still used, but the user will need to use EA_POSTFIX_ALIGN before the constructor parameters.
-	#if   defined(__GNUC__) && (__GNUC__ < 3)
+	#if defined(__GNUC__) && (__GNUC__ < 3)
 		#define EA_ALIGN_OF(type) ((size_t)__alignof__(type))
 		#define EA_ALIGN(n)
 		#define EA_PREFIX_ALIGN(n)
@@ -481,8 +482,10 @@
 	// Defines if the GCC attribute init_priority is supported by the compiler.
 	//
 	#if !defined(EA_INIT_PRIORITY_AVAILABLE)
-		#if   defined(__GNUC__) && !defined(__EDG__) // EDG typically #defines __GNUC__ but doesn't implement init_priority.
+		#if defined(__GNUC__) && !defined(__EDG__) // EDG typically #defines __GNUC__ but doesn't implement init_priority.
 			#define EA_INIT_PRIORITY_AVAILABLE 1 
+		#elif defined(__clang__)
+			#define EA_INIT_PRIORITY_AVAILABLE 1  // Clang implements init_priority
 		#endif
 	#endif
 
@@ -770,7 +773,7 @@
 	//     EA_RESTORE_CLANG_WARNING()
 	//
 	#ifndef EA_DISABLE_CLANG_WARNING
-		#if defined(EA_COMPILER_CLANG)
+		#if defined(EA_COMPILER_CLANG) || defined(EA_COMPILER_CLANG_CL)
 			#define EACLANGWHELP0(x) #x
 			#define EACLANGWHELP1(x) EACLANGWHELP0(clang diagnostic ignored x)
 			#define EACLANGWHELP2(x) EACLANGWHELP1(#x)
@@ -784,7 +787,7 @@
 	#endif
 
 	#ifndef EA_RESTORE_CLANG_WARNING
-		#if defined(EA_COMPILER_CLANG)
+		#if defined(EA_COMPILER_CLANG) || defined(EA_COMPILER_CLANG_CL)
 			#define EA_RESTORE_CLANG_WARNING()    \
 				_Pragma("clang diagnostic pop")
 		#else
@@ -812,7 +815,7 @@
 	//     EA_DISABLE_CLANG_WARNING_AS_ERROR()
 	//
 	#ifndef EA_ENABLE_CLANG_WARNING_AS_ERROR
-		#if defined(EA_COMPILER_CLANG)
+		#if defined(EA_COMPILER_CLANG) || defined(EA_COMPILER_CLANG_CL)
 			#define EACLANGWERRORHELP0(x) #x
 			#define EACLANGWERRORHELP1(x) EACLANGWERRORHELP0(clang diagnostic error x)
 			#define EACLANGWERRORHELP2(x) EACLANGWERRORHELP1(#x)
@@ -826,7 +829,7 @@
 	#endif
 
 	#ifndef EA_DISABLE_CLANG_WARNING_AS_ERROR
-		#if defined(EA_COMPILER_CLANG)
+		#if defined(EA_COMPILER_CLANG) || defined(EA_COMPILER_CLANG_CL)
 			#define EA_DISABLE_CLANG_WARNING_AS_ERROR()    \
 				_Pragma("clang diagnostic pop")
 		#else
@@ -1131,6 +1134,35 @@
 		#define EA_EMPTY (void)0
 	#endif
 
+
+	// ------------------------------------------------------------------------
+	// EA_CURRENT_FUNCTION
+	//
+	// Provides a consistent way to get the current function name as a macro
+	// like the __FILE__ and __LINE__ macros work. The C99 standard specifies
+	// that __func__ be provided by the compiler, but most compilers don't yet
+	// follow that convention. However, many compilers have an alternative.
+	//
+	// We also define EA_CURRENT_FUNCTION_SUPPORTED for when it is not possible
+	// to have EA_CURRENT_FUNCTION work as expected.
+	//
+	// Defined inside a function because otherwise the macro might not be 
+	// defined and code below might not compile. This happens with some 
+	// compilers.
+	//
+	#ifndef EA_CURRENT_FUNCTION
+		#if defined __GNUC__ || (defined __ICC && __ICC >= 600)
+			#define EA_CURRENT_FUNCTION __PRETTY_FUNCTION__
+		#elif defined(__FUNCSIG__)
+			#define EA_CURRENT_FUNCTION __FUNCSIG__
+		#elif (defined __INTEL_COMPILER && __INTEL_COMPILER >= 600) || (defined __IBMCPP__ && __IBMCPP__ >= 500) || (defined CS_UNDEFINED_STRING && CS_UNDEFINED_STRING >= 0x4200)
+			#define EA_CURRENT_FUNCTION __FUNCTION__
+		#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901
+			#define EA_CURRENT_FUNCTION __func__
+		#else
+			#define EA_CURRENT_FUNCTION "(unknown function)"
+		#endif
+	#endif
 
 
 	// ------------------------------------------------------------------------
@@ -1608,8 +1640,9 @@
 	// ------------------------------------------------------------------------
 	// EA_ABM
 	// EA_ABM may be used to determine if Advanced Bit Manipulation sets are available for the target architecture (POPCNT, LZCNT)
+	// 
 	#ifndef EA_ABM
-		#if defined(__ABM__) || defined(EA_PLATFORM_CAPILANO)
+		#if defined(__ABM__) || defined(EA_PLATFORM_XBOXONE) || defined(EA_PLATFORM_PS4)
 			#define EA_ABM 1
 		#else
 			#define EA_ABM 0
@@ -1866,11 +1899,11 @@
 	//     EA_CONSTEXPR_OR_CONST double gValue = std::sin(kTwoPi);
 	// 
 	#if !defined(EA_CONSTEXPR)
-	#if defined(EA_COMPILER_NO_CONSTEXPR)
-		#define EA_CONSTEXPR
-	#else
-		#define EA_CONSTEXPR constexpr
-	#endif
+		#if defined(EA_COMPILER_NO_CONSTEXPR)
+			#define EA_CONSTEXPR
+		#else
+			#define EA_CONSTEXPR constexpr
+		#endif
 	#endif
 
 	#if !defined(EA_CONSTEXPR_OR_CONST)
@@ -1880,6 +1913,27 @@
 			#define EA_CONSTEXPR_OR_CONST constexpr
 		#endif
 	#endif
+
+	// ------------------------------------------------------------------------
+	// EA_CONSTEXPR_IF
+	// 
+	// Portable wrapper for C++17's 'constexpr if' support.
+	//
+	// https://en.cppreference.com/w/cpp/language/if
+	// 
+	// Example usage:
+	// 
+	// EA_CONSTEXPR_IF(std::is_copy_constructible_v<T>) 
+	// 	{ ... }
+	// 
+	#if !defined(EA_CONSTEXPR_IF)
+		#if defined(EA_COMPILER_NO_CONSTEXPR_IF)
+			#define EA_CONSTEXPR_IF(predicate) if ((predicate))
+		#else
+			#define EA_CONSTEXPR_IF(predicate) if constexpr ((predicate))
+		#endif
+	#endif
+
 
 
 	// ------------------------------------------------------------------------

@@ -29,14 +29,13 @@
 
 #if EASTL_EXCEPTIONS_ENABLED
 	EA_DISABLE_ALL_VC_WARNINGS()
-	#include <EASTL/new>
+	#include <new>
 	#include <exception>
 	EA_RESTORE_ALL_VC_WARNINGS()
 #endif
 
 namespace std
 {
-
 	#if EASTL_EXCEPTIONS_ENABLED
 		class bad_function_call : public std::exception
 		{
@@ -52,7 +51,6 @@ namespace std
 
 	namespace internal
 	{
-
 		class unused_class {};
 
 		union functor_storage_alignment
@@ -98,8 +96,9 @@ namespace std
 		template <typename Functor, int SIZE_IN_BYTES>
 		struct is_functor_inplace_allocatable
 		{
-			static constexpr bool value = sizeof(Functor) <= sizeof(functor_storage<SIZE_IN_BYTES>)
-									   && (std::alignment_of<functor_storage<SIZE_IN_BYTES>>::value % std::alignment_of<Functor>::value) == 0;
+			static constexpr bool value =
+			    sizeof(Functor) <= sizeof(functor_storage<SIZE_IN_BYTES>) &&
+			    (std::alignment_of_v<functor_storage<SIZE_IN_BYTES>> % std::alignment_of_v<Functor>) == 0;
 		};
 
 		template <int SIZE_IN_BYTES>
@@ -200,6 +199,7 @@ namespace std
 				{
 					auto& allocator = *EASTLAllocatorDefault();
 					Functor* func = static_cast<Functor*>(allocator.allocate(sizeof(Functor), alignof(Functor), 0));
+
 				#if EASTL_EXCEPTIONS_ENABLED
 					if (!func)
 					{
@@ -208,6 +208,7 @@ namespace std
 				#else
 					EASTL_ASSERT_MSG(func != nullptr, "Allocation failed!");
 				#endif
+
 					::new (static_cast<void*>(func)) Functor(std::forward<T>(functor));
 					GetFunctorPtrRef(storage) = func;
 				}
@@ -343,18 +344,22 @@ namespace std
 
 		public:
 			function_detail() EA_NOEXCEPT = default;
-			function_detail(std::nullptr_t) EA_NOEXCEPT
-			{
-			}
+			function_detail(std::nullptr_t) EA_NOEXCEPT {}
 
 			function_detail(const function_detail& other)
 			{
-				Copy(other);
+				if (this != &other)
+				{
+					Copy(other);
+				}
 			}
 
 			function_detail(function_detail&& other)
 			{
-				Move(std::move(other));
+				if (this != &other)
+				{
+					Move(std::move(other));
+				}
 			}
 
 			template <typename Functor, typename = EASTL_INTERNAL_FUNCTION_DETAIL_VALID_FUNCTION_ARGS(Functor, R, Args..., function_detail)>
@@ -370,16 +375,22 @@ namespace std
 
 			function_detail& operator=(const function_detail& other)
 			{
-				Destroy();
-				Copy(other);
+				if (this != &other)
+				{
+					Destroy();
+					Copy(other);
+				}
 
 				return *this;
 			}
 
 			function_detail& operator=(function_detail&& other)
 			{
-				Destroy();
-				Move(std::move(other));
+				if(this != &other)
+				{
+					Destroy();
+					Move(std::move(other));
+				}
 
 				return *this;
 			}
@@ -396,32 +407,37 @@ namespace std
 			template <typename Functor, typename = EASTL_INTERNAL_FUNCTION_DETAIL_VALID_FUNCTION_ARGS(Functor, R, Args..., function_detail)>
 			function_detail& operator=(Functor&& functor)
 			{
+				Destroy();
 				CreateForwardFunctor(std::forward<Functor>(functor));
-
 				return *this;
 			}
 
 			template <typename Functor>
 			function_detail& operator=(std::reference_wrapper<Functor> f) EA_NOEXCEPT
 			{
+				Destroy();
 				CreateForwardFunctor(f);
-
 				return *this;
 			}
 
 			void swap(function_detail& other) EA_NOEXCEPT
 			{
+				if(this == &other)
+					return;
+
 				FunctorStorageType tempStorage;
 				if (other.HaveManager())
 				{
 					(void)(*other.mMgrFuncPtr)(static_cast<void*>(&tempStorage), static_cast<void*>(&other.mStorage),
 											   Base::ManagerOperations::MGROPS_MOVE_FUNCTOR);
 				}
+
 				if (HaveManager())
 				{
 					(void)(*mMgrFuncPtr)(static_cast<void*>(&other.mStorage), static_cast<void*>(&mStorage),
 										 Base::ManagerOperations::MGROPS_MOVE_FUNCTOR);
 				}
+
 				if (other.HaveManager())
 				{
 					(void)(*other.mMgrFuncPtr)(static_cast<void*>(&mStorage), static_cast<void*>(&tempStorage),
@@ -497,7 +513,7 @@ namespace std
 				if (HaveManager())
 				{
 					(void)(*mMgrFuncPtr)(static_cast<void*>(&mStorage), nullptr,
-										 Base::ManagerOperations::MGROPS_DESTRUCT_FUNCTOR);
+					                     Base::ManagerOperations::MGROPS_DESTRUCT_FUNCTOR);
 				}
 			}
 
@@ -505,9 +521,11 @@ namespace std
 			{
 				if (other.HaveManager())
 				{
-					(void)(*other.mMgrFuncPtr)(static_cast<void*>(&mStorage), const_cast<void*>(static_cast<const void*>(&other.mStorage)),
-											   Base::ManagerOperations::MGROPS_COPY_FUNCTOR);
+					(void)(*other.mMgrFuncPtr)(static_cast<void*>(&mStorage),
+					                           const_cast<void*>(static_cast<const void*>(&other.mStorage)),
+					                           Base::ManagerOperations::MGROPS_COPY_FUNCTOR);
 				}
+
 				mMgrFuncPtr = other.mMgrFuncPtr;
 				mInvokeFuncPtr = other.mInvokeFuncPtr;
 			}
@@ -517,8 +535,9 @@ namespace std
 				if (other.HaveManager())
 				{
 					(void)(*other.mMgrFuncPtr)(static_cast<void*>(&mStorage), static_cast<void*>(&other.mStorage),
-											   Base::ManagerOperations::MGROPS_MOVE_FUNCTOR);
+					                           Base::ManagerOperations::MGROPS_MOVE_FUNCTOR);
 				}
+
 				mMgrFuncPtr = other.mMgrFuncPtr;
 				mInvokeFuncPtr = other.mInvokeFuncPtr;
 				other.mMgrFuncPtr = nullptr;

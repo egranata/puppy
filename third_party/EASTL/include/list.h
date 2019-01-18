@@ -43,7 +43,7 @@
 #include <EASTL/initializer_list.h>
 
 EA_DISABLE_ALL_VC_WARNINGS()
-#include <EASTL/new>
+#include <new>
 #include <stddef.h>
 EA_RESTORE_ALL_VC_WARNINGS()
 
@@ -141,11 +141,13 @@ namespace std
 
 	#else
 
+		EA_DISABLE_VC_WARNING(4625 4626)
 		template <typename T>
 		struct ListNode : public ListNodeBase
 		{
 			T mValue;
 		};
+		EA_RESTORE_VC_WARNING()
 
 	#endif
 
@@ -306,10 +308,8 @@ namespace std
 		list(size_type n, const value_type& value, const allocator_type& allocator = EASTL_LIST_DEFAULT_ALLOCATOR);
 		list(const this_type& x);
 		list(const this_type& x, const allocator_type& allocator);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			list(this_type&& x);
-			list(this_type&&, const allocator_type&);
-		#endif
+		list(this_type&& x);
+		list(this_type&&, const allocator_type&);
 		list(std::initializer_list<value_type> ilist, const allocator_type& allocator = EASTL_LIST_DEFAULT_ALLOCATOR);
 
 		template <typename InputIterator>
@@ -317,9 +317,7 @@ namespace std
 
 		this_type& operator=(const this_type& x);
 		this_type& operator=(std::initializer_list<value_type> ilist);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			this_type& operator=(this_type&& x);
-		#endif
+		this_type& operator=(this_type&& x);
 
 		// In the case that the two containers' allocators are unequal, swap copies elements instead
 		// of replacing them in place. In this case swap is an O(n) operation instead of O(1).
@@ -360,60 +358,36 @@ namespace std
 		reference       back();
 		const_reference back() const;
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <typename... Args>
-			void emplace_front(Args&&... args);
+		template <typename... Args>
+		void emplace_front(Args&&... args);
 
-			template <typename... Args>
-			void emplace_back(Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				void emplace_front(value_type&& value);
-				void emplace_back(value_type&& value);
-			#endif
-			void emplace_front(const value_type& value);
-			void emplace_back(const value_type& value);
-		#endif
+		template <typename... Args>
+		void emplace_back(Args&&... args);
 
 		void      push_front(const value_type& value);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			void  push_front(value_type&& x);
-		#endif
+		void      push_front(value_type&& x);
 		reference push_front();
 		void*     push_front_uninitialized();
 
 		void      push_back(const value_type& value);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			void  push_back(value_type&& x);
-		#endif
+		void      push_back(value_type&& x);
 		reference push_back();
 		void*     push_back_uninitialized();
 
 		void pop_front();
 		void pop_back();
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <typename... Args>
-			iterator emplace(const_iterator position, Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				iterator emplace(const_iterator position, value_type&& value);
-			#endif
-			iterator emplace(const_iterator position, const value_type& value);
-		#endif
+		template <typename... Args>
+		iterator emplace(const_iterator position, Args&&... args);
 
 		iterator insert(const_iterator position);
 		iterator insert(const_iterator position, const value_type& value);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			iterator insert(const_iterator position, value_type&& x);
-		#endif
-
-		void insert(const_iterator position, size_type n, const value_type& value);
+		iterator insert(const_iterator position, value_type&& x);
+		iterator insert(const_iterator position, std::initializer_list<value_type> ilist);
+		iterator insert(const_iterator position, size_type n, const value_type& value);
 
 		template <typename InputIterator>
-		void insert(const_iterator position, InputIterator first, InputIterator last);
-
-		iterator insert(const_iterator position, std::initializer_list<value_type> ilist);
+		iterator insert(const_iterator position, InputIterator first, InputIterator last);
 
 		iterator erase(const_iterator position);
 		iterator erase(const_iterator first, const_iterator last);
@@ -438,28 +412,20 @@ namespace std
 		void splice(const_iterator position, this_type& x);
 		void splice(const_iterator position, this_type& x, const_iterator i);
 		void splice(const_iterator position, this_type& x, const_iterator first, const_iterator last);
-
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			void splice(const_iterator position, this_type&& x);
-			void splice(const_iterator position, this_type&& x, const_iterator i);
-			void splice(const_iterator position, this_type&& x, const_iterator first, const_iterator last);
-		#endif
+		void splice(const_iterator position, this_type&& x);
+		void splice(const_iterator position, this_type&& x, const_iterator i);
+		void splice(const_iterator position, this_type&& x, const_iterator first, const_iterator last);
 
 	public:
 		// For merge, see notes for splice regarding the handling of unequal allocators.
 		void merge(this_type& x);
-
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			void merge(this_type&& x);
-		#endif
+		void merge(this_type&& x);
 
 		template <typename Compare>
 		void merge(this_type& x, Compare compare);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename Compare>
-			void merge(this_type&& x, Compare compare);
-		#endif
+		template <typename Compare>
+		void merge(this_type&& x, Compare compare);
 
 		void unique();
 
@@ -482,15 +448,8 @@ namespace std
 	protected:
 		node_type* DoCreateNode();
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED // If we can do variadic arguments...
-			template<typename... Args>
-			node_type* DoCreateNode(Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				node_type* DoCreateNode(value_type&& value);
-			#endif
-			node_type* DoCreateNode(const value_type& value);
-		#endif
+		template<typename... Args>
+		node_type* DoCreateNode(Args&&... args);
 
 		template <typename Integer>
 		void DoAssign(Integer n, Integer value, true_type);
@@ -508,15 +467,8 @@ namespace std
 
 		void DoInsertValues(ListNodeBase* pNode, size_type n, const value_type& value);
 	   
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED // If we can do variadic arguments...
-			template<typename... Args>
-			void DoInsertValue(ListNodeBase* pNode, Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				void DoInsertValue(ListNodeBase* pNode, value_type&& value);
-			#endif
-			void DoInsertValue(ListNodeBase* pNode, const value_type& value);
-		#endif
+		template<typename... Args>
+		void DoInsertValue(ListNodeBase* pNode, Args&&... args);
 
 		void DoErase(ListNodeBase* pNode);
 
@@ -905,22 +857,20 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline list<T, Allocator>::list(this_type&& x)
-			: base_type(std::move(x.mAllocator))
-		{
-			swap(x);
-		}
+	template <typename T, typename Allocator>
+	inline list<T, Allocator>::list(this_type&& x)
+		: base_type(std::move(x.mAllocator))
+	{
+		swap(x);
+	}
 
 
-		template <typename T, typename Allocator>
-		inline list<T, Allocator>::list(this_type&& x, const allocator_type& allocator)
-			: base_type(allocator)
-		{
-			swap(x); // member swap handles the case that x has a different allocator than our allocator by doing a copy.
-		}
-	#endif
+	template <typename T, typename Allocator>
+	inline list<T, Allocator>::list(this_type&& x, const allocator_type& allocator)
+		: base_type(allocator)
+	{
+		swap(x); // member swap handles the case that x has a different allocator than our allocator by doing a copy.
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1166,19 +1116,17 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		typename list<T, Allocator>::this_type&
-		list<T, Allocator>::operator=(this_type&& x)
+	template <typename T, typename Allocator>
+	typename list<T, Allocator>::this_type&
+	list<T, Allocator>::operator=(this_type&& x)
+	{
+		if(this != &x)
 		{
-			if(this != &x)
-			{
-				clear();        // To consider: Are we really required to clear here? x is going away soon and will clear itself in its dtor.
-				swap(x);        // member swap handles the case that x has a different allocator than our allocator by doing a copy.
-			}
-			return *this;
+			clear();        // To consider: Are we really required to clear here? x is going away soon and will clear itself in its dtor.
+			swap(x);        // member swap handles the case that x has a different allocator than our allocator by doing a copy.
 		}
-	#endif
+		return *this;
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1265,47 +1213,19 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <typename T, typename Allocator>
-			template <typename... Args>
-			void list<T, Allocator>::emplace_front(Args&&... args)
-			{
-				DoInsertValue((ListNodeBase*)mNode.mpNext, std::forward<Args>(args)...);
-			}
+	template <typename T, typename Allocator>
+	template <typename... Args>
+	void list<T, Allocator>::emplace_front(Args&&... args)
+	{
+		DoInsertValue((ListNodeBase*)mNode.mpNext, std::forward<Args>(args)...);
+	}
 
-			template <typename T, typename Allocator>
-			template <typename... Args>
-			void list<T, Allocator>::emplace_back(Args&&... args)
-			{
-				DoInsertValue((ListNodeBase*)&mNode, std::forward<Args>(args)...);
-			}
-	#else
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename T, typename Allocator>
-			void list<T, Allocator>::emplace_front(value_type&& value)
-			{
-				DoInsertValue((ListNodeBase*)mNode.mpNext, std::move(value));
-			}
-
-			template <typename T, typename Allocator>
-			void list<T, Allocator>::emplace_back(value_type&& value)
-			{
-				DoInsertValue((ListNodeBase*)&mNode, std::move(value));
-			}
-		#endif
-
-		template <typename T, typename Allocator>
-		void list<T, Allocator>::emplace_front(const value_type& value)
-		{
-			DoInsertValue((ListNodeBase*)mNode.mpNext, value);
-		}
-
-		template <typename T, typename Allocator>
-		void list<T, Allocator>::emplace_back(const value_type& value)
-		{
-			DoInsertValue((ListNodeBase*)&mNode, value);
-		}
-	#endif
+	template <typename T, typename Allocator>
+	template <typename... Args>
+	void list<T, Allocator>::emplace_back(Args&&... args)
+	{
+		DoInsertValue((ListNodeBase*)&mNode, std::forward<Args>(args)...);
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1315,13 +1235,11 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline void list<T, Allocator>::push_front(value_type&& value)
-		{
-			emplace(begin(), std::move(value));
-		}
-	#endif
+	template <typename T, typename Allocator>
+	inline void list<T, Allocator>::push_front(value_type&& value)
+	{
+		emplace(begin(), std::move(value));
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1368,13 +1286,11 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline void list<T, Allocator>::push_back(value_type&& value)
-		{
-			emplace(end(), std::move(value));
-		}
-	#endif
+	template <typename T, typename Allocator>
+	inline void list<T, Allocator>::push_back(value_type&& value)
+	{
+		emplace(end(), std::move(value));
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1414,34 +1330,14 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-		template <typename T, typename Allocator>
-		template <typename... Args>
-		inline typename list<T, Allocator>::iterator
-		list<T, Allocator>::emplace(const_iterator position, Args&&... args)
-		{
-			DoInsertValue(position.mpNode, std::forward<Args>(args)...);
-			return iterator(position.mpNode->mpPrev);
-		}
-	#else
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename T, typename Allocator>
-			inline typename list<T, Allocator>::iterator
-			list<T, Allocator>::emplace(const_iterator position, value_type&& value)
-			{
-				DoInsertValue(position.mpNode, std::move(value));
-				return iterator(position.mpNode->mpPrev);
-			}
-		#endif
-
-		template <typename T, typename Allocator>
-		inline typename list<T, Allocator>::iterator
-		list<T, Allocator>::emplace(const_iterator position, const value_type& value)
-		{
-			DoInsertValue(position.mpNode, value);
-			return iterator(position.mpNode->mpPrev);
-		}
-	#endif
+	template <typename T, typename Allocator>
+	template <typename... Args>
+	inline typename list<T, Allocator>::iterator
+	list<T, Allocator>::emplace(const_iterator position, Args&&... args)
+	{
+		DoInsertValue(position.mpNode, std::forward<Args>(args)...);
+		return iterator(position.mpNode->mpPrev);
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1470,29 +1366,33 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline typename list<T, Allocator>::iterator
-		list<T, Allocator>::insert(const_iterator position, value_type&& value)
-		{
-			return emplace(position, std::move(value));
-		}
-	#endif
-
+	template <typename T, typename Allocator>
+	inline typename list<T, Allocator>::iterator
+	list<T, Allocator>::insert(const_iterator position, value_type&& value)
+	{
+		return emplace(position, std::move(value));
+	}
 
 	template <typename T, typename Allocator>
-	inline void list<T, Allocator>::insert(const_iterator position, size_type n, const value_type& value)
+	inline typename list<T, Allocator>::iterator
+	list<T, Allocator>::insert(const_iterator position, size_type n, const value_type& value)
 	{
-		// To do: Get rid of DoInsertValues and put its implementation directly here.
+		iterator itPrev(position.mpNode);
+		--itPrev;
 		DoInsertValues((ListNodeBase*)position.mpNode, n, value);
+		return ++itPrev; // Inserts in front of position, returns iterator to new elements. 
 	}
 
 
 	template <typename T, typename Allocator>
 	template <typename InputIterator>
-	inline void list<T, Allocator>::insert(const_iterator position, InputIterator first, InputIterator last)
+	inline typename list<T, Allocator>::iterator
+	list<T, Allocator>::insert(const_iterator position, InputIterator first, InputIterator last)
 	{
+		iterator itPrev(position.mpNode);
+		--itPrev;
 		DoInsert((ListNodeBase*)position.mpNode, first, last, is_integral<InputIterator>());
+		return ++itPrev; // Inserts in front of position, returns iterator to new elements. 
 	}
 
 
@@ -1624,13 +1524,11 @@ namespace std
 		}
 	}
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline void list<T, Allocator>::splice(const_iterator position, this_type&& x)
-		{
-			return splice(position, x); // This will call splice(const_iterator, const this_type&);
-		}
-	#endif
+	template <typename T, typename Allocator>
+	inline void list<T, Allocator>::splice(const_iterator position, this_type&& x)
+	{
+		return splice(position, x); // This will call splice(const_iterator, const this_type&);
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1658,13 +1556,11 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline void list<T, Allocator>::splice(const_iterator position, list<T,Allocator>&& x, const_iterator i)
-		{
-			return splice(position, x, i); // This will call splice(const_iterator, const this_type&, const_iterator);
-		}
-	#endif
+	template <typename T, typename Allocator>
+	inline void list<T, Allocator>::splice(const_iterator position, list<T,Allocator>&& x, const_iterator i)
+	{
+		return splice(position, x, i); // This will call splice(const_iterator, const this_type&, const_iterator);
+	}
 		
 
 	template <typename T, typename Allocator>
@@ -1694,13 +1590,11 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		inline void list<T, Allocator>::splice(const_iterator position, list<T,Allocator>&& x, const_iterator first, const_iterator last)
-		{
-			return splice(position, x, first, last); // This will call splice(const_iterator, const this_type&, const_iterator, const_iterator);
-		}
-	#endif
+	template <typename T, typename Allocator>
+	inline void list<T, Allocator>::splice(const_iterator position, list<T,Allocator>&& x, const_iterator first, const_iterator last)
+	{
+		return splice(position, x, first, last); // This will call splice(const_iterator, const this_type&, const_iterator, const_iterator);
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1746,13 +1640,11 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		void list<T, Allocator>::merge(this_type&& x)
-		{
-			return merge(x); // This will call merge(this_type&)
-		}
-	#endif
+	template <typename T, typename Allocator>
+	void list<T, Allocator>::merge(this_type&& x)
+	{
+		return merge(x); // This will call merge(this_type&)
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1785,14 +1677,12 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, typename Allocator>
-		template <typename Compare>
-		void list<T, Allocator>::merge(this_type&& x, Compare compare)
-		{
-			return merge(x, compare); // This will call merge(this_type&, Compare)
-		}
-	#endif
+	template <typename T, typename Allocator>
+	template <typename Compare>
+	void list<T, Allocator>::merge(this_type&& x, Compare compare)
+	{
+		return merge(x, compare); // This will call merge(this_type&, Compare)
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1967,79 +1857,29 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED // If we can do variadic arguments...
-		template <typename T, typename Allocator>
-		template<typename... Args>
-		inline typename list<T, Allocator>::node_type*
-		list<T, Allocator>::DoCreateNode(Args&&... args)
-		{
-			node_type* const pNode = DoAllocateNode();  // pNode is of type node_type, but it's uninitialized memory.
+	template <typename T, typename Allocator>
+	template<typename... Args>
+	inline typename list<T, Allocator>::node_type*
+	list<T, Allocator>::DoCreateNode(Args&&... args)
+	{
+		node_type* const pNode = DoAllocateNode();  // pNode is of type node_type, but it's uninitialized memory.
 
-			#if EASTL_EXCEPTIONS_ENABLED
-				try
-				{
-					::new((void*)&pNode->mValue) value_type(std::forward<Args>(args)...);
-				}
-				catch(...)
-				{
-					DoFreeNode(pNode);
-					throw;
-				}
-			#else
-				::new((void*)&pNode->mValue) value_type(std::forward<Args>(args)...);
-			#endif
-
-			return pNode;
-		}
-	#else
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename T, typename Allocator>
-			inline typename list<T, Allocator>::node_type*
-			list<T, Allocator>::DoCreateNode(value_type&& value)
+		#if EASTL_EXCEPTIONS_ENABLED
+			try
 			{
-				node_type* const pNode = DoAllocateNode();
-
-				#if EASTL_EXCEPTIONS_ENABLED
-					try
-					{
-						::new((void*)&pNode->mValue) value_type(std::move(value));
-					}
-					catch(...)
-					{
-						DoFreeNode(pNode);
-						throw;
-					}
-				#else
-					::new((void*)&pNode->mValue) value_type(std::move(value));
-				#endif
-
-				return pNode;
+				::new((void*)&pNode->mValue) value_type(std::forward<Args>(args)...);
 			}
+			catch(...)
+			{
+				DoFreeNode(pNode);
+				throw;
+			}
+		#else
+			::new((void*)&pNode->mValue) value_type(std::forward<Args>(args)...);
 		#endif
 
-		template <typename T, typename Allocator>
-		inline typename list<T, Allocator>::node_type*
-		list<T, Allocator>::DoCreateNode(const value_type& value)
-		{
-			node_type* const pNode = DoAllocateNode();
-
-			#if EASTL_EXCEPTIONS_ENABLED
-				try
-				{
-					::new((void*)&pNode->mValue) value_type(value);
-				}
-				catch(...)
-				{
-					DoFreeNode(pNode);
-					throw;
-				}
-			#else
-				::new((void*)&pNode->mValue) value_type(value);
-			#endif
-
-			return pNode;
-		}
-	#endif
+		return pNode;
+	}
 
 
 	template <typename T, typename Allocator>
@@ -2136,40 +1976,16 @@ namespace std
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED // If we can do variadic arguments...
-		template <typename T, typename Allocator>
-		template<typename... Args>
-		inline void list<T, Allocator>::DoInsertValue(ListNodeBase* pNode, Args&&... args)
-		{
-			node_type* const pNodeNew = DoCreateNode(std::forward<Args>(args)...);
-			((ListNodeBase*)pNodeNew)->insert(pNode);
-			#if EASTL_LIST_SIZE_CACHE
-				++mSize;
-			#endif
-		}
-	#else
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			template <typename T, typename Allocator>
-			inline void list<T, Allocator>::DoInsertValue(ListNodeBase* pNode, value_type&& value)
-			{
-				node_type* const pNodeNew = DoCreateNode(std::move(value));
-				((ListNodeBase*)pNodeNew)->insert(pNode);
-				#if EASTL_LIST_SIZE_CACHE
-					++mSize;
-				#endif
-			}
+	template <typename T, typename Allocator>
+	template<typename... Args>
+	inline void list<T, Allocator>::DoInsertValue(ListNodeBase* pNode, Args&&... args)
+	{
+		node_type* const pNodeNew = DoCreateNode(std::forward<Args>(args)...);
+		((ListNodeBase*)pNodeNew)->insert(pNode);
+		#if EASTL_LIST_SIZE_CACHE
+			++mSize;
 		#endif
-
-		template <typename T, typename Allocator>
-		inline void list<T, Allocator>::DoInsertValue(ListNodeBase* pNode, const value_type& value)
-		{
-			node_type* const pNodeNew = DoCreateNode(value);
-			((ListNodeBase*)pNodeNew)->insert(pNode);
-			#if EASTL_LIST_SIZE_CACHE
-				++mSize;
-			#endif
-		}
-	#endif
+	}
 
 
 	template <typename T, typename Allocator>

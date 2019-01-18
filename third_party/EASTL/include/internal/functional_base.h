@@ -195,9 +195,7 @@ namespace std
 		typedef T type;
 
 		reference_wrapper(T&) EA_NOEXCEPT;
-		#if !defined(EA_COMPILER_NO_DELETED_FUNCTIONS)
-			reference_wrapper(T&&) = delete;
-		#endif
+		reference_wrapper(T&&) = delete;
 		reference_wrapper(const reference_wrapper<T>& x) EA_NOEXCEPT;
 
 		reference_wrapper& operator=(const reference_wrapper<T>& x) EA_NOEXCEPT;
@@ -205,10 +203,8 @@ namespace std
 		operator T& () const EA_NOEXCEPT;
 		T& get() const EA_NOEXCEPT;
 
-		#if EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <typename... ArgTypes>
-			typename std::result_of<T&(ArgTypes&&...)>::type operator() (ArgTypes&&...) const;
-		#endif
+		template <typename... ArgTypes>
+		typename std::result_of<T&(ArgTypes&&...)>::type operator() (ArgTypes&&...) const;
 
 	private:
 		T* val;
@@ -252,22 +248,34 @@ namespace std
 
 	// reference_wrapper-specific utilties
 	template <typename T>
-	reference_wrapper<T> ref(T& t) EA_NOEXCEPT;
+	reference_wrapper<T> ref(T& t) EA_NOEXCEPT
+	{
+		return std::reference_wrapper<T>(t); 
+	}
 
 	template <typename T>
 	void ref(const T&&) = delete;
 
 	template <typename T>
-	reference_wrapper<T> ref(reference_wrapper<T>t) EA_NOEXCEPT;
+	reference_wrapper<T> ref(reference_wrapper<T>t) EA_NOEXCEPT
+	{
+		return std::ref(t.get());
+	}
 
 	template <typename T>
-	reference_wrapper<const T> cref(const T& t) EA_NOEXCEPT;
+	reference_wrapper<const T> cref(const T& t) EA_NOEXCEPT
+	{
+		return std::reference_wrapper<const T>(t);
+	}
 
 	template <typename T>
 	void cref(const T&&) = delete;
 
 	template <typename T>
-	reference_wrapper<const T> cref(reference_wrapper<T> t) EA_NOEXCEPT;
+	reference_wrapper<const T> cref(reference_wrapper<T> t) EA_NOEXCEPT
+	{
+		return std::cref(t.get());
+	}
 
 
 	// reference_wrapper-specific type traits
