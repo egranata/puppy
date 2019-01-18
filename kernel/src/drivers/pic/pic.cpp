@@ -14,6 +14,7 @@
 
 #include <kernel/drivers/pic/pic.h>
 #include <kernel/i386/primitives.h>
+#include <kernel/i386/ioports.h>
 #include <kernel/panic/panic.h>
 #include <kernel/log/log.h>
 
@@ -83,6 +84,9 @@ ACPI_STATUS PIC::setupACPI() {
 }
 
 PIC::PIC() {
+    IOPortsManager::get().allocatePort(dataPort(0));
+    IOPortsManager::get().allocatePort(dataPort(1));
+
     auto a0 = inb(dataPort(0));
     auto a1 = inb(dataPort(1));
 

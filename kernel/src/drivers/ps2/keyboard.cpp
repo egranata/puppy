@@ -126,7 +126,7 @@ static bool parse_scan_code() {
     bool new_evt = false;
 
     LOG_DEBUG("in keyboard IRQ");
-    auto b = inb(0x60);
+    auto b = inb(PS2Keyboard::gDataPort);
 
     LOG_DEBUG("b = 0x%x", b);
 
@@ -197,6 +197,8 @@ static uint32_t keyboard_irq_handler(GPR&, InterruptStack&, void* id) {
 }
 
 PS2Keyboard::PS2Keyboard(uint8_t devid) : Device(devid) {
+    IOPortsManager::get().allocatePort(gDataPort);
+
     gIsBreakCode = gIsLong = gCapsLock = gShift = false;
     gCtrlDown = gAltDown = gDeleteDown = false;
 

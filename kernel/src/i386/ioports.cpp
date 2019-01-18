@@ -17,8 +17,20 @@
 #include <kernel/i386/ioports.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/panic/panic.h>
-
+#include <kernel/drivers/serial/serial.h>
 #include <kernel/log/log.h>
+
+IOPortsManager& IOPortsManager::get() {
+    static IOPortsManager gPortsManager;
+    static bool gSerialSafe = false;
+
+    if (!gSerialSafe) {
+        gSerialSafe = true;
+        Serial::get().reservePorts();
+    }
+
+    return gPortsManager;
+}
 
 IOPortsManager::IOPortsManager() {
     for(size_t i = 0; i < gNumPorts; ++i) {
@@ -41,6 +53,7 @@ bool IOPortsManager::isPortFree(ioport_t port) {
 
 bool IOPortsManager::allocatePort(ioport_t port) {
     if (isPortFree(port)) {
+        LOG_INFO("allocating I/O port 0x%x", port);
         mPortAllocation[port] = gAllocated;
         return true;
     }
@@ -49,6 +62,7 @@ bool IOPortsManager::allocatePort(ioport_t port) {
 
 bool IOPortsManager::freePort(ioport_t port) {
     if (isPortFree(port)) return false;
+    LOG_INFO("freeing I/O port 0x%x", port);
     mPortAllocation[port] = gFree;
     return true;
 }

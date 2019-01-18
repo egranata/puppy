@@ -20,9 +20,12 @@
 #include <kernel/drivers/ps2/controller.h>
 #include <kernel/synch/waitqueue.h>
 #include <kernel/tty/keyevent.h>
+#include <kernel/i386/ioports.h>
 
 class PS2Keyboard : public PS2Controller::Device {
     public:
+        static constexpr IOPortsManager::ioport_t gDataPort = 0x60;
+
         struct keyb_irq_data_t {
             PS2Keyboard *source;
             int pic_irq_id;

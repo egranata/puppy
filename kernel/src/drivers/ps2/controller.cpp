@@ -14,6 +14,7 @@
 
 #include <kernel/drivers/ps2/controller.h>
 #include <kernel/i386/primitives.h>
+#include <kernel/i386/ioports.h>
 #include <kernel/drivers/ps2/keyboard.h>
 #include <kernel/log/log.h>
 #include <kernel/boot/phase.h>
@@ -176,6 +177,9 @@ static constexpr uint8_t gDeviceIdentify = 0xF2;
 static constexpr uint8_t gDeviceScan = 0xF4;
 
 PS2Controller::PS2Controller() : mDevice1(nullptr) {
+    IOPortsManager::get().allocatePort(gDataPort);
+    IOPortsManager::get().allocatePort(gStatusPort);
+
     inb(gDataPort);
     inb(gDataPort);
     inb(gDataPort);

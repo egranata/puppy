@@ -22,6 +22,8 @@
 
 class IOPortsManager : NOCOPY {
     public:
+        static IOPortsManager& get();
+
         typedef uint16_t ioport_t;
         static constexpr size_t gNumPorts = 65536;
 
@@ -42,15 +44,15 @@ class IOPortsManager : NOCOPY {
                 friend class IOPortsManager;
         };
 
-        IOPortsManager();
-        ~IOPortsManager();
-
         bool isPortFree(ioport_t);
         bool allocatePort(ioport_t);
         bool freePort(ioport_t);
 
         IOPort* getPort(ioport_t);
     private:
+        IOPortsManager();
+        ~IOPortsManager();
+
         static constexpr bool gFree = true;
         static constexpr bool gAllocated = false;
         bool mPortAllocation[gNumPorts];

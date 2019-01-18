@@ -14,6 +14,7 @@
 
 #include <kernel/drivers/serial/serial.h>
 #include <kernel/i386/primitives.h>
+#include <kernel/i386/ioports.h>
 #include <kernel/libc/string.h>
 
 static constexpr uint16_t dataport(uint16_t base) {
@@ -39,6 +40,19 @@ Serial& Serial::get() {
 	static Serial gSerial;
 	
 	return gSerial;
+}
+
+// the serial port is allocated early enough in the boot process that one can't really talk to the
+// IOPortsManager (mostly on account of the fact that it logs) - for this reason, one must reserve the
+// ports used by COM1 later on during boot, before userspace can access them but once it's safe
+void Serial::reservePorts() {
+	auto& ioports = IOPortsManager::get();
+    ioports.allocatePort(dataport(gCOM1));
+    ioports.allocatePort(irqregister(gCOM1));
+    ioports.allocatePort(fifocommandport(gCOM1));
+    ioports.allocatePort(linecommandport(gCOM1));
+    ioports.allocatePort(modemcommandport(gCOM1));
+    ioports.allocatePort(linestatusport(gCOM1));
 }
 
 Serial::Serial() {

@@ -28,6 +28,8 @@ public:
 	Serial& write(const char* s);
 	Serial& putchar(char c);
 	
+	void reservePorts();
+	
 private:
 	Serial();
 };

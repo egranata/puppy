@@ -16,6 +16,7 @@
 #include <kernel/drivers/rtc/rtc.h>
 #include <kernel/fs/devfs/devfs.h>
 #include <kernel/i386/idt.h>
+#include <kernel/i386/ioports.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/libc/sprint.h>
 #include <kernel/libc/time.h>
@@ -76,6 +77,9 @@ RTC& RTC::get() {
 #define BCD_TO_BINARY(bcd) bcd = ((bcd & 0x0F) + ((bcd / 16) * 10))
 
 RTC::RTC() {
+    IOPortsManager::get().allocatePort(gSelectPort);
+    IOPortsManager::get().allocatePort(gDataPort);
+
     auto regb = read(gStatusRegisterB);
     bool militarytime = (0 != (regb & 2));
     bool binary = (0 != (regb & 0x4));

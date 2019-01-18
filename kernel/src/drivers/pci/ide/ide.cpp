@@ -16,6 +16,8 @@
 #include <kernel/drivers/pci/bus.h>
 #include <kernel/panic/panic.h>
 #include <kernel/i386/primitives.h>
+#include <kernel/i386/ioports.h>
+#include <kernel/drivers/serial/serial.h>
 #include <kernel/log/log.h>
 #include <kernel/libc/memory.h>
 #include <kernel/sys/unions.h>
@@ -414,6 +416,23 @@ IDEController::IDEController(const PCIBus::pci_hdr_0& info) : DiskController(nul
 
     LOG_DEBUG("adjusted BARs: [0] = 0x%x [1] = 0x%x [2] = 0x%x [3] = 0x%x [4] = 0x%x",
         mInfo.bar0, mInfo.bar1, mInfo.bar2, mInfo.bar3, mInfo.bar4);
+
+    {
+        auto& ioports = IOPortsManager::get();
+#define ALLOC_PORTS(base) \
+    ioports.allocatePort(base + 0); \
+    ioports.allocatePort(base + 1); \
+    ioports.allocatePort(base + 2); \
+    ioports.allocatePort(base + 3); \
+    ioports.allocatePort(base + 4); \
+    ioports.allocatePort(base + 5); \
+    ioports.allocatePort(base + 6); \
+    ioports.allocatePort(base + 7); \
+
+        ALLOC_PORTS(mInfo.bar0);
+        ALLOC_PORTS(mInfo.bar2);
+#undef ALLOC_PORTS
+    }
 
     mChannel[0] = channel_t{
         iobase : (uint16_t)mInfo.bar0,
