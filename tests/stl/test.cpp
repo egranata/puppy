@@ -16,19 +16,22 @@
 
 #include <libcheckup/test.h>
 #include <libcheckup/assert.h>
+#include <libcheckup/testplan.h>
 
 #include <stdio.h>
 
 #include <map>
 #include <string>
 #include <vector>
+#include <list>
+#include <functional>
 
-class TheTest : public Test {
+class TestVector : public Test {
     public:
-        TheTest() : Test(TEST_NAME) {}
-    
-    private:
-        void testvector() {
+        TestVector() : Test(TEST_NAME ".vector") {}
+
+    protected:
+        void run() override {
             std::vector<int> vint;
             CHECK_EQ(vint.size(), 0);
             CHECK_TRUE(vint.empty());
@@ -42,8 +45,14 @@ class TheTest : public Test {
             CHECK_EQ(123, vint[0]);
             CHECK_EQ(456, vint[1]);
         }
+};
 
-        void testmap() {
+class TestMap : public Test {
+    public:
+        TestMap() : Test(TEST_NAME ".map") {}
+
+    protected:
+        void run() override {
             std::map<int, int> mint;
             CHECK_TRUE(mint.empty());
 
@@ -52,25 +61,81 @@ class TheTest : public Test {
             CHECK_EQ(456, mint[123]);
             CHECK_EQ(mint.end(), mint.find(234));
         }
+};
 
-        void teststring() {
+class TestList : public Test {
+    public:
+        TestList() : Test(TEST_NAME ".list") {}
+
+    protected:
+        void run() override {
+            std::list<int> l;
+            CHECK_TRUE(l.empty());
+
+            l.push_back(123);
+            l.push_back(456);
+            l.push_back(789);
+
+            CHECK_FALSE(l.empty());
+            CHECK_EQ(3, l.size());
+
+            CHECK_EQ(123, l.front());
+            CHECK_EQ(789, l.back());
+
+            l.pop_front();
+            l.pop_back();
+
+            CHECK_EQ(l.front(), l.back());
+            CHECK_EQ(456, l.back());
+        }
+};
+
+class TestString : public Test {
+    public:
+        TestString() : Test(TEST_NAME ".string") {}
+
+    protected:
+        void run() override {
             std::string s = "Hello world";
             CHECK_TRUE(s == "Hello world");
             CHECK_EQ(s[0], 'H');
             s += ". This is a test";
             CHECK_TRUE(s == "Hello world. This is a test");
         }
+};
+
+class TestFunction : public Test {
+    public:
+        TestFunction() : Test(TEST_NAME ".function") {}
 
     protected:
         void run() override {
-            testvector();
-            testmap();
-            teststring();
+            std::function<int(int)> f;
+            f = [](int x) -> int { return x + 1; };
+            CHECK_EQ(4, f(3));
+
+            int n = 3;
+            f = [n](int x) -> int { return n + x; };
+            CHECK_EQ(6, f(3));
+            n = 4;
+            CHECK_EQ(6, f(3));
+
+            f = [&n](int x) -> int { return n + x; };
+            CHECK_EQ(7, f(3));
+            n = 3;
+            CHECK_EQ(6, f(3));
         }
 };
 
 int main(int, char**) {
-    Test* test = new TheTest();
-    test->test();
+    auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
+
+    testPlan.add<TestVector>()
+            .add<TestMap>()
+            .add<TestString>()
+            .add<TestList>()
+            .add<TestFunction>();
+
+    testPlan.test();
     return 0;
 }
