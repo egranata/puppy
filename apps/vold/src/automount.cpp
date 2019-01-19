@@ -64,10 +64,13 @@ void automountVolumeHandler(const char* volid) {
 
     auto iter = gAutomountRules.find(fsinfo.fs_uuid), end = gAutomountRules.end();
     if (iter == end) return;
-    ok = mount_syscall(fid, iter->second.path.c_str());
-    if (ok) {
-        printf("[vold] error: volume '%s' cannot be mounted at '%s'\n", volid, iter->second.path.c_str());
-        return;
+    const auto& desired_mountpoint = iter->second.path;
+    if (desired_mountpoint.size() > 0) {
+        ok = mount_syscall(fid, desired_mountpoint.c_str());
+        if (ok) {
+            printf("[vold] error: volume '%s' cannot be mounted at '%s'\n", volid, desired_mountpoint.c_str());
+            return;
+        }
     }
     ok = unmount_syscall(volid);
     if (ok) {
@@ -89,7 +92,7 @@ bool loadAutomountRules() {
         automount_rule_t rule;
         rule.uuid = (uint64_t)json_object_get_number(entry, "uuid");
         rule.path = json_object_get_string(entry, "mountpoint");
-        if (rule.uuid != 0 && rule.path.size() > 0)
+        if (rule.uuid != 0)
             gAutomountRules.emplace(rule.uuid, rule);
         else
             return false;

@@ -1,4 +1,6 @@
 [
     {"uuid" : 2695938256,
-     "mountpoint" : "/home"}
+     "mountpoint" : "/home"},
+    {"uuid" : 1437252454,
+     "mountpoint" : ""}
 ]
