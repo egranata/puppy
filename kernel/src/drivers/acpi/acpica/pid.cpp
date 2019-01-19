@@ -18,6 +18,5 @@
 #include <kernel/process/current.h>
 
 extern "C" ACPI_THREAD_ID AcpiOsGetThreadId (void) {
-    if (gCurrentProcess) return gCurrentProcess->pid;
     return 1; // ACPICA does *not* like running as the kernel task
 }
