@@ -30,6 +30,8 @@ class IOPortsManager : NOCOPY {
         // TODO: one could technically own an IOPort while the port it is associated to is freed
         class IOPort {
             public:
+                ioport_t port() const { return mPort; }
+
                 void write8(uint8_t);
                 void write16(uint16_t);
                 void write32(uint32_t);

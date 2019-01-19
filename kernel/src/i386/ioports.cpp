@@ -17,17 +17,10 @@
 #include <kernel/i386/ioports.h>
 #include <kernel/i386/primitives.h>
 #include <kernel/panic/panic.h>
-#include <kernel/drivers/serial/serial.h>
 #include <kernel/log/log.h>
 
 IOPortsManager& IOPortsManager::get() {
     static IOPortsManager gPortsManager;
-    static bool gSerialSafe = false;
-
-    if (!gSerialSafe) {
-        gSerialSafe = true;
-        Serial::get().reservePorts();
-    }
 
     return gPortsManager;
 }

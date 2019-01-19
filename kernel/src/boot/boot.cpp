@@ -122,6 +122,9 @@ namespace boot {
     namespace magicfiles {
         uint32_t init();
     }
+    namespace ioports {
+        uint32_t init();
+    }
 }
 
 __attribute__((constructor)) void loadBootPhases() {
@@ -313,6 +316,14 @@ __attribute__((constructor)) void loadBootPhases() {
         description : "Install PRNG driver",
         visible : false,
         operation : boot::prng::init,
+        onSuccess : nullptr,
+        onFailure : nullptr
+    });
+
+    registerBootPhase(bootphase_t{
+        description : "Install x86 I/O space driver",
+        visible : false,
+        operation : boot::ioports::init,
         onSuccess : nullptr,
         onFailure : nullptr
     });
