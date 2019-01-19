@@ -25,6 +25,8 @@
 #include <vector>
 #include <list>
 #include <functional>
+#include <unique_ptr>
+#include <shared_ptr>
 
 class TestVector : public Test {
     public:
@@ -127,6 +129,45 @@ class TestFunction : public Test {
         }
 };
 
+class TestUniquePtr : public Test {
+    public:
+        TestUniquePtr() : Test(TEST_NAME ".unique_ptr") {}
+
+    protected:
+        void run() override {
+            std::unique_ptr<int> foo(new int(3));
+            CHECK_NOT_EQ(nullptr, foo.get());
+            CHECK_EQ(3, *foo);
+            foo.reset();
+            CHECK_EQ(nullptr, foo.get());
+        }
+};
+
+class TestSharedPtr : public Test {
+    public:
+        TestSharedPtr() : Test(TEST_NAME ".shared_ptr") {}
+
+    protected:
+        void run() override {
+            std::shared_ptr<int> foo(new int(3));
+            std::shared_ptr<int> fooo(foo);
+            std::shared_ptr<int> bar(new int(3));
+
+            CHECK_EQ(foo.get(), fooo.get());
+            CHECK_EQ(3, *foo);
+            CHECK_EQ(3, *bar);
+            *bar = 5;
+            CHECK_EQ(5, *bar);
+            CHECK_EQ(3, *foo);
+            *foo = 12;
+            CHECK_EQ(*fooo, 12);
+            CHECK_EQ(foo.get(), fooo.get());
+            foo.reset();
+            CHECK_EQ(*fooo, 12);
+            CHECK_EQ(nullptr, foo.get());
+        }
+};
+
 int main(int, char**) {
     auto& testPlan = TestPlan::defaultPlan(TEST_NAME);
 
@@ -134,7 +175,9 @@ int main(int, char**) {
             .add<TestMap>()
             .add<TestString>()
             .add<TestList>()
-            .add<TestFunction>();
+            .add<TestFunction>()
+            .add<TestUniquePtr>()
+            .add<TestSharedPtr>();
 
     testPlan.test();
     return 0;
