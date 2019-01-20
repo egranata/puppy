@@ -38,17 +38,29 @@ std::vector<pci_device_info_t> getDevices() {
     return dest;
 }
 
+static bool hasArgument(const char* arg, int argc, char** argv) {
+    for(size_t i = 0; argv[i]; ++i) {
+        if (0 == strcmp(argv[i], arg)) return true;
+    }
+    return false;
+}
+
 int main(int argc, char** argv) {
+    bool verbose = hasArgument("--verbose", argc, argv);
+    verbose = verbose | hasArgument("-v", argc, argv);
+    bool count = hasArgument("--count", argc, argv);
     auto devicesList = getDevices();
 
     printf("%u PCI devices discovered on this system.\n", devicesList.size());
-    if (argc == 2 && 0 == strcmp(argv[1], "--count")) return 0;
+    if (count) return 0;
 
     for (const auto& device : devicesList) {
         printf("Device 0x%4x:0x%4x\n", device.vendor, device.device);
-        printf("Bus   %3u Slot     %3u Func      %3u\n", device.bus, device.slot, device.func);
-        printf("Class %3u Subclass %3u Interface %3u\n", device.clazz, device.subclazz, device.interface);
-        printf("\n");
+        if (verbose) {
+            printf("Bus   %3u Slot     %3u Func      %3u\n", device.bus, device.slot, device.func);
+            printf("Class %3u Subclass %3u Interface %3u\n", device.clazz, device.subclazz, device.interface);
+            printf("\n");
+        }
     }
     return 0;
 }
