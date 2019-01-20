@@ -25,6 +25,9 @@ namespace newlib::puppy::impl {
         scoped_ptr_t(decltype(nullptr) np) : ptr(np) {}
 
         template<typename U = T>
+        scoped_ptr_t<T>& operator=(U*) = delete;
+
+        template<typename U = T>
         scoped_ptr_t(scoped_ptr_t<U>&) = delete;
 
         template<typename U = T>

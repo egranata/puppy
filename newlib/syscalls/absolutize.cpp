@@ -159,12 +159,30 @@ static scoped_ptr_t<char> doRealpath(const char *__restrict path) {
     return resolved_path;
 }
 
+// is this a path relative to the home folder?
+static bool isHomePath(const char* path) {
+    if (path == nullptr) return false;
+    if (path[0] == '~') return true;
+    return false;
+}
+
 scoped_ptr_t<char> newlib::puppy::impl::makeAbsolutePath(const char* path) {
     if (isAbsolutePath(path))
         return strdup(path);
-    
-    scoped_ptr_t<char> cwd = getcwd(nullptr, 0);
-    scoped_ptr_t<char> concat = concatPaths(cwd.ptr, path);
+
+    scoped_ptr_t<char> base;
+
+    if (isHomePath(path)) {
+        const char* home = getenv("HOME");
+        // do not resolve HOME-relative paths if HOME is undefined
+        if (home == nullptr) return nullptr;
+        base.reset(strdup(home));
+        ++path;
+    } else {
+        base.reset(getcwd(nullptr, 0));
+    }
+
+    scoped_ptr_t<char> concat = concatPaths(base.ptr, path);
     scoped_ptr_t<char> rp = doRealpath(concat.ptr);
 
     return rp;

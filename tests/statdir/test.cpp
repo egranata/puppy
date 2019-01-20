@@ -48,6 +48,12 @@ class TheTest : public Test {
             CHECK_EQ(0, ok);
             CHECK_TRUE(S_ISDIR(statbuf.st_mode));
             CHECK_FALSE(S_ISREG(statbuf.st_mode));
+
+            bzero(&statbuf, sizeof(statbuf));
+            ok = stat("~", &statbuf);
+            CHECK_EQ(0, ok);
+            CHECK_TRUE(S_ISDIR(statbuf.st_mode));
+            CHECK_FALSE(S_ISREG(statbuf.st_mode));
         }
 };
 
