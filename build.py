@@ -43,6 +43,10 @@ for arg in sys.argv:
     if arg.startswith("-skip-app="):
         APPS_TO_SKIP.append(arg.replace("-skip-app=", ""))
 
+if len(APPS_TO_REBUILD) > 0:
+    CLEAN_SLATE = False
+    BUILD_CORE = False
+
 if (not BUILD_USERSPACE) or (not BUILD_CORE):
     CLEAN_SLATE = False
 
