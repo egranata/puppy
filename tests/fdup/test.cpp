@@ -41,12 +41,6 @@ class TheTest : public Test {
     public:
         TheTest() : Test(TEST_NAME) {}
 
-    private:
-        size_t writeString(FILE* fd, const char* s) {
-            auto ls = strlen(s);
-            return fwrite(s, 1, ls, fd);
-        }
-
     protected:
         bool setup() override {
             auto fd = fopen(TEST_FILE, "w");

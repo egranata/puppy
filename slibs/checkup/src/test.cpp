@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <libcheckup/assert.h>
 #include <libcheckup/failure.h>
 #include <libcheckup/test.h>
 #include <libcheckup/success.h>
@@ -80,4 +81,23 @@ void Test::cleanupResources() {
 
 Test::~Test() {
     cleanupResources();
+}
+
+size_t Test::writeString(FILE* fd, const char* s) {
+    CHECK_NOT_EQ(fd, nullptr);
+    auto ls = strlen(s);
+    return fwrite(s, 1, ls, fd);
+}
+
+const char* Test::checkReadString(FILE* fd, const char* expected) {
+    static constexpr size_t max_size = 4096;
+
+    CHECK_NOT_EQ(fd, nullptr);
+    uint8_t *buffer = (uint8_t *)malloc(max_size);
+    bzero(buffer, max_size);
+    CHECK_NOT_EQ(fread(buffer, 1, max_size - 1, fd), 0);
+
+    CHECK_EQ(strcmp((const char*)buffer, expected), 0);
+
+    return (const char*)buffer;
 }

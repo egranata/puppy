@@ -27,20 +27,6 @@ class TheTest : public Test {
     public:
         TheTest() : Test(TEST_NAME) {}
 
-    private:
-        size_t writeString(FILE* fd, const char* s) {
-            auto ls = strlen(s);
-            return fwrite(s, 1, ls, fd);
-        }
-
-        const char* testRead(FILE* fd, const char* expected) {
-            uint8_t *buffer = (uint8_t*)calloc(1, 3999);
-            CHECK_NOT_EQ(fread(buffer, 1, 3999, fd), 0);
-
-            CHECK_EQ(strcmp((const char*)buffer, expected), 0);
-
-            return (const char*)buffer;
-        }
     protected:
         void teardown() override {
             unlink("~/foo");
@@ -53,7 +39,7 @@ class TheTest : public Test {
             fclose(fp);
             fp = fopen("/home/foo", "r"); // assumes that /home == ~
             CHECK_NOT_EQ(nullptr, fp);
-            testRead(fp, "test string");
+            checkReadString(fp, "test string");
             fclose(fp);
         }
 };

@@ -45,6 +45,9 @@ class Test {
         // a crash)
         const char* getTempFile(const char* key);
 
+        size_t writeString(FILE*, const char*);
+        const char* checkReadString(FILE*, const char*);
+
     private:
         void cleanupResources();
 
