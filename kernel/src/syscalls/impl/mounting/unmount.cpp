@@ -30,7 +30,6 @@ syscall_response_t unmount_syscall_handler(const char* path) {
     auto& vfs(VFS::get());
     auto fs = vfs.findfs(path);
     if (fs == nullptr) return ERR(NO_SUCH_OBJECT);
-    if (fs->openObjectsCount() > 0) return ERR(NOT_ALLOWED);
 
     bool done = vfs.unmount(path);
     return done ? OK : ERR(NOT_ALLOWED);

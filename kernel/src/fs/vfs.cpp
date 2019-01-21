@@ -167,11 +167,12 @@ bool VFS::unmount(const char* path) {
         auto&& m = *b;
         if (0 == strcmp(m.path, path)) {
             LOG_DEBUG("filesystem found - 0x%p", m.fs);
-            if (m.fs->openObjectsCount() > 0) {
-                LOG_ERROR("filesystem 0x%p has open objects; can't unmount", m.fs);
+            const bool unmountable = (m.fs->refcount() > 1) || ((m.fs->refcount() == 1) && (m.fs->openObjectsCount() == 0));
+            if (!unmountable) {
+                LOG_ERROR("filesystem 0x%p can't be unmounted: refcount=%u open objects=%u", m.fs->refcount(), m.fs->openObjectsCount());
                 return false;
             }
-            if(0 == m.fs->decref()) delete m.fs;
+            if (0 == m.fs->decref()) delete m.fs;
             mMounts.remove(b);
             free((void*)m.path);
             return true;
