@@ -16,15 +16,30 @@
 
 #include <kernel/fs/memfs/memfs.h>
 
-MemFS::ExternalDataBuffer::ExternalDataBuffer(uint8_t *ptr, size_t s) : mBuffer(ptr), mSize(s) {}
+template<bool Owned>
+MemFS::ExternalDataBuffer<Owned>::ExternalDataBuffer(uint8_t *ptr, size_t s) : mBuffer(ptr), mSize(s) {}
 
-size_t MemFS::ExternalDataBuffer::len() {
+template<bool Owned>
+size_t MemFS::ExternalDataBuffer<Owned>::len() {
     if (mBuffer) return mSize;
     return 0;
 }
 
-bool MemFS::ExternalDataBuffer::at(size_t idx, uint8_t *dest) {
+template<bool Owned>
+bool MemFS::ExternalDataBuffer<Owned>::at(size_t idx, uint8_t *dest) {
     if (idx >= len()) return false;
     *dest = mBuffer[idx];
     return true;
 }
+
+template<bool Owned>
+MemFS::ExternalDataBuffer<Owned>::~ExternalDataBuffer() {
+    if (Owned) {
+        free(mBuffer);
+        mBuffer = nullptr;
+    }
+}
+
+// instantiate the template explicitly
+template class MemFS::ExternalDataBuffer<true>;
+template class MemFS::ExternalDataBuffer<false>;

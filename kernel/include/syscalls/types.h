@@ -303,4 +303,10 @@ struct acpi_device_info_t {
     char hid[128] = {0};
 };
 
+struct irq_info_t {
+    uint8_t id;
+    char description[16];
+    uint64_t count;
+};
+
 #endif

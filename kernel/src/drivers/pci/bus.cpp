@@ -62,7 +62,7 @@ namespace {
                 }
             }
             delete_ptr<MemFS::FileBuffer> content() override {
-                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mDeviceCount * sizeof(pci_device_info_t));
+                return new MemFS::ExternalDataBuffer<false>((uint8_t*)mData, mDeviceCount * sizeof(pci_device_info_t));
             }
     };
 }

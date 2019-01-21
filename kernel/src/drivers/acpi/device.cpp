@@ -164,7 +164,7 @@ void AcpiDeviceManager::exportToDevFs(MemFS::Directory* dir) {
         public:
             DeviceDataFile(acpi_device_info_t *data, size_t count) : MemFS::File("devices"), mData(data), mDeviceCount(count) {}
             delete_ptr<MemFS::FileBuffer> content() override {
-                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mDeviceCount * sizeof(acpi_device_info_t));
+                return new MemFS::ExternalDataBuffer<false>((uint8_t*)mData, mDeviceCount * sizeof(acpi_device_info_t));
             }
     };
     class DSDTDataFile : public MemFS::File {
@@ -181,7 +181,7 @@ void AcpiDeviceManager::exportToDevFs(MemFS::Directory* dir) {
                 AcpiPutTable(tbl);
             }
             delete_ptr<MemFS::FileBuffer> content() override {
-                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mSize);
+                return new MemFS::ExternalDataBuffer<false>((uint8_t*)mData, mSize);
             }
     };
 
@@ -200,7 +200,7 @@ void AcpiDeviceManager::exportToDevFs(MemFS::Directory* dir) {
                 name(b.data<char>());
             }
             delete_ptr<MemFS::FileBuffer> content() override {
-                return new MemFS::ExternalDataBuffer((uint8_t*)mData, mSize);
+                return new MemFS::ExternalDataBuffer<false>((uint8_t*)mData, mSize);
             }
     };
 

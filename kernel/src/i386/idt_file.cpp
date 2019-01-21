@@ -19,37 +19,34 @@
 #include <kernel/libc/str.h>
 #include <kernel/libc/buffer.h>
 #include <kernel/libc/sprint.h>
-
+#include <kernel/syscalls/types.h>
 
 namespace {
     class TableFile : public MemFS::File {
         public:
-            TableFile(uint8_t irq) : MemFS::File(""), mIRQ(irq) {
-                buffer b(15);
-                sprint(b.data<char>(), b.size(), "counter_%u", irq);
-                name(b.data<char>());
+            TableFile() : MemFS::File("irqs") {
+                kind(file_kind_t::chardevice);
             }
+
             delete_ptr<MemFS::FileBuffer> content() override {
-                buffer b(128);
-                char* buf_ptr = b.data<char>();
-                const uint64_t count = Interrupts::get().getNumOccurrences(mIRQ);
-                const char* name = Interrupts::get().getName(mIRQ);
-                sprint(buf_ptr, b.size(), "%u    %s    %llu\n", (uint32_t)mIRQ, name, count);
-                return new MemFS::StringBuffer(string(buf_ptr));
+                size_t buf_len = 256 * sizeof(irq_info_t);
+                irq_info_t *buffer = (irq_info_t*)calloc(256, sizeof(irq_info_t));
+                for (size_t i = 0; i < 255; ++i) {
+                    buffer[i].id = (uint8_t)i;
+                    buffer[i].count = Interrupts::get().getNumOccurrences(buffer[i].id);
+                    const char* name = Interrupts::get().getName(buffer[i].id);
+                    sprint(buffer[i].description, sizeof(buffer[i].description), "%s", name);
+                }
+                return new MemFS::ExternalDataBuffer<true>((uint8_t*)buffer, buf_len);
             }
-        private:
-            uint8_t mIRQ;
     };
 }
 
 namespace boot::irqcount {
     uint32_t init() {
         DevFS& devfs(DevFS::get());
-        auto irq_dir = devfs.getDeviceDirectory("irq");
-        if (irq_dir == nullptr) return 1;
-        for (auto i = 0; i < 256; ++i) {
-            irq_dir->add(new TableFile(i));
-        }
+        auto root_dir = devfs.getRootDirectory();
+        root_dir->add(new TableFile());
         return 0;
     }
 

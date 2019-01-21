@@ -74,11 +74,13 @@ public:
             string mData;
     };
 
+    template<bool Owned>
     class ExternalDataBuffer : public FileBuffer {
         public:
             ExternalDataBuffer(uint8_t*, size_t);
             size_t len() override;
             bool at(size_t idx, uint8_t *dest) override;
+            ~ExternalDataBuffer();
         private:
             uint8_t*mBuffer;
             size_t mSize;
