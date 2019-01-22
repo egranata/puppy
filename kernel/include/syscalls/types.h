@@ -100,6 +100,9 @@ enum class blockdevice_ioctl_t : uintptr_t {
     IOCTL_GET_USAGE_STATS = 0xB10C0006,   // (a=IOCTL_, b=pointer to blockdevice_usage_stats_t*), returns 1 if success and data is filled in; 0 otherwise
 };
 
+static constexpr uint32_t TTY_DISCIPLINE_RAW = 10;
+static constexpr uint32_t TTY_DISCIPLINE_CANONICAL = 11;
+
 // IOCTL operations that one can run on a TTY
 enum tty_ioctl_t {
         IOCTL_FOREGROUND            = 0x77100001, // a2 = pid
