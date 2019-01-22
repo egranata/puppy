@@ -39,7 +39,7 @@ Assuming a few requirements are met, Puppy should boot and work on an actual PC:
 (*) Testing with Bochs suggests that Puppy can boot on something as old as a Pentium Pro, but this is untested on real hardware.
 Alas, booting on anything older is currently not possible (see https://github.com/egranata/puppy/issues/63).
 
-(**) Testing with QEMU suggests that 32MB is the minimum required for Puppy to boot to userspace, but this is untested on real hardware.2
+(**) Testing with QEMU suggests that 33MB is the minimum required for Puppy to boot to userspace, but this is untested on real hardware.
 
 If your system has a physical serial port, you should be able to collect kernel logs which might help in diagnosing boot-time issue. I personally use `picocom` for this purpose, but other tools should work if they're capable of 8N1 115200 operation. Patches to enable customizing the serial port settings at boot would be gladly accepted.
 
