@@ -19,7 +19,7 @@
 
 namespace boot::info {
     uint32_t init() {
-        bootphase_t::printf("%s built on %s at %s\n", OSNAME, __DATE__, __TIME__);
+        bootphase_t::printf("%s %s built on %s at %s\n", OSNAME, OSBUILDSIGNATURE, __DATE__, __TIME__);
         return 0;
     }
 }

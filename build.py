@@ -26,8 +26,6 @@ import sys
 import time
 from build.chronometer import Chronometer
 
-VERBOSE = "-v" in sys.argv
-
 CLEAN_SLATE = "-keep-out" not in sys.argv
 BUILD_CORE = "-keep-kernel" not in sys.argv
 BUILD_USERSPACE = "-keep-user" not in sys.argv
@@ -64,9 +62,44 @@ elif BUILD_CORE:
 elif BUILD_USERSPACE:
     print("Build type: Userland; OS path: %s" % MYPATH)
 
+def shell(command, shell=True, stdin=None, printout=False, onerrignore=False, curdir=None):
+    if printout or VERBOSE: print("$ %s" % command)
+    try:
+        stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell, cwd=curdir)
+        o = stdout.decode('utf-8')
+        if printout or VERBOSE: print(o)
+        return o
+    except subprocess.CalledProcessError as e:
+        print("$ %s" % command)        
+        print(e.output.decode('utf-8'))
+        if onerrignore:
+            print("shell command failed")
+        else:
+            error("shell command failed")
+
+VERBOSE = "-v" in sys.argv
+
 BUILD_START = time.time()
 
+def buildSignature():
+    if not hasattr(buildSignature, 'signature'):
+        H = shell('git rev-parse HEAD')
+        B = shell('git rev-parse --abbrev-ref HEAD')
+        H = H.replace('\n', '')
+        B = B.replace('\n', '')
+        buildSignature.signature = '%s/%s' % (B,H)
+    return buildSignature.signature
+
+def buildVersion():
+    if not hasattr(buildVersion, 'version'):
+        H = shell('git rev-parse --short HEAD')
+        H = '0x%s' % H.replace('\n', '')
+        buildVersion.version = H
+    return buildVersion.version
+
 C_OPTIONS = [
+    '-D__build_signature_=\"\\"%s\\"\"' % (buildSignature()),
+    '-D__build_version_=0x%sLLU' % (buildVersion()),
     '-D__puppy__',
     '-fdiagnostics-color=always',
     '-ffreestanding',
@@ -126,21 +159,6 @@ def findSubdirectories(dir, self=True):
 def error(msg):
     print("error: %s" % msg)
     raise SystemError # force the subprocesses to exit as brutally as possible
-
-def shell(command, shell=True, stdin=None, printout=False, onerrignore=False, curdir=None):
-    if printout or VERBOSE: print("$ %s" % command)
-    try:
-        stdout = subprocess.check_output(command, stdin=stdin, stderr=subprocess.STDOUT, shell=shell, cwd=curdir)
-        o = stdout.decode('utf-8')
-        if printout or VERBOSE: print(o)
-        return o
-    except subprocess.CalledProcessError as e:
-        print("$ %s" % command)        
-        print(e.output.decode('utf-8'))
-        if onerrignore:
-            print("shell command failed")
-        else:
-            error("shell command failed")
 
 def findAll(base, extension):
     def _find(dir, extension=None):
@@ -626,6 +644,8 @@ with Chronometer("Copying configuration data"):
     sysinfo = sysinfo.replace("${ANY-DIFF}", "Local diff applied" if anydiff else "No diff applied")
     sysinfo = sysinfo.replace("${GCC-VERSION}", shell("i686-elf-gcc --version").replace('\n', ''))
     sysinfo = sysinfo.replace("${NASM-VERSION}", shell("nasm -v").replace('\n', ''))
+    sysinfo = sysinfo.replace("${OS-VERSION}", str(int(buildVersion(), 16)))
+    sysinfo = sysinfo.replace("${OS-SIGNATURE}", buildSignature())
     write("out/mnt/config/sysinfo", sysinfo)
 
 # apps can end up in /initrd and/or /apps in the main filesystem

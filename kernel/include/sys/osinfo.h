@@ -18,8 +18,7 @@
 #define SYS_OSINFO
 
 #define OSNAME "Puppy"
-
-#define OSMAJOR 0
-#define OSMINOR 1
+#define OSBUILDSIGNATURE __build_signature_
+#define OSBUILDVERSION __build_version_
 
 #endif
