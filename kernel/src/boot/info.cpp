@@ -16,10 +16,11 @@
 #include <kernel/sys/osinfo.h>
 #include <kernel/i386/cpuid.h>
 #include <kernel/drivers/framebuffer/fb.h>
+#include <kernel/log/log.h>
 
 namespace boot::info {
     uint32_t init() {
-        bootphase_t::printf("%s %s built on %s at %s\n", OSNAME, OSBUILDSIGNATURE, __DATE__, __TIME__);
+        LOG_INFO("%s %s built on %s at %s\n", OSNAME, OSBUILDSIGNATURE, __DATE__, __TIME__);
         return 0;
     }
 }
