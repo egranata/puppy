@@ -650,6 +650,14 @@ with Chronometer("Copying configuration data"):
     if anydiff:
         diff_text = shell("git diff")
         write("out/mnt/config/local.diff", diff_text)
+    
+    sig_info = {
+        "name" : "Puppy",
+        "version" : int(buildVersion(), 16),
+        "signature" : buildSignature()
+    }
+    with open("out/mnt/config/signature.json", "w") as f:
+        json.dump(sig_info, f)
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
