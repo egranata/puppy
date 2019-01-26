@@ -312,4 +312,6 @@ struct irq_info_t {
     uint64_t count;
 };
 
+typedef uint64_t feature_id_t;
+
 #endif

@@ -101,5 +101,7 @@ syscall_response_t wait1_syscall(uint16_t arg1,uint32_t arg2);
 constexpr uint8_t wait1_syscall_id = 0x28;
 syscall_response_t fsinfo_syscall(const char* arg1,filesystem_info_t* arg2);
 constexpr uint8_t fsinfo_syscall_id = 0x29;
+syscall_response_t checkfeatures_syscall(feature_id_t* arg1);
+constexpr uint8_t checkfeatures_syscall_id = 0x2a;
 
 #endif

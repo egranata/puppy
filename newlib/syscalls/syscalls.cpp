@@ -157,3 +157,6 @@ syscall_response_t wait1_syscall(uint16_t arg1,uint32_t arg2) {
 syscall_response_t fsinfo_syscall(const char* arg1,filesystem_info_t* arg2) {
 	return syscall2(fsinfo_syscall_id,(uint32_t)arg1,(uint32_t)arg2);
 }
+syscall_response_t checkfeatures_syscall(feature_id_t* arg1) {
+	return syscall1(checkfeatures_syscall_id,(uint32_t)arg1);
+}
