@@ -647,6 +647,9 @@ with Chronometer("Copying configuration data"):
     sysinfo = sysinfo.replace("${OS-VERSION}", str(int(buildVersion(), 16)))
     sysinfo = sysinfo.replace("${OS-SIGNATURE}", buildSignature())
     write("out/mnt/config/sysinfo", sysinfo)
+    if anydiff:
+        diff_text = shell("git diff")
+        write("out/mnt/config/local.diff", diff_text)
 
 # apps can end up in /initrd and/or /apps in the main filesystem
 # this table allows one to configure which apps land where (the default
