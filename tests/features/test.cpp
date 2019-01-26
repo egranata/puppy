@@ -18,10 +18,7 @@
 #include <libcheckup/assert.h>
 #include <syscalls.h>
 #include <kernel/syscalls/types.h>
-
-// TODO: a list of features visible to userspace
-#define FEATURE(name, id) static constexpr feature_id_t gFeatureId ## name = id;
-#include <kernel/sys/features.tbl>
+#include <sys/osfeatures.h>
 
 class TheTest : public Test {
     public:
