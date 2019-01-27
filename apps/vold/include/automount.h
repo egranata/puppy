@@ -25,6 +25,8 @@ void automountVolumeHandler(const char* volid);
 
 struct automount_rule_t {
     uint64_t uuid;
+    std::string id;
+
     std::string path;
 };
 

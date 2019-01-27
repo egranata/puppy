@@ -2,5 +2,7 @@
     {"uuid" : 2695938256,
      "mountpoint" : "/home"},
     {"uuid" : 1437252454,
+     "mountpoint" : ""},
+    {"id" : "ramdisk0vol",
      "mountpoint" : ""}
 ]

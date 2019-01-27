@@ -20,12 +20,16 @@
 #include <kernel/syscalls/types.h>
 
 #include <unordered_map>
+#include <vector>
 
 #include <parson/parson.h>
 
 #define VOLD_SETTINGS_PATH "/system/config/vold/automount.json"
 
-std::unordered_map<uint64_t, automount_rule_t> gAutomountRules;
+namespace {
+    std::unordered_map<uint64_t, automount_rule_t> gRulesByUUID;
+    std::vector<automount_rule_t> gRulesByName;
+}
 
 struct fdelete {
     fdelete(FILE* f) : fobj(f) {}
@@ -38,6 +42,29 @@ struct fdelete {
 private:
     FILE* fobj;
 };
+
+static bool processRule(int fid, automount_rule_t& rule, const char* volid) {
+    int ok = 0;
+
+    const auto& desired_mountpoint = rule.path;
+    if (desired_mountpoint.size() > 0) {
+        ok = mount_syscall(fid, desired_mountpoint.c_str());
+        if (ok) {
+            printf("[vold] error: volume '%s' cannot be mounted at '%s'\n",
+                volid, desired_mountpoint.c_str());
+            return false;
+        }
+    }
+
+    ok = unmount_syscall(volid);
+    if (ok) {
+        printf("[vold] error: volume '%s' cannot be unmounted from default location\n",
+            volid);
+        return false;
+    }
+
+    return true;
+}
 
 void automountVolumeHandler(const char* volid) {
     std::string fpath;
@@ -62,20 +89,17 @@ void automountVolumeHandler(const char* volid) {
         return;
     }
 
-    auto iter = gAutomountRules.find(fsinfo.fs_uuid), end = gAutomountRules.end();
-    if (iter == end) return;
-    const auto& desired_mountpoint = iter->second.path;
-    if (desired_mountpoint.size() > 0) {
-        ok = mount_syscall(fid, desired_mountpoint.c_str());
-        if (ok) {
-            printf("[vold] error: volume '%s' cannot be mounted at '%s'\n", volid, desired_mountpoint.c_str());
-            return;
+    auto iter = gRulesByUUID.find(fsinfo.fs_uuid), end = gRulesByUUID.end();
+    if (iter != end) {
+        processRule(fid, iter->second, volid);
+    } else {
+        auto iter = gRulesByName.begin(), end = gRulesByName.end();
+        while(iter != end) {
+            if (volid == strstr(volid, iter->id.c_str())) {
+                processRule(fid, *iter, volid);
+                break;
+            }
         }
-    }
-    ok = unmount_syscall(volid);
-    if (ok) {
-        printf("[vold] error: volume '%s' cannot be unmounted from default location\n", volid);
-        return;
     }
 }
 
@@ -92,10 +116,12 @@ bool loadAutomountRules() {
         automount_rule_t rule;
         rule.uuid = (uint64_t)json_object_get_number(entry, "uuid");
         rule.path = json_object_get_string(entry, "mountpoint");
+        const char* id = json_object_get_string(entry, "id");
+        rule.id = id ? id : "";
         if (rule.uuid != 0)
-            gAutomountRules.emplace(rule.uuid, rule);
-        else
-            return false;
+            gRulesByUUID.emplace(rule.uuid, rule);
+        if (rule.id != "")
+            gRulesByName.push_back(rule);
     }
 
     return true;
