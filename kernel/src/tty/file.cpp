@@ -316,6 +316,11 @@ entry:
 #define CURRENT_CSI_INPUT mEscapeSequenceInput[mCurrentEscapeSequenceInput]
 #define NUM_CSI_INPUTS (mCurrentEscapeSequenceInput+1)
 
+template<typename T = int>
+static constexpr bool inRange(T value, T low, T high) {
+    return (value >= low) && (value < high);
+}
+
 size_t TTYFile::write(size_t s, char* buffer) {
     const size_t s0 = s;
 
@@ -448,14 +453,21 @@ size_t TTYFile::write(size_t s, char* buffer) {
                         if (CURRENT_CSI_INPUT == 7) mTTY->swapColors();
                         if (CURRENT_CSI_INPUT >= 30 && CURRENT_CSI_INPUT < 39) mTTY->setANSIForegroundColor(CURRENT_CSI_INPUT);
                         if (CURRENT_CSI_INPUT >= 40 && CURRENT_CSI_INPUT < 49) mTTY->setANSIBackgroundColor(CURRENT_CSI_INPUT);
-                    }
-                    if (NUM_CSI_INPUTS == 5) {
+                    } else if (NUM_CSI_INPUTS == 2) {
+                        if (inRange(mEscapeSequenceInput[0], 30, 39)) mTTY->setANSIForegroundColor(mEscapeSequenceInput[0]);
+                        if (inRange(mEscapeSequenceInput[1], 30, 39)) mTTY->setANSIForegroundColor(mEscapeSequenceInput[1]);
+
+                        if (inRange(mEscapeSequenceInput[0], 40, 49)) mTTY->setANSIBackgroundColor(mEscapeSequenceInput[0]);
+                        if (inRange(mEscapeSequenceInput[1], 40, 49)) mTTY->setANSIBackgroundColor(mEscapeSequenceInput[1]);
+                    } else if (NUM_CSI_INPUTS == 5) {
                         if (mEscapeSequenceInput[0] == 38 && mEscapeSequenceInput[1] == 2) {
                             mTTY->setANSIForegroundColor(mEscapeSequenceInput[2], mEscapeSequenceInput[3], mEscapeSequenceInput[4]);
                         }
                         if (mEscapeSequenceInput[0] == 48 && mEscapeSequenceInput[1] == 2) {
                             mTTY->setANSIBackgroundColor(mEscapeSequenceInput[2], mEscapeSequenceInput[3], mEscapeSequenceInput[4]);
                         }
+                    } else {
+                        TAG_ERROR(RAWTTY, "unknown m escape sequence: %u inputs not supported", NUM_CSI_INPUTS);
                     }
                 }
             } break;
