@@ -16,9 +16,10 @@
 
 import json, os, subprocess, time, sys, tempfile
 
-CMDLINE='qemu-system-i386 -drive format=raw,media=disk,file=out/os.img -display none -serial file:out/kernel.log -m 768 -d guest_errors ' + \
+def getCmdline(ramMB):
+    return 'qemu-system-i386 -drive format=raw,media=disk,file=out/os.img -display none -serial file:out/kernel.log -d guest_errors ' + \
         '-rtc base=utc -monitor stdio -smbios type=0,vendor="Puppy" -smbios type=1,manufacturer="Puppy",product="Puppy System",serial="P0PP1" ' + \
-        '-k en-us -cpu n270'
+        '-k en-us -cpu n270 -m %s' % ramMB
 
 MAX_TEST_LEN = 0
 MAX_TEST_WAIT = 0
@@ -29,10 +30,10 @@ def ensureGone(path):
     except:
         pass
 
-def spawn():
+def spawn(ramMB=768):
     fout = tempfile.TemporaryFile()
     ferr = tempfile.TemporaryFile()
-    return subprocess.Popen(CMDLINE, shell=True, stdin=subprocess.PIPE, stdout=fout, stderr=ferr, cwd=os.getcwd())
+    return subprocess.Popen(getCmdline(ramMB), shell=True, stdin=subprocess.PIPE, stdout=fout, stderr=ferr, cwd=os.getcwd())
 
 def readLog():
     with open('out/kernel.log') as f:
@@ -40,7 +41,7 @@ def readLog():
 
 def checkAlive():
     log = readLog()
-    return log.find("init is up and running") > 0
+    return log.find("shell is up and running") > 0
 
 def checkTestPass(tid):
     log = readLog()
@@ -70,9 +71,12 @@ def sendString(qemu, s):
     say(qemu, "sendkey kp_enter")
     qemu.stdin.flush()
 
-def quit(qemu, ec):
+def exitQemu(qemu):
     say(qemu, "q")
     qemu.communicate()
+
+def quit(qemu, ec):
+    exitQemu(qemu)
     sys.exit(ec)
 
 def waitFor(testid, deadline, passed, failed):
@@ -97,9 +101,6 @@ def waitFor(testid, deadline, passed, failed):
     print(readLog())
     quit(qemu, 1)
 
-ensureGone("out/kernel.log")
-qemu = spawn()
-
 TEST_PLAN = json.load(open(sys.argv[1], "r"))
 
 for TEST in TEST_PLAN:
@@ -108,6 +109,13 @@ for TEST in TEST_PLAN:
     MAX_TEST_LEN = max(MAX_TEST_LEN, len(tid))
     MAX_TEST_WAIT = max(MAX_TEST_WAIT, wait)
 
+ensureGone("out/kernel.log")
+qemu = spawn(ramMB=33)
+waitFor("Low RAM Boot", MAX_TEST_WAIT, checkAlive, None)
+exitQemu(qemu)
+
+ensureGone("out/kernel.log")
+qemu = spawn()
 waitFor("Boot", MAX_TEST_WAIT, checkAlive, None)
 
 sendString(qemu, "/system/tests/runall.sh")
