@@ -26,7 +26,7 @@ class TheTest : public Test {
     
     protected:
         void run() override {
-            feature_id_t features[2] = {gFeatureIdPuppy, gFeatureIdPuppy};
+            feature_id_t features[] = {gFeatureIdExecInheritsSystem, gFeatureIdPuppy};
             CHECK_EQ(0, checkfeatures_syscall(features));
             features[0] = gFeatureIdInvalid;
             CHECK_NOT_EQ(0, checkfeatures_syscall(features));

@@ -18,5 +18,6 @@
 #error "define FEATURE before including this file"
 #endif
 
-FEATURE(Puppy,   0x0000000000000000)
-FEATURE(Invalid, 0xFEAFEAFEAFEAFEA0)
+FEATURE(Puppy,                      0x0000000000000000)
+FEATURE(ExecInheritsSystem,         0x0000000000000EEC)
+FEATURE(Invalid,                    0xFEAFEAFEAFEAFEA0)

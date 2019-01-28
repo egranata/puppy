@@ -20,7 +20,8 @@
 #undef FEATURE
 
 feature_id_t gEnabledFeatures[] = {
-    gFeatureIdPuppy
+    gFeatureIdPuppy,
+    gFeatureIdExecInheritsSystem
 };
 
 size_t gNumFeatures = sizeof(gEnabledFeatures) / sizeof(gEnabledFeatures[0]);
