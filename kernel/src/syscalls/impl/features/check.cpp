@@ -18,7 +18,7 @@
 
 syscall_response_t checkfeatures_syscall_handler(feature_id_t* features) {
     size_t i = 0;
-    while(features && features[i]) {
+    for(; features && features[i]; ++i) {
         if (!hasFeature(features[i])) return ERR(UNIMPLEMENTED);
     }
     return OK;
