@@ -16,13 +16,12 @@
 #include <kernel/libc/sprint.h>
 #include <kernel/drivers/serial/serial.h>
 #include <kernel/sys/config.h>
-#include <kernel/libc/bytesizes.h>
 #include <kernel/time/manager.h>
 #include <kernel/boot/phase.h>
 
 namespace boot::logging {
     uint32_t init() {
-        realloc_log_buffer(1024 * (uint32_t)gKernelConfiguration()->logsize.value);
+        realloc_log_buffer(gKernelMessageSize * (uint32_t)gKernelConfiguration()->logsize.value);
         return 0;
     }
 }
@@ -74,17 +73,16 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     LogBuffer* the_log_buffer = get_log_buffer();
     log_stats_t& the_log_stats(gLogStats());
 
-    static constexpr size_t gBufferSize = 1024;
-    static char gBuffer[gBufferSize];
+    static char gBuffer[gKernelMessageSize];
     size_t n = 0;
     const auto uptime = TimeManager::get().millisUptime();
     const auto uptime_sec = uptime / 1000;
     const uint32_t uptime_ms = uptime % 1000;
-    n = sprint(&gBuffer[0], gBufferSize, "[%llu.%u] %s:%lu ",
+    n = sprint(&gBuffer[0], gKernelMessageSize, "[%llu.%u] %s:%lu ",
         uptime_sec, uptime_ms,
         filename, line);
-    if (tag) n += sprint(&gBuffer[n], gBufferSize-n, "(%s) ", tag);
-	vsprint(&gBuffer[n], gBufferSize-n, fmt, args);
+    if (tag) n += sprint(&gBuffer[n], gKernelMessageSize-n, "(%s) ", tag);
+	vsprint(&gBuffer[n], gKernelMessageSize-n, fmt, args);
     const auto& buflen = strlen(gBuffer) + 1;
 
     ++the_log_stats.num_log_entries;

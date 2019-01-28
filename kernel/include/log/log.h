@@ -21,11 +21,14 @@
 #include <kernel/sys/stdint.h>
 #include <kernel/libc/enableif.h>
 #include <kernel/libc/ringbuffer.h>
+#include <kernel/libc/bytesizes.h>
 
 #ifdef LOG_NODEBUG
 #warning define a proper logging level instead of relying on LOG_NODEBUG
 #define LOG_LEVEL 1
 #endif
+
+static constexpr size_t gKernelMessageSize = 1_KB;
 
 using LogBuffer = RingBuffer<char>;
 
