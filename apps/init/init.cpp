@@ -46,6 +46,7 @@ struct init_service_t {
     std::string args;
     bool foreground;
     bool wait;
+    bool system;
 };
 
 static const char* gServicesList = "/system/config/init.svc";
@@ -95,8 +96,9 @@ InitScriptResult readInitScript(const char* path, std::string* dest) {
 kpid_t spawnService(const init_service_t &svc) {
     kpid_t pid;
 
-    int flags = PROCESS_IS_FOREGROUND;
-    if (svc.foreground == false) flags = 0;
+    int flags = 0;
+    if (svc.foreground) flags |= PROCESS_IS_FOREGROUND;
+    if (svc.system) flags |= PROCESS_INHERITS_SYSTEM;
 
     if (svc.args.empty()) {
         if (gInitConfig.verbose) printf("[init] spawning %s\n", svc.path.c_str());
@@ -172,8 +174,10 @@ static bool parseInitServices(const std::string& content, std::vector<init_servi
         const char* args = json_object_get_string(service, "args");
         int fg = json_object_get_boolean(service, "foreground");
         int wait = json_object_get_boolean(service, "wait");
+        int system = json_object_get_boolean(service, "system");
         if (fg == -1) fg = 0; // default to background
         if (wait == -1) wait = 0; // default to non-waiting
+        if (system == -1) system = 0; // default to non-system
         if (name == nullptr || path == nullptr || args == nullptr) continue;
 
         init_service_t new_svc_info {
@@ -182,6 +186,7 @@ static bool parseInitServices(const std::string& content, std::vector<init_servi
             .args = std::string(args),
             .foreground = (fg == 1),
             .wait = (wait == 1),
+            .system = (system == 1)
         };
         dest.push_back(new_svc_info);
     }
