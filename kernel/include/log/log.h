@@ -29,6 +29,10 @@
 #endif
 
 static constexpr size_t gKernelMessageSize = 1_KB;
+typedef char kernel_log_msg_t[gKernelMessageSize];
+
+typedef void(*kernel_log_callback_f)(kernel_log_msg_t, void*);
+void set_log_callback(kernel_log_callback_f, void*);
 
 using LogBuffer = RingBuffer<char>;
 

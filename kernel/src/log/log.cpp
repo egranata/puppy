@@ -26,6 +26,14 @@ namespace boot::logging {
     }
 }
 
+static kernel_log_callback_f gCallback;
+static void* gCallbackBaton;
+void set_log_callback(kernel_log_callback_f f, void* baton) {
+    gCallback = f;
+    gCallbackBaton = baton;
+}
+static bool inCallback;
+
 namespace {
     LogBuffer* gInitialRingBuffer() {
         static constexpr size_t gBufferSize = 32_KB;
@@ -73,7 +81,7 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
     LogBuffer* the_log_buffer = get_log_buffer();
     log_stats_t& the_log_stats(gLogStats());
 
-    static char gBuffer[gKernelMessageSize];
+    static kernel_log_msg_t gBuffer;
     size_t n = 0;
     const auto uptime = TimeManager::get().millisUptime();
     const auto uptime_sec = uptime / 1000;
@@ -96,4 +104,12 @@ void __really_log(const char* tag, const char* filename, unsigned long line, con
 
     if (gKernelConfiguration()->logging.value == kernel_config_t::config_logging::gNoSerialLogging) return;
     Serial::get().write(gBuffer).write("\n");
+
+    // can't recurse, in case actions taken by the callback cause more logging to occur
+    // one could replace this with a depth, so that - say - one level of nesting is fine but not endlessly many
+    if (gCallback && !inCallback) {
+        inCallback = true;
+        gCallback(gBuffer, gCallbackBaton);
+        inCallback = false;
+    }
 }
