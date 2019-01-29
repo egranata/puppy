@@ -21,9 +21,6 @@ namespace boot {
     namespace logging {
         uint32_t init();
     }
-    namespace logd {
-        uint32_t init();
-    }
     namespace info {
         uint32_t init();
     }
@@ -193,14 +190,6 @@ __attribute__((constructor)) void loadBootPhases() {
         operation : boot::mutexfs::init,
         onSuccess : nullptr,
         onFailure : boot::mutexfs::fail
-    });
-
-    registerBootPhase(bootphase_t{
-        description : "Configure logging",
-        visible : false,
-        operation : boot::logd::init,
-        onSuccess : nullptr,
-        onFailure : nullptr
     });
 
     registerBootPhase(bootphase_t{
