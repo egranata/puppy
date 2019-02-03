@@ -77,6 +77,8 @@ class PipeManager : public Filesystem {
                 virtual bool isReadFile() const = 0;
                 virtual bool isWriteFile() const { return !isReadFile(); }
 
+                static bool classof(const FilesystemObject*);
+
             protected:
                 PipeBuffer *mBuffer;
         };

@@ -84,7 +84,9 @@ class MessageQueueFile : public Filesystem::File {
         // subclasses must override one of these
         size_t read(size_t, char*) override { return 0; }
         size_t write(size_t, char*) override { return 0; }
-    
+
+        static bool classof(const FilesystemObject*);
+
     protected:
         MessageQueueBuffer* mBuffer;
 };
@@ -95,6 +97,9 @@ class MessageQueueReadFile : public MessageQueueFile {
         size_t read(size_t, char*) override;
         bool isReader() const override { return true; }
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
+
+        static bool classof(const FilesystemObject*);
+
     private:
         bool mBlockIfEmpty;
 };
@@ -105,6 +110,9 @@ class MessageQueueWriteFile : public MessageQueueFile {
         size_t write(size_t, char*) override;
         bool isReader() const override { return false; }
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
+
+        static bool classof(const FilesystemObject*);
+
     private:
         bool mBlockIfFull;
 };

@@ -60,6 +60,8 @@ class Filesystem : NOCOPY {
                 virtual WaitableObject* waitable();
                 virtual uintptr_t ioctl(uintptr_t, uintptr_t);
 
+                static bool classof(const FilesystemObject*);
+
                 virtual ~File() = default;
 
             protected:
@@ -73,6 +75,8 @@ class Filesystem : NOCOPY {
 
                 virtual bool next(fileinfo_t&) = 0;
                 virtual ~Directory() = default;
+
+                static bool classof(const FilesystemObject*);
 
             protected:
                 Directory();

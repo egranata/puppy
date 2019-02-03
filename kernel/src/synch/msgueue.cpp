@@ -167,6 +167,18 @@ uintptr_t MessageQueueFile::ioctl(uintptr_t a, uintptr_t b) {
     return this->File::ioctl(a,b);
 }
 
+bool MessageQueueFile::classof(const FilesystemObject* f) {
+    return (f != nullptr && f->kind() == file_kind_t::msgqueue);
+}
+
+bool MessageQueueReadFile::classof(const FilesystemObject* f) {
+    return MessageQueueFile::classof(f);
+}
+
+bool MessageQueueWriteFile::classof(const FilesystemObject* f) {
+    return MessageQueueFile::classof(f);
+}
+
 MessageQueueReadFile::MessageQueueReadFile(MessageQueueBuffer* buf) : MessageQueueFile(buf) {
     mBuffer->openReader();
     mBlockIfEmpty = true;

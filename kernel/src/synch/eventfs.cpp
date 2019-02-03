@@ -85,6 +85,10 @@ public:
         return 0;
     }
 
+    static bool classof(const FilesystemObject* f) {
+        return (f != nullptr && f->kind() == file_kind_t::event);
+    }
+
     Event* event() { return mEvent; }
 private:
     Event *mEvent;

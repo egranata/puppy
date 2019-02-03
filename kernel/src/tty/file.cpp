@@ -76,6 +76,10 @@ bool TTYFile::tell(size_t*) {
     return false;
 }
 
+bool TTYFile::classof(const FilesystemObject* f) {
+    return (f != nullptr && f->kind() == file_kind_t::tty);
+}
+
 // TODO: this should be using waitqueues - not yielding
 key_event_t TTYFile::procureOne() {
 ch:

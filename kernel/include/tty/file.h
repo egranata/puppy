@@ -32,6 +32,9 @@ class TTYFile : public Filesystem::File {
         size_t write(size_t, char*) override;
         bool doStat(stat_t&) override;
         uintptr_t ioctl(uintptr_t, uintptr_t) override;
+
+        static bool classof(const FilesystemObject*);
+
     private:
         TTY* mTTY;
         struct input_t {

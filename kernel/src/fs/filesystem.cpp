@@ -136,3 +136,11 @@ uint32_t Filesystem::decref() {
         if (mRefcount.cmpxchg(current, wanted)) return wanted;
     }
 }
+
+bool Filesystem::File::classof(const FilesystemObject* f) {
+    return (f != nullptr && f->kind() == file_kind_t::file);
+}
+
+bool Filesystem::Directory::classof(const FilesystemObject* f) {
+    return (f != nullptr && f->kind() == file_kind_t::directory);
+}
