@@ -641,6 +641,7 @@ void ProcessManager::exit(process_t* task, process_exit_status_t es) {
 
     task->getMemoryManager()->cleanupAllRegions();
     LOG_DEBUG("done cleaning memory regions");
+    VirtualPageManager::get().cleanAddressSpace();
 
     for(auto i = 0u; i < task->fds.size(); ++i) {
         decltype(task->fds)::entry_t fd;
