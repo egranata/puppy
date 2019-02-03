@@ -17,6 +17,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/cpp/rtti.h>
 
 namespace boot::mutexfs {
     uint32_t init() {
@@ -105,11 +106,7 @@ Filesystem::File* MutexFS::doOpen(const char* name, uint32_t) {
 void MutexFS::doClose(FilesystemObject* file) {
     if (file == nullptr) return;
 
-    if (file->kind() != file_kind_t::mutex) {
-        PANIC("MutexFS cannot close anything but mutexes");
-    }
-
-    MutexFile *mFile = (MutexFile*)file;
+    auto mFile = rtti_cast<MutexFile>(file);
     Mutex* mtx = mFile->mutex();
     const bool erased = mMutexes.release(mtx->key());
 

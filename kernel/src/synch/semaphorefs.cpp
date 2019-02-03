@@ -17,6 +17,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/cpp/rtti.h>
 
 namespace boot::semaphorefs {
     uint32_t init() {
@@ -112,11 +113,7 @@ Filesystem::File* SemaphoreFS::doOpen(const char* name, uint32_t) {
 void SemaphoreFS::doClose(FilesystemObject* file) {
     if (file == nullptr) return;
 
-    if (file->kind() != file_kind_t::semaphore) {
-        PANIC("SemaphoreFS cannot close anything but semaphores");
-    }
-
-    SemaphoreFile *sFile = (SemaphoreFile*)file;
+    auto sFile = rtti_cast<SemaphoreFile>(file);
     Semaphore* sema = sFile->semaphore();
     const bool erased = mSemaphores.release(sema->key());
 

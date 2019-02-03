@@ -17,6 +17,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/log/log.h>
 #include <kernel/syscalls/types.h>
+#include <kernel/cpp/rtti.h>
 
 namespace boot::eventfs {
     uint32_t init() {
@@ -103,11 +104,9 @@ Filesystem::File* EventFS::doOpen(const char* name, uint32_t) {
 void EventFS::doClose(FilesystemObject* file) {
     if (file == nullptr) return;
 
-    if (file->kind() != file_kind_t::event) {
-        PANIC("EventFS cannot close anything but events");
-    }
+    auto sFile = rtti_cast<EventFile>(file);
+    if (sFile == nullptr) return;
 
-    EventFile *sFile = (EventFile*)file;
     Event* sema = sFile->event();
     const bool erased = mEvents.release(sema->key());
 
