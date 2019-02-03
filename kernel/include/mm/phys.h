@@ -38,6 +38,7 @@ public:
 	ResultOrError<uintptr_t> alloc();
 	uintptr_t alloc(uintptr_t base);
 	void dealloc(uintptr_t base);
+	size_t refcount(uintptr_t base);
 
 	// allocate "num" contiguous pages of physical memory; return true if found and
 	// *base == initial allocated byte (so it's [base, base+num*gPageSize-1])
@@ -56,6 +57,7 @@ private:
 		bool usable;
 		atomic<ref> refcnt;
 
+		size_t refcount();
 		bool free();
 		ref incref();
 		ref decref();

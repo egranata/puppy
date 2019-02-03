@@ -40,6 +40,10 @@ bool PhysicalPageManager::phys_page_t::free() {
 	return refcnt == 0;
 }
 
+size_t PhysicalPageManager::phys_page_t::refcount() {
+	return refcnt.load();
+}
+
 uint8_t PhysicalPageManager::phys_page_t::incref() {
 	return (++refcnt).load();
 }
@@ -152,6 +156,12 @@ void PhysicalPageManager::dealloc(uintptr_t base) {
 		TAG_DEBUG(PMLEAK, "DEALLOC 0x%p", base);
 	}
 	LOG_DEBUG("deallocated page at 0x%p (idx = %u) - rc = %u", base, idx, rc);
+}
+
+size_t PhysicalPageManager::refcount(uintptr_t base) {
+	auto idx = index(base);
+	if (!mPages[idx].usable) return 0;
+	return mPages[idx].refcount();
 }
 
 bool PhysicalPageManager::allocContiguousPages(size_t num, uintptr_t *base) {
