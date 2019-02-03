@@ -16,9 +16,13 @@
 #include <kernel/process/current.h>
 #include <kernel/libc/string.h>
 
-Event::Event(const char* name) {
+Event::Event(const char* name) : WaitableObject(WaitableObject::Kind::Kind_Event) {
     mKey = strdup(name);
     mRaised = false;
+}
+
+bool Event::classof(const WaitableObject* e) {
+    return (e != nullptr && e->getKind() == Kind::Kind_Event);
 }
 
 Event::~Event() {

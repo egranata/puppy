@@ -15,7 +15,11 @@
 #include <kernel/synch/waitobj.h>
 #include <kernel/process/process.h>
 
-WaitableObject::WaitableObject() = default;
+WaitableObject::WaitableObject(Kind k) : mKind(k), mWQ() {}
+
+WaitableObject::Kind WaitableObject::getKind() const {
+    return mKind;
+}
 
 WaitQueue* WaitableObject::waitqueue() {
     return &mWQ;

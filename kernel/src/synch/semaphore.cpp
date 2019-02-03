@@ -19,10 +19,14 @@
 #include <kernel/libc/hash.h>
 #include <kernel/log/log.h>
 
-Semaphore::Semaphore(const char* name, uint32_t initial, uint32_t max) {
+Semaphore::Semaphore(const char* name, uint32_t initial, uint32_t max) : WaitableObject(WaitableObject::Kind::Kind_Semaphore){
     mKey = strdup(name);
     mValue = initial;
     mMaxValue = max;
+}
+
+bool Semaphore::classof(const WaitableObject* e) {
+    return (e != nullptr && e->getKind() == Kind::Kind_Semaphore);
 }
 
 Semaphore::~Semaphore() {

@@ -18,9 +18,13 @@
 #include <kernel/libc/hash.h>
 #include <kernel/log/log.h>
 
-Mutex::Mutex(const char* name) {
+Mutex::Mutex(const char* name) : WaitableObject(WaitableObject::Kind::Kind_Mutex) {
     mKey = strdup(name);
     mLocked = false;
+}
+
+bool Mutex::classof(const WaitableObject* e) {
+    return (e != nullptr && e->getKind() == Kind::Kind_Mutex);
 }
 
 Mutex::~Mutex() {

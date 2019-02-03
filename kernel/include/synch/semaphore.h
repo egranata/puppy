@@ -38,6 +38,8 @@ class Semaphore : public WaitableObject {
         uint32_t max() const;
         void max(uint32_t);
 
+        static bool classof(const WaitableObject*);
+
     private:
         char* mKey;
         uint32_t mValue;

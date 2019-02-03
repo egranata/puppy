@@ -23,13 +23,21 @@ struct process_t;
 
 class WaitableObject {
     public:
+        enum class Kind {
+            Kind_Event,
+            Kind_Mutex,
+            Kind_Semaphore
+        };
+        Kind getKind() const;
+
         WaitQueue* waitqueue();
         virtual bool wait(uint32_t timeout) = 0;
         virtual bool myWake(process_t*);
     protected:
-        WaitableObject();
+        WaitableObject(Kind);
         virtual ~WaitableObject();
     private:
+        Kind mKind;
         WaitQueue mWQ;
 };
 

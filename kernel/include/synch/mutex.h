@@ -38,6 +38,8 @@ class Mutex : public WaitableObject {
 
         const char* key();
 
+        static bool classof(const WaitableObject*);
+
     private:
         bool dolock(process_t*);
 

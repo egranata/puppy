@@ -36,6 +36,8 @@ class Event : public WaitableObject {
 
         const char* key();
 
+        static bool classof(const WaitableObject*);
+
     private:
         const char* mKey;
         bool mRaised;
