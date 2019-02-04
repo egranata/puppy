@@ -49,7 +49,7 @@ static void test_timeout_child1() {
     sleep(2);
     FILE *fsema = fopen(TIMEOUT_SEMPATH, "r");
     int fdsema = fileno(fsema);
-    int ok = wait1_syscall(fdsema, 5000);
+    int ok = wait1_syscall(fdsema, 2500);
     exit(ok);
 }
 
@@ -57,7 +57,7 @@ static void test_timeout_child2() {
     sleep(2);
     FILE *fsema = fopen(TIMEOUT_SEMPATH, "r");
     int fdsema = fileno(fsema);
-    int ok = wait1_syscall(fdsema, 5000);
+    int ok = wait1_syscall(fdsema, 2500);
     exit(ok);
 }
 
@@ -73,7 +73,7 @@ class TestNoTimeout : public Test {
             auto c1 = clone(test_noTimeout_child1);
             CHECK_NOT_EQ(c1, 0);
 
-            sleep(4);
+            sleep(3);
             ioctl(fdsema, semaphore_ioctl_t::IOCTL_SEMAPHORE_SIGNAL, 0);
 
             auto s1 = collect(c1);
