@@ -73,6 +73,15 @@ static int interactiveLoop() {
     }
 }
 
+static int help(const char* name) {
+    printf("%s: the Puppy shell\n", name);
+    printf("accepts arguments:\n");
+    printf("  --help: prints this help text\n");
+    printf("  --parser-debug: prints out the parser output before executing commands\n");
+    printf("  --init: runs the init shell script\n");
+    return 0;
+}
+
 int main(int argc, const char** argv) {
     Parser::setDefaultDebug(false);
     setenv("PWD", getCurrentDirectory().c_str(), 1);
@@ -80,7 +89,9 @@ int main(int argc, const char** argv) {
     bool is_init_shell = false;
     bool is_interactive_shell = true;
     for (int i = 1; i < argc; ++i) {
-        if (0 == strcmp(argv[i], "--init")) {
+        if (0 == strcmp(argv[i], "--help")) {
+            return help(argv[0]);
+        } else if (0 == strcmp(argv[i], "--init")) {
             is_init_shell = true;
         } else if (0 == strcmp(argv[i], "--parser-debug")) {
             Parser::setDefaultDebug(true);
