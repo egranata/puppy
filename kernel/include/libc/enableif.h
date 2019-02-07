@@ -43,4 +43,16 @@ struct negate {
     static constexpr bool value = !Q::value;
 };
 
+template<typename T>
+struct is_void : public is_same<T, void> {};
+
+template<typename T>
+struct is_not_void : public negate<is_void<T>> {};
+
+static_assert(is_void<void>::value);
+static_assert(is_not_void<int>::value);
+
+static_assert(!is_void<int>::value);
+static_assert(!is_not_void<void>::value);
+
 #endif
