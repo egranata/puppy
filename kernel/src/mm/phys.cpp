@@ -112,7 +112,7 @@ void PhysicalPageManager::reserve(uintptr_t begin, uintptr_t end) {
 	}
 }
 
-ResultOrError<uintptr_t> PhysicalPageManager::alloc() {
+kernel_result_t<uintptr_t> PhysicalPageManager::alloc() {
 	for (size_t n = 0u, idx = mLastChecked; n < gNumPages; ++n, ++idx) {
 		if (idx == gNumPages) idx = 0;
 		if (!mPages[idx].usable) continue;
@@ -125,11 +125,11 @@ ResultOrError<uintptr_t> PhysicalPageManager::alloc() {
 			auto base = gPageSize * idx;
 			TAG_DEBUG(PMLEAK, "ALLOC 0x%p", base);
 			LOG_DEBUG("physical allocator returned page at 0x%p (idx = %u) - rc = %u", base, idx, rc);
-			return ResultOrError<uintptr_t>::result(base);
+			return kernel_result_t<uintptr_t>::success(base);
 		}
 	}
 
-	return ResultOrError<uintptr_t>::error("out of physical pages");
+	return kernel_result_t<uintptr_t>::failure(kernel_status_t::OUT_OF_MEMORY);
 }
 
 uintptr_t PhysicalPageManager::alloc(uintptr_t base) {
