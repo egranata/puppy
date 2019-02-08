@@ -606,7 +606,7 @@ uintptr_t VirtualPageManager::createAddressSpace() {
 	auto pageDirScratch = getScratchPage(pPageDir, new_table_options);
 	uint32_t *pageDir = pageDirScratch.get<uint32_t>();
 	LOG_DEBUG("new page tables will be at physical 0x%p virtual = 0x%p", pPageDir, pageDir);
-	uint32_t *kPageDir = (uint32_t*)0xffbff000;
+	uint32_t *kPageDir = (uint32_t*)gPageDirectoryAddress;
 	for (auto i = 0u; i < 768u; ++i) {
 		auto pPageTbl = phys.alloc().result();
 		LOG_DEBUG("new page table %u will be at physical 0x%p", i, pPageTbl);
