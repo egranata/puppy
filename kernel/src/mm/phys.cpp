@@ -125,11 +125,11 @@ kernel_result_t<uintptr_t> PhysicalPageManager::alloc() {
 			auto base = gPageSize * idx;
 			TAG_DEBUG(PMLEAK, "ALLOC 0x%p", base);
 			LOG_DEBUG("physical allocator returned page at 0x%p (idx = %u) - rc = %u", base, idx, rc);
-			return kernel_result_t<uintptr_t>::success(base);
+			return kernel_success(base);
 		}
 	}
 
-	return kernel_result_t<uintptr_t>::failure(kernel_status_t::OUT_OF_MEMORY);
+	return kernel_failure<uintptr_t>(kernel_status_t::OUT_OF_MEMORY);
 }
 
 uintptr_t PhysicalPageManager::alloc(uintptr_t base) {

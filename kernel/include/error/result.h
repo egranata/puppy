@@ -82,6 +82,14 @@ class kernel_result_t {
             else PANIC("result extracted out of failure result");
         }
 
+        template<typename R = T, typename Q = enable_if<is_not_void<R>::value>>
+        bool result(R* result) {
+            if (ok()) {
+                *result = mResult.success;
+                return true;
+            } else return false;
+        }
+
         kernel_status_t status() {
             if (ok()) return kernel_status_t::SUCCESS;
             return mResult.status;
@@ -113,5 +121,20 @@ class kernel_result_t {
         bool mChecked = false;
         kernel_result_value_t<T> mResult;
 };
+
+template<typename T, typename = enable_if<is_not_void<T>::value>>
+kernel_result_t<T> kernel_success(T arg) {
+    return kernel_result_t<T>::success(arg);
+}
+
+template<typename T, typename = enable_if<is_void<T>::value>>
+kernel_result_t<T> kernel_success() {
+    return kernel_result_t<T>::success();
+}
+
+template<typename T>
+kernel_result_t<T> kernel_failure(kernel_status_t e) {
+    return kernel_result_t<T>::failure(e);
+}
 
 #endif
