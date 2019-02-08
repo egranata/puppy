@@ -23,6 +23,7 @@
 #include <kernel/mm/heap.h>
 #include <kernel/sys/nocopy.h>
 #include <kernel/libc/intervals.h>
+#include <kernel/error/result.h>
 
 class PhysicalPageManager;
 struct process_t;
@@ -119,7 +120,7 @@ public:
 	bool isCOWAccess(unsigned int errcode, uintptr_t virt);
 
 	// returns the new *physical* address
-	uintptr_t clonePage(uintptr_t virt, const map_options_t&);
+	kernel_result_t<uintptr_t> clonePage(uintptr_t virt, const map_options_t&);
 
 	uintptr_t map(uintptr_t phys, uintptr_t virt, const map_options_t&);
 

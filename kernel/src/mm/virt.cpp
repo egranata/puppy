@@ -285,15 +285,17 @@ bool VirtualPageManager::isCOWAccess(unsigned int errcode, uintptr_t virt) {
 	return false;
 }
 
-uintptr_t VirtualPageManager::clonePage(uintptr_t virt, const map_options_t& options) {
+kernel_result_t<uintptr_t> VirtualPageManager::clonePage(uintptr_t virt, const map_options_t& options) {
 	auto pg = page(virt);
 
 	auto&& physall(PhysicalPageManager::get());
 	auto phys_result = physall.alloc();
-	uintptr_t phys = phys_result.result();
-	{
+	uintptr_t phys;
+	if (phys_result.result(&phys)) {
 		scratch_page_t sp = getScratchPage(phys);
 		memcopy((uint8_t*)pg, sp.get<uint8_t>(), gPageSize);
+	} else {
+		return kernel_failure<uintptr_t>(kernel_status_t::OUT_OF_MEMORY);
 	}
 
 	// new page is from PMM (we just allocated it above...)
@@ -305,7 +307,7 @@ uintptr_t VirtualPageManager::clonePage(uintptr_t virt, const map_options_t& opt
 	unmap(pg);
 	map(phys, pg, opts);
 
-	return phys;
+	return kernel_success(phys);
 }
 
 uintptr_t VirtualPageManager::map(uintptr_t phys, uintptr_t virt, const map_options_t& options) {

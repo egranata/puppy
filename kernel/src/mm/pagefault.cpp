@@ -140,9 +140,12 @@ static bool zeropage_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
 static bool cow_recover(VirtualPageManager& vmm, uintptr_t vaddr) {
     VirtualPageManager::map_options_t opts;
     if (vmm.mapped(vaddr, &opts)) {
-        auto phys = vmm.clonePage(vaddr, opts);
-        TAG_DEBUG(PGFAULT, "faulting address 0x%p was COW - remapped to 0x%p", vaddr, phys);
-        if (0 == (phys & 1)) return true;
+        auto phys_result = vmm.clonePage(vaddr, opts);
+        uintptr_t phys;
+        if (phys_result.result(&phys)) {
+            TAG_DEBUG(PGFAULT, "faulting address 0x%p was COW - remapped to 0x%p", vaddr, phys);
+            if (0 == (phys & 1)) return true;
+        }
     }
 
     return false;
